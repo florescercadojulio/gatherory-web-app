@@ -1,0 +1,298 @@
+# Gatherory Server Architecture
+
+This document defines the server conventions for Gatherory. Gatherory is one
+product, not a platform that hosts several independent applications. It uses
+workspaces as ownership, collaboration, and template-publishing scopes, without
+carrying over Humphrey Hub's application or platform-host abstractions. The
+agreed domain hierarchy is defined in [Product model](./product-model.md).
+
+## Product boundary
+
+The TanStack Start project owns the authenticated web product on the `app`
+subdomain. It contains the web UI, Better Auth endpoints, server functions, and
+the application domain. The public Astro landing page is a separate project
+and must not acquire authentication or database responsibilities.
+
+Normal request/response work belongs in TanStack Start server functions. Public
+or cross-origin endpoints, such as future mobile API routes and webhooks, use
+server routes. Durable notifications, media processing, and scheduled weather
+checks are later infrastructure slices; do not hide them inside request
+handlers.
+
+## Domain layout
+
+Product modules live directly under `src/server/<domain>/`:
+
+```text
+src/server/events/
+  contracts/
+  handlers/
+  workflows/
+  services/
+  repos/
+
+src/server/ideas/
+src/server/participants/
+src/server/registry/
+src/server/workspaces/
+src/server/templates/
+```
+
+There is no `src/server/apps/<app>` level. Events, ideas, participants, and
+registry entries are domains within the same Gatherory product.
+
+Use these suffixes consistently:
+
+- `*.contract.ts` or `*.contracts.ts` — serializable Zod schemas and types.
+- `*.handler.ts` — TanStack Start server-function boundaries.
+- `*.workflow.ts` — one use-case orchestration and transaction ownership.
+- `*.service.ts` / `*.service.live.ts` — domain API and implementation.
+- `*.repo.ts` / `*.repo.live.ts` — persistence API and implementation.
+- `*.con.ts` — an external provider connector.
+
+Routes and client components call handlers. They never import Drizzle,
+repositories, workflows, or provider SDKs.
+
+TanStack Start emits a client RPC stub for every imported server function.
+Handler modules must therefore keep their client-transformed import graph clean:
+do not derive exported or local types from runtime server singletons such as
+`typeof auth.api`. Define serializable contracts explicitly or import them with
+`import type` from a server-independent contract module. Database, Better Auth
+server, Node built-in, and provider imports may only remain in the server half
+of the transformed module.
+
+## Request flow
+
+```text
+route or component
+  -> authenticated, authorized handler
+  -> one workflow
+  -> domain service(s)
+  -> repository or connector
+```
+
+Dependencies point only down that chain. Keep a layer only when it owns a real
+responsibility; do not add empty wrappers for ceremony.
+
+## Workspace ownership and event authorization
+
+Workspaces own main events, templates, brand settings, and workspace
+memberships. Workspace roles authorize workspace administration and template
+publishing, but they are not a substitute for event access. A person may host
+one event, collaborate on another, and attend a third. Authorization for event
+content is therefore evaluated against the event in the request.
+
+The core vocabulary lives in `src/lib/permissions.ts`:
+
+- **Host** — can manage the event and its people.
+- **Collaborator** — can help plan according to the participant record's
+  planning permission.
+- **Guest** — can view invited experiences and manage only their own response.
+
+Every event owns participant assignments. Creating a child event may copy the
+main event assignments as a starting snapshot, but the child keeps independent
+records after creation. Never infer current child membership from the parent at
+read time.
+
+### Better Auth organizations and teams
+
+Better Auth's Organization plugin is the persistence and lifecycle layer for
+Gatherory workspaces. The Teams feature is enabled even though the first
+release provisions only one default **Planning** team. This provides stable
+active-workspace and active-team session context plus membership and invitation
+hooks without prematurely building the professional-workspace product.
+
+Use the boundary this way:
+
+- `organization` is the infrastructure record behind a Gatherory workspace;
+- `team` groups workspace members who coordinate planning;
+- `member` and Better Auth organization invitations concern workspace access;
+- `event_participant` and `event_invitation` concern one event's hosts,
+  collaborators, guests, permissions, and attendance.
+
+Do not add every guest to the Better Auth organization or Planning team. If a
+future workflow promotes an event collaborator into a durable workspace member,
+that must be an explicit workflow with both authorization checks and auditable
+writes.
+
+### Workspace routing
+
+`/workspaces` is the authenticated account-level directory for creating and
+selecting workspaces. Selected workspace pages use
+`/workspaces/:workspaceSlug`. The root product route redirects to the user's
+active or default member workspace. Switching the top-left workspace control
+navigates to a new slug, which causes the server-side workspace layout to
+resolve a fresh scope and render the matching sidebar.
+
+The resolver permits access through either Better Auth organization membership
+or an explicit `event_participant` record in that workspace. Participant access
+does not grant workspace administration, team membership, or resource creation.
+Never trust the slug alone: route loaders and server handlers continue to filter
+event data by both the resolved workspace ID and the signed-in user.
+
+The event hierarchy is deliberately shallow:
+
+```text
+main event
+  -> zero or more child events
+```
+
+A child event cannot have children. Enforce that invariant in the event-create
+workflow and back it with the strongest practical database constraints.
+
+## Handler construction
+
+A handler is the only server-function edge. It must:
+
+1. declare the HTTP method;
+2. apply session middleware;
+3. apply event-scoped authorization when the operation targets an event;
+4. validate all caller input;
+5. call exactly one workflow; and
+6. return a safe serializable result.
+
+Authentication and authorization are separate. `requireSessionMiddleware`
+proves identity. A domain authorization middleware resolves the participant
+assignment for the requested event and verifies the declared permission set.
+Route guards improve navigation, but do not authorize data access.
+
+```ts
+export const updateEvent = createServerFn({ method: "POST" })
+  .middleware([
+    requireSessionMiddleware,
+    requireEventPermissions({ event: ["read", "update"] }),
+  ])
+  .validator(UpdateEventSchema)
+  .handler(({ data, context }) =>
+    runServerEffect(
+      updateEventWorkflow(data).pipe(
+        // Provide service, repo, database, then trusted request context.
+      ),
+    ),
+  );
+```
+
+`requireEventPermissions` is added with the first event persistence slice. It
+must use a repository-backed access lookup; it must not trust a role, event ID,
+or permission array supplied by the browser. Middleware factories should make
+required permissions visible at the handler declaration.
+
+## Permission rules
+
+Permissions name capabilities, not screens. Examples include:
+
+- `event.read`, `event.update`, `event.delete`, `event.manageParticipants`
+- `idea.read`, `idea.create`, `idea.decide`, `idea.update`
+- `timeline.read`, `timeline.manage`
+- `registry.read`, `registry.manage`, `registry.commit`
+- `note.send`
+
+The matrix in `src/lib/permissions.ts` is the product default. A persisted
+participant assignment is still authoritative. Server authorization should
+resolve the assignment, derive its capabilities, and require every capability
+declared by the handler. Client-side checks may hide controls but never replace
+the server check.
+
+Keep differently privileged operations in separate handlers. For example,
+responding to an invitation and editing an event are different endpoints even
+when they appear in the same screen.
+
+## Contracts
+
+Contracts are serializable boundary vocabulary. Every handler input has a Zod
+schema. Inputs contain only values the caller may choose. IDs, ownership,
+participant snapshots, defaults, audit fields, and state transitions are set
+from trusted server context or by the workflow.
+
+List endpoints used by `EntityTablePage`, `EntityPicker`, and
+`MultiEntityPicker` use the shared shape:
+
+```ts
+type PageInput = { limit: number; offset: number; query: string };
+type Page<T> = { data: T[]; hasNextPage: boolean };
+```
+
+Repositories own filtering, stable ordering, and pagination. Fetch `limit + 1`
+rows and return only `limit`; the extra row is evidence for `hasNextPage`.
+Selectors return only the fields the picker needs.
+
+## Workflows and transactions
+
+A workflow represents one use case. It applies defaults, coordinates services,
+and owns the database transaction when multiple writes must be atomic.
+
+Creating a child event is a good transaction example:
+
+1. verify the parent is the main event;
+2. create the child event;
+3. copy the main event participant assignments into independent child records;
+4. commit all writes together.
+
+Services and repositories do not open or commit transactions. Repositories may
+perform row locking inside a workflow-owned transaction.
+
+## Services, repositories, and connectors
+
+Services own domain rules and public domain operations. Repositories own
+database reads and writes. Connectors own external APIs such as WeatherKit,
+Apple Music, maps, email, and object storage.
+
+Every event-owned repository query includes an access or ownership scope. An
+event ID by itself is never authorization. Repositories return narrow typed
+projections; services map those projections into public contracts.
+
+Expected failures use tagged domain errors and cross one safe handler boundary.
+Never send database messages, provider responses, stack traces, or raw `Error`
+objects to the client. Client errors contain safe copy and a trace ID.
+
+## Drizzle schema split
+
+Keep schema files aligned to durable domains:
+
+```text
+src/db/schema/
+  auth.schema.ts
+  event.schema.ts
+  idea.schema.ts
+  registry.schema.ts
+  shared.ts
+  index.ts
+src/db/relations.ts
+src/db/index.ts
+```
+
+Better Auth owns its core auth tables. Gatherory owns product tables. Drizzle
+Kit reads only `*.schema.ts`, preventing the schema barrel from being discovered
+as a duplicate table source. Export all runtime relations through one relation
+composition file, but do not turn it into a catch-all schema file. Migration
+and seed utilities may use the ordinary Drizzle client; application
+repositories use the injected Effect/Drizzle services once that layer is added.
+
+## Current backend slice
+
+The foundation now includes the auth UI shell, sidebar-07 protected shell,
+PostgreSQL client, Drizzle configuration and migrations, Better Auth
+organizations with teams, automatic personal-workspace provisioning,
+additional event-workspace creation, an account-level workspace directory,
+session middleware, permission vocabulary, reusable entity components, and the
+first Events persistence slice.
+
+The Events slice currently provides main/child event persistence, the two-level
+tree invariant, participant snapshots for new child events, event-scoped invite
+records and acceptance, safe handlers, and repository-backed authorization
+checks. Email delivery, event mutation, and participant administration are the
+next backend workflows. Template and professional-workspace tables remain
+deferred; the ownership model above reserves room for them without putting them
+in the first-release path.
+
+## New use-case checklist
+
+1. Define input and public output contracts.
+2. Declare authentication and event permissions at the handler.
+3. Add event-scoped repository operations with narrow projections.
+4. Add service behavior and one workflow.
+5. Put multi-write atomicity in the workflow.
+6. Cross the safe result boundary once in the handler.
+7. Consume only the handler from routes/components.
+8. Cover unauthorized access, cross-event isolation, state conflicts, and safe
+   error results in tests.

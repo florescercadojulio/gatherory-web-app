@@ -1,0 +1,22 @@
+import { createAuthClient } from 'better-auth/react'
+import { organizationClient } from 'better-auth/client/plugins'
+
+export const authClient = createAuthClient({
+  plugins: [
+    organizationClient({
+      teams: { enabled: true },
+      schema: {
+        organization: {
+          additionalFields: {
+            workspaceType: {
+              type: 'string',
+              required: true,
+              defaultValue: 'personal',
+              input: false,
+            },
+          },
+        },
+      },
+    }),
+  ],
+})
