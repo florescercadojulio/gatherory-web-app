@@ -11,12 +11,8 @@ import { magicLinkPlugin } from "@/lib/auth/magic-link-plugin"
 export function Providers({ children }: { children: ReactNode }) {
   const navigate = useNavigate()
   const socialProviders = [
-    ...(import.meta.env.VITE_GOOGLE_AUTH_ENABLED === "true"
-      ? (["google"] as const)
-      : []),
-    ...(import.meta.env.VITE_APPLE_AUTH_ENABLED === "true"
-      ? (["apple"] as const)
-      : []),
+    ...(import.meta.env.VITE_GOOGLE_AUTH_ENABLED ? (["google"] as const) : []),
+    ...(import.meta.env.VITE_APPLE_AUTH_ENABLED ? (["apple"] as const) : []),
   ]
 
   return (
