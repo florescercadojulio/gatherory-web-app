@@ -15,8 +15,8 @@ type R2Configuration = {
   accountId: string
   accessKeyId: string
   secretAccessKey: string
-  privateBucket?: string
-  publicBucket?: string
+  privateBucket: string
+  publicBucket: string
 }
 
 function r2Configuration(): R2Configuration {
@@ -28,15 +28,7 @@ function r2Configuration(): R2Configuration {
     publicBucket: env.CLOUDFLARE_R2_PUBLIC_BUCKET_NAME,
   }
 
-  if (
-    !configuration.accountId ||
-    !configuration.accessKeyId ||
-    !configuration.secretAccessKey
-  ) {
-    throw new Error("MEDIA_STORAGE_NOT_CONFIGURED")
-  }
-
-  return configuration as R2Configuration
+  return configuration
 }
 
 let storageClient: S3Client | undefined
@@ -63,7 +55,20 @@ function bucketFor(
     ? configuration.publicBucket
     : configuration.privateBucket
 
-  if (!bucket) throw new Error("MEDIA_STORAGE_NOT_CONFIGURED")
+  return bucket
+}
+
+function requireConfiguredBucket(
+  configuration: R2Configuration,
+  bucket: string,
+) {
+  if (
+    bucket !== configuration.privateBucket &&
+    bucket !== configuration.publicBucket
+  ) {
+    throw new Error("MEDIA_STORAGE_BUCKET_INVALID")
+  }
+
   return bucket
 }
 
@@ -105,8 +110,9 @@ export async function inspectMediaObject(input: {
   key: string
 }) {
   const configuration = r2Configuration()
+  const bucket = requireConfiguredBucket(configuration, input.bucket)
   const result = await client(configuration).send(
-    new HeadObjectCommand({ Bucket: input.bucket, Key: input.key }),
+    new HeadObjectCommand({ Bucket: bucket, Key: input.key }),
   )
 
   return {
@@ -123,9 +129,10 @@ export async function createMediaReadUrl(input: {
   expiresInSeconds?: number
 }) {
   const configuration = r2Configuration()
+  const bucket = requireConfiguredBucket(configuration, input.bucket)
   return getSignedUrl(
     client(configuration),
-    new GetObjectCommand({ Bucket: input.bucket, Key: input.key }),
+    new GetObjectCommand({ Bucket: bucket, Key: input.key }),
     { expiresIn: input.expiresInSeconds ?? 5 * 60 },
   )
 }
@@ -135,7 +142,8 @@ export async function deleteMediaObject(input: {
   key: string
 }) {
   const configuration = r2Configuration()
+  const bucket = requireConfiguredBucket(configuration, input.bucket)
   await client(configuration).send(
-    new DeleteObjectCommand({ Bucket: input.bucket, Key: input.key }),
+    new DeleteObjectCommand({ Bucket: bucket, Key: input.key }),
   )
 }

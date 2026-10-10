@@ -16,7 +16,10 @@ const config = defineConfig(({ mode }) => {
     define: {
       'import.meta.env.VITE_APPLE_AUTH_ENABLED': JSON.stringify(
         Boolean(
-          environment.APPLE_CLIENT_ID && environment.APPLE_CLIENT_SECRET,
+          environment.APPLE_CLIENT_ID &&
+            environment.APPLE_TEAM_ID &&
+            environment.APPLE_KEY_ID &&
+            environment.APPLE_PRIVATE_KEY,
         ),
       ),
       'import.meta.env.VITE_GOOGLE_AUTH_ENABLED': JSON.stringify(

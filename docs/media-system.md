@@ -148,6 +148,45 @@ npx wrangler r2 bucket cors set gatherory-private-prod \
   --file infra/cloudflare/r2-cors.prod.json --force
 ```
 
+The public bucket does not need browser `PUT` CORS until Gatherory supports an
+explicit direct-to-public publishing flow. Public derivatives should initially
+be written by a trusted server-side worker.
+
+## Preflight before deployment
+
+Run the storage smoke check with the credentials for the environment being
+deployed:
+
+```sh
+# Development
+pnpm media:check
+
+# Production (run with production environment variables loaded)
+pnpm media:check -- --origin=https://app.gatherory.com
+```
+
+The check uploads a uniquely named text canary, reads it back, and removes it
+from each configured bucket. For the private bucket it also performs the same
+CORS preflight a browser sends before a signed `PUT`. It never prints access
+keys or signed URLs.
+
+The production deployment must set all of the following in Vercel's Production
+environment. Store credential values as Secrets rather than public variables:
+
+```dotenv
+CLOUDFLARE_ACCOUNT_ID=
+CLOUDFLARE_R2_ACCESS_KEY_ID=
+CLOUDFLARE_R2_SECRET_ACCESS_KEY=
+CLOUDFLARE_R2_PRIVATE_BUCKET_NAME=gatherory-private-prod
+CLOUDFLARE_R2_PUBLIC_BUCKET_NAME=gatherory-public
+VITE_PUBLIC_ASSET_URL=https://cdn.gatherory.com
+```
+
+Use a separate production R2 access key restricted to
+`gatherory-private-prod` and `gatherory-public`. Do not reuse the development
+key or grant it access to the production bucket. The application rejects a
+private bucket containing `dev` when Vercel builds the Production environment.
+
 ## Validation and limits
 
 The current image contract accepts JPEG, PNG, WebP, HEIC, and HEIF up to 20 MiB.

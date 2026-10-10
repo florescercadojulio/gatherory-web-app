@@ -21,14 +21,17 @@ export const env = createEnv({
     RESEND_API_KEY: z.string().startsWith("re_").optional(),
     EMAIL_FROM: z.string().min(3).optional(),
     EMAIL_REPLY_TO: z.email().optional(),
-    CLOUDFLARE_ACCOUNT_ID: z.string().min(1).optional(),
-    CLOUDFLARE_R2_ACCESS_KEY_ID: z.string().min(1).optional(),
-    CLOUDFLARE_R2_SECRET_ACCESS_KEY: z.string().min(1).optional(),
-    CLOUDFLARE_R2_PRIVATE_BUCKET_NAME: z.string().min(1).optional(),
-    CLOUDFLARE_R2_PUBLIC_BUCKET_NAME: z.string().min(1).optional(),
+    CLOUDFLARE_ACCOUNT_ID: z.string().min(1),
+    CLOUDFLARE_R2_ACCESS_KEY_ID: z.string().min(1),
+    CLOUDFLARE_R2_SECRET_ACCESS_KEY: z.string().min(1),
+    CLOUDFLARE_R2_PRIVATE_BUCKET_NAME: z.string().min(1),
+    CLOUDFLARE_R2_PUBLIC_BUCKET_NAME: z.string().min(1),
     NODE_ENV: z
       .enum(["development", "production", "test"])
       .default("development"),
+    VERCEL_ENV: z
+      .enum(["development", "preview", "production"])
+      .optional(),
     SERVER_URL: z.url().optional(),
   },
 
@@ -40,7 +43,7 @@ export const env = createEnv({
 
   client: {
     VITE_APP_TITLE: z.string().min(1).optional(),
-    VITE_PUBLIC_ASSET_URL: z.url().optional(),
+    VITE_PUBLIC_ASSET_URL: z.url(),
   },
 
   /**
@@ -64,3 +67,14 @@ export const env = createEnv({
    */
   emptyStringAsUndefined: true,
 });
+
+if (
+  env.VERCEL_ENV === "production" &&
+  /(^|[-_.])dev($|[-_.])/.test(
+    env.CLOUDFLARE_R2_PRIVATE_BUCKET_NAME.toLowerCase(),
+  )
+) {
+  throw new Error(
+    "Production must use a dedicated R2 private bucket, not the development bucket.",
+  );
+}
