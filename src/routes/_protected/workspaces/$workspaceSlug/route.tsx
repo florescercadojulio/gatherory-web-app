@@ -1,4 +1,4 @@
-import { createFileRoute, Outlet } from "@tanstack/react-router"
+import { createFileRoute, notFound, Outlet } from "@tanstack/react-router"
 
 import { AppSidebar } from "@/components/app-sidebar"
 import { Separator } from "@/components/ui/separator"
@@ -12,11 +12,15 @@ import { resolveWorkspace } from "@/server/workspaces/handlers/workspace.handler
 export const Route = createFileRoute(
   "/_protected/workspaces/$workspaceSlug",
 )({
-  beforeLoad: async ({ params }) => ({
-    workspaceContext: await resolveWorkspace({
+  beforeLoad: async ({ params }) => {
+    const workspaceContext = await resolveWorkspace({
       data: { slug: params.workspaceSlug },
-    }),
-  }),
+    })
+
+    if (!workspaceContext) throw notFound()
+
+    return { workspaceContext }
+  },
   component: WorkspaceLayout,
 })
 

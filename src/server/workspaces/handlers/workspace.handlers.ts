@@ -1,5 +1,4 @@
 import { and, eq, inArray, isNull } from "drizzle-orm"
-import { redirect } from "@tanstack/react-router"
 import { createServerFn } from "@tanstack/react-start"
 import { getRequestHeaders } from "@tanstack/react-start/server"
 import { z } from "zod"
@@ -461,7 +460,7 @@ export const resolveWorkspace = createServerFn({ method: "GET" })
       (candidate) => candidate.slug === data.slug,
     )
 
-    if (!workspace) throw redirect({ to: "/" })
+    if (!workspace) return null
 
     let planningTeam: { id: string; name: string } | null = null
     if (workspace.access === "member") {

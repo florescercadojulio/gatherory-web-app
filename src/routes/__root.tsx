@@ -10,6 +10,7 @@ import PostHogProvider from '../integrations/posthog/provider'
 
 import appCss from '../styles.css?url'
 import { Providers } from '@/components/providers'
+import { NotFoundPage } from '@/components/not-found-page'
 
 import type { QueryClient } from '@tanstack/react-query'
 
@@ -52,6 +53,7 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
       },
     ],
   }),
+  notFoundComponent: NotFoundPage,
   shellComponent: RootDocument,
 })
 

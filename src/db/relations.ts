@@ -17,13 +17,17 @@ export const databaseRelations = defineRelationsPart(
         from: r.user.id,
         to: r.account.userId,
       }),
-      organizationMemberships: r.many.member({
+      members: r.many.member({
         from: r.user.id,
         to: r.member.userId,
       }),
-      teamMemberships: r.many.teamMember({
+      teamMembers: r.many.teamMember({
         from: r.user.id,
         to: r.teamMember.userId,
+      }),
+      invitations: r.many.invitation({
+        from: r.user.id,
+        to: r.invitation.inviterId,
       }),
       eventParticipants: r.many.eventParticipant({
         from: r.user.id,
@@ -67,6 +71,10 @@ export const databaseRelations = defineRelationsPart(
         from: r.organization.id,
         to: r.team.organizationId,
       }),
+      invitations: r.many.invitation({
+        from: r.organization.id,
+        to: r.invitation.organizationId,
+      }),
       events: r.many.event({
         from: r.organization.id,
         to: r.event.organizationId,
@@ -99,7 +107,7 @@ export const databaseRelations = defineRelationsPart(
         from: r.team.organizationId,
         to: r.organization.id,
       }),
-      members: r.many.teamMember({
+      teamMembers: r.many.teamMember({
         from: r.team.id,
         to: r.teamMember.teamId,
       }),
@@ -111,6 +119,16 @@ export const databaseRelations = defineRelationsPart(
       }),
       user: r.one.user({
         from: r.teamMember.userId,
+        to: r.user.id,
+      }),
+    },
+    invitation: {
+      organization: r.one.organization({
+        from: r.invitation.organizationId,
+        to: r.organization.id,
+      }),
+      user: r.one.user({
+        from: r.invitation.inviterId,
         to: r.user.id,
       }),
     },

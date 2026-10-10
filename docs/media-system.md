@@ -99,12 +99,14 @@ proof of access.
 
 ## Storage visibility
 
-Use two environment-specific R2 buckets:
+Use one public delivery bucket and separate private buckets for development and
+production:
 
-| Bucket | Intended content | Delivery |
-| --- | --- | --- |
-| Private | Event, idea, registry, invitation, and guest media | Authorized short-lived URLs |
-| Public | Explicitly published creator images and future template previews | Public asset host/CDN |
+| Bucket | Environment | Intended content | Delivery |
+| --- | --- | --- | --- |
+| `gatherory-private-dev` | Development | Event, idea, registry, invitation, and guest media | Authorized short-lived URLs issued by the local app |
+| `gatherory-private-prod` | Production | Event, idea, registry, invitation, and guest media | Authorized short-lived URLs issued by `app.gatherory.com` |
+| `gatherory-public` | Shared public delivery | Explicitly published creator images and future template previews | `https://cdn.gatherory.com` |
 
 Publishing does not silently change an existing private asset's storage
 contract. If a future template needs a public derivative, create a separately
@@ -117,13 +119,16 @@ CLOUDFLARE_ACCOUNT_ID=
 CLOUDFLARE_R2_ACCESS_KEY_ID=
 CLOUDFLARE_R2_SECRET_ACCESS_KEY=
 CLOUDFLARE_R2_PRIVATE_BUCKET_NAME=gatherory-private-dev
-CLOUDFLARE_R2_PUBLIC_BUCKET_NAME=gatherory-public-dev
-VITE_PUBLIC_ASSET_URL=
+CLOUDFLARE_R2_PUBLIC_BUCKET_NAME=gatherory-public
+VITE_PUBLIC_ASSET_URL=https://cdn.gatherory.com
 ```
 
-Use distinct development, staging, and production buckets. The R2 token should
-have object read/write permissions only for the configured buckets. Disable
-public development URLs and custom domains on the private bucket.
+Production overrides `CLOUDFLARE_R2_PRIVATE_BUCKET_NAME` with
+`gatherory-private-prod`. The R2 token should have object read/write permissions
+only for the configured buckets. Keep public development URLs and custom
+domains disabled on both private buckets. `app.gatherory.com` authorizes the
+request and returns a short-lived signed R2 URL; it is not an R2 public custom
+domain.
 
 ## CORS
 
@@ -132,6 +137,16 @@ development policy should allow `http://localhost:3003`; production should
 allow only the Gatherory application origins. Permit `PUT`, `GET`, and `HEAD`
 with the `Content-Type` header. Native iOS requests do not rely on browser CORS,
 but they use the same signed URL and required headers.
+
+The checked-in policies are in `infra/cloudflare/r2-cors.dev.json` and
+`infra/cloudflare/r2-cors.prod.json`. Apply them with:
+
+```sh
+npx wrangler r2 bucket cors set gatherory-private-dev \
+  --file infra/cloudflare/r2-cors.dev.json --force
+npx wrangler r2 bucket cors set gatherory-private-prod \
+  --file infra/cloudflare/r2-cors.prod.json --force
+```
 
 ## Validation and limits
 
