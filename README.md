@@ -12,7 +12,9 @@ This repository currently includes:
 - TanStack Start and file-based TanStack Router;
 - shadcn/Base UI components and the sidebar skeleton;
 - a Better Auth endpoint, client, provider, and minimal auth routes;
-- email/password authentication with optional Google and Apple sign-in;
+- verified email/password authentication through Resend and React Email, with
+  existing-account email OTP and magic-link sign-in, and
+  optional Google and Apple sign-in;
 - Better Auth organizations and teams behind Gatherory's workspace language;
 - automatic personal-workspace and Planning-team provisioning;
 - an account-level workspace directory with additional workspace creation and
@@ -21,10 +23,14 @@ This repository currently includes:
 - session middleware for authenticated server functions;
 - Gatherory's event-scoped permission vocabulary;
 - main/child event, participant, and event-invitation persistence;
+- reusable event-media metadata with private Cloudflare R2 signed uploads;
 - the sidebar-07 protected application shell;
 - reusable `EntityTablePage`, `EntityPicker`, and `MultiEntityPicker`
   components; and
 - architecture and page conventions in [`docs/`](./docs/).
+
+Media storage behavior, authorization, and R2 configuration are documented in
+[`docs/media-system.md`](./docs/media-system.md).
 
 The first release is scoped to user-created event workspaces, events, and the
 people invited to plan or attend them. Professional workspaces, published
@@ -48,12 +54,15 @@ Copy `.env.example` to `.env.local`, then configure PostgreSQL and Better Auth:
 DATABASE_URL=postgresql://postgres:postgres@localhost:5432/gatherory
 DATABASE_POOL_MAX=5
 BETTER_AUTH_SECRET=replace-with-a-generated-secret
-BETTER_AUTH_URL=http://localhost:3000
+BETTER_AUTH_URL=http://localhost:3003
+RESEND_API_KEY=re_replace_me
+EMAIL_FROM="Gatherory <hello@your-verified-domain.com>"
 ```
 
 Generate a secret with `pnpm auth:secret`. The current local `.env.local` still
 needs a non-empty `BETTER_AUTH_SECRET` and a real `DATABASE_URL` before sign-in
-or registration can persist accounts.
+or registration can persist accounts. Email registration and password reset
+also require a Resend API key and a sender on a verified Resend domain.
 
 ## Useful commands
 
@@ -65,6 +74,7 @@ pnpm db:generate
 pnpm db:migrate
 pnpm db:seed
 pnpm db:studio
+pnpm email:dev
 pnpm dev
 ```
 
@@ -106,7 +116,14 @@ pnpm db:migrate
 ## Auth routes
 
 - `/auth/sign-in` — minimal Gatherory sign-in surface.
+- `/auth/email-otp` — passwordless sign-in with a six-digit email code.
+- `/auth/magic-link` — passwordless sign-in with a single-use email link.
+- `/auth/magic-link-sent` — magic-link delivery confirmation.
 - `/auth/sign-up` — email/password account creation surface.
+- `/auth/verify-email` — verification instructions and resend controls.
+- `/auth/forgot-password` — requests a password-reset link without revealing
+  whether the account exists.
+- `/auth/reset-password` — chooses a new password from a valid reset link.
 - `/login` — compatibility redirect to `/auth/sign-in`.
 - `/api/auth/$` — Better Auth request handler.
 
@@ -124,13 +141,20 @@ workspaces shared through an explicit event-participant assignment; the slug
 itself never bypasses server-side access checks.
 
 The root provider configures system light/dark mode, Better Auth UI navigation,
-and global toast feedback. Sign-in uses email and password; Google and Apple are
-the only configured social-provider options and become operational when their
-credential pairs are supplied in `.env.local`. A social button is rendered only
-when both credentials for that provider are present, preventing a configured UI
-from pointing at an unavailable provider. The protected sidebar exposes
-workspace context using Better Auth organizations and teams. Billing and the
-professional-workspace product are not enabled.
+and global toast feedback. Email/password accounts must verify their address;
+verification and password-reset links expire after one hour, and a successful
+password reset revokes existing sessions. Resend delivers account lifecycle and
+passwordless sign-in emails from the React Email templates in `src/emails`;
+`pnpm email:dev` previews them locally on port 3004. OTPs expire after 10 minutes
+with three attempts, while magic links expire after 10 minutes and are
+single-use. Both methods sign in existing users only, preserving the named
+account-creation flow. Google and Apple are the only configured social-provider
+options and
+become operational when their credential pairs are supplied in `.env.local`.
+A social button is rendered only when both credentials for that provider are
+present, preventing a configured UI from pointing at an unavailable provider.
+The protected sidebar exposes workspace context using Better Auth organizations
+and teams. Billing and the professional-workspace product are not enabled.
 
 In development, open TanStack Devtools and choose **Accounts** to switch through
 Better Auth's normal email sign-in flow. All four scenario accounts are supplied
@@ -149,6 +173,7 @@ event.
 Start here before adding product behavior:
 
 - [Product model](./docs/product-model.md)
+- [Data model](./docs/data-model.md)
 - [Server architecture](./docs/server.architecture.md)
 - [Page creation standard](./docs/page-creation.md)
 - [Roadmap guide](./docs/roadmap-guide.md)

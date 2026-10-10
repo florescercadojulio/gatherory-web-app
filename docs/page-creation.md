@@ -12,15 +12,24 @@ Child routes own their page content.
 
 ```text
 src/routes/
-  _protected.tsx              # server-backed session guard, Outlet
   _protected/
+    route.tsx                 # server-backed session guard, Outlet
     index.tsx                 # authenticated home
-    events/index.tsx          # collection page
-    events/new.tsx            # creation flow
-    events/$eventId.tsx       # event detail
+    events/
+      index.tsx               # collection page
+      new/index.tsx           # creation flow
+      $eventId/
+        route.tsx             # optional shared detail layout
+        index.tsx             # event detail
 ```
 
-Use `createFileRoute` with the path generated from the file location. Do not
+Use folder-owned routes consistently. A resource segment owns either an
+`index.tsx` page or a `route.tsx` layout with an `Outlet`; do not introduce flat
+siblings such as `events.tsx`, `$eventId.tsx`, or `login.tsx`. The generated
+`__root.tsx` convention is the required TanStack root exception. API splats use
+the same rule, for example `api/auth/$/route.ts`.
+
+Use `createFileRoute` with the path generated from the folder location. Do not
 hand-edit `src/routeTree.gen.ts`; run `npm run generate-routes` after adding,
 renaming, or moving route files, then run a type-check. Do not build unless requested.
 

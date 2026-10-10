@@ -15,6 +15,14 @@ export const env = createEnv({
     GOOGLE_CLIENT_SECRET: z.string().min(1).optional(),
     APPLE_CLIENT_ID: z.string().min(1).optional(),
     APPLE_CLIENT_SECRET: z.string().min(1).optional(),
+    RESEND_API_KEY: z.string().startsWith("re_").optional(),
+    EMAIL_FROM: z.string().min(3).optional(),
+    EMAIL_REPLY_TO: z.email().optional(),
+    CLOUDFLARE_ACCOUNT_ID: z.string().min(1).optional(),
+    CLOUDFLARE_R2_ACCESS_KEY_ID: z.string().min(1).optional(),
+    CLOUDFLARE_R2_SECRET_ACCESS_KEY: z.string().min(1).optional(),
+    CLOUDFLARE_R2_PRIVATE_BUCKET_NAME: z.string().min(1).optional(),
+    CLOUDFLARE_R2_PUBLIC_BUCKET_NAME: z.string().min(1).optional(),
     NODE_ENV: z
       .enum(["development", "production", "test"])
       .default("development"),
@@ -29,6 +37,7 @@ export const env = createEnv({
 
   client: {
     VITE_APP_TITLE: z.string().min(1).optional(),
+    VITE_PUBLIC_ASSET_URL: z.url().optional(),
   },
 
   /**

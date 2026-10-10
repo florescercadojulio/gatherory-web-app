@@ -1,4 +1,5 @@
 import { and, asc, eq, inArray, isNull, sql } from "drizzle-orm"
+import { Context, Effect } from "effect"
 
 import { db } from "@/db"
 import { member, organization, user } from "@/db/schema/auth.schema"
@@ -13,6 +14,7 @@ import type {
   CreateEventInput,
   InviteEventParticipantInput,
 } from "../contracts/event.contracts"
+import type { PersistenceError } from "@/server/effect"
 
 const planningPermissionToDatabase = {
   manage: "manage",
@@ -91,28 +93,6 @@ export async function createEventWithParticipants(input: {
       if (!parent) throw new Error("EVENT_PARENT_NOT_FOUND")
       if (parent.parentEventId) throw new Error("EVENT_DEPTH_EXCEEDED")
 
-      const actor = await transaction
-        .select({
-          role: eventParticipant.role,
-          planningPermission: eventParticipant.planningPermission,
-        })
-        .from(eventParticipant)
-        .where(
-          and(
-            eq(eventParticipant.eventId, parent.id),
-            eq(eventParticipant.userId, input.userId),
-          ),
-        )
-        .limit(1)
-
-      if (
-        !actor[0] ||
-        (actor[0].role !== "host" &&
-          actor[0].planningPermission !== "manage")
-      ) {
-        throw new Error("EVENT_FORBIDDEN")
-      }
-
       inheritedParticipants = await transaction
         .select({
           userId: eventParticipant.userId,
@@ -132,7 +112,11 @@ export async function createEventWithParticipants(input: {
         title: input.event.title,
         description: input.event.description,
         imageUrl: input.event.imageUrl,
+        status: input.event.parentEventId ? null : "draft",
         purpose: input.event.purpose ?? null,
+        category: "category" in input.event ? input.event.category : null,
+        planningStatus:
+          "planningStatus" in input.event ? input.event.planningStatus : null,
         startsAt: input.event.startsAt
           ? new Date(input.event.startsAt)
           : undefined,
@@ -215,7 +199,7 @@ export async function listVisibleMainEvents(input: {
       parentEventId: event.parentEventId,
       title: event.title,
       purpose: event.purpose,
-      status: event.status,
+      status: event.planningStatus,
       startsAt: event.startsAt,
       endsAt: event.endsAt,
       timeZone: event.timeZone,
@@ -225,10 +209,7 @@ export async function listVisibleMainEvents(input: {
     .where(inArray(event.parentEventId, mainEventIds))
     .orderBy(asc(event.startsAt), asc(event.createdAt))
 
-  const allEventIds = [
-    ...mainEventIds,
-    ...childEvents.map((item) => item.id),
-  ]
+  const allEventIds = [...mainEventIds, ...childEvents.map((item) => item.id)]
   const [participants, invitations] = await Promise.all([
     db
       .select({
@@ -268,6 +249,8 @@ export async function listVisibleMainEvents(input: {
   )
 
   return mainEvents.map((mainEvent) => {
+    if (!mainEvent.status) throw new Error("MAIN_EVENT_STATUS_MISSING")
+    const status = mainEvent.status
     const eventParticipants = (participantsByEvent.get(mainEvent.id) ?? []).map(
       ({ eventId: _eventId, ...participant }) => participant,
     )
@@ -278,20 +261,21 @@ export async function listVisibleMainEvents(input: {
 
     return {
       ...mainEvent,
-      pendingInvitationCount:
-        invitationsByEvent.get(mainEvent.id)?.length ?? 0,
+      status,
+      pendingInvitationCount: invitationsByEvent.get(mainEvent.id)?.length ?? 0,
       currentParticipant,
       participants: eventParticipants,
       childEvents: (childrenByParent.get(mainEvent.id) ?? []).flatMap(
         (child) => {
-          if (!child.purpose) return []
+          if (!child.purpose || !child.status) return []
+          const status = child.status
           const { parentEventId: _parentEventId, ...childEvent } = child
           return [
             {
               ...childEvent,
+              status,
               purpose: child.purpose,
-              participantCount:
-                participantsByEvent.get(child.id)?.length ?? 0,
+              participantCount: participantsByEvent.get(child.id)?.length ?? 0,
             },
           ]
         },
@@ -409,3 +393,46 @@ export async function acceptEventInvitation(input: {
     }
   })
 }
+
+export type EventRepoShape = {
+  readonly hasWorkspaceMembership: (
+    input: Parameters<typeof hasWorkspaceMembership>[0],
+  ) => Effect.Effect<boolean, PersistenceError>
+  readonly getEventParticipant: (
+    input: Parameters<typeof getEventParticipant>[0],
+  ) => Effect.Effect<
+    Awaited<ReturnType<typeof getEventParticipant>>,
+    PersistenceError
+  >
+  readonly createEventWithParticipants: (
+    input: Parameters<typeof createEventWithParticipants>[0],
+  ) => Effect.Effect<
+    Awaited<ReturnType<typeof createEventWithParticipants>>,
+    PersistenceError
+  >
+  readonly listVisibleMainEvents: (
+    input: Parameters<typeof listVisibleMainEvents>[0],
+  ) => Effect.Effect<
+    Awaited<ReturnType<typeof listVisibleMainEvents>>,
+    PersistenceError
+  >
+  readonly createEventInvitation: (
+    input: Parameters<typeof createEventInvitation>[0],
+  ) => Effect.Effect<
+    Awaited<ReturnType<typeof createEventInvitation>>,
+    PersistenceError
+  >
+  readonly acceptEventInvitation: (
+    input: Parameters<typeof acceptEventInvitation>[0],
+  ) => Effect.Effect<
+    Awaited<ReturnType<typeof acceptEventInvitation>>,
+    PersistenceError
+  >
+}
+
+/** Persistence contract consumed by the Event service. */
+export class EventRepo extends Context.Service<EventRepo, EventRepoShape>()(
+  "EventRepo",
+) {}
+
+export type EventRepoError = PersistenceError

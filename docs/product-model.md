@@ -22,8 +22,8 @@ document.
 ### Now: core event planning
 
 - A user signs up and receives a personal event workspace.
-- The user can create additional event workspaces and switch between them from
-  the account-level workspace directory.
+- The user can create additional events and switch between their planning
+  spaces from the account-level event directory.
 - The user creates a main event and optional child events.
 - Hosts invite collaborators and guests to individual events.
 - Every event owns its participant list, planning permissions, and attendance
@@ -46,14 +46,14 @@ direction; it is not a promise that the capability is currently available.
 
 ## Core hierarchy
 
-| Vercel concept | Gatherory concept |
-| --- | --- |
-| Account | User |
-| Personal or team scope | Workspace |
-| Project | Main event |
-| Project resources | Sub-events, ideas, decisions, people, and registry |
-| Project template | Event template |
-| Template creator | Planner or event-business workspace |
+| Vercel concept         | Gatherory concept                                  |
+| ---------------------- | -------------------------------------------------- |
+| Account                | User                                               |
+| Personal or team scope | Workspace                                          |
+| Project                | Main event                                         |
+| Project resources      | Sub-events, ideas, decisions, people, and registry |
+| Project template       | Event template                                     |
+| Template creator       | Planner or event-business workspace                |
 
 ```text
 user
@@ -84,13 +84,17 @@ Workspace roles describe workspace administration:
 - **Admin** manages members and workspace resources according to policy.
 - **Member** works with resources made available inside the workspace.
 
-The interface calls this concept a **Workspace**. Better Auth's Organization
-plugin may provide the underlying membership implementation, but provider
-terminology must not leak into the product domain.
+The implementation calls this ownership boundary a **workspace**. The
+customer-facing interface uses **event**, **your events**, and **shared with
+you** because people come to Gatherory to plan an experience, not administer a
+container. Better Auth's Organization plugin provides the underlying
+membership implementation, but provider terminology must not leak into the
+product domain.
 
 The first release uses the Organization plugin as infrastructure for the
-automatically provisioned personal workspace and any additional event
-workspaces a user creates. Its Teams feature creates a default **Planning**
+automatically provisioned personal planning scope and any additional event
+planning spaces a user creates. Each configured event workspace has exactly
+one main event. Its Teams feature creates a default **Planning**
 team in each workspace and supplies active-workspace, active-team, member,
 invitation, and lifecycle hooks that later business workspaces can reuse.
 Gatherory still presents this as an event workspace, not an organization.
@@ -256,7 +260,7 @@ Gatherory should preserve the user's current scope and make it visible:
   every event workspace explicitly shared with the signed-in user.
 - The canonical workspace route is `/workspaces/:workspaceSlug`; `/` redirects
   to the user's active or default workspace.
-- The workspace overview presents main-event cards with search, filters, and
+- The event directory presents main-event cards with search, filters, and
   grid/list presentation.
 - **Create New** starts from a blank event or an event template.
 - Workspace navigation contains Events, Templates, People, and Settings as

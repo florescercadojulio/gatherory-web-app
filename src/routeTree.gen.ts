@@ -9,121 +9,121 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as ProtectedRouteImport } from './routes/_protected'
-import { Route as LoginRouteImport } from './routes/login'
+import { Route as ProtectedRouteRouteImport } from './routes/_protected/route'
 import { Route as ProtectedIndexRouteImport } from './routes/_protected/index'
-import { Route as AuthPathRouteImport } from './routes/auth/$path'
+import { Route as LoginIndexRouteImport } from './routes/login/index'
 import { Route as ProtectedWorkspacesIndexRouteImport } from './routes/_protected/workspaces/index'
-import { Route as ProtectedWorkspacesWorkspaceSlugRouteImport } from './routes/_protected/workspaces/$workspaceSlug'
-import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
+import { Route as ProtectedWorkspacesWorkspaceSlugRouteRouteImport } from './routes/_protected/workspaces/$workspaceSlug/route'
+import { Route as ApiAuthSplatRouteRouteImport } from './routes/api/auth/$/route'
+import { Route as AuthPathIndexRouteImport } from './routes/auth/$path/index'
 import { Route as ProtectedWorkspacesWorkspaceSlugIndexRouteImport } from './routes/_protected/workspaces/$workspaceSlug/index'
 
-const ProtectedRoute = ProtectedRouteImport.update({
+const ProtectedRouteRoute = ProtectedRouteRouteImport.update({
   id: '/_protected',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LoginRoute = LoginRouteImport.update({
-  id: '/login',
-  path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProtectedIndexRoute = ProtectedIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => ProtectedRoute,
+  getParentRoute: () => ProtectedRouteRoute,
 } as any)
-const AuthPathRoute = AuthPathRouteImport.update({
-  id: '/auth/$path',
-  path: '/auth/$path',
+const LoginIndexRoute = LoginIndexRouteImport.update({
+  id: '/login/',
+  path: '/login/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProtectedWorkspacesIndexRoute =
   ProtectedWorkspacesIndexRouteImport.update({
     id: '/workspaces/',
     path: '/workspaces/',
-    getParentRoute: () => ProtectedRoute,
+    getParentRoute: () => ProtectedRouteRoute,
   } as any)
-const ProtectedWorkspacesWorkspaceSlugRoute =
-  ProtectedWorkspacesWorkspaceSlugRouteImport.update({
+const ProtectedWorkspacesWorkspaceSlugRouteRoute =
+  ProtectedWorkspacesWorkspaceSlugRouteRouteImport.update({
     id: '/workspaces/$workspaceSlug',
     path: '/workspaces/$workspaceSlug',
-    getParentRoute: () => ProtectedRoute,
+    getParentRoute: () => ProtectedRouteRoute,
   } as any)
-const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
+const ApiAuthSplatRouteRoute = ApiAuthSplatRouteRouteImport.update({
   id: '/api/auth/$',
   path: '/api/auth/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthPathIndexRoute = AuthPathIndexRouteImport.update({
+  id: '/auth/$path/',
+  path: '/auth/$path/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProtectedWorkspacesWorkspaceSlugIndexRoute =
   ProtectedWorkspacesWorkspaceSlugIndexRouteImport.update({
     id: '/',
     path: '/',
-    getParentRoute: () => ProtectedWorkspacesWorkspaceSlugRoute,
+    getParentRoute: () => ProtectedWorkspacesWorkspaceSlugRouteRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof ProtectedIndexRoute
-  '/login': typeof LoginRoute
-  '/auth/$path': typeof AuthPathRoute
-  '/workspaces/$workspaceSlug': typeof ProtectedWorkspacesWorkspaceSlugRouteWithChildren
-  '/api/auth/$': typeof ApiAuthSplatRoute
+  '/login/': typeof LoginIndexRoute
+  '/workspaces/$workspaceSlug': typeof ProtectedWorkspacesWorkspaceSlugRouteRouteWithChildren
+  '/api/auth/$': typeof ApiAuthSplatRouteRoute
   '/workspaces/': typeof ProtectedWorkspacesIndexRoute
+  '/auth/$path/': typeof AuthPathIndexRoute
   '/workspaces/$workspaceSlug/': typeof ProtectedWorkspacesWorkspaceSlugIndexRoute
 }
 export interface FileRoutesByTo {
-  '/login': typeof LoginRoute
-  '/auth/$path': typeof AuthPathRoute
   '/': typeof ProtectedIndexRoute
-  '/api/auth/$': typeof ApiAuthSplatRoute
+  '/login': typeof LoginIndexRoute
+  '/api/auth/$': typeof ApiAuthSplatRouteRoute
   '/workspaces': typeof ProtectedWorkspacesIndexRoute
+  '/auth/$path': typeof AuthPathIndexRoute
   '/workspaces/$workspaceSlug': typeof ProtectedWorkspacesWorkspaceSlugIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/_protected': typeof ProtectedRouteWithChildren
-  '/login': typeof LoginRoute
-  '/auth/$path': typeof AuthPathRoute
+  '/_protected': typeof ProtectedRouteRouteWithChildren
   '/_protected/': typeof ProtectedIndexRoute
-  '/_protected/workspaces/$workspaceSlug': typeof ProtectedWorkspacesWorkspaceSlugRouteWithChildren
-  '/api/auth/$': typeof ApiAuthSplatRoute
+  '/login/': typeof LoginIndexRoute
+  '/_protected/workspaces/$workspaceSlug': typeof ProtectedWorkspacesWorkspaceSlugRouteRouteWithChildren
+  '/api/auth/$': typeof ApiAuthSplatRouteRoute
   '/_protected/workspaces/': typeof ProtectedWorkspacesIndexRoute
+  '/auth/$path/': typeof AuthPathIndexRoute
   '/_protected/workspaces/$workspaceSlug/': typeof ProtectedWorkspacesWorkspaceSlugIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/login'
-    | '/auth/$path'
+    | '/login/'
     | '/workspaces/$workspaceSlug'
     | '/api/auth/$'
     | '/workspaces/'
+    | '/auth/$path/'
     | '/workspaces/$workspaceSlug/'
   fileRoutesByTo: FileRoutesByTo
   to:
-    | '/login'
-    | '/auth/$path'
     | '/'
+    | '/login'
     | '/api/auth/$'
     | '/workspaces'
+    | '/auth/$path'
     | '/workspaces/$workspaceSlug'
   id:
     | '__root__'
     | '/_protected'
-    | '/login'
-    | '/auth/$path'
     | '/_protected/'
+    | '/login/'
     | '/_protected/workspaces/$workspaceSlug'
     | '/api/auth/$'
     | '/_protected/workspaces/'
+    | '/auth/$path/'
     | '/_protected/workspaces/$workspaceSlug/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  ProtectedRoute: typeof ProtectedRouteWithChildren
-  LoginRoute: typeof LoginRoute
-  AuthPathRoute: typeof AuthPathRoute
-  ApiAuthSplatRoute: typeof ApiAuthSplatRoute
+  ProtectedRouteRoute: typeof ProtectedRouteRouteWithChildren
+  LoginIndexRoute: typeof LoginIndexRoute
+  ApiAuthSplatRouteRoute: typeof ApiAuthSplatRouteRoute
+  AuthPathIndexRoute: typeof AuthPathIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -132,14 +132,7 @@ declare module '@tanstack/react-router' {
       id: '/_protected'
       path: ''
       fullPath: '/'
-      preLoaderRoute: typeof ProtectedRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/login': {
-      id: '/login'
-      path: '/login'
-      fullPath: '/login'
-      preLoaderRoute: typeof LoginRouteImport
+      preLoaderRoute: typeof ProtectedRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_protected/': {
@@ -147,13 +140,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof ProtectedIndexRouteImport
-      parentRoute: typeof ProtectedRoute
+      parentRoute: typeof ProtectedRouteRoute
     }
-    '/auth/$path': {
-      id: '/auth/$path'
-      path: '/auth/$path'
-      fullPath: '/auth/$path'
-      preLoaderRoute: typeof AuthPathRouteImport
+    '/login/': {
+      id: '/login/'
+      path: '/login'
+      fullPath: '/login/'
+      preLoaderRoute: typeof LoginIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_protected/workspaces/': {
@@ -161,20 +154,27 @@ declare module '@tanstack/react-router' {
       path: '/workspaces'
       fullPath: '/workspaces/'
       preLoaderRoute: typeof ProtectedWorkspacesIndexRouteImport
-      parentRoute: typeof ProtectedRoute
+      parentRoute: typeof ProtectedRouteRoute
     }
     '/_protected/workspaces/$workspaceSlug': {
       id: '/_protected/workspaces/$workspaceSlug'
       path: '/workspaces/$workspaceSlug'
       fullPath: '/workspaces/$workspaceSlug'
-      preLoaderRoute: typeof ProtectedWorkspacesWorkspaceSlugRouteImport
-      parentRoute: typeof ProtectedRoute
+      preLoaderRoute: typeof ProtectedWorkspacesWorkspaceSlugRouteRouteImport
+      parentRoute: typeof ProtectedRouteRoute
     }
     '/api/auth/$': {
       id: '/api/auth/$'
       path: '/api/auth/$'
       fullPath: '/api/auth/$'
-      preLoaderRoute: typeof ApiAuthSplatRouteImport
+      preLoaderRoute: typeof ApiAuthSplatRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth/$path/': {
+      id: '/auth/$path/'
+      path: '/auth/$path'
+      fullPath: '/auth/$path/'
+      preLoaderRoute: typeof AuthPathIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_protected/workspaces/$workspaceSlug/': {
@@ -182,48 +182,48 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/workspaces/$workspaceSlug/'
       preLoaderRoute: typeof ProtectedWorkspacesWorkspaceSlugIndexRouteImport
-      parentRoute: typeof ProtectedWorkspacesWorkspaceSlugRoute
+      parentRoute: typeof ProtectedWorkspacesWorkspaceSlugRouteRoute
     }
   }
 }
 
-interface ProtectedWorkspacesWorkspaceSlugRouteChildren {
+interface ProtectedWorkspacesWorkspaceSlugRouteRouteChildren {
   ProtectedWorkspacesWorkspaceSlugIndexRoute: typeof ProtectedWorkspacesWorkspaceSlugIndexRoute
 }
 
-const ProtectedWorkspacesWorkspaceSlugRouteChildren: ProtectedWorkspacesWorkspaceSlugRouteChildren =
+const ProtectedWorkspacesWorkspaceSlugRouteRouteChildren: ProtectedWorkspacesWorkspaceSlugRouteRouteChildren =
   {
     ProtectedWorkspacesWorkspaceSlugIndexRoute:
       ProtectedWorkspacesWorkspaceSlugIndexRoute,
   }
 
-const ProtectedWorkspacesWorkspaceSlugRouteWithChildren =
-  ProtectedWorkspacesWorkspaceSlugRoute._addFileChildren(
-    ProtectedWorkspacesWorkspaceSlugRouteChildren,
+const ProtectedWorkspacesWorkspaceSlugRouteRouteWithChildren =
+  ProtectedWorkspacesWorkspaceSlugRouteRoute._addFileChildren(
+    ProtectedWorkspacesWorkspaceSlugRouteRouteChildren,
   )
 
-interface ProtectedRouteChildren {
+interface ProtectedRouteRouteChildren {
   ProtectedIndexRoute: typeof ProtectedIndexRoute
-  ProtectedWorkspacesWorkspaceSlugRoute: typeof ProtectedWorkspacesWorkspaceSlugRouteWithChildren
+  ProtectedWorkspacesWorkspaceSlugRouteRoute: typeof ProtectedWorkspacesWorkspaceSlugRouteRouteWithChildren
   ProtectedWorkspacesIndexRoute: typeof ProtectedWorkspacesIndexRoute
 }
 
-const ProtectedRouteChildren: ProtectedRouteChildren = {
+const ProtectedRouteRouteChildren: ProtectedRouteRouteChildren = {
   ProtectedIndexRoute: ProtectedIndexRoute,
-  ProtectedWorkspacesWorkspaceSlugRoute:
-    ProtectedWorkspacesWorkspaceSlugRouteWithChildren,
+  ProtectedWorkspacesWorkspaceSlugRouteRoute:
+    ProtectedWorkspacesWorkspaceSlugRouteRouteWithChildren,
   ProtectedWorkspacesIndexRoute: ProtectedWorkspacesIndexRoute,
 }
 
-const ProtectedRouteWithChildren = ProtectedRoute._addFileChildren(
-  ProtectedRouteChildren,
+const ProtectedRouteRouteWithChildren = ProtectedRouteRoute._addFileChildren(
+  ProtectedRouteRouteChildren,
 )
 
 const rootRouteChildren: RootRouteChildren = {
-  ProtectedRoute: ProtectedRouteWithChildren,
-  LoginRoute: LoginRoute,
-  AuthPathRoute: AuthPathRoute,
-  ApiAuthSplatRoute: ApiAuthSplatRoute,
+  ProtectedRouteRoute: ProtectedRouteRouteWithChildren,
+  LoginIndexRoute: LoginIndexRoute,
+  ApiAuthSplatRouteRoute: ApiAuthSplatRouteRoute,
+  AuthPathIndexRoute: AuthPathIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

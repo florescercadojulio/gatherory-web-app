@@ -65,11 +65,11 @@ export function WorkspaceSwitcher({
             </div>
             <div className="grid flex-1 text-left text-sm leading-tight">
               <span className="truncate font-medium">
-                {workspace?.name ?? "All workspaces"}
+                {workspace?.name ?? "All events"}
               </span>
               <span className="truncate text-xs text-muted-foreground">
                 {!workspace
-                  ? `${workspaces.length} accessible ${workspaces.length === 1 ? "workspace" : "workspaces"}`
+                  ? `${workspaces.length} ${workspaces.length === 1 ? "event" : "events"}`
                   : workspace.access === "member"
                     ? `${planningTeamName ?? "Planning"} team`
                     : "Shared with you"}
@@ -91,14 +91,14 @@ export function WorkspaceSwitcher({
                 <div className="flex size-7 items-center justify-center rounded-md border">
                   <LayoutGrid className="size-4" />
                 </div>
-                <span className="flex-1">All workspaces</span>
+                <span className="flex-1">All events</span>
                 {!workspace ? <Check className="ml-auto size-4" /> : null}
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
               <DropdownMenuLabel className="text-xs text-muted-foreground">
-                Workspaces
+                Events
               </DropdownMenuLabel>
               {workspaces.map((candidate) => (
                 <DropdownMenuItem
@@ -122,8 +122,8 @@ export function WorkspaceSwitcher({
                     <span className="truncate">{candidate.name}</span>
                     <span className="truncate text-xs text-muted-foreground">
                       {candidate.access === "member"
-                        ? "Your workspace"
-                        : "Shared event workspace"}
+                        ? "Your event"
+                        : "Shared with you"}
                     </span>
                   </div>
                   {candidate.id === workspace?.id ? (

@@ -2,6 +2,7 @@
 
 import {
   authMutationKeys,
+  getAuthLinkURL,
   validateEmailAddress,
   validateStringLength
 } from "@better-auth-ui/core"
@@ -57,7 +58,9 @@ export function SignIn({
     basePaths,
     emailAndPassword,
     localization,
+    navigate,
     plugins,
+    redirectTo,
     socialProviders,
     viewPaths,
     Link
@@ -91,6 +94,21 @@ export function SignIn({
 
       if (error) {
         form.setFieldValue("password", "")
+
+        if (error.code === "EMAIL_NOT_VERIFIED") {
+          sessionStorage.setItem(
+            "better-auth-ui.verify-email",
+            value.email.trim()
+          )
+          navigate({
+            to: getAuthLinkURL(
+              `${basePaths.auth}/${viewPaths.auth.verifyEmail}`,
+              redirectTo
+            )
+          })
+          return
+        }
+
         throw error
       }
 

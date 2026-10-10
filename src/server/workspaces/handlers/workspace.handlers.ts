@@ -1,15 +1,13 @@
-import { and, eq } from "drizzle-orm"
+import { and, eq, inArray, isNull } from "drizzle-orm"
 import { redirect } from "@tanstack/react-router"
 import { createServerFn } from "@tanstack/react-start"
 import { getRequestHeaders } from "@tanstack/react-start/server"
 import { z } from "zod"
 
 import { db } from "@/db"
-import {
-  organization,
-  teamMember,
-} from "@/db/schema/auth.schema"
+import { member, organization, teamMember } from "@/db/schema/auth.schema"
 import { event, eventParticipant } from "@/db/schema/event.schema"
+import { workspacePlanningSettings } from "@/db/schema/planning.schema"
 import { auth } from "@/lib/auth"
 import { requireSessionMiddleware } from "@/lib/auth.middleware"
 
@@ -22,9 +20,29 @@ type AuthWorkspace = {
 
 type WorkspaceAccess = "member" | "participant"
 
-const CreateWorkspaceInputSchema = z.object({
-  name: z.string().trim().min(2).max(80),
-})
+const CreateWorkspaceInputSchema = z
+  .object({
+    eventName: z.string().trim().min(2).max(120),
+    startsAt: z.iso.datetime(),
+    endsAt: z.iso.datetime().optional(),
+    isAllDay: z.boolean().default(false),
+    timeZone: z.string().trim().min(1).max(100),
+    locationName: z.string().trim().max(160).optional(),
+    locationAddress: z.string().trim().max(500).optional(),
+    budgetCap: z
+      .string()
+      .trim()
+      .regex(/^\d+(?:\.\d{1,2})?$/)
+      .optional(),
+  })
+  .refine(
+    (value) =>
+      !value.endsAt || new Date(value.endsAt) >= new Date(value.startsAt),
+    {
+      message: "The event end must be after its start.",
+      path: ["endsAt"],
+    },
+  )
 
 function personalWorkspaceSlug(userId: string) {
   const safeId = userId.toLowerCase().replaceAll(/[^a-z0-9]/g, "")
@@ -103,6 +121,25 @@ async function listAccessibleWorkspaces(input: {
   userId: string
   memberWorkspaces: AuthWorkspace[]
 }) {
+  const memberWorkspaceIds = input.memberWorkspaces.map(
+    (workspace) => workspace.id,
+  )
+  const configuredMemberWorkspaces = memberWorkspaceIds.length
+    ? await db
+        .selectDistinct({ id: organization.id })
+        .from(organization)
+        .innerJoin(
+          event,
+          and(
+            eq(event.organizationId, organization.id),
+            isNull(event.parentEventId),
+          ),
+        )
+        .where(inArray(organization.id, memberWorkspaceIds))
+    : []
+  const configuredMemberIds = new Set(
+    configuredMemberWorkspaces.map((workspace) => workspace.id),
+  )
   const participantWorkspaces = await db
     .selectDistinct({
       id: organization.id,
@@ -122,13 +159,20 @@ async function listAccessibleWorkspaces(input: {
 
   const workspaces = new Map<
     string,
-    { id: string; name: string; slug: string; type: string; access: WorkspaceAccess }
+    {
+      id: string
+      name: string
+      slug: string
+      type: string
+      access: WorkspaceAccess
+    }
   >()
 
   for (const workspace of participantWorkspaces) {
     workspaces.set(workspace.id, { ...workspace, access: "participant" })
   }
   for (const workspace of input.memberWorkspaces) {
+    if (!configuredMemberIds.has(workspace.id)) continue
     workspaces.set(workspace.id, {
       id: workspace.id,
       name: workspace.name,
@@ -175,8 +219,7 @@ async function provisionPersonalWorkspace(input: {
         headers: input.headers,
       })
       const recoveredWorkspace = memberWorkspaces.find(
-        (candidate) =>
-          candidate.slug === personalWorkspaceSlug(input.userId),
+        (candidate) => candidate.slug === personalWorkspaceSlug(input.userId),
       )
       if (!recoveredWorkspace) throw error
       workspace = recoveredWorkspace
@@ -195,6 +238,13 @@ async function provisionPersonalWorkspace(input: {
     userId: input.userId,
     headers: input.headers,
   })
+
+  await db
+    .insert(workspacePlanningSettings)
+    .values({ organizationId: workspace.id })
+    .onConflictDoNothing({
+      target: workspacePlanningSettings.organizationId,
+    })
 
   memberWorkspaces = await auth.api.listOrganizations({
     headers: input.headers,
@@ -239,15 +289,68 @@ export const createWorkspace = createServerFn({ method: "POST" })
   .middleware([requireSessionMiddleware])
   .validator(CreateWorkspaceInputSchema)
   .handler(async ({ data, context }) => {
+    let disposableWorkspaceId: string | null = null
+    let renamedWorkspace: { id: string; previousName: string } | null = null
+    const headers = getRequestHeaders()
     try {
-      const headers = getRequestHeaders()
-      const workspace = await auth.api.createOrganization({
-        headers,
-        body: {
-          name: data.name,
-          slug: await availableWorkspaceSlug(data.name),
-        },
-      })
+      const activeOrganizationId = context.session.activeOrganizationId
+      const [activeWorkspace] = activeOrganizationId
+        ? await db
+            .select({
+              id: organization.id,
+              name: organization.name,
+              slug: organization.slug,
+              workspaceType: organization.workspaceType,
+            })
+            .from(organization)
+            .innerJoin(
+              member,
+              and(
+                eq(member.organizationId, organization.id),
+                eq(member.userId, context.user.id),
+              ),
+            )
+            .where(eq(organization.id, activeOrganizationId))
+            .limit(1)
+        : []
+      const [activeMainEvent] = activeWorkspace
+        ? await db
+            .select({ id: event.id })
+            .from(event)
+            .where(
+              and(
+                eq(event.organizationId, activeWorkspace.id),
+                isNull(event.parentEventId),
+              ),
+            )
+            .limit(1)
+        : []
+
+      let workspace =
+        activeWorkspace?.workspaceType === "personal" && !activeMainEvent
+          ? activeWorkspace
+          : null
+
+      if (workspace) {
+        renamedWorkspace = {
+          id: workspace.id,
+          previousName: workspace.name,
+        }
+        await db
+          .update(organization)
+          .set({ name: data.eventName })
+          .where(eq(organization.id, workspace.id))
+        workspace = { ...workspace, name: data.eventName }
+      } else {
+        workspace = await auth.api.createOrganization({
+          headers,
+          body: {
+            name: data.eventName,
+            slug: await availableWorkspaceSlug(data.eventName),
+          },
+        })
+        disposableWorkspaceId = workspace.id
+      }
 
       await auth.api.setActiveOrganization({
         headers,
@@ -259,11 +362,78 @@ export const createWorkspace = createServerFn({ method: "POST" })
         headers,
       })
 
+      await db.transaction(async (transaction) => {
+        const [mainEvent] = await transaction
+          .insert(event)
+          .values({
+            organizationId: workspace.id,
+            parentEventId: null,
+            title: data.eventName,
+            status: "draft",
+            purpose: null,
+            planningStatus: null,
+            category: null,
+            startsAt: new Date(data.startsAt),
+            endsAt: data.endsAt ? new Date(data.endsAt) : null,
+            isAllDay: data.isAllDay,
+            timeZone: data.timeZone,
+            locationName: data.locationName || null,
+            locationAddress: data.locationAddress || null,
+            budgetCap: data.budgetCap ?? null,
+            createdByUserId: context.user.id,
+          })
+          .returning({ id: event.id })
+
+        if (!mainEvent) throw new Error("MAIN_EVENT_CREATE_FAILED")
+
+        await transaction.insert(eventParticipant).values({
+          eventId: mainEvent.id,
+          userId: context.user.id,
+          role: "host",
+          planningPermission: "manage",
+          attendanceStatus: "going",
+        })
+
+        await transaction
+          .insert(workspacePlanningSettings)
+          .values({
+            organizationId: workspace.id,
+            budgetCap: data.budgetCap ?? null,
+          })
+          .onConflictDoUpdate({
+            target: workspacePlanningSettings.organizationId,
+            set: {
+              budgetCap: data.budgetCap ?? null,
+              updatedAt: new Date(),
+            },
+          })
+      })
+
       return {
         ok: true,
         data: { slug: workspace.slug },
       } as const
     } catch {
+      if (disposableWorkspaceId) {
+        await db
+          .delete(organization)
+          .where(eq(organization.id, disposableWorkspaceId))
+          .catch(() => undefined)
+        await auth.api
+          .setActiveOrganization({
+            headers,
+            body: {
+              organizationId: context.session.activeOrganizationId ?? null,
+            },
+          })
+          .catch(() => undefined)
+      } else if (renamedWorkspace) {
+        await db
+          .update(organization)
+          .set({ name: renamedWorkspace.previousName })
+          .where(eq(organization.id, renamedWorkspace.id))
+          .catch(() => undefined)
+      }
       return {
         ok: false,
         error: {
@@ -287,7 +457,9 @@ export const resolveWorkspace = createServerFn({ method: "GET" })
       userId: context.user.id,
       memberWorkspaces,
     })
-    const workspace = workspaces.find((candidate) => candidate.slug === data.slug)
+    const workspace = workspaces.find(
+      (candidate) => candidate.slug === data.slug,
+    )
 
     if (!workspace) throw redirect({ to: "/" })
 

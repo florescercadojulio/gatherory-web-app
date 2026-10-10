@@ -23,9 +23,7 @@ import { Separator } from "@/components/ui/separator"
 import type { EventWorkspaceSummary } from "@/server/events/contracts/event.contracts"
 import { listEvents } from "@/server/events/handlers/event.handlers"
 
-export const Route = createFileRoute(
-  "/_protected/workspaces/$workspaceSlug/",
-)({
+export const Route = createFileRoute("/_protected/workspaces/$workspaceSlug/")({
   loader: ({ context }) =>
     listEvents({
       data: {
@@ -93,9 +91,7 @@ function EventWorkspace({
           </CardDescription>
           <CardAction>
             <div className="flex flex-wrap justify-end gap-2">
-              {shared ? (
-                <Badge variant="outline">Shared with you</Badge>
-              ) : null}
+              {shared ? <Badge variant="outline">Shared with you</Badge> : null}
               <Badge variant="secondary" className="capitalize">
                 {event.currentParticipant.role}
               </Badge>
@@ -174,7 +170,7 @@ function EventWorkspace({
           <CardHeader>
             <CardTitle>People</CardTitle>
             <CardDescription>
-              Event roles stay separate from workspace membership.
+              Event roles stay separate from account access.
             </CardDescription>
             {event.pendingInvitationCount ? (
               <CardAction>
@@ -273,7 +269,7 @@ function Home() {
       <div className="space-y-1">
         <h1 className="text-2xl font-semibold tracking-tight">Your events</h1>
         <p className="text-sm text-muted-foreground">
-          Events in this workspace that are available to your event role.
+          The main event and schedule available to your event role.
         </p>
       </div>
 

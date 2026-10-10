@@ -1,11 +1,20 @@
 import { drizzleAdapter } from '@better-auth/drizzle-adapter/relations-v2'
+import { waitUntil } from '@vercel/functions'
 import { betterAuth } from 'better-auth'
-import { organization } from 'better-auth/plugins'
+import { emailOTP } from 'better-auth/plugins/email-otp'
+import { magicLink } from 'better-auth/plugins/magic-link'
+import { organization } from 'better-auth/plugins/organization'
 import { tanstackStartCookies } from 'better-auth/tanstack-start'
 
 import { db } from '@/db'
 import * as authSchema from '@/db/schema/auth.schema'
 import { env } from '@/env'
+import {
+  scheduleEmailOtp,
+  scheduleMagicLinkEmail,
+  schedulePasswordResetEmail,
+  scheduleVerificationEmail,
+} from '@/server/email/auth-email'
 
 const google =
   env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET
@@ -34,17 +43,62 @@ export const auth = betterAuth({
   }),
   emailAndPassword: {
     enabled: true,
+    requireEmailVerification: true,
+    revokeSessionsOnPasswordReset: true,
+    resetPasswordTokenExpiresIn: 60 * 60,
+    sendResetPassword: async ({ user, url }) => {
+      schedulePasswordResetEmail({
+        to: user.email,
+        name: user.name,
+        resetUrl: url,
+      })
+    },
+  },
+  emailVerification: {
+    expiresIn: 60 * 60,
+    sendOnSignUp: true,
+    sendOnSignIn: true,
+    autoSignInAfterVerification: true,
+    sendVerificationEmail: async ({ user, url }) => {
+      scheduleVerificationEmail({
+        to: user.email,
+        name: user.name,
+        verificationUrl: url,
+      })
+    },
   },
   socialProviders: {
     ...(google ? { google } : {}),
     ...(apple ? { apple } : {}),
   },
   advanced: {
+    backgroundTasks: {
+      handler: waitUntil,
+    },
     database: {
       joins: true,
     },
   },
   plugins: [
+    emailOTP({
+      otpLength: 6,
+      expiresIn: 10 * 60,
+      allowedAttempts: 3,
+      disableSignUp: true,
+      storeOTP: 'hashed',
+      resendStrategy: 'rotate',
+      sendVerificationOTP: async ({ email, otp, type }) => {
+        scheduleEmailOtp({ to: email, otp, type })
+      },
+    }),
+    magicLink({
+      expiresIn: 10 * 60,
+      disableSignUp: true,
+      storeToken: 'hashed',
+      sendMagicLink: async ({ email, url }) => {
+        scheduleMagicLinkEmail({ to: email, magicLinkUrl: url })
+      },
+    }),
     organization({
       teams: {
         enabled: true,

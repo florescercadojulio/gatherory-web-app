@@ -29,6 +29,24 @@ export const CreateEventInputSchema = z
       ...eventBase,
       parentEventId: z.uuid(),
       purpose: z.enum(["planning_scouting", "part_of_event"]),
+      category: z
+        .enum([
+          "venue",
+          "food_tasting",
+          "photography",
+          "honeymoon",
+          "attire_fitting",
+          "wedding_shower",
+          "bachelor_bachelorette",
+          "rehearsal",
+          "ceremony",
+          "reception",
+          "other",
+        ])
+        .default("other"),
+      planningStatus: z
+        .enum(["draft", "approved", "not_sure", "rejected", "archived"])
+        .default("approved"),
     }),
   ])
   .refine(
@@ -80,7 +98,7 @@ export type ChildEventSummary = {
   id: string
   title: string
   purpose: "planning_scouting" | "part_of_event"
-  status: "draft" | "ongoing" | "finished"
+  status: "draft" | "approved" | "not_sure" | "rejected" | "archived"
   startsAt: string | null
   endsAt: string | null
   timeZone: string

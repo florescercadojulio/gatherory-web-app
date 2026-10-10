@@ -5,13 +5,22 @@ import { CheckIcon, SparklesIcon } from "lucide-react"
 import { Auth } from "@/components/auth/auth"
 import { getSession } from "@/lib/auth.functions"
 
-const validAuthPaths = new Set<string>(Object.values(viewPaths.auth))
+const passwordlessAuthPaths = [
+  "email-otp",
+  "magic-link",
+  "magic-link-sent",
+] as const
+const validAuthPaths = new Set<string>([
+  ...Object.values(viewPaths.auth),
+  ...passwordlessAuthPaths,
+])
 const signedOutOnlyPaths = new Set<string>([
   viewPaths.auth.signIn,
   viewPaths.auth.signUp,
+  ...passwordlessAuthPaths,
 ])
 
-export const Route = createFileRoute("/auth/$path")({
+export const Route = createFileRoute("/auth/$path/")({
   beforeLoad: async ({ params: { path } }) => {
     if (!validAuthPaths.has(path)) {
       throw redirect({
@@ -66,7 +75,7 @@ function AuthPage() {
 
             <ul className="mt-8 grid gap-3 text-sm text-white/90">
               {[
-                "A shared workspace for every event",
+                "A shared planning space for every event",
                 "Decisions, schedules, and guests in context",
                 "Designed for planning together",
               ].map((item) => (

@@ -1,8 +1,11 @@
 import { sql } from "drizzle-orm"
 import {
+  boolean,
   check,
+  doublePrecision,
   foreignKey,
   index,
+  numeric,
   pgEnum,
   pgTable,
   text,
@@ -22,6 +25,45 @@ export const eventStatus = pgEnum("event_status", [
 export const eventPurpose = pgEnum("event_purpose", [
   "planning_scouting",
   "part_of_event",
+])
+
+export const eventPlanningStatus = pgEnum("event_planning_status", [
+  "draft",
+  "approved",
+  "not_sure",
+  "rejected",
+  "archived",
+])
+
+export const eventCompletionStatus = pgEnum("event_completion_status", [
+  "upcoming",
+  "complete",
+])
+
+export const eventSchedulingState = pgEnum("event_scheduling_state", [
+  "scheduled",
+  "unscheduled",
+])
+
+export const eventCategory = pgEnum("event_category", [
+  "venue",
+  "food_tasting",
+  "photography",
+  "honeymoon",
+  "attire_fitting",
+  "wedding_shower",
+  "bachelor_bachelorette",
+  "rehearsal",
+  "ceremony",
+  "reception",
+  "other",
+])
+
+export const eventPlanningMode = pgEnum("event_planning_mode", [
+  "open_to_ideas",
+  "help_me_decide",
+  "quiet_planning",
+  "decision_made",
 ])
 
 export const eventParticipantRole = pgEnum("event_participant_role", [
@@ -61,14 +103,32 @@ export const event = pgTable(
     parentEventId: uuid("parent_event_id"),
     title: text("title").notNull(),
     description: text("description"),
+    dressCode: text("dress_code"),
     imageUrl: text("image_url"),
-    status: eventStatus("status").default("draft").notNull(),
+    status: eventStatus("status"),
+    planningStatus: eventPlanningStatus("planning_status"),
+    completionStatus: eventCompletionStatus("completion_status")
+      .default("upcoming")
+      .notNull(),
+    schedulingState: eventSchedulingState("scheduling_state")
+      .default("scheduled")
+      .notNull(),
+    category: eventCategory("category"),
     purpose: eventPurpose("purpose"),
+    planningMode: eventPlanningMode("planning_mode")
+      .default("open_to_ideas")
+      .notNull(),
     startsAt: timestamp("starts_at", { withTimezone: true }),
     endsAt: timestamp("ends_at", { withTimezone: true }),
+    isAllDay: boolean("is_all_day").default(false).notNull(),
     timeZone: text("time_zone").notNull(),
     locationName: text("location_name"),
     locationAddress: text("location_address"),
+    locationAddressLine2: text("location_address_line_2"),
+    locationLatitude: doublePrecision("location_latitude"),
+    locationLongitude: doublePrecision("location_longitude"),
+    mapItemIdentifier: text("map_item_identifier"),
+    budgetCap: numeric("budget_cap", { precision: 14, scale: 2 }),
     createdByUserId: text("created_by_user_id")
       .notNull()
       .references(() => user.id, { onDelete: "restrict" }),
@@ -91,6 +151,9 @@ export const event = pgTable(
       table.organizationId,
       table.startsAt,
     ),
+    uniqueIndex("event_one_main_per_workspace_uidx")
+      .on(table.organizationId)
+      .where(sql`${table.parentEventId} is null`),
     foreignKey({
       name: "event_parent_same_workspace_fk",
       columns: [table.organizationId, table.parentEventId],
@@ -103,6 +166,22 @@ export const event = pgTable(
     check(
       "event_purpose_matches_hierarchy_check",
       sql`(${table.parentEventId} is null and ${table.purpose} is null) or (${table.parentEventId} is not null and ${table.purpose} is not null)`,
+    ),
+    check(
+      "event_child_metadata_matches_hierarchy_check",
+      sql`(${table.parentEventId} is null and ${table.category} is null and ${table.planningStatus} is null) or (${table.parentEventId} is not null and ${table.category} is not null and ${table.planningStatus} is not null)`,
+    ),
+    check(
+      "event_lifecycle_matches_hierarchy_check",
+      sql`(${table.parentEventId} is null and ${table.status} is not null) or (${table.parentEventId} is not null and ${table.status} is null)`,
+    ),
+    check(
+      "event_location_coordinate_pair_check",
+      sql`(${table.locationLatitude} is null and ${table.locationLongitude} is null) or (${table.locationLatitude} is not null and ${table.locationLongitude} is not null and ${table.locationLatitude} between -90 and 90 and ${table.locationLongitude} between -180 and 180)`,
+    ),
+    check(
+      "event_budget_cap_check",
+      sql`${table.budgetCap} is null or ${table.budgetCap} >= 0`,
     ),
   ],
 )

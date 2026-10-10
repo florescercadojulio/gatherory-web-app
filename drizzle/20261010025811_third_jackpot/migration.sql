@@ -1,0 +1,1 @@
+ALTER TABLE "event" DROP CONSTRAINT "event_location_coordinate_pair_check", ADD CONSTRAINT "event_location_coordinate_pair_check" CHECK (("location_latitude" is null and "location_longitude" is null) or ("location_latitude" is not null and "location_longitude" is not null and "location_latitude" between -90 and 90 and "location_longitude" between -180 and 180));

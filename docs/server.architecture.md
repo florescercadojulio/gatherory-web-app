@@ -16,8 +16,9 @@ and must not acquire authentication or database responsibilities.
 Normal request/response work belongs in TanStack Start server functions. Public
 or cross-origin endpoints, such as future mobile API routes and webhooks, use
 server routes. Durable notifications, media processing, and scheduled weather
-checks are later infrastructure slices; do not hide them inside request
-handlers.
+checks must not be hidden inside request handlers. Media upload authorization
+and finalization are request workflows; rendition generation remains durable
+background infrastructure.
 
 ## Domain layout
 
@@ -34,6 +35,7 @@ src/server/events/
 src/server/ideas/
 src/server/participants/
 src/server/registry/
+src/server/media/
 src/server/workspaces/
 src/server/templates/
 ```
@@ -73,6 +75,23 @@ route or component
 
 Dependencies point only down that chain. Keep a layer only when it owns a real
 responsibility; do not add empty wrappers for ceremony.
+
+### Effect runtime
+
+Application server logic is modeled with Effect. The conventions intentionally
+match the reference architecture:
+
+- repositories and connectors are `Context.Service` contracts;
+- `*.live.ts` modules provide their production `Layer` implementations;
+- workflows return `Effect` values and never call `Effect.run*`;
+- handlers provide the required layers and call `runServerEffect` exactly once;
+- expected failures use tagged domain errors rather than sentinel strings;
+- promise-based SDKs are lifted at the repository or connector boundary, never
+  in a workflow.
+
+`src/server/effect.ts` is the only Effect-to-transport boundary. It logs the
+full failure with trace and error IDs while returning only safe product copy.
+This is also why handlers must not maintain their own `try/catch` error maps.
 
 ## Workspace ownership and event authorization
 
@@ -146,52 +165,55 @@ A handler is the only server-function edge. It must:
 
 1. declare the HTTP method;
 2. apply session middleware;
-3. apply event-scoped authorization when the operation targets an event;
+3. make its event-scoped authorization requirement explicit in the domain
+   service call;
 4. validate all caller input;
 5. call exactly one workflow; and
 6. return a safe serializable result.
 
 Authentication and authorization are separate. `requireSessionMiddleware`
-proves identity. A domain authorization middleware resolves the participant
-assignment for the requested event and verifies the declared permission set.
-Route guards improve navigation, but do not authorize data access.
+proves identity. `EventAuthorization` evaluates a repository-backed participant
+assignment against the declared resource/action statement. Route guards and
+client visibility checks improve navigation, but do not authorize data access.
 
 ```ts
 export const updateEvent = createServerFn({ method: "POST" })
-  .middleware([
-    requireSessionMiddleware,
-    requireEventPermissions({ event: ["read", "update"] }),
-  ])
+  .middleware([requireSessionMiddleware])
   .validator(UpdateEventSchema)
   .handler(({ data, context }) =>
     runServerEffect(
-      updateEventWorkflow(data).pipe(
-        // Provide service, repo, database, then trusted request context.
+      updateEventWorkflow(data, { userId: context.user.id }).pipe(
+        Effect.provide(EventServiceLive),
+        Effect.provide(EventRepoLive),
+        Effect.provide(EventAuthorizationLive),
       ),
     ),
-  );
+  )
 ```
 
-`requireEventPermissions` is added with the first event persistence slice. It
-must use a repository-backed access lookup; it must not trust a role, event ID,
-or permission array supplied by the browser. Middleware factories should make
-required permissions visible at the handler declaration.
+Authorization stays in a service when it depends on a domain record, such as an
+event participant assignment. Request middleware is reserved for request-wide
+facts such as identity or an active Better Auth organization. Neither layer may
+trust a role, event ID, or permission statement supplied by the browser.
 
 ## Permission rules
 
-Permissions name capabilities, not screens. Examples include:
+Permissions use Better Auth's resource/action statement model, not dotted
+strings or screen names. Examples include:
 
-- `event.read`, `event.update`, `event.delete`, `event.manageParticipants`
-- `idea.read`, `idea.create`, `idea.decide`, `idea.update`
-- `timeline.read`, `timeline.manage`
-- `registry.read`, `registry.manage`, `registry.commit`
-- `note.send`
+```ts
+{ event: ["update", "manage_participants"] }
+{ idea: ["create", "decide"] }
+{ registry: ["commit"] }
+{ media: ["upload"] }
+```
 
-The matrix in `src/lib/permissions.ts` is the product default. A persisted
-participant assignment is still authoritative. Server authorization should
-resolve the assignment, derive its capabilities, and require every capability
-declared by the handler. Client-side checks may hide controls but never replace
-the server check.
+`src/lib/permissions.ts` owns the statement, roles, and participant-to-role
+mapping. A persisted participant assignment is still authoritative. The server
+resolves it, maps `host`, `collaborator`, or `guest` plus the planning
+permission to an access-control role, and asks Better Auth's access-control
+engine to authorize the required statement. Client-side checks may hide
+controls but never replace this server check.
 
 Keep differently privileged operations in separate handlers. For example,
 responding to an invitation and editing an event are different endpoints even
@@ -253,6 +275,7 @@ Keep schema files aligned to durable domains:
 src/db/schema/
   auth.schema.ts
   event.schema.ts
+  media.schema.ts
   idea.schema.ts
   registry.schema.ts
   shared.ts
@@ -265,8 +288,11 @@ Better Auth owns its core auth tables. Gatherory owns product tables. Drizzle
 Kit reads only `*.schema.ts`, preventing the schema barrel from being discovered
 as a duplicate table source. Export all runtime relations through one relation
 composition file, but do not turn it into a catch-all schema file. Migration
-and seed utilities may use the ordinary Drizzle client; application
-repositories use the injected Effect/Drizzle services once that layer is added.
+and seed utilities may use the ordinary Drizzle client. Application persistence
+is exposed through injected Effect repository services. A repository may lift
+the ordinary Drizzle promise while its domain is being migrated; callers still
+depend only on its service contract, making a native Effect/Drizzle
+implementation an isolated change.
 
 ## Current backend slice
 
@@ -274,21 +300,25 @@ The foundation now includes the auth UI shell, sidebar-07 protected shell,
 PostgreSQL client, Drizzle configuration and migrations, Better Auth
 organizations with teams, automatic personal-workspace provisioning,
 additional event-workspace creation, an account-level workspace directory,
-session middleware, permission vocabulary, reusable entity components, and the
-first Events persistence slice.
+session middleware, permission vocabulary, reusable entity components, the
+first Events persistence slice, and the private R2 media-upload foundation.
 
 The Events slice currently provides main/child event persistence, the two-level
 tree invariant, participant snapshots for new child events, event-scoped invite
-records and acceptance, safe handlers, and repository-backed authorization
-checks. Email delivery, event mutation, and participant administration are the
-next backend workflows. Template and professional-workspace tables remain
-deferred; the ownership model above reserves room for them without putting them
-in the first-release path.
+records and acceptance, Effect repository/service layers, tagged domain errors,
+safe handlers, and Better Auth-style repository-backed authorization checks.
+Email delivery, event mutation, and participant administration are the next
+backend workflows. Media currently provides reusable asset metadata,
+event placement records, signed direct uploads, finalization checks, and
+authorized reads; durable image rendition processing remains deferred. Template
+and professional-workspace tables remain deferred; the ownership model above
+reserves room for them without putting them in the first-release path.
 
 ## New use-case checklist
 
 1. Define input and public output contracts.
-2. Declare authentication and event permissions at the handler.
+2. Declare authentication at the handler and event permissions in the domain
+   service operation.
 3. Add event-scoped repository operations with narrow projections.
 4. Add service behavior and one workflow.
 5. Put multi-write atomicity in the workflow.

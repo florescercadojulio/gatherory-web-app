@@ -13,6 +13,16 @@ import {
   eventInvitation,
   eventParticipant,
 } from "@/db/schema/event.schema"
+import {
+  eventExpense,
+  eventNote,
+  idea,
+  ideaDecision,
+  ideaMusicTrack,
+  musicTrack,
+  registryItem,
+  workspacePlanningSettings,
+} from "@/db/schema/planning.schema"
 import { auth } from "@/lib/auth"
 
 const developmentUsers = [
@@ -48,20 +58,49 @@ const eventIds = {
   afterParty: "10000000-0000-4000-8000-000000000007",
 } as const
 
+const planningIds = {
+  venueIdea: "20000000-0000-4000-8000-000000000001",
+  musicIdea: "20000000-0000-4000-8000-000000000002",
+  attireIdea: "20000000-0000-4000-8000-000000000003",
+  registryIdea: "20000000-0000-4000-8000-000000000004",
+  musicTrack: "30000000-0000-4000-8000-000000000001",
+  venueExpense: "40000000-0000-4000-8000-000000000001",
+  eventNote: "50000000-0000-4000-8000-000000000001",
+  registryItem: "60000000-0000-4000-8000-000000000001",
+} as const
+
 type SeedUser = { id: string; name: string; email: string }
 
 async function ensureDevelopmentUser(
   input: (typeof developmentUsers)[number],
 ): Promise<SeedUser> {
   const [existingUser] = await db
-    .select({ id: user.id, name: user.name, email: user.email })
+    .select({
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      emailVerified: user.emailVerified,
+    })
     .from(user)
     .where(eq(user.email, input.email))
     .limit(1)
 
-  if (existingUser) return existingUser
+  if (existingUser) {
+    if (!existingUser.emailVerified) {
+      await db
+        .update(user)
+        .set({ emailVerified: true })
+        .where(eq(user.id, existingUser.id))
+    }
+
+    return existingUser
+  }
 
   const result = await auth.api.signUpEmail({ body: input })
+  await db
+    .update(user)
+    .set({ emailVerified: true })
+    .where(eq(user.id, result.user.id))
   console.log(`Created development user: ${result.user.email}`)
   return result.user
 }
@@ -97,10 +136,7 @@ async function ensureWorkspace(owner: SeedUser) {
     .select({ id: member.id })
     .from(member)
     .where(
-      and(
-        eq(member.organizationId, workspace.id),
-        eq(member.userId, owner.id),
-      ),
+      and(eq(member.organizationId, workspace.id), eq(member.userId, owner.id)),
     )
     .limit(1)
 
@@ -118,10 +154,7 @@ async function ensureWorkspace(owner: SeedUser) {
     .select({ id: team.id })
     .from(team)
     .where(
-      and(
-        eq(team.organizationId, workspace.id),
-        eq(team.name, "Planning"),
-      ),
+      and(eq(team.organizationId, workspace.id), eq(team.name, "Planning")),
     )
     .limit(1)
 
@@ -190,10 +223,13 @@ async function seedEventWorkspace(input: {
         "A garden ceremony, dinner under the trees, and a full weekend with our favorite people.",
       status: "draft" as const,
       purpose: null,
+      planningStatus: null,
+      category: null,
       startsAt: new Date("2027-06-13T20:00:00.000Z"),
       endsAt: new Date("2027-06-14T05:00:00.000Z"),
       locationName: "Willow & Stone Estate",
       locationAddress: "Ann Arbor, Michigan",
+      budgetCap: "30000.00",
     },
     {
       ...shared,
@@ -201,12 +237,15 @@ async function seedEventWorkspace(input: {
       parentEventId: eventIds.main,
       title: "Final venue walkthrough",
       description: "Confirm the ceremony layout and rain plan.",
-      status: "draft" as const,
+      status: null,
       purpose: "planning_scouting" as const,
+      planningStatus: "approved" as const,
+      category: "venue" as const,
       startsAt: new Date("2027-01-16T16:00:00.000Z"),
       endsAt: new Date("2027-01-16T17:30:00.000Z"),
       locationName: "Willow & Stone Estate",
       locationAddress: "Ann Arbor, Michigan",
+      budgetCap: "1500.00",
     },
     {
       ...shared,
@@ -214,12 +253,15 @@ async function seedEventWorkspace(input: {
       parentEventId: eventIds.main,
       title: "Menu tasting",
       description: "Choose the dinner menu and late-night snack.",
-      status: "draft" as const,
+      status: null,
       purpose: "planning_scouting" as const,
+      planningStatus: "approved" as const,
+      category: "food_tasting" as const,
       startsAt: new Date("2027-03-20T22:00:00.000Z"),
       endsAt: new Date("2027-03-21T00:00:00.000Z"),
       locationName: "Juniper Kitchen",
       locationAddress: "Detroit, Michigan",
+      budgetCap: "800.00",
     },
     {
       ...shared,
@@ -227,12 +269,15 @@ async function seedEventWorkspace(input: {
       parentEventId: eventIds.main,
       title: "Rehearsal dinner",
       description: "Dinner with the wedding party and immediate family.",
-      status: "draft" as const,
+      status: null,
       purpose: "part_of_event" as const,
+      planningStatus: "approved" as const,
+      category: "rehearsal" as const,
       startsAt: new Date("2027-06-12T22:30:00.000Z"),
       endsAt: new Date("2027-06-13T01:00:00.000Z"),
       locationName: "The Common Table",
       locationAddress: "Ann Arbor, Michigan",
+      budgetCap: "3500.00",
     },
     {
       ...shared,
@@ -240,12 +285,15 @@ async function seedEventWorkspace(input: {
       parentEventId: eventIds.main,
       title: "Ceremony",
       description: "The moment we make it official.",
-      status: "draft" as const,
+      status: null,
       purpose: "part_of_event" as const,
+      planningStatus: "approved" as const,
+      category: "ceremony" as const,
       startsAt: new Date("2027-06-13T20:00:00.000Z"),
       endsAt: new Date("2027-06-13T20:45:00.000Z"),
       locationName: "Willow & Stone Estate",
       locationAddress: "Ann Arbor, Michigan",
+      budgetCap: null,
     },
     {
       ...shared,
@@ -253,12 +301,15 @@ async function seedEventWorkspace(input: {
       parentEventId: eventIds.main,
       title: "Dinner & reception",
       description: "Dinner, toasts, and dancing under the trees.",
-      status: "draft" as const,
+      status: null,
       purpose: "part_of_event" as const,
+      planningStatus: "approved" as const,
+      category: "reception" as const,
       startsAt: new Date("2027-06-13T21:30:00.000Z"),
       endsAt: new Date("2027-06-14T03:30:00.000Z"),
       locationName: "Willow & Stone Estate",
       locationAddress: "Ann Arbor, Michigan",
+      budgetCap: "12000.00",
     },
     {
       ...shared,
@@ -266,12 +317,15 @@ async function seedEventWorkspace(input: {
       parentEventId: eventIds.main,
       title: "After-party",
       description: "One last round for anyone still dancing.",
-      status: "draft" as const,
+      status: null,
       purpose: "part_of_event" as const,
+      planningStatus: "approved" as const,
+      category: "reception" as const,
       startsAt: new Date("2027-06-14T04:00:00.000Z"),
       endsAt: new Date("2027-06-14T06:00:00.000Z"),
       locationName: "The Last Word",
       locationAddress: "Ann Arbor, Michigan",
+      budgetCap: "2000.00",
     },
   ]
 
@@ -288,11 +342,14 @@ async function seedEventWorkspace(input: {
           description: record.description,
           status: record.status,
           purpose: record.purpose,
+          planningStatus: record.planningStatus,
+          category: record.category,
           startsAt: record.startsAt,
           endsAt: record.endsAt,
           timeZone: record.timeZone,
           locationName: record.locationName,
           locationAddress: record.locationAddress,
+          budgetCap: record.budgetCap,
           updatedAt: new Date(),
         },
       })
@@ -343,6 +400,181 @@ async function seedEventWorkspace(input: {
         },
       })
   }
+
+  await db
+    .insert(workspacePlanningSettings)
+    .values({
+      organizationId: input.workspaceId,
+      budgetCap: "30000.00",
+    })
+    .onConflictDoUpdate({
+      target: workspacePlanningSettings.organizationId,
+      set: { budgetCap: "30000.00", updatedAt: new Date() },
+    })
+
+  const ideaRecords = [
+    {
+      id: planningIds.venueIdea,
+      organizationId: input.workspaceId,
+      eventId: eventIds.main,
+      category: "venue" as const,
+      status: "approved" as const,
+      title: "Willow & Stone Estate",
+      note: "Garden ceremony, dinner under the trees, and a weather-ready indoor space.",
+      estimatedCost: "14500.00",
+      configuration: {
+        version: 1 as const,
+        setting: "both",
+        capacity: 140,
+        area: "Ann Arbor",
+      },
+      submittedByUserId: alex.id,
+    },
+    {
+      id: planningIds.musicIdea,
+      organizationId: input.workspaceId,
+      eventId: eventIds.main,
+      category: "music" as const,
+      status: "shortlisted" as const,
+      title: "First dance song",
+      note: "A warm, easy song for the first dance.",
+      estimatedCost: null,
+      configuration: { version: 1 as const },
+      submittedByUserId: jordan.id,
+    },
+    {
+      id: planningIds.attireIdea,
+      organizationId: input.workspaceId,
+      eventId: eventIds.main,
+      category: "attire" as const,
+      status: "maybe" as const,
+      title: null,
+      note: "Comfortable shoes encouraged for the lawn.",
+      estimatedCost: null,
+      configuration: {
+        version: 1 as const,
+        style: "garden",
+        restrictions: "Avoid white and ivory.",
+      },
+      submittedByUserId: maya.id,
+    },
+    {
+      id: planningIds.registryIdea,
+      organizationId: input.workspaceId,
+      eventId: eventIds.main,
+      category: "registry" as const,
+      status: "approved" as const,
+      title: "Weekend getaway fund",
+      note: "Help us plan a quiet first trip after the wedding.",
+      estimatedCost: "1500.00",
+      configuration: {
+        version: 1 as const,
+        category: "cash_fund",
+        quantity: 1,
+      },
+      submittedByUserId: alex.id,
+    },
+  ]
+
+  for (const record of ideaRecords) {
+    await db
+      .insert(idea)
+      .values(record)
+      .onConflictDoUpdate({
+        target: idea.id,
+        set: {
+          status: record.status,
+          title: record.title,
+          note: record.note,
+          estimatedCost: record.estimatedCost,
+          configuration: record.configuration,
+          updatedAt: new Date(),
+        },
+      })
+  }
+
+  await db
+    .insert(ideaDecision)
+    .values({
+      ideaId: planningIds.musicIdea,
+      userId: alex.id,
+      choice: "love",
+    })
+    .onConflictDoUpdate({
+      target: [ideaDecision.ideaId, ideaDecision.userId],
+      set: { choice: "love", updatedAt: new Date() },
+    })
+
+  await db
+    .insert(musicTrack)
+    .values({
+      id: planningIds.musicTrack,
+      provider: "apple_music",
+      providerTrackId: "seed-first-dance-track",
+      title: "Golden Hour",
+      artistName: "Gatherory Seed Artist",
+      albumTitle: "Celebration",
+    })
+    .onConflictDoNothing({ target: musicTrack.id })
+
+  await db
+    .insert(ideaMusicTrack)
+    .values({
+      ideaId: planningIds.musicIdea,
+      musicTrackId: planningIds.musicTrack,
+      sortOrder: 0,
+    })
+    .onConflictDoNothing({
+      target: [ideaMusicTrack.ideaId, ideaMusicTrack.musicTrackId],
+    })
+
+  await db
+    .insert(eventExpense)
+    .values({
+      id: planningIds.venueExpense,
+      organizationId: input.workspaceId,
+      eventId: eventIds.main,
+      sourceIdeaId: planningIds.venueIdea,
+      title: "Venue deposit",
+      amount: "3500.00",
+      category: "venue",
+      status: "committed",
+      createdByUserId: alex.id,
+    })
+    .onConflictDoUpdate({
+      target: eventExpense.id,
+      set: { amount: "3500.00", status: "committed", updatedAt: new Date() },
+    })
+
+  await db
+    .insert(eventNote)
+    .values({
+      id: planningIds.eventNote,
+      organizationId: input.workspaceId,
+      eventId: eventIds.main,
+      authorUserId: alex.id,
+      body: "The venue walkthrough is confirmed. Meet at the garden entrance.",
+    })
+    .onConflictDoNothing({ target: eventNote.id })
+
+  await db
+    .insert(registryItem)
+    .values({
+      id: planningIds.registryItem,
+      organizationId: input.workspaceId,
+      eventId: eventIds.main,
+      sourceIdeaId: planningIds.registryIdea,
+      title: "Weekend getaway fund",
+      note: "A quiet first trip after the wedding.",
+      category: "cash_fund",
+      price: "1500.00",
+      quantity: 1,
+      createdByUserId: alex.id,
+    })
+    .onConflictDoUpdate({
+      target: registryItem.id,
+      set: { price: "1500.00", updatedAt: new Date() },
+    })
 
   const pendingEmail = "family@gatherory.test"
   const [pendingInvitation] = await db

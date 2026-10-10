@@ -38,7 +38,7 @@ export function AccountSidebar({
           label="Account"
           items={[
             {
-              title: "Workspaces",
+              title: "Events",
               url: "/workspaces",
               icon: LayoutGrid,
             },

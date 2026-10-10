@@ -2,9 +2,11 @@ import { defineRelationsPart } from "drizzle-orm"
 
 import * as authSchema from "@/db/schema/auth.schema"
 import * as eventSchema from "@/db/schema/event.schema"
+import * as mediaSchema from "@/db/schema/media.schema"
+import * as planningSchema from "@/db/schema/planning.schema"
 
 export const databaseRelations = defineRelationsPart(
-  { ...authSchema, ...eventSchema },
+  { ...authSchema, ...eventSchema, ...mediaSchema, ...planningSchema },
   (r) => ({
     user: {
       sessions: r.many.session({
@@ -26,6 +28,22 @@ export const databaseRelations = defineRelationsPart(
       eventParticipants: r.many.eventParticipant({
         from: r.user.id,
         to: r.eventParticipant.userId,
+      }),
+      uploadedMedia: r.many.mediaAsset({
+        from: r.user.id,
+        to: r.mediaAsset.uploadedByUserId,
+      }),
+      submittedIdeas: r.many.idea({
+        from: r.user.id,
+        to: r.idea.submittedByUserId,
+      }),
+      ideaDecisions: r.many.ideaDecision({
+        from: r.user.id,
+        to: r.ideaDecision.userId,
+      }),
+      registryCommitments: r.many.registryCommitment({
+        from: r.user.id,
+        to: r.registryCommitment.userId,
       }),
     },
     session: {
@@ -52,6 +70,18 @@ export const databaseRelations = defineRelationsPart(
       events: r.many.event({
         from: r.organization.id,
         to: r.event.organizationId,
+      }),
+      mediaAssets: r.many.mediaAsset({
+        from: r.organization.id,
+        to: r.mediaAsset.organizationId,
+      }),
+      planningSettings: r.one.workspacePlanningSettings({
+        from: r.organization.id,
+        to: r.workspacePlanningSettings.organizationId,
+      }),
+      ideas: r.many.idea({
+        from: r.organization.id,
+        to: r.idea.organizationId,
       }),
     },
     member: {
@@ -107,6 +137,26 @@ export const databaseRelations = defineRelationsPart(
         from: r.event.id,
         to: r.eventInvitation.eventId,
       }),
+      media: r.many.eventMedia({
+        from: r.event.id,
+        to: r.eventMedia.eventId,
+      }),
+      ideas: r.many.idea({
+        from: r.event.id,
+        to: r.idea.eventId,
+      }),
+      expenses: r.many.eventExpense({
+        from: r.event.id,
+        to: r.eventExpense.eventId,
+      }),
+      notes: r.many.eventNote({
+        from: r.event.id,
+        to: r.eventNote.eventId,
+      }),
+      registryItems: r.many.registryItem({
+        from: r.event.id,
+        to: r.registryItem.eventId,
+      }),
     },
     eventParticipant: {
       event: r.one.event({
@@ -132,6 +182,164 @@ export const databaseRelations = defineRelationsPart(
         from: r.eventInvitation.acceptedByUserId,
         to: r.user.id,
         alias: "event_invitation_acceptor",
+      }),
+    },
+    mediaAsset: {
+      workspace: r.one.organization({
+        from: r.mediaAsset.organizationId,
+        to: r.organization.id,
+      }),
+      uploadedBy: r.one.user({
+        from: r.mediaAsset.uploadedByUserId,
+        to: r.user.id,
+      }),
+      eventPlacements: r.many.eventMedia({
+        from: r.mediaAsset.id,
+        to: r.eventMedia.mediaAssetId,
+      }),
+      ideaPlacements: r.many.ideaMedia({
+        from: r.mediaAsset.id,
+        to: r.ideaMedia.mediaAssetId,
+      }),
+      registryPlacements: r.many.registryItemMedia({
+        from: r.mediaAsset.id,
+        to: r.registryItemMedia.mediaAssetId,
+      }),
+    },
+    eventMedia: {
+      event: r.one.event({
+        from: r.eventMedia.eventId,
+        to: r.event.id,
+      }),
+      asset: r.one.mediaAsset({
+        from: r.eventMedia.mediaAssetId,
+        to: r.mediaAsset.id,
+      }),
+    },
+    workspacePlanningSettings: {
+      workspace: r.one.organization({
+        from: r.workspacePlanningSettings.organizationId,
+        to: r.organization.id,
+      }),
+    },
+    idea: {
+      workspace: r.one.organization({
+        from: r.idea.organizationId,
+        to: r.organization.id,
+      }),
+      event: r.one.event({
+        from: r.idea.eventId,
+        to: r.event.id,
+      }),
+      submittedBy: r.one.user({
+        from: r.idea.submittedByUserId,
+        to: r.user.id,
+      }),
+      decisions: r.many.ideaDecision({
+        from: r.idea.id,
+        to: r.ideaDecision.ideaId,
+      }),
+      musicTracks: r.many.ideaMusicTrack({
+        from: r.idea.id,
+        to: r.ideaMusicTrack.ideaId,
+      }),
+      media: r.many.ideaMedia({
+        from: r.idea.id,
+        to: r.ideaMedia.ideaId,
+      }),
+    },
+    ideaDecision: {
+      idea: r.one.idea({
+        from: r.ideaDecision.ideaId,
+        to: r.idea.id,
+      }),
+      user: r.one.user({
+        from: r.ideaDecision.userId,
+        to: r.user.id,
+      }),
+    },
+    musicTrack: {
+      ideas: r.many.ideaMusicTrack({
+        from: r.musicTrack.id,
+        to: r.ideaMusicTrack.musicTrackId,
+      }),
+    },
+    ideaMusicTrack: {
+      idea: r.one.idea({
+        from: r.ideaMusicTrack.ideaId,
+        to: r.idea.id,
+      }),
+      track: r.one.musicTrack({
+        from: r.ideaMusicTrack.musicTrackId,
+        to: r.musicTrack.id,
+      }),
+    },
+    eventExpense: {
+      event: r.one.event({
+        from: r.eventExpense.eventId,
+        to: r.event.id,
+      }),
+      sourceIdea: r.one.idea({
+        from: r.eventExpense.sourceIdeaId,
+        to: r.idea.id,
+      }),
+    },
+    eventNote: {
+      event: r.one.event({
+        from: r.eventNote.eventId,
+        to: r.event.id,
+      }),
+      author: r.one.user({
+        from: r.eventNote.authorUserId,
+        to: r.user.id,
+      }),
+    },
+    registryItem: {
+      event: r.one.event({
+        from: r.registryItem.eventId,
+        to: r.event.id,
+      }),
+      sourceIdea: r.one.idea({
+        from: r.registryItem.sourceIdeaId,
+        to: r.idea.id,
+      }),
+      commitments: r.many.registryCommitment({
+        from: r.registryItem.id,
+        to: r.registryCommitment.registryItemId,
+      }),
+      media: r.many.registryItemMedia({
+        from: r.registryItem.id,
+        to: r.registryItemMedia.registryItemId,
+      }),
+    },
+    registryCommitment: {
+      item: r.one.registryItem({
+        from: r.registryCommitment.registryItemId,
+        to: r.registryItem.id,
+      }),
+      user: r.one.user({
+        from: r.registryCommitment.userId,
+        to: r.user.id,
+      }),
+    },
+    ideaMedia: {
+      idea: r.one.idea({
+        from: r.ideaMedia.ideaId,
+        to: r.idea.id,
+      }),
+      asset: r.one.mediaAsset({
+        from: r.ideaMedia.mediaAssetId,
+        to: r.mediaAsset.id,
+      }),
+    },
+    registryItemMedia: {
+      item: r.one.registryItem({
+        from: r.registryItemMedia.registryItemId,
+        to: r.registryItem.id,
+      }),
+      asset: r.one.mediaAsset({
+        from: r.registryItemMedia.mediaAssetId,
+        to: r.mediaAsset.id,
       }),
     },
   }),
