@@ -54,8 +54,7 @@ export const mediaAsset = pgTable(
       .notNull()
       .references(() => organization.id, { onDelete: "cascade" }),
     uploadedByUserId: text("uploaded_by_user_id")
-      .notNull()
-      .references(() => user.id, { onDelete: "restrict" }),
+      .references(() => user.id, { onDelete: "set null" }),
     kind: mediaKind("kind").notNull(),
     status: mediaStatus("status").default("pending").notNull(),
     visibility: mediaVisibility("visibility").default("private").notNull(),

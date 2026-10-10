@@ -142,8 +142,7 @@ export const idea = pgTable(
     estimatedCost: numeric("estimated_cost", { precision: 14, scale: 2 }),
     configuration: jsonb("configuration").$type<IdeaConfiguration>().notNull(),
     submittedByUserId: text("submitted_by_user_id")
-      .notNull()
-      .references(() => user.id, { onDelete: "restrict" }),
+      .references(() => user.id, { onDelete: "set null" }),
     createdAt: timestamp("created_at", { withTimezone: true })
       .defaultNow()
       .notNull(),
@@ -256,8 +255,7 @@ export const eventExpense = pgTable(
     category: expenseCategory("category").default("other").notNull(),
     status: expenseStatus("status").default("estimated").notNull(),
     createdByUserId: text("created_by_user_id")
-      .notNull()
-      .references(() => user.id, { onDelete: "restrict" }),
+      .references(() => user.id, { onDelete: "set null" }),
     createdAt: timestamp("created_at", { withTimezone: true })
       .defaultNow()
       .notNull(),
@@ -292,8 +290,7 @@ export const eventNote = pgTable(
     organizationId: text("organization_id").notNull(),
     eventId: uuid("event_id").notNull(),
     authorUserId: text("author_user_id")
-      .notNull()
-      .references(() => user.id, { onDelete: "restrict" }),
+      .references(() => user.id, { onDelete: "set null" }),
     body: text("body").notNull(),
     sentAt: timestamp("sent_at", { withTimezone: true }).defaultNow().notNull(),
   },
@@ -324,8 +321,7 @@ export const registryItem = pgTable(
     price: numeric("price", { precision: 14, scale: 2 }),
     quantity: integer("quantity").default(1).notNull(),
     createdByUserId: text("created_by_user_id")
-      .notNull()
-      .references(() => user.id, { onDelete: "restrict" }),
+      .references(() => user.id, { onDelete: "set null" }),
     createdAt: timestamp("created_at", { withTimezone: true })
       .defaultNow()
       .notNull(),

@@ -3,6 +3,7 @@ import {
   ChevronsUpDown,
   LogOut,
 } from "lucide-react"
+import { Link } from "@tanstack/react-router"
 
 import { authClient } from "@/lib/auth-client"
 
@@ -80,7 +81,7 @@ export function NavUser({
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem>
+              <DropdownMenuItem render={<Link to="/account" />}>
                 <BadgeCheck />
                 Account
               </DropdownMenuItem>

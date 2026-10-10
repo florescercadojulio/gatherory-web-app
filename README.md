@@ -86,6 +86,14 @@ route-generation and typecheck workflow.
 applies unapplied migrations to `DATABASE_URL`. Use `db:push` only for temporary
 local prototyping; committed environments should use migrations.
 
+Pushes to `main` run the **Production database migration** GitHub workflow. Add
+`PRODUCTION_DATABASE_URL` to the repository's `production` GitHub environment;
+the workflow installs the locked dependencies and runs `pnpm db:migrate`. A
+failed connection or migration makes the check fail, so it can be used as a
+required release signal. Migrations are serialized and are never cancelled
+mid-run. Vercel still deploys independently unless this check is also required
+by the repository's branch or deployment rules.
+
 `db:seed` is idempotent, non-destructive, and development-only. It creates four
 accounts through Better Auth, ensuring their credential records and password
 hashes use the same path as normal registration:
@@ -167,6 +175,14 @@ organization-invitation tables in `src/db/schema/auth.schema.ts`. Gatherory owns
 `event`, `event_participant`, and `event_invitation`. Organization membership
 must not replace event participation: guests and attendance remain scoped to an
 event.
+
+Account deletion is enabled through Better Auth and is available from the web
+account page and iOS Account settings. A user must have a fresh authenticated
+session, which means an older session is asked to sign in again before the
+irreversible operation. Sole-owner workspaces are removed. Collaborative
+workspaces stay available by transferring ownership to the oldest remaining
+member; the deleted person's participation, decisions, registry commitments,
+and uploaded media are removed, while historical author fields are cleared.
 
 ## Architecture
 

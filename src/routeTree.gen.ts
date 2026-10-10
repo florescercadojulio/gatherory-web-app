@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProtectedRouteRouteImport } from './routes/_protected/route'
+import { Route as ProtectedAccountIndexRouteImport } from './routes/_protected/account/index'
 import { Route as ProtectedWorkspacesIndexRouteImport } from './routes/_protected/workspaces/index'
 import { Route as ProtectedWorkspacesWorkspaceSlugRouteRouteImport } from './routes/_protected/workspaces/$workspaceSlug/route'
 import { Route as ApiAuthSplatRouteRouteImport } from './routes/api/auth/$/route'
@@ -25,6 +26,11 @@ const IndexRoute = IndexRouteImport.update({
 const ProtectedRouteRoute = ProtectedRouteRouteImport.update({
   id: '/_protected',
   getParentRoute: () => rootRouteImport,
+} as any)
+const ProtectedAccountIndexRoute = ProtectedAccountIndexRouteImport.update({
+  id: '/account/',
+  path: '/account/',
+  getParentRoute: () => ProtectedRouteRoute,
 } as any)
 const ProtectedWorkspacesIndexRoute =
   ProtectedWorkspacesIndexRouteImport.update({
@@ -59,6 +65,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/workspaces/$workspaceSlug': typeof ProtectedWorkspacesWorkspaceSlugRouteRouteWithChildren
   '/api/auth/$': typeof ApiAuthSplatRouteRoute
+  '/account/': typeof ProtectedAccountIndexRoute
   '/workspaces/': typeof ProtectedWorkspacesIndexRoute
   '/auth/$path/': typeof AuthPathIndexRoute
   '/workspaces/$workspaceSlug/': typeof ProtectedWorkspacesWorkspaceSlugIndexRoute
@@ -66,6 +73,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/api/auth/$': typeof ApiAuthSplatRouteRoute
+  '/account': typeof ProtectedAccountIndexRoute
   '/workspaces': typeof ProtectedWorkspacesIndexRoute
   '/auth/$path': typeof AuthPathIndexRoute
   '/workspaces/$workspaceSlug': typeof ProtectedWorkspacesWorkspaceSlugIndexRoute
@@ -76,6 +84,7 @@ export interface FileRoutesById {
   '/_protected': typeof ProtectedRouteRouteWithChildren
   '/_protected/workspaces/$workspaceSlug': typeof ProtectedWorkspacesWorkspaceSlugRouteRouteWithChildren
   '/api/auth/$': typeof ApiAuthSplatRouteRoute
+  '/_protected/account/': typeof ProtectedAccountIndexRoute
   '/_protected/workspaces/': typeof ProtectedWorkspacesIndexRoute
   '/auth/$path/': typeof AuthPathIndexRoute
   '/_protected/workspaces/$workspaceSlug/': typeof ProtectedWorkspacesWorkspaceSlugIndexRoute
@@ -86,6 +95,7 @@ export interface FileRouteTypes {
     | '/'
     | '/workspaces/$workspaceSlug'
     | '/api/auth/$'
+    | '/account/'
     | '/workspaces/'
     | '/auth/$path/'
     | '/workspaces/$workspaceSlug/'
@@ -93,6 +103,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/api/auth/$'
+    | '/account'
     | '/workspaces'
     | '/auth/$path'
     | '/workspaces/$workspaceSlug'
@@ -102,6 +113,7 @@ export interface FileRouteTypes {
     | '/_protected'
     | '/_protected/workspaces/$workspaceSlug'
     | '/api/auth/$'
+    | '/_protected/account/'
     | '/_protected/workspaces/'
     | '/auth/$path/'
     | '/_protected/workspaces/$workspaceSlug/'
@@ -129,6 +141,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof ProtectedRouteRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_protected/account/': {
+      id: '/_protected/account/'
+      path: '/account'
+      fullPath: '/account/'
+      preLoaderRoute: typeof ProtectedAccountIndexRouteImport
+      parentRoute: typeof ProtectedRouteRoute
     }
     '/_protected/workspaces/': {
       id: '/_protected/workspaces/'
@@ -185,12 +204,14 @@ const ProtectedWorkspacesWorkspaceSlugRouteRouteWithChildren =
 
 interface ProtectedRouteRouteChildren {
   ProtectedWorkspacesWorkspaceSlugRouteRoute: typeof ProtectedWorkspacesWorkspaceSlugRouteRouteWithChildren
+  ProtectedAccountIndexRoute: typeof ProtectedAccountIndexRoute
   ProtectedWorkspacesIndexRoute: typeof ProtectedWorkspacesIndexRoute
 }
 
 const ProtectedRouteRouteChildren: ProtectedRouteRouteChildren = {
   ProtectedWorkspacesWorkspaceSlugRouteRoute:
     ProtectedWorkspacesWorkspaceSlugRouteRouteWithChildren,
+  ProtectedAccountIndexRoute: ProtectedAccountIndexRoute,
   ProtectedWorkspacesIndexRoute: ProtectedWorkspacesIndexRoute,
 }
 

@@ -17,6 +17,7 @@ import {
   schedulePasswordResetEmail,
   scheduleVerificationEmail,
 } from '@/server/email/auth-email'
+import { prepareGatheroryAccountDeletion } from '@/server/auth/account-deletion'
 
 const google =
   env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET
@@ -101,6 +102,14 @@ export const auth = betterAuth({
     schema: authSchema,
     transaction: true,
   }),
+  user: {
+    deleteUser: {
+      enabled: true,
+      beforeDelete: async (user) => {
+        await prepareGatheroryAccountDeletion(user.id)
+      },
+    },
+  },
   emailAndPassword: {
     enabled: true,
     requireEmailVerification: true,

@@ -130,8 +130,7 @@ export const event = pgTable(
     mapItemIdentifier: text("map_item_identifier"),
     budgetCap: numeric("budget_cap", { precision: 14, scale: 2 }),
     createdByUserId: text("created_by_user_id")
-      .notNull()
-      .references(() => user.id, { onDelete: "restrict" }),
+      .references(() => user.id, { onDelete: "set null" }),
     createdAt: timestamp("created_at", { withTimezone: true })
       .defaultNow()
       .notNull(),
@@ -235,8 +234,7 @@ export const eventInvitation = pgTable(
       .notNull(),
     status: eventInvitationStatus("status").default("pending").notNull(),
     invitedByUserId: text("invited_by_user_id")
-      .notNull()
-      .references(() => user.id, { onDelete: "restrict" }),
+      .references(() => user.id, { onDelete: "set null" }),
     acceptedByUserId: text("accepted_by_user_id").references(() => user.id, {
       onDelete: "set null",
     }),
