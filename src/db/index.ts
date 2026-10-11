@@ -1,8 +1,13 @@
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
 
-import { env } from "@/env";
 import { databaseRelations } from "@/db/relations";
+
+const databaseUrl = process.env.DATABASE_URL;
+
+if (!databaseUrl) {
+  throw new Error("DATABASE_URL is required.");
+}
 
 const globalDatabase = globalThis as typeof globalThis & {
   gatheroryPool?: Pool;
@@ -11,10 +16,10 @@ const globalDatabase = globalThis as typeof globalThis & {
 export const pool =
   globalDatabase.gatheroryPool ??
   new Pool({
-    connectionString: process.env.DATABASE_URL,
+    connectionString: databaseUrl,
   });
 
-if (env.NODE_ENV !== "production") {
+if (process.env.NODE_ENV !== "production") {
   globalDatabase.gatheroryPool = pool;
 }
 
