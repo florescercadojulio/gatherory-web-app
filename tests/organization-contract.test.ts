@@ -1,0 +1,33 @@
+import assert from "node:assert/strict";
+import { test } from "node:test";
+
+import { organizationType } from "../src/db/schema/auth.schema";
+import {
+  defaultOrganizationType,
+  organizationTypes,
+  prepareOrganizationForCreation,
+} from "../src/lib/organization-contract";
+
+test("the Better Auth default is accepted by the PostgreSQL enum", () => {
+  assert.equal(defaultOrganizationType, "event");
+  assert.deepEqual(organizationType.enumValues, organizationTypes);
+  assert.ok(organizationType.enumValues.includes(defaultOrganizationType));
+  assert.equal(
+    organizationType.enumValues.includes("personal" as never),
+    false,
+  );
+});
+
+test("organization creation replaces a legacy personal type", () => {
+  const organization = prepareOrganizationForCreation({
+    id: "organization-id",
+    name: "Julio Flores's Workspace",
+    slug: "  Personal-ABC123  ",
+    workspaceType: "personal",
+  });
+
+  assert.equal(organization.workspaceType, "event");
+  assert.equal(organization.slug, "personal-abc123");
+  assert.equal(organization.id, "organization-id");
+  assert.equal(organization.name, "Julio Flores's Workspace");
+});

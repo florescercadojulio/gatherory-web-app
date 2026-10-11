@@ -6,6 +6,7 @@
     "dev": "dotenv run -f .env.local -- sh -c \"NODE_OPTIONS='--import ./instrument.server.mjs' vite dev --port 3003\"",
     "dev:device": "dotenv run -f .env.local -- sh -c \"NODE_OPTIONS='--import ./instrument.server.mjs' vite dev --host 0.0.0.0 --port 3003\"",
     "generate-routes": "tsr generate",
+    "test": "tsx --test tests/*.test.ts",
     "typecheck": "tsc --noEmit",
     "auth:schema": "dotenv run -f .env.local -- pnpm dlx auth@1.7.7 generate --config ./src/lib/auth.ts --output ./src/db/schema/auth.schema.ts --yes",
     "auth:check": "dotenv run -f .env.local -- pnpm dlx auth@1.7.7 check schema --config ./src/lib/auth.ts",

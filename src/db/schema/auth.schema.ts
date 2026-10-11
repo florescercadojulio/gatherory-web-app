@@ -10,10 +10,9 @@ import {
   pgEnum,
 } from "drizzle-orm/pg-core";
 
-export const organizationType = pgEnum("organization_type", [
-  "event",
-  "business",
-]);
+import { organizationTypes } from "@/lib/organization-contract";
+
+export const organizationType = pgEnum("organization_type", organizationTypes);
 
 export const user = pgTable("user", {
   id: text("id").primaryKey(),

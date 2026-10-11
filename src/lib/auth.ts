@@ -12,6 +12,10 @@ import { db } from '@/db'
 import * as authSchema from '@/db/schema/auth.schema'
 import { env } from '@/env'
 import {
+  defaultOrganizationType,
+  prepareOrganizationForCreation,
+} from '@/lib/organization-contract'
+import {
   scheduleEmailOtp,
   scheduleMagicLinkEmail,
   schedulePasswordResetEmail,
@@ -189,7 +193,7 @@ export const auth = betterAuth({
             workspaceType: {
               type: 'string',
               required: true,
-              defaultValue: 'event',
+              defaultValue: defaultOrganizationType,
               input: false,
             },
           },
@@ -197,15 +201,7 @@ export const auth = betterAuth({
       },
       organizationHooks: {
         beforeCreateOrganization: async ({ organization: workspace }) => ({
-          data: {
-            ...workspace,
-            slug: workspace.slug?.trim().toLowerCase(),
-            // The database intentionally supports event and business
-            // organizations. Set this explicitly at the server boundary so
-            // organization creation cannot inherit an older client/default
-            // value such as `personal`.
-            workspaceType: 'event',
-          },
+          data: prepareOrganizationForCreation(workspace),
         }),
         beforeCreateTeam: async ({ team }) => ({
           data: {

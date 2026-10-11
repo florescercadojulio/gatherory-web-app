@@ -5,6 +5,8 @@ import {
   organizationClient,
 } from 'better-auth/client/plugins'
 
+import { defaultOrganizationType } from '@/lib/organization-contract'
+
 export const authClient = createAuthClient({
   plugins: [
     emailOTPClient(),
@@ -17,7 +19,7 @@ export const authClient = createAuthClient({
             workspaceType: {
               type: 'string',
               required: true,
-              defaultValue: 'event',
+              defaultValue: defaultOrganizationType,
               input: false,
             },
           },
