@@ -3,11 +3,8 @@ allowBuilds:
   "@sentry/cli": true
   core-js: true
   esbuild: true
+  msgpackr-extract: true
   protobufjs: true
-onlyBuiltDependencies:
-  - "esbuild"
-  - "lightningcss"
-  - "@sentry/cli"
 minimumReleaseAgeExclude:
   - "@tanstack/ai-anthropic@0.21.0"
   - "@tanstack/ai-client@0.39.1"

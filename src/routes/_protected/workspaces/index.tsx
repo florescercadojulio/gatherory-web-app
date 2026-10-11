@@ -11,6 +11,7 @@ import {
 } from "lucide-react"
 
 import { AccountSidebar } from "@/components/account-sidebar"
+import { ServerErrorToast } from "@/components/route-feedback"
 import { Badge } from "@/components/ui/badge"
 import {
   Card,
@@ -57,7 +58,12 @@ const currencyFormatter = new Intl.NumberFormat("en-US", {
 
 function WorkspaceCompanion() {
   const { defaultWorkspaceContext } = Route.useRouteContext()
-  const insight = Route.useLoaderData()
+  const insightResult = Route.useLoaderData()
+  if (!defaultWorkspaceContext) return null
+
+  const insight = insightResult.ok
+    ? insightResult.data
+    : { workspaces: [], unavailableSnapshotCount: 0 }
   const workspaces = insight.workspaces
   const totals = workspaces.reduce(
     (result, workspace) => ({
@@ -71,6 +77,7 @@ function WorkspaceCompanion() {
 
   return (
     <SidebarProvider>
+      <ServerErrorToast error={insightResult.ok ? null : insightResult.error} />
       <AccountSidebar
         user={defaultWorkspaceContext.user}
         summaryLabel={`${workspaces.length} ${workspaces.length === 1 ? "event" : "events"}`}
@@ -120,7 +127,10 @@ function WorkspaceCompanion() {
             </div>
           </section>
 
-          <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4" aria-label="Planning overview">
+          <section
+            className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4"
+            aria-label="Planning overview"
+          >
             <Metric
               icon={CalendarDays}
               label="Events"
@@ -150,7 +160,10 @@ function WorkspaceCompanion() {
           <section className="space-y-4" aria-labelledby="your-events-heading">
             <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
               <div>
-                <h2 id="your-events-heading" className="text-xl font-semibold tracking-tight">
+                <h2
+                  id="your-events-heading"
+                  className="text-xl font-semibold tracking-tight"
+                >
                   Your events
                 </h2>
                 <p className="text-sm text-muted-foreground">
@@ -165,7 +178,10 @@ function WorkspaceCompanion() {
             {workspaces.length ? (
               <div className="grid gap-5 xl:grid-cols-2">
                 {workspaces.map((workspace) => (
-                  <WorkspaceInsightCard key={workspace.id} workspace={workspace} />
+                  <WorkspaceInsightCard
+                    key={workspace.id}
+                    workspace={workspace}
+                  />
                 ))}
               </div>
             ) : (
@@ -177,8 +193,8 @@ function WorkspaceCompanion() {
                 {insight.unavailableSnapshotCount} older event
                 {insight.unavailableSnapshotCount === 1 ? "" : "s"} will appear
                 after you open and save{" "}
-                {insight.unavailableSnapshotCount === 1 ? "it" : "them"} on
-                your iPhone.
+                {insight.unavailableSnapshotCount === 1 ? "it" : "them"} on your
+                iPhone.
               </p>
             ) : null}
           </section>
@@ -219,7 +235,11 @@ function Metric({
   )
 }
 
-function WorkspaceInsightCard({ workspace }: { workspace: NativeWorkspaceInsight }) {
+function WorkspaceInsightCard({
+  workspace,
+}: {
+  workspace: NativeWorkspaceInsight
+}) {
   const budgetUsed = workspace.budgetCap
     ? Math.min((workspace.trackedCost / workspace.budgetCap) * 100, 100)
     : null
@@ -236,7 +256,8 @@ function WorkspaceInsightCard({ workspace }: { workspace: NativeWorkspaceInsight
                 {workspace.status}
               </Badge>
               <span className="text-xs text-muted-foreground">
-                Updated {dateTimeFormatter.format(new Date(workspace.updatedAt))}
+                Updated{" "}
+                {dateTimeFormatter.format(new Date(workspace.updatedAt))}
               </span>
             </div>
             <CardTitle className="pt-2 text-2xl">{workspace.title}</CardTitle>
@@ -296,17 +317,25 @@ function WorkspaceInsightCard({ workspace }: { workspace: NativeWorkspaceInsight
           {workspace.upcomingEvents.length ? (
             <div className="divide-y rounded-2xl border">
               {workspace.upcomingEvents.map((event) => (
-                <div key={event.id} className="flex items-center gap-3 px-4 py-3">
+                <div
+                  key={event.id}
+                  className="flex items-center gap-3 px-4 py-3"
+                >
                   <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground">
                     <Clock3 className="size-4" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium">{event.title}</p>
+                    <p className="truncate text-sm font-medium">
+                      {event.title}
+                    </p>
                     <p className="text-xs text-muted-foreground">
                       {dateTimeFormatter.format(new Date(event.startsAt))}
                     </p>
                   </div>
-                  <Badge variant="outline" className="hidden capitalize sm:inline-flex">
+                  <Badge
+                    variant="outline"
+                    className="hidden capitalize sm:inline-flex"
+                  >
                     {event.purpose === "planning" ? "Planning" : "For guests"}
                   </Badge>
                 </div>

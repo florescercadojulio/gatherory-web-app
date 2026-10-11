@@ -1,6 +1,7 @@
 import { createFileRoute, notFound, Outlet } from "@tanstack/react-router"
 
 import { AppSidebar } from "@/components/app-sidebar"
+import { PageUnavailable, ServerErrorToast } from "@/components/route-feedback"
 import { Separator } from "@/components/ui/separator"
 import {
   SidebarInset,
@@ -9,23 +10,43 @@ import {
 } from "@/components/ui/sidebar"
 import { resolveWorkspace } from "@/server/workspaces/handlers/workspace.handlers"
 
-export const Route = createFileRoute(
-  "/_protected/workspaces/$workspaceSlug",
-)({
-  beforeLoad: async ({ params }) => {
-    const workspaceContext = await resolveWorkspace({
+export const Route = createFileRoute("/_protected/workspaces/$workspaceSlug")({
+  beforeLoad: async ({ params, context }) => {
+    if (!context.defaultWorkspaceContext) {
+      return {
+        workspaceContext: null,
+        workspaceError: context.defaultWorkspaceError,
+      }
+    }
+
+    const result = await resolveWorkspace({
       data: { slug: params.workspaceSlug },
     })
 
-    if (!workspaceContext) throw notFound()
+    if (!result.ok) {
+      return { workspaceContext: null, workspaceError: result.error }
+    }
+    if (!result.data) throw notFound()
 
-    return { workspaceContext }
+    return { workspaceContext: result.data, workspaceError: null }
   },
   component: WorkspaceLayout,
 })
 
 function WorkspaceLayout() {
-  const { workspaceContext } = Route.useRouteContext()
+  const { workspaceContext, workspaceError } = Route.useRouteContext()
+
+  if (!workspaceContext) {
+    return (
+      <>
+        <ServerErrorToast error={workspaceError} />
+        <PageUnavailable
+          title="This workspace could not be loaded"
+          description="Your other Gatherory pages are still available. Try loading this workspace again."
+        />
+      </>
+    )
+  }
 
   return (
     <SidebarProvider>

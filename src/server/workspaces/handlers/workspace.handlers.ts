@@ -13,6 +13,7 @@ import {
 import { workspacePlanningSettings } from "@/db/schema/planning.schema"
 import { auth } from "@/lib/auth"
 import { requireSessionMiddleware } from "@/lib/auth.middleware"
+import { runServerEffect, tryServerOperation } from "@/server/effect"
 import { createEventWorkspace } from "@/server/workspaces/create-event-workspace"
 
 type AuthWorkspace = {
@@ -211,9 +212,7 @@ async function provisionPersonalWorkspace(input: {
     memberWorkspaces.find(
       (candidate) => candidate.id === input.activeOrganizationId,
     ) ??
-    memberWorkspaces.find(
-      (candidate) => candidate.workspaceType === "event",
-    ) ??
+    memberWorkspaces.find((candidate) => candidate.workspaceType === "event") ??
     memberWorkspaces[0]
 
   if (!workspace) {
@@ -264,219 +263,238 @@ async function provisionPersonalWorkspace(input: {
 
 export const ensurePersonalWorkspace = createServerFn({ method: "GET" })
   .middleware([requireSessionMiddleware])
-  .handler(async ({ context }) => {
-    const headers = getRequestHeaders()
-    const provisioned = await provisionPersonalWorkspace({
-      headers,
-      userId: context.user.id,
-      userName: context.user.name,
-      activeOrganizationId: context.session.activeOrganizationId,
-    })
-    const workspaces = await listAccessibleWorkspaces({
-      userId: context.user.id,
-      memberWorkspaces: provisioned.memberWorkspaces,
-    })
+  .handler(({ context }) =>
+    runServerEffect(
+      tryServerOperation(
+        {
+          category: "system",
+          code: "PERSONAL_WORKSPACE_PROVISION_FAILED",
+          userMessage: "Your workspace could not be prepared. Try again.",
+        },
+        async () => {
+          const headers = getRequestHeaders()
+          const provisioned = await provisionPersonalWorkspace({
+            headers,
+            userId: context.user.id,
+            userName: context.user.name,
+            activeOrganizationId: context.session.activeOrganizationId,
+          })
+          const workspaces = await listAccessibleWorkspaces({
+            userId: context.user.id,
+            memberWorkspaces: provisioned.memberWorkspaces,
+          })
 
-    return {
-      workspace: {
-        id: provisioned.workspace.id,
-        name: provisioned.workspace.name,
-        slug: provisioned.workspace.slug,
-        type: provisioned.workspace.workspaceType,
-        access: "member" as const,
-      },
-      workspaces,
-      planningTeam: {
-        id: provisioned.planningTeam.id,
-        name: provisioned.planningTeam.name,
-      },
-      user: context.user,
-    }
-  })
+          return {
+            workspace: {
+              id: provisioned.workspace.id,
+              name: provisioned.workspace.name,
+              slug: provisioned.workspace.slug,
+              type: provisioned.workspace.workspaceType,
+              access: "member" as const,
+            },
+            workspaces,
+            planningTeam: {
+              id: provisioned.planningTeam.id,
+              name: provisioned.planningTeam.name,
+            },
+            user: context.user,
+          }
+        },
+      ),
+    ),
+  )
 
 export const createWorkspace = createServerFn({ method: "POST" })
   .middleware([requireSessionMiddleware])
   .validator(CreateWorkspaceInputSchema)
-  .handler(async ({ data, context }) => {
-    let disposableWorkspaceId: string | null = null
-    let renamedWorkspace: { id: string; previousName: string } | null = null
-    const headers = getRequestHeaders()
-    try {
-      const activeOrganizationId = context.session.activeOrganizationId
-      const [activeWorkspace] = activeOrganizationId
-        ? await db
-            .select({
-              id: organization.id,
-              name: organization.name,
-              slug: organization.slug,
-              workspaceType: organization.workspaceType,
-            })
-            .from(organization)
-            .innerJoin(
-              member,
-              and(
-                eq(member.organizationId, organization.id),
-                eq(member.userId, context.user.id),
-              ),
-            )
-            .where(eq(organization.id, activeOrganizationId))
-            .limit(1)
-        : []
-      const [activeMainEvent] = activeWorkspace
-        ? await db
-            .select({ id: event.id })
-            .from(event)
-            .where(
-              and(
-                eq(event.organizationId, activeWorkspace.id),
-                isNull(event.parentEventId),
-              ),
-            )
-            .limit(1)
-        : []
-
-      let workspace: AuthWorkspace | null =
-        activeWorkspace?.workspaceType === "event" && !activeMainEvent
-          ? activeWorkspace
-          : null
-
-      if (workspace) {
-        renamedWorkspace = {
-          id: workspace.id,
-          previousName: workspace.name,
-        }
-        await db
-          .update(organization)
-          .set({ name: data.eventName })
-          .where(eq(organization.id, workspace.id))
-        workspace = { ...workspace, name: data.eventName }
-      } else {
-        workspace = await createEventWorkspace({
-          headers,
-          name: data.eventName,
-          slug: await availableWorkspaceSlug(data.eventName),
-        })
-        disposableWorkspaceId = workspace.id
-      }
-
-      await auth.api.setActiveOrganization({
-        headers,
-        body: { organizationId: workspace.id },
-      })
-      await ensurePlanningTeam({
-        organizationId: workspace.id,
-        userId: context.user.id,
-        headers,
-      })
-
-      await db.transaction(async (transaction) => {
-        const [mainEvent] = await transaction
-          .insert(event)
-          .values({
-            organizationId: workspace.id,
-            parentEventId: null,
-            title: data.eventName,
-            status: "draft",
-            purpose: null,
-            planningStatus: null,
-            category: null,
-            startsAt: new Date(data.startsAt),
-            endsAt: data.endsAt ? new Date(data.endsAt) : null,
-            isAllDay: data.isAllDay,
-            timeZone: data.timeZone,
-            locationName: data.locationName || null,
-            locationAddress: data.locationAddress || null,
-            budgetCap: data.budgetCap ?? null,
-            createdByUserId: context.user.id,
-          })
-          .returning({ id: event.id })
-
-        if (!mainEvent) throw new Error("MAIN_EVENT_CREATE_FAILED")
-
-        const [hostPerson] = await transaction
-          .insert(workspacePerson)
-          .values({
-            organizationId: workspace.id,
-            userId: context.user.id,
-            displayName: context.user.name,
-            email: context.user.email.trim().toLowerCase(),
-            avatarUrl: context.user.image,
-          })
-          .onConflictDoUpdate({
-            target: [workspacePerson.organizationId, workspacePerson.userId],
-            targetWhere: sql`${workspacePerson.userId} is not null`,
-            set: {
-              displayName: context.user.name,
-              email: context.user.email.trim().toLowerCase(),
-              avatarUrl: context.user.image,
-              updatedAt: new Date(),
-            },
-          })
-          .returning({ id: workspacePerson.id })
-
-        if (!hostPerson) throw new Error("WORKSPACE_PERSON_CREATE_FAILED")
-
-        await transaction.insert(eventParticipant).values({
-          eventId: mainEvent.id,
-          personId: hostPerson.id,
-          role: "host",
-          planningPermission: "manage",
-          attendanceStatus: "going",
-        })
-
-        await transaction
-          .insert(workspacePlanningSettings)
-          .values({
-            organizationId: workspace.id,
-            budgetCap: data.budgetCap ?? null,
-          })
-          .onConflictDoUpdate({
-            target: workspacePlanningSettings.organizationId,
-            set: {
-              budgetCap: data.budgetCap ?? null,
-              updatedAt: new Date(),
-            },
-          })
-
-        await transaction
-          .update(user)
-          .set({ hasCompletedOnboarding: true })
-          .where(eq(user.id, context.user.id))
-      })
-
-      return {
-        ok: true,
-        data: { slug: workspace.slug },
-      } as const
-    } catch {
-      if (disposableWorkspaceId) {
-        await db
-          .delete(organization)
-          .where(eq(organization.id, disposableWorkspaceId))
-          .catch(() => undefined)
-        await auth.api
-          .setActiveOrganization({
-            headers,
-            body: {
-              organizationId: context.session.activeOrganizationId ?? null,
-            },
-          })
-          .catch(() => undefined)
-      } else if (renamedWorkspace) {
-        await db
-          .update(organization)
-          .set({ name: renamedWorkspace.previousName })
-          .where(eq(organization.id, renamedWorkspace.id))
-          .catch(() => undefined)
-      }
-      return {
-        ok: false,
-        error: {
+  .handler(({ data, context }) =>
+    runServerEffect(
+      tryServerOperation(
+        {
+          category: "system",
+          code: "WORKSPACE_CREATE_FAILED",
           userMessage: "The workspace could not be created. Try again.",
         },
-      } as const
-    }
-  })
+        async () => {
+          let disposableWorkspaceId: string | null = null
+          let renamedWorkspace: { id: string; previousName: string } | null =
+            null
+          const headers = getRequestHeaders()
+          try {
+            const activeOrganizationId = context.session.activeOrganizationId
+            const [activeWorkspace] = activeOrganizationId
+              ? await db
+                  .select({
+                    id: organization.id,
+                    name: organization.name,
+                    slug: organization.slug,
+                    workspaceType: organization.workspaceType,
+                  })
+                  .from(organization)
+                  .innerJoin(
+                    member,
+                    and(
+                      eq(member.organizationId, organization.id),
+                      eq(member.userId, context.user.id),
+                    ),
+                  )
+                  .where(eq(organization.id, activeOrganizationId))
+                  .limit(1)
+              : []
+            const [activeMainEvent] = activeWorkspace
+              ? await db
+                  .select({ id: event.id })
+                  .from(event)
+                  .where(
+                    and(
+                      eq(event.organizationId, activeWorkspace.id),
+                      isNull(event.parentEventId),
+                    ),
+                  )
+                  .limit(1)
+              : []
+
+            let workspace: AuthWorkspace | null =
+              activeWorkspace?.workspaceType === "event" && !activeMainEvent
+                ? activeWorkspace
+                : null
+
+            if (workspace) {
+              renamedWorkspace = {
+                id: workspace.id,
+                previousName: workspace.name,
+              }
+              await db
+                .update(organization)
+                .set({ name: data.eventName })
+                .where(eq(organization.id, workspace.id))
+              workspace = { ...workspace, name: data.eventName }
+            } else {
+              workspace = await createEventWorkspace({
+                headers,
+                name: data.eventName,
+                slug: await availableWorkspaceSlug(data.eventName),
+              })
+              disposableWorkspaceId = workspace.id
+            }
+
+            await auth.api.setActiveOrganization({
+              headers,
+              body: { organizationId: workspace.id },
+            })
+            await ensurePlanningTeam({
+              organizationId: workspace.id,
+              userId: context.user.id,
+              headers,
+            })
+
+            await db.transaction(async (transaction) => {
+              const [mainEvent] = await transaction
+                .insert(event)
+                .values({
+                  organizationId: workspace.id,
+                  parentEventId: null,
+                  title: data.eventName,
+                  status: "draft",
+                  purpose: null,
+                  planningStatus: null,
+                  category: null,
+                  startsAt: new Date(data.startsAt),
+                  endsAt: data.endsAt ? new Date(data.endsAt) : null,
+                  isAllDay: data.isAllDay,
+                  timeZone: data.timeZone,
+                  locationName: data.locationName || null,
+                  locationAddress: data.locationAddress || null,
+                  budgetCap: data.budgetCap ?? null,
+                  createdByUserId: context.user.id,
+                })
+                .returning({ id: event.id })
+
+              if (!mainEvent) throw new Error("MAIN_EVENT_CREATE_FAILED")
+
+              const [hostPerson] = await transaction
+                .insert(workspacePerson)
+                .values({
+                  organizationId: workspace.id,
+                  userId: context.user.id,
+                  displayName: context.user.name,
+                  email: context.user.email.trim().toLowerCase(),
+                  avatarUrl: context.user.image,
+                })
+                .onConflictDoUpdate({
+                  target: [
+                    workspacePerson.organizationId,
+                    workspacePerson.userId,
+                  ],
+                  targetWhere: sql`${workspacePerson.userId} is not null`,
+                  set: {
+                    displayName: context.user.name,
+                    email: context.user.email.trim().toLowerCase(),
+                    avatarUrl: context.user.image,
+                    updatedAt: new Date(),
+                  },
+                })
+                .returning({ id: workspacePerson.id })
+
+              if (!hostPerson) throw new Error("WORKSPACE_PERSON_CREATE_FAILED")
+
+              await transaction.insert(eventParticipant).values({
+                eventId: mainEvent.id,
+                personId: hostPerson.id,
+                role: "host",
+                planningPermission: "manage",
+                attendanceStatus: "going",
+              })
+
+              await transaction
+                .insert(workspacePlanningSettings)
+                .values({
+                  organizationId: workspace.id,
+                  budgetCap: data.budgetCap ?? null,
+                })
+                .onConflictDoUpdate({
+                  target: workspacePlanningSettings.organizationId,
+                  set: {
+                    budgetCap: data.budgetCap ?? null,
+                    updatedAt: new Date(),
+                  },
+                })
+
+              await transaction
+                .update(user)
+                .set({ hasCompletedOnboarding: true })
+                .where(eq(user.id, context.user.id))
+            })
+
+            return { slug: workspace.slug }
+          } catch (cause) {
+            if (disposableWorkspaceId) {
+              await db
+                .delete(organization)
+                .where(eq(organization.id, disposableWorkspaceId))
+                .catch(() => undefined)
+              await auth.api
+                .setActiveOrganization({
+                  headers,
+                  body: {
+                    organizationId:
+                      context.session.activeOrganizationId ?? null,
+                  },
+                })
+                .catch(() => undefined)
+            } else if (renamedWorkspace) {
+              await db
+                .update(organization)
+                .set({ name: renamedWorkspace.previousName })
+                .where(eq(organization.id, renamedWorkspace.id))
+                .catch(() => undefined)
+            }
+            throw cause
+          }
+        },
+      ),
+    ),
+  )
 
 const ResolveWorkspaceInputSchema = z.object({
   slug: z.string().trim().min(1).max(160),
@@ -485,38 +503,51 @@ const ResolveWorkspaceInputSchema = z.object({
 export const resolveWorkspace = createServerFn({ method: "GET" })
   .middleware([requireSessionMiddleware])
   .validator(ResolveWorkspaceInputSchema)
-  .handler(async ({ data, context }) => {
-    const headers = getRequestHeaders()
-    const memberWorkspaces = await auth.api.listOrganizations({ headers })
-    const workspaces = await listAccessibleWorkspaces({
-      userId: context.user.id,
-      memberWorkspaces,
-    })
-    const workspace = workspaces.find(
-      (candidate) => candidate.slug === data.slug,
-    )
+  .handler(({ data, context }) =>
+    runServerEffect(
+      tryServerOperation(
+        {
+          category: "system",
+          code: "WORKSPACE_RESOLVE_FAILED",
+          userMessage: "This workspace could not be loaded. Try again.",
+        },
+        async () => {
+          const headers = getRequestHeaders()
+          const memberWorkspaces = await auth.api.listOrganizations({
+            headers,
+          })
+          const workspaces = await listAccessibleWorkspaces({
+            userId: context.user.id,
+            memberWorkspaces,
+          })
+          const workspace = workspaces.find(
+            (candidate) => candidate.slug === data.slug,
+          )
 
-    if (!workspace) return null
+          if (!workspace) return null
 
-    let planningTeam: { id: string; name: string } | null = null
-    if (workspace.access === "member") {
-      if (workspace.id !== context.session.activeOrganizationId) {
-        await auth.api.setActiveOrganization({
-          headers,
-          body: { organizationId: workspace.id },
-        })
-      }
-      planningTeam = await ensurePlanningTeam({
-        organizationId: workspace.id,
-        userId: context.user.id,
-        headers,
-      })
-    }
+          let planningTeam: { id: string; name: string } | null = null
+          if (workspace.access === "member") {
+            if (workspace.id !== context.session.activeOrganizationId) {
+              await auth.api.setActiveOrganization({
+                headers,
+                body: { organizationId: workspace.id },
+              })
+            }
+            planningTeam = await ensurePlanningTeam({
+              organizationId: workspace.id,
+              userId: context.user.id,
+              headers,
+            })
+          }
 
-    return {
-      workspace,
-      workspaces,
-      planningTeam,
-      user: context.user,
-    }
-  })
+          return {
+            workspace,
+            workspaces,
+            planningTeam,
+            user: context.user,
+          }
+        },
+      ),
+    ),
+  )

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type ReactNode } from "react"
 import type { RowData } from "@tanstack/react-table"
 import { CheckIcon, SearchIcon, XIcon } from "lucide-react"
+import { toast } from "sonner"
 
 import type {
   EntityTablePageRequest,
@@ -18,6 +19,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
+import { toastServerError } from "@/lib/toast-server-error"
 
 export interface MultiEntityPickerProps<
   TData extends RowData,
@@ -61,13 +63,11 @@ export function MultiEntityPicker<
   const [items, setItems] = useState<TData[]>([])
   const [hasNextPage, setHasNextPage] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState<string>()
 
   useEffect(() => {
     if (!open) return
     let cancelled = false
     setIsLoading(true)
-    setError(undefined)
     const pageRequest = {
       ...request,
       limit: pageSize,
@@ -81,7 +81,7 @@ export function MultiEntityPicker<
         if (!result.ok) {
           setItems([])
           setHasNextPage(false)
-          setError(result.error.userMessage)
+          toastServerError(result.error)
           return
         }
         setItems(result.data.data)
@@ -91,7 +91,7 @@ export function MultiEntityPicker<
         if (!cancelled) {
           setItems([])
           setHasNextPage(false)
-          setError("Unable to load choices.")
+          toast.error("Unable to load choices.")
         }
       })
       .finally(() => {
@@ -125,7 +125,9 @@ export function MultiEntityPicker<
       >
         <PopoverTrigger render={<div className="block w-full" />}>
           <InputGroup>
-            <InputGroupAddon><SearchIcon /></InputGroupAddon>
+            <InputGroupAddon>
+              <SearchIcon />
+            </InputGroupAddon>
             <InputGroupInput
               ref={inputRef}
               id={inputId}
@@ -149,12 +151,11 @@ export function MultiEntityPicker<
           initialFocus={false}
         >
           <div className="max-h-52 overflow-y-auto p-1" aria-busy={isLoading}>
-            {error ? (
-              <p className="p-3 text-sm text-destructive">{error}</p>
-            ) : items.length ? (
+            {items.length ? (
               items.map((item) => {
                 const selected = isSelected(item)
-                const unavailable = selectedItems.length >= maxSelected && !selected
+                const unavailable =
+                  selectedItems.length >= maxSelected && !selected
                 return (
                   <button
                     key={getItemId(item)}
@@ -166,7 +167,9 @@ export function MultiEntityPicker<
                     onClick={() => {
                       toggle(item)
                       setOpen(true)
-                      window.requestAnimationFrame(() => inputRef.current?.focus())
+                      window.requestAnimationFrame(() =>
+                        inputRef.current?.focus(),
+                      )
                     }}
                   >
                     <span className="min-w-0 flex-1">
@@ -179,7 +182,9 @@ export function MultiEntityPicker<
             ) : isLoading ? (
               <p className="p-3 text-sm text-muted-foreground">Loading…</p>
             ) : (
-              <p className="p-3 text-sm text-muted-foreground">No choices found.</p>
+              <p className="p-3 text-sm text-muted-foreground">
+                No choices found.
+              </p>
             )}
           </div>
           <div className="grid grid-cols-3 gap-1 border-t bg-muted/30 p-2">
@@ -193,7 +198,12 @@ export function MultiEntityPicker<
             >
               Previous
             </Button>
-            <Button type="button" variant="ghost" size="xs" onClick={() => setOpen(false)}>
+            <Button
+              type="button"
+              variant="ghost"
+              size="xs"
+              onClick={() => setOpen(false)}
+            >
               Done
             </Button>
             <Button
@@ -215,7 +225,11 @@ export function MultiEntityPicker<
           {selectedItems.map((item) => {
             const label = getItemLabel(item)
             return (
-              <Badge key={getItemId(item)} variant="secondary" className="gap-1 whitespace-normal">
+              <Badge
+                key={getItemId(item)}
+                variant="secondary"
+                className="gap-1 whitespace-normal"
+              >
                 {label}
                 <Button
                   type="button"
@@ -232,7 +246,9 @@ export function MultiEntityPicker<
         </div>
       )}
       {selectedItems.length === maxSelected && (
-        <p className="text-xs text-muted-foreground">Maximum {maxSelected} selections.</p>
+        <p className="text-xs text-muted-foreground">
+          Maximum {maxSelected} selections.
+        </p>
       )}
     </div>
   )

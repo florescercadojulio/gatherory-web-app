@@ -42,6 +42,10 @@ export class ExternalServiceError extends Data.TaggedError(
   "ExternalServiceError",
 )<DomainErrorShape> {}
 
+export class ServerOperationError extends Data.TaggedError(
+  "ServerOperationError",
+)<DomainErrorShape> {}
+
 const defaultMessage: Record<ErrorCategory, string> = {
   validation: "The request could not be processed.",
   authorization: "You are not allowed to perform this action.",
@@ -98,7 +102,9 @@ export async function runServerEffect<A, E>(
         category,
         code: domainError?.code ?? "UNEXPECTED_SERVER_ERROR",
         debugMessage:
-          domainError?.debugMessage ?? debugMessage(domainError?.cause) ?? "none",
+          domainError?.debugMessage ??
+          debugMessage(domainError?.cause) ??
+          "none",
         cause: Cause.pretty(exit.cause),
       }),
     ),
@@ -123,6 +129,21 @@ export function tryPersistence<A>(
       new PersistenceError({
         category: "system",
         code,
+        cause,
+        debugMessage: debugMessage(cause),
+      }),
+  })
+}
+
+export function tryServerOperation<A>(
+  error: Omit<DomainErrorShape, "cause" | "debugMessage">,
+  operation: () => Promise<A>,
+): Effect.Effect<A, ServerOperationError> {
+  return Effect.tryPromise({
+    try: operation,
+    catch: (cause) =>
+      new ServerOperationError({
+        ...error,
         cause,
         debugMessage: debugMessage(cause),
       }),

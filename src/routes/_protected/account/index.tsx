@@ -2,6 +2,7 @@ import { useDeleteUser } from "@better-auth-ui/react"
 import { createFileRoute } from "@tanstack/react-router"
 import { AlertTriangle, ShieldCheck, Trash2, UserRound } from "lucide-react"
 import { useState } from "react"
+import { toast } from "sonner"
 
 import { AccountSidebar } from "@/components/account-sidebar"
 import { Appearance } from "@/components/auth/theme/appearance"
@@ -42,6 +43,8 @@ export const Route = createFileRoute("/_protected/account/")({
 
 function AccountSettingsPage() {
   const { defaultWorkspaceContext } = Route.useRouteContext()
+  if (!defaultWorkspaceContext) return null
+
   const { user } = defaultWorkspaceContext
   const initials = user.name
     .split(/\s+/)
@@ -127,13 +130,10 @@ function AccountSettingsPage() {
 function DeleteAccountDialog() {
   const [open, setOpen] = useState(false)
   const [confirmation, setConfirmation] = useState("")
-  const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const deletion = useDeleteUser(authClient)
   const canDelete = confirmation.trim().toUpperCase() === "DELETE"
 
   async function deleteAccount() {
-    setErrorMessage(null)
-
     try {
       await deletion.mutateAsync({
         callbackURL: "/auth/sign-in?deleted=1",
@@ -141,11 +141,11 @@ function DeleteAccountDialog() {
       window.location.replace("/auth/sign-in?deleted=1")
     } catch (error) {
       const detail = error instanceof Error ? error.message : null
-      setErrorMessage(
+      toast.error(
         detail?.toLowerCase().includes("fresh") ||
           detail?.toLowerCase().includes("session")
           ? "For security, sign out and sign in again before deleting your account."
-          : detail || "Your account could not be deleted. Try again.",
+          : "Your account could not be deleted. Try again.",
       )
     }
   }
@@ -157,7 +157,6 @@ function DeleteAccountDialog() {
         setOpen(nextOpen)
         if (!nextOpen) {
           setConfirmation("")
-          setErrorMessage(null)
           deletion.reset()
         }
       }}
@@ -196,14 +195,10 @@ function DeleteAccountDialog() {
           />
         </div>
 
-        {errorMessage ? (
-          <p role="alert" className="text-sm text-destructive">
-            {errorMessage}
-          </p>
-        ) : null}
-
         <DialogFooter>
-          <DialogClose render={<Button variant="outline" />}>Cancel</DialogClose>
+          <DialogClose render={<Button variant="outline" />}>
+            Cancel
+          </DialogClose>
           <Button
             variant="destructive"
             disabled={!canDelete || deletion.isPending}

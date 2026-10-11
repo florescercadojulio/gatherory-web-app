@@ -1,7 +1,9 @@
 import { createServerFn } from "@tanstack/react-start"
+import type { PgClient } from "@effect/sql-pg/PgClient"
 import { Effect } from "effect"
 
 import { requireSessionMiddleware } from "@/lib/auth.middleware"
+import { PgClientLive } from "@/db"
 import { InvalidInputError, runServerEffect } from "@/server/effect"
 import type { ServerResult } from "@/server/result"
 
@@ -23,11 +25,14 @@ import { EventAuthorizationLive } from "../services/event-authorization.service"
 import { EventService } from "../services/event.service"
 import { EventServiceLive } from "../services/event.service.live"
 
-const provideEventLayers = <A, E>(program: Effect.Effect<A, E, EventService>) =>
+const provideEventLayers = <A, E>(
+  program: Effect.Effect<A, E, EventService | PgClient>,
+) =>
   program.pipe(
     Effect.provide(EventServiceLive),
     Effect.provide(EventRepoLive),
     Effect.provide(EventAuthorizationLive),
+    Effect.provide(PgClientLive),
   )
 
 export const createEvent = createServerFn({ method: "POST" })

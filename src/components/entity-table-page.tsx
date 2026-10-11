@@ -21,6 +21,7 @@ import {
   SlidersHorizontalIcon,
   XIcon,
 } from "lucide-react"
+import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -33,6 +34,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { cn } from "@/lib/utils"
+import { toastServerError } from "@/lib/toast-server-error"
 import type { Page, ServerResult } from "@/server/result"
 
 export const entityTableFeatures = tableFeatures({})
@@ -124,7 +126,6 @@ export function EntityTablePage<
   const [appliedQuery, setAppliedQuery] = useState("")
   const [refreshVersion, setRefreshVersion] = useState(0)
   const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string>()
   const searchRef = useRef<HTMLInputElement>(null)
   const [previousResetKey, setPreviousResetKey] = useState(
     config.paginationResetKey,
@@ -161,7 +162,6 @@ export function EntityTablePage<
     if (config.loadEnabled === false) {
       setRows([])
       setHasNextPage(false)
-      setError(undefined)
       setIsLoading(false)
       return () => {
         cancelled = true
@@ -169,7 +169,6 @@ export function EntityTablePage<
     }
 
     setIsLoading(true)
-    setError(undefined)
 
     const request = {
       ...config.request,
@@ -191,7 +190,7 @@ export function EntityTablePage<
         if (!result.ok) {
           setRows([])
           setHasNextPage(false)
-          setError(result.error.userMessage)
+          toastServerError(result.error)
           return
         }
         setRows(result.data.data)
@@ -201,7 +200,7 @@ export function EntityTablePage<
         if (!cancelled) {
           setRows([])
           setHasNextPage(false)
-          setError("Unable to load this table. Please try again.")
+          toast.error("Unable to load this table. Please try again.")
         }
       })
       .finally(() => {
@@ -291,7 +290,11 @@ export function EntityTablePage<
                 )}
               </div>
               <div className="flex w-full gap-1.5 sm:w-auto">
-                <Button type="submit" className="flex-1 sm:flex-none" disabled={isLoading}>
+                <Button
+                  type="submit"
+                  className="flex-1 sm:flex-none"
+                  disabled={isLoading}
+                >
                   Search
                 </Button>
                 <Button
@@ -342,81 +345,86 @@ export function EntityTablePage<
             : "min-w-0 overflow-x-auto",
         )}
       >
-        {error ? (
-          <p className="flex min-h-14 items-center text-sm text-destructive">{error}</p>
-        ) : (
-          <table className="w-full text-left text-sm">
-            <thead className="border-y border-border/70 bg-muted text-foreground">
-              {table.getHeaderGroups().map((headerGroup) => (
-                <tr key={headerGroup.id}>
-                  {headerGroup.headers.map((header) => (
-                    <th
-                      key={header.id}
-                      scope="col"
-                      className="sticky top-0 z-10 h-10 bg-muted px-2 text-xs font-bold tracking-wider whitespace-nowrap uppercase"
-                    >
-                      {header.isPlaceholder ? null : (
-                        <table.FlexRender header={header} />
-                      )}
-                    </th>
-                  ))}
-                </tr>
-              ))}
-            </thead>
-            <tbody>
-              {table.getRowModel().rows.map((row) => (
-                <tr
-                  key={row.id}
-                  className={cn(
-                    "border-b transition-colors hover:bg-muted/30",
-                    config.onRowClick &&
-                      "cursor-pointer focus-visible:bg-muted/30 focus-visible:outline-none",
-                  )}
-                  {...(config.onRowClick
-                    ? {
-                        role: "link",
-                        tabIndex: 0,
-                        onClick: (event: ReactMouseEvent<HTMLTableRowElement>) => {
-                          if (!isInteractiveRowTarget(event.target)) {
-                            config.onRowClick?.(row.original)
-                          }
-                        },
-                        onKeyDown: (
-                          event: ReactKeyboardEvent<HTMLTableRowElement>,
-                        ) => {
-                          if (event.key !== "Enter" && event.key !== " ") return
-                          if (isInteractiveRowTarget(event.target)) return
-                          event.preventDefault()
-                          config.onRowClick?.(row.original)
-                        },
-                      }
-                    : {})}
-                >
-                  {row.getAllCells().map((cell) => (
-                    <td key={cell.id} className="p-2 align-middle whitespace-nowrap">
-                      <table.FlexRender cell={cell} />
-                    </td>
-                  ))}
-                </tr>
-              ))}
-              {!isLoading && rows.length === 0 && (
-                <tr>
-                  <td
-                    colSpan={columns.length}
-                    className="h-24 text-center text-sm text-muted-foreground"
+        <table className="w-full text-left text-sm">
+          <thead className="border-y border-border/70 bg-muted text-foreground">
+            {table.getHeaderGroups().map((headerGroup) => (
+              <tr key={headerGroup.id}>
+                {headerGroup.headers.map((header) => (
+                  <th
+                    key={header.id}
+                    scope="col"
+                    className="sticky top-0 z-10 h-10 bg-muted px-2 text-xs font-bold tracking-wider whitespace-nowrap uppercase"
                   >
-                    {emptyMessage}
+                    {header.isPlaceholder ? null : (
+                      <table.FlexRender header={header} />
+                    )}
+                  </th>
+                ))}
+              </tr>
+            ))}
+          </thead>
+          <tbody>
+            {table.getRowModel().rows.map((row) => (
+              <tr
+                key={row.id}
+                className={cn(
+                  "border-b transition-colors hover:bg-muted/30",
+                  config.onRowClick &&
+                    "cursor-pointer focus-visible:bg-muted/30 focus-visible:outline-none",
+                )}
+                {...(config.onRowClick
+                  ? {
+                      role: "link",
+                      tabIndex: 0,
+                      onClick: (
+                        event: ReactMouseEvent<HTMLTableRowElement>,
+                      ) => {
+                        if (!isInteractiveRowTarget(event.target)) {
+                          config.onRowClick?.(row.original)
+                        }
+                      },
+                      onKeyDown: (
+                        event: ReactKeyboardEvent<HTMLTableRowElement>,
+                      ) => {
+                        if (event.key !== "Enter" && event.key !== " ") return
+                        if (isInteractiveRowTarget(event.target)) return
+                        event.preventDefault()
+                        config.onRowClick?.(row.original)
+                      },
+                    }
+                  : {})}
+              >
+                {row.getAllCells().map((cell) => (
+                  <td
+                    key={cell.id}
+                    className="p-2 align-middle whitespace-nowrap"
+                  >
+                    <table.FlexRender cell={cell} />
                   </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        )}
+                ))}
+              </tr>
+            ))}
+            {!isLoading && rows.length === 0 && (
+              <tr>
+                <td
+                  colSpan={columns.length}
+                  className="h-24 text-center text-sm text-muted-foreground"
+                >
+                  {emptyMessage}
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
       </div>
 
       <footer className="flex min-h-10 shrink-0 flex-wrap items-center justify-between gap-4 border-t border-border/70 bg-background">
         <p className="text-xs tabular-nums text-muted-foreground">
-          {isLoading ? "Loading…" : rows.length === 0 ? "No results" : `${rows.length} loaded`}
+          {isLoading
+            ? "Loading…"
+            : rows.length === 0
+              ? "No results"
+              : `${rows.length} loaded`}
         </p>
         <div className="flex items-center gap-2">
           <span className="text-xs text-muted-foreground">Rows per page</span>

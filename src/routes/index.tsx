@@ -6,7 +6,7 @@ export const Route = createFileRoute("/")({
   beforeLoad: async () => {
     const session = await getSession()
 
-    if (!session) {
+    if (!session.ok || !session.data) {
       throw redirect({
         to: "/auth/$path",
         params: { path: "sign-in" },

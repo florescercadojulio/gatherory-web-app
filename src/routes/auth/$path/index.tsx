@@ -3,6 +3,7 @@ import { createFileRoute, redirect } from "@tanstack/react-router"
 import { CheckIcon, SparklesIcon } from "lucide-react"
 
 import { Auth } from "@/components/auth/auth"
+import { ServerErrorToast } from "@/components/route-feedback"
 import { getSession } from "@/lib/auth.functions"
 
 const passwordlessAuthPaths = [
@@ -31,17 +32,22 @@ export const Route = createFileRoute("/auth/$path/")({
 
     if (signedOutOnlyPaths.has(path)) {
       const session = await getSession()
-      if (session) throw redirect({ to: "/" })
+      if (session.ok && session.data) throw redirect({ to: "/" })
+      return { sessionError: session.ok ? null : session.error }
     }
+
+    return { sessionError: null }
   },
   component: AuthPage,
 })
 
 function AuthPage() {
   const { path } = Route.useParams()
+  const { sessionError } = Route.useRouteContext()
 
   return (
     <main className="auth-page min-h-svh px-4 py-6 sm:px-6 sm:py-8">
+      <ServerErrorToast error={sessionError} />
       <div className="auth-shell mx-auto grid min-h-[calc(100svh-3rem)] w-full max-w-6xl overflow-hidden rounded-[2rem] border border-white/70 bg-white/72 shadow-2xl shadow-blue-950/10 backdrop-blur-2xl dark:border-white/10 dark:bg-slate-950/74 lg:grid-cols-[1.05fr_0.95fr]">
         <section className="auth-story relative hidden overflow-hidden p-12 lg:flex lg:flex-col lg:justify-between">
           <div className="auth-orb auth-orb-one" />

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type ReactNode } from "react"
 import type { RowData } from "@tanstack/react-table"
 import { CheckCircle2Icon, PencilIcon, SearchIcon } from "lucide-react"
 import { Popover as PopoverPrimitive } from "radix-ui"
+import { toast } from "sonner"
 
 import type {
   EntityTablePageRequest,
@@ -14,6 +15,7 @@ import {
   InputGroupButton,
   InputGroupInput,
 } from "@/components/ui/input-group"
+import { toastServerError } from "@/lib/toast-server-error"
 
 export interface EntityPickerProps<
   TData extends RowData,
@@ -70,7 +72,6 @@ export function EntityPicker<
   const [items, setItems] = useState<TData[]>([])
   const [hasNextPage, setHasNextPage] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState<string>()
 
   const setQuery = (value: string) => {
     setLocalQuery(value)
@@ -88,7 +89,6 @@ export function EntityPicker<
     let cancelled = false
     const timer = window.setTimeout(() => {
       setIsLoading(true)
-      setError(undefined)
       const pageRequest = {
         ...request,
         limit: pageSize,
@@ -102,7 +102,7 @@ export function EntityPicker<
           if (!result.ok) {
             setItems([])
             setHasNextPage(false)
-            setError(result.error.userMessage)
+            toastServerError(result.error)
             return
           }
           setItems(result.data.data)
@@ -112,7 +112,7 @@ export function EntityPicker<
           if (!cancelled) {
             setItems([])
             setHasNextPage(false)
-            setError("Unable to load choices.")
+            toast.error("Unable to load choices.")
           }
         })
         .finally(() => {
@@ -200,9 +200,7 @@ export function EntityPicker<
           className="z-50 w-[var(--radix-popover-trigger-width)] min-w-80 max-w-[calc(100vw-2rem)] overflow-hidden rounded-xl border bg-popover text-popover-foreground shadow-lg"
         >
           <div className="max-h-52 overflow-y-auto p-1" aria-busy={isLoading}>
-            {error ? (
-              <p className="p-3 text-sm text-destructive">{error}</p>
-            ) : items.length ? (
+            {items.length ? (
               items.map((item) => (
                 <button
                   key={getItemId(item)}
@@ -219,7 +217,9 @@ export function EntityPicker<
             ) : isLoading ? (
               <p className="p-3 text-sm text-muted-foreground">Loading…</p>
             ) : (
-              <p className="p-3 text-sm text-muted-foreground">{emptyMessage}</p>
+              <p className="p-3 text-sm text-muted-foreground">
+                {emptyMessage}
+              </p>
             )}
           </div>
           <div className="grid grid-cols-3 gap-1 border-t bg-muted/30 p-2">
@@ -233,7 +233,12 @@ export function EntityPicker<
             >
               Previous
             </Button>
-            <Button type="button" variant="ghost" size="xs" onClick={() => setOpen(false)}>
+            <Button
+              type="button"
+              variant="ghost"
+              size="xs"
+              onClick={() => setOpen(false)}
+            >
               Cancel
             </Button>
             <Button

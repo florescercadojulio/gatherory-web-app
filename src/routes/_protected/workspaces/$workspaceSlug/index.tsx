@@ -10,6 +10,7 @@ import {
 } from "lucide-react"
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { ServerErrorToast } from "@/components/route-feedback"
 import { Badge } from "@/components/ui/badge"
 import {
   Card,
@@ -24,12 +25,23 @@ import type { EventWorkspaceSummary } from "@/server/events/contracts/event.cont
 import { listEvents } from "@/server/events/handlers/event.handlers"
 
 export const Route = createFileRoute("/_protected/workspaces/$workspaceSlug/")({
-  loader: ({ context }) =>
-    listEvents({
+  loader: ({ context }) => {
+    if (!context.workspaceContext) {
+      return {
+        ok: false as const,
+        error: context.workspaceError ?? {
+          userMessage: "This workspace could not be loaded. Try again.",
+          errorId: crypto.randomUUID(),
+        },
+      }
+    }
+
+    return listEvents({
       data: {
         organizationId: context.workspaceContext.workspace.id,
       },
-    }),
+    })
+  },
   component: Home,
 })
 
@@ -264,11 +276,16 @@ function Home() {
   const result = Route.useLoaderData()
   const { workspaceContext } = Route.useRouteContext()
 
+  if (!workspaceContext) return null
+
   return (
     <div className="flex flex-1 flex-col gap-8 p-4 md:p-8">
+      <ServerErrorToast error={result.ok ? null : result.error} />
       <div className="space-y-1">
         <div className="flex items-center gap-2">
-          <h1 className="text-2xl font-semibold tracking-tight">Event overview</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">
+            Event overview
+          </h1>
         </div>
         <p className="text-sm text-muted-foreground">
           See the event, schedule, and people here. To make changes, use
@@ -277,10 +294,13 @@ function Home() {
       </div>
 
       {!result.ok ? (
-        <Card className="max-w-2xl">
+        <Card className="max-w-2xl border-dashed bg-muted/30">
           <CardHeader>
-            <CardTitle>Events are temporarily unavailable</CardTitle>
-            <CardDescription>{result.error.userMessage}</CardDescription>
+            <CardTitle>Event details will appear here</CardTitle>
+            <CardDescription>
+              Gatherory could not refresh these details just now. You can still
+              use the rest of the workspace.
+            </CardDescription>
           </CardHeader>
         </Card>
       ) : result.data.length === 0 ? (
