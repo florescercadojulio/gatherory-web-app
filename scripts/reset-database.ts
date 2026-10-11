@@ -1,8 +1,4 @@
-import { resolve } from "node:path"
-
-import { drizzle } from "drizzle-orm/node-postgres"
-import { migrate } from "drizzle-orm/node-postgres/migrator"
-import { Pool } from "pg"
+import { resetPostgresDatabase } from "./lib/reset-postgres-database"
 
 const databaseUrl = process.env.DATABASE_URL
 
@@ -23,41 +19,16 @@ if (!localHosts.has(parsedUrl.hostname)) {
   )
 }
 
-const pool = new Pool({ connectionString: databaseUrl })
+const connectionString = databaseUrl
 
 async function resetDatabase() {
-  const client = await pool.connect()
-
-  try {
-    console.log("Removing application data and migration history...")
-    await client.query("BEGIN")
-    await client.query("DROP SCHEMA IF EXISTS drizzle CASCADE")
-    await client.query("DROP SCHEMA IF EXISTS public CASCADE")
-    await client.query("CREATE SCHEMA public")
-    await client.query("COMMIT")
-  } catch (error) {
-    await client.query("ROLLBACK")
-    throw error
-  } finally {
-    client.release()
-  }
-
-  console.log("Applying committed migrations...")
-  const database = drizzle({ client: pool })
-  await migrate(database, {
-    migrationsFolder: resolve(process.cwd(), "drizzle"),
-    migrationsSchema: "drizzle",
-    migrationsTable: "__drizzle_migrations",
+  await resetPostgresDatabase(connectionString, {
+    targetLabel: "Local database",
   })
-
-  console.log("Database reset complete. No seed data was added.")
 }
 
 resetDatabase()
   .catch((error) => {
     console.error("Database reset failed.", error)
     process.exitCode = 1
-  })
-  .finally(async () => {
-    await pool.end()
   })

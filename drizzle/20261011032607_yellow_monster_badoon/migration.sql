@@ -1,1 +1,0 @@
-CREATE INDEX "native_sync_change_scope_cursor_idx" ON "native_sync_change" ("scope_id","cursor");

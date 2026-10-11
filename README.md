@@ -150,6 +150,22 @@ schema and Drizzle migration history, recreates the schema, and applies every
 committed migration. It intentionally leaves the migrated database empty; run
 `pnpm db:seed` afterward when you also want the development fixtures.
 
+To manually perform the same full wipe against a Neon database, pass its URL
+through the dedicated variable and include the exact confirmation phrase:
+
+```bash
+NEON_DATABASE_URL='postgresql://...' \
+CONFIRM_NEON_RESET=RESET_GATHERORY_NEON \
+pnpm db:reset:neon
+```
+
+`db:reset:neon` drops both the `public` and `drizzle` schemas, including Better
+Auth accounts, workspace data, sync records, and migration history. It then
+reapplies every committed migration and leaves the database empty. The command
+does not read `DATABASE_URL`, accepts only a `*.neon.tech` PostgreSQL host, and
+refuses to run without the confirmation phrase. Keep the connection string in
+your shell or secret manager; do not commit it.
+
 `db:seed` is destructive and development-only. It first resets every Gatherory
 table represented by the checked-in Drizzle schema, then creates four accounts
 through Better Auth so their credential records and password hashes use the

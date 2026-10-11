@@ -1,11 +1,20 @@
 {
   "version": "8",
   "dialect": "postgres",
-  "id": "129da88e-1d92-4319-9060-1decdafd283c",
+  "id": "a4108263-f731-42e7-8a79-6e9c91e8d73e",
   "prevIds": [
-    "0f9439c4-4157-4bdb-9555-afa91cb849c5"
+    "00000000-0000-0000-0000-000000000000"
   ],
   "ddl": [
+    {
+      "values": [
+        "event",
+        "business"
+      ],
+      "name": "organization_type",
+      "entityType": "enums",
+      "schema": "public"
+    },
     {
       "values": [
         "pending",
@@ -236,6 +245,15 @@
     },
     {
       "values": [
+        "planning_only",
+        "shown_to_guests"
+      ],
+      "name": "idea_guest_visibility",
+      "entityType": "enums",
+      "schema": "public"
+    },
+    {
+      "values": [
         "new",
         "maybe",
         "shortlisted",
@@ -265,6 +283,16 @@
         "cancelled"
       ],
       "name": "registry_commitment_status",
+      "entityType": "enums",
+      "schema": "public"
+    },
+    {
+      "values": [
+        "owner",
+        "editor",
+        "viewer"
+      ],
+      "name": "native_sync_scope_role",
       "entityType": "enums",
       "schema": "public"
     },
@@ -337,6 +365,12 @@
     {
       "isRlsEnabled": false,
       "name": "event_participant",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "workspace_person",
       "entityType": "tables",
       "schema": "public"
     },
@@ -426,7 +460,19 @@
     },
     {
       "isRlsEnabled": false,
+      "name": "native_sync_entity",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
       "name": "native_sync_mutation_receipt",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "native_sync_scope_member",
       "entityType": "tables",
       "schema": "public"
     },
@@ -866,11 +912,11 @@
       "table": "organization"
     },
     {
-      "type": "text",
-      "typeSchema": null,
+      "type": "organization_type",
+      "typeSchema": "public",
       "notNull": true,
       "dimensions": 0,
-      "default": "'personal'",
+      "default": "'event'",
       "generated": null,
       "identity": null,
       "name": "workspace_type",
@@ -1724,6 +1770,19 @@
       "table": "event_invitation"
     },
     {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "person_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "event_invitation"
+    },
+    {
       "type": "text",
       "typeSchema": null,
       "notNull": true,
@@ -1880,14 +1939,14 @@
       "table": "event_participant"
     },
     {
-      "type": "text",
+      "type": "uuid",
       "typeSchema": null,
       "notNull": true,
       "dimensions": 0,
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "user_id",
+      "name": "person_id",
       "entityType": "columns",
       "schema": "public",
       "table": "event_participant"
@@ -1956,6 +2015,110 @@
       "entityType": "columns",
       "schema": "public",
       "table": "event_participant"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "gen_random_uuid()",
+      "generated": null,
+      "identity": null,
+      "name": "id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "workspace_person"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "organization_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "workspace_person"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "user_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "workspace_person"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "display_name",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "workspace_person"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "email",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "workspace_person"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "avatar_url",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "workspace_person"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "created_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "workspace_person"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "updated_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "workspace_person"
     },
     {
       "type": "uuid",
@@ -2790,6 +2953,19 @@
       "table": "idea"
     },
     {
+      "type": "idea_guest_visibility",
+      "typeSchema": "public",
+      "notNull": true,
+      "dimensions": 0,
+      "default": "'planning_only'",
+      "generated": null,
+      "identity": null,
+      "name": "guest_visibility",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "idea"
+    },
+    {
       "type": "text",
       "typeSchema": null,
       "notNull": false,
@@ -2850,6 +3026,19 @@
       "generated": null,
       "identity": null,
       "name": "submitted_by_user_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "idea"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "materialized_event_id",
       "entityType": "columns",
       "schema": "public",
       "table": "idea"
@@ -3388,6 +3577,19 @@
       "table": "workspace_planning_settings"
     },
     {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "'USD'",
+      "generated": null,
+      "identity": null,
+      "name": "currency_code",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "workspace_planning_settings"
+    },
+    {
       "type": "boolean",
       "typeSchema": null,
       "notNull": true,
@@ -3603,6 +3805,123 @@
       "default": null,
       "generated": null,
       "identity": null,
+      "name": "scope_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "native_sync_entity"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "entity_type",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "native_sync_entity"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "entity_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "native_sync_entity"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "owner_user_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "native_sync_entity"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "payload",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "native_sync_entity"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "1",
+      "generated": null,
+      "identity": null,
+      "name": "server_version",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "native_sync_entity"
+    },
+    {
+      "type": "boolean",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "false",
+      "generated": null,
+      "identity": null,
+      "name": "is_deleted",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "native_sync_entity"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "created_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "native_sync_entity"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "updated_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "native_sync_entity"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
       "name": "mutation_id",
       "entityType": "columns",
       "schema": "public",
@@ -3697,6 +4016,71 @@
       "name": "scope_id",
       "entityType": "columns",
       "schema": "public",
+      "table": "native_sync_scope_member"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "user_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "native_sync_scope_member"
+    },
+    {
+      "type": "native_sync_scope_role",
+      "typeSchema": "public",
+      "notNull": true,
+      "dimensions": 0,
+      "default": "'editor'",
+      "generated": null,
+      "identity": null,
+      "name": "role",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "native_sync_scope_member"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "created_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "native_sync_scope_member"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "updated_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "native_sync_scope_member"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "scope_id",
+      "entityType": "columns",
+      "schema": "public",
       "table": "native_workspace_snapshot"
     },
     {
@@ -3708,6 +4092,19 @@
       "generated": null,
       "identity": null,
       "name": "owner_user_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "native_workspace_snapshot"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "organization_id",
       "entityType": "columns",
       "schema": "public",
       "table": "native_workspace_snapshot"
@@ -3802,6 +4199,34 @@
       "nameExplicit": true,
       "columns": [
         {
+          "value": "provider_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        },
+        {
+          "value": "account_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": true,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "account_provider_account_uidx",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "account"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
           "value": "organization_id",
           "isExpression": false,
           "asc": true,
@@ -3878,6 +4303,34 @@
       "method": "btree",
       "concurrently": false,
       "name": "member_userId_idx",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "member"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "organization_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        },
+        {
+          "value": "user_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": true,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "member_organization_user_uidx",
       "entityType": "indexes",
       "schema": "public",
       "table": "member"
@@ -3983,6 +4436,34 @@
       "method": "btree",
       "concurrently": false,
       "name": "teamMember_userId_idx",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "team_member"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "team_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        },
+        {
+          "value": "user_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": true,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "team_member_team_user_uidx",
       "entityType": "indexes",
       "schema": "public",
       "table": "team_member"
@@ -4208,7 +4689,7 @@
           "opclass": null
         },
         {
-          "value": "user_id",
+          "value": "person_id",
           "isExpression": false,
           "asc": true,
           "nullsFirst": false,
@@ -4220,7 +4701,7 @@
       "with": "",
       "method": "btree",
       "concurrently": false,
-      "name": "event_participant_event_user_uidx",
+      "name": "event_participant_event_person_uidx",
       "entityType": "indexes",
       "schema": "public",
       "table": "event_participant"
@@ -4229,7 +4710,7 @@
       "nameExplicit": true,
       "columns": [
         {
-          "value": "user_id",
+          "value": "person_id",
           "isExpression": false,
           "asc": true,
           "nullsFirst": false,
@@ -4241,10 +4722,94 @@
       "with": "",
       "method": "btree",
       "concurrently": false,
-      "name": "event_participant_user_id_idx",
+      "name": "event_participant_person_id_idx",
       "entityType": "indexes",
       "schema": "public",
       "table": "event_participant"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "organization_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        },
+        {
+          "value": "id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": true,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "workspace_person_organization_id_id_uidx",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "workspace_person"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "organization_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        },
+        {
+          "value": "user_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": true,
+      "where": "\"user_id\" is not null",
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "workspace_person_organization_user_uidx",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "workspace_person"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "organization_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        },
+        {
+          "value": "email",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "workspace_person_organization_email_idx",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "workspace_person"
     },
     {
       "nameExplicit": true,
@@ -4684,6 +5249,41 @@
       "nameExplicit": true,
       "columns": [
         {
+          "value": "organization_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        },
+        {
+          "value": "event_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        },
+        {
+          "value": "id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": true,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "idea_organization_event_id_uidx",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "idea"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
           "value": "event_id",
           "isExpression": false,
           "asc": true,
@@ -4732,6 +5332,27 @@
       "method": "btree",
       "concurrently": false,
       "name": "idea_submitted_by_user_id_idx",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "idea"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "materialized_event_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": true,
+      "where": "\"materialized_event_id\" is not null",
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "idea_materialized_event_uidx",
       "entityType": "indexes",
       "schema": "public",
       "table": "idea"
@@ -4978,6 +5599,62 @@
       "nameExplicit": true,
       "columns": [
         {
+          "value": "scope_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        },
+        {
+          "value": "cursor",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "native_sync_change_scope_cursor_idx",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "native_sync_change"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "owner_user_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        },
+        {
+          "value": "scope_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "native_sync_entity_owner_scope_idx",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "native_sync_entity"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
           "value": "owner_user_id",
           "isExpression": false,
           "asc": true,
@@ -5006,6 +5683,34 @@
       "nameExplicit": true,
       "columns": [
         {
+          "value": "user_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        },
+        {
+          "value": "scope_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "native_sync_scope_member_user_idx",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "native_sync_scope_member"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
           "value": "owner_user_id",
           "isExpression": false,
           "asc": true,
@@ -5026,6 +5731,27 @@
       "method": "btree",
       "concurrently": false,
       "name": "native_workspace_snapshot_owner_updated_idx",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "native_workspace_snapshot"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "organization_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": true,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "native_workspace_snapshot_organization_uidx",
       "entityType": "indexes",
       "schema": "public",
       "table": "native_workspace_snapshot"
@@ -5256,6 +5982,23 @@
     {
       "nameExplicit": false,
       "columns": [
+        "person_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "workspace_person",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "name": "event_invitation_person_id_workspace_person_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "event_invitation"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
         "invited_by_user_id"
       ],
       "schemaTo": "public",
@@ -5307,6 +6050,40 @@
     {
       "nameExplicit": false,
       "columns": [
+        "person_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "workspace_person",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "name": "event_participant_person_id_workspace_person_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "event_participant"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "organization_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "organization",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "name": "workspace_person_organization_id_organization_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "workspace_person"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
         "user_id"
       ],
       "schemaTo": "public",
@@ -5315,11 +6092,11 @@
         "id"
       ],
       "onUpdate": "NO ACTION",
-      "onDelete": "CASCADE",
-      "name": "event_participant_user_id_user_id_fkey",
+      "onDelete": "SET NULL",
+      "name": "workspace_person_user_id_user_id_fkey",
       "entityType": "fks",
       "schema": "public",
-      "table": "event_participant"
+      "table": "workspace_person"
     },
     {
       "nameExplicit": false,
@@ -5526,17 +6303,19 @@
       "nameExplicit": true,
       "columns": [
         "organization_id",
+        "event_id",
         "source_idea_id"
       ],
       "schemaTo": "public",
       "tableTo": "idea",
       "columnsTo": [
         "organization_id",
+        "event_id",
         "id"
       ],
       "onUpdate": "NO ACTION",
-      "onDelete": "RESTRICT",
-      "name": "event_expense_idea_same_workspace_fk",
+      "onDelete": "CASCADE",
+      "name": "event_expense_idea_same_event_fk",
       "entityType": "fks",
       "schema": "public",
       "table": "event_expense"
@@ -5607,6 +6386,23 @@
       "onUpdate": "NO ACTION",
       "onDelete": "SET NULL",
       "name": "idea_submitted_by_user_id_user_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "idea"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "materialized_event_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "event",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "SET NULL",
+      "name": "idea_materialized_event_id_event_id_fkey",
       "entityType": "fks",
       "schema": "public",
       "table": "idea"
@@ -5772,17 +6568,19 @@
       "nameExplicit": true,
       "columns": [
         "organization_id",
+        "event_id",
         "source_idea_id"
       ],
       "schemaTo": "public",
       "tableTo": "idea",
       "columnsTo": [
         "organization_id",
+        "event_id",
         "id"
       ],
       "onUpdate": "NO ACTION",
-      "onDelete": "RESTRICT",
-      "name": "registry_item_idea_same_workspace_fk",
+      "onDelete": "CASCADE",
+      "name": "registry_item_idea_same_event_fk",
       "entityType": "fks",
       "schema": "public",
       "table": "registry_item"
@@ -5824,6 +6622,57 @@
     {
       "nameExplicit": false,
       "columns": [
+        "scope_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "native_workspace_snapshot",
+      "columnsTo": [
+        "scope_id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "name": "native_sync_change_yyDdaGGek66v_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "native_sync_change"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "scope_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "native_workspace_snapshot",
+      "columnsTo": [
+        "scope_id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "name": "native_sync_entity_y0TytjqNhSKO_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "native_sync_entity"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "owner_user_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "user",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "name": "native_sync_entity_owner_user_id_user_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "native_sync_entity"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
         "owner_user_id"
       ],
       "schemaTo": "public",
@@ -5841,6 +6690,40 @@
     {
       "nameExplicit": false,
       "columns": [
+        "scope_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "native_workspace_snapshot",
+      "columnsTo": [
+        "scope_id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "name": "native_sync_scope_member_bcVvGz1VKcL4_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "native_sync_scope_member"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "user_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "user",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "name": "native_sync_scope_member_user_id_user_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "native_sync_scope_member"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
         "owner_user_id"
       ],
       "schemaTo": "public",
@@ -5851,6 +6734,23 @@
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "native_workspace_snapshot_owner_user_id_user_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "native_workspace_snapshot"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "organization_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "organization",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "name": "native_workspace_snapshot_organization_id_organization_id_fkey",
       "entityType": "fks",
       "schema": "public",
       "table": "native_workspace_snapshot"
@@ -5876,6 +6776,29 @@
       "entityType": "pks",
       "schema": "public",
       "table": "idea_music_track"
+    },
+    {
+      "columns": [
+        "scope_id",
+        "entity_type",
+        "entity_id"
+      ],
+      "nameExplicit": false,
+      "name": "native_sync_entity_pkey",
+      "entityType": "pks",
+      "schema": "public",
+      "table": "native_sync_entity"
+    },
+    {
+      "columns": [
+        "scope_id",
+        "user_id"
+      ],
+      "nameExplicit": false,
+      "name": "native_sync_scope_member_pkey",
+      "entityType": "pks",
+      "schema": "public",
+      "table": "native_sync_scope_member"
     },
     {
       "columns": [
@@ -5995,6 +6918,16 @@
       "name": "event_participant_pkey",
       "schema": "public",
       "table": "event_participant",
+      "entityType": "pks"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "name": "workspace_person_pkey",
+      "schema": "public",
+      "table": "workspace_person",
       "entityType": "pks"
     },
     {
@@ -6211,6 +7144,13 @@
       "table": "event"
     },
     {
+      "value": "(\"scheduling_state\" = 'scheduled' and \"starts_at\" is not null) or (\"scheduling_state\" = 'unscheduled' and \"starts_at\" is null and \"ends_at\" is null)",
+      "name": "event_schedule_state_check",
+      "entityType": "checks",
+      "schema": "public",
+      "table": "event"
+    },
+    {
       "value": "(\"parent_event_id\" is null and \"purpose\" is null) or (\"parent_event_id\" is not null and \"purpose\" is not null)",
       "name": "event_purpose_matches_hierarchy_check",
       "entityType": "checks",
@@ -6246,6 +7186,55 @@
       "table": "event"
     },
     {
+      "value": "length(trim(\"title\")) > 0",
+      "name": "event_title_not_blank_check",
+      "entityType": "checks",
+      "schema": "public",
+      "table": "event"
+    },
+    {
+      "value": "length(trim(\"time_zone\")) > 0",
+      "name": "event_time_zone_not_blank_check",
+      "entityType": "checks",
+      "schema": "public",
+      "table": "event"
+    },
+    {
+      "value": "(\"role\" = 'host' and \"planning_permission\" = 'manage') or (\"role\" = 'collaborator' and \"planning_permission\" in ('manage', 'contribute', 'view_only')) or (\"role\" = 'guest' and \"planning_permission\" = 'view_only')",
+      "name": "event_invitation_role_permission_check",
+      "entityType": "checks",
+      "schema": "public",
+      "table": "event_invitation"
+    },
+    {
+      "value": "(\"role\" = 'host' and \"planning_permission\" = 'manage') or (\"role\" = 'collaborator' and \"planning_permission\" in ('manage', 'contribute', 'view_only')) or (\"role\" = 'guest' and \"planning_permission\" = 'view_only')",
+      "name": "event_participant_role_permission_check",
+      "entityType": "checks",
+      "schema": "public",
+      "table": "event_participant"
+    },
+    {
+      "value": "length(trim(\"display_name\")) > 0",
+      "name": "workspace_person_display_name_not_blank_check",
+      "entityType": "checks",
+      "schema": "public",
+      "table": "workspace_person"
+    },
+    {
+      "value": "\"sort_order\" >= 0",
+      "name": "event_media_sort_order_check",
+      "entityType": "checks",
+      "schema": "public",
+      "table": "event_media"
+    },
+    {
+      "value": "\"sort_order\" >= 0",
+      "name": "idea_media_sort_order_check",
+      "entityType": "checks",
+      "schema": "public",
+      "table": "idea_media"
+    },
+    {
       "value": "\"byte_size\" > 0",
       "name": "media_asset_byte_size_check",
       "entityType": "checks",
@@ -6267,6 +7256,13 @@
       "table": "media_asset"
     },
     {
+      "value": "\"sort_order\" >= 0",
+      "name": "registry_media_sort_order_check",
+      "entityType": "checks",
+      "schema": "public",
+      "table": "registry_item_media"
+    },
+    {
       "value": "\"amount\" >= 0",
       "name": "event_expense_amount_check",
       "entityType": "checks",
@@ -6283,6 +7279,13 @@
     {
       "value": "\"estimated_cost\" is null or \"estimated_cost\" >= 0",
       "name": "idea_estimated_cost_check",
+      "entityType": "checks",
+      "schema": "public",
+      "table": "idea"
+    },
+    {
+      "value": "jsonb_typeof(\"configuration\") = 'object' and \"configuration\" @> '{\"version\": 1}'::jsonb",
+      "name": "idea_configuration_version_check",
       "entityType": "checks",
       "schema": "public",
       "table": "idea"
@@ -6318,6 +7321,13 @@
     {
       "value": "\"budget_cap\" is null or \"budget_cap\" >= 0",
       "name": "workspace_planning_budget_cap_check",
+      "entityType": "checks",
+      "schema": "public",
+      "table": "workspace_planning_settings"
+    },
+    {
+      "value": "\"currency_code\" ~ '^[A-Z]{3}$'",
+      "name": "workspace_planning_currency_code_check",
       "entityType": "checks",
       "schema": "public",
       "table": "workspace_planning_settings"
