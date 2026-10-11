@@ -1,9 +1,12 @@
 # Gatherory Web App
 
-Gatherory is the authenticated planning product for creating an event, shaping
-ideas, coordinating its timeline, inviting people, and managing event-scoped
-registry items. This TanStack Start project is intended for `app.example.com`.
-The public marketing site remains a separate Astro project at the root domain.
+Gatherory Web is the authenticated companion to the iOS-first planning product.
+For the initial iOS release it provides account management and a read-only view
+of synchronized workspaces, schedules, ideas, people, and budget signals. Event
+creation and editing remain in the iPhone app rather than being duplicated with
+partial web controls. This TanStack Start project is served from
+`app.gatherory.com`; the public marketing site remains a separate Astro project
+at `gatherory.com`.
 
 ## Current foundation
 
@@ -23,6 +26,13 @@ This repository currently includes:
 - session middleware for authenticated server functions;
 - Gatherory's event-scoped permission vocabulary;
 - main/child event, participant, and event-invitation persistence;
+- authenticated native workspace snapshot sync with idempotent mutation
+  receipts and cursor-based change delivery;
+- transactional projection of accepted native mutations into normalized
+  workspace, person, event, idea, cost, registry, note, and media-placement
+  tables;
+- a read-only iOS companion dashboard backed by the normalized product tables,
+  without sending image bytes or the complete native archive to the browser;
 - reusable event-media metadata with private Cloudflare R2 signed uploads;
 - the sidebar-07 protected application shell;
 - reusable `EntityTablePage`, `EntityPicker`, and `MultiEntityPicker`
@@ -48,6 +58,11 @@ pnpm install
 pnpm dev
 ```
 
+For a physical iPhone on the same trusted network, expose the development
+server with `pnpm dev:device` and point the app's
+`-AuthenticationBaseURL` launch argument at the Mac's LAN address. Do not expose
+the development server directly to the public internet.
+
 Copy `.env.example` to `.env.local`, then configure PostgreSQL and Better Auth:
 
 ```env
@@ -72,6 +87,7 @@ pnpm typecheck
 pnpm auth:check
 pnpm db:generate
 pnpm db:migrate
+pnpm db:materialize-native:local
 pnpm db:seed
 pnpm db:studio
 pnpm email:dev
@@ -86,17 +102,59 @@ route-generation and typecheck workflow.
 applies unapplied migrations to `DATABASE_URL`. Use `db:push` only for temporary
 local prototyping; committed environments should use migrations.
 
+## Native iOS synchronization
+
+The iOS app uses the same Better Auth bearer session as authentication and
+calls three JSON endpoints:
+
+- `GET /api/sync/bootstrap` returns the current non-deleted workspace snapshots
+  the account can access;
+- `POST /api/sync/push` applies up to 50 idempotent workspace mutations; and
+- `GET /api/sync/pull?scopeID=<uuid>&after=<cursor>` returns the ordered change
+  log for one authorized workspace.
+
+The server stores a compatibility JSON snapshot per native workspace plus
+independently versioned events, ideas, participants, expenses, registry items,
+notes, and moments. Mutation receipts provide idempotency and the cursor log
+feeds foreground and pull-to-refresh updates. Every accepted mutation is also
+projected into normalized product rows in that same database transaction; a
+projection failure rolls back the sync write. A normalized sync-scope membership table grants
+owner, editor, or viewer access. Only main-event planning roles may be projected
+into workspace-wide sync access; guest and child-event access remains scoped to
+normalized event APIs. Image bytes remain a separate S3
+media-transfer concern and should not be added to this JSON API.
+
+The authenticated `/workspaces` route decodes only summary fields on the server
+and renders a read-only companion overview. It deliberately does not expose
+creation, editing, invitations, decisions, or budget allocation for the first
+iOS release. The normalized event routes remain an architectural foundation,
+but are not presented as product parity with the native app.
+
 Pushes to `main` run the **Production database migration** GitHub workflow. Add
 `PRODUCTION_DATABASE_URL` to the repository's `production` GitHub environment;
-the workflow installs the locked dependencies and runs `pnpm db:migrate`. A
+the workflow installs the locked dependencies, runs `pnpm db:migrate`, and
+idempotently replays existing native records with `pnpm db:materialize-native`. A
 failed connection or migration makes the check fail, so it can be used as a
 required release signal. Migrations are serialized and are never cancelled
 mid-run. Vercel still deploys independently unless this check is also required
 by the repository's branch or deployment rules.
 
-`db:seed` is idempotent, non-destructive, and development-only. It creates four
-accounts through Better Auth, ensuring their credential records and password
-hashes use the same path as normal registration:
+For a completely fresh local database, run:
+
+```bash
+pnpm db:reset
+```
+
+This command only accepts a loopback PostgreSQL host. It removes the application
+schema and Drizzle migration history, recreates the schema, and applies every
+committed migration. It intentionally leaves the migrated database empty; run
+`pnpm db:seed` afterward when you also want the development fixtures.
+
+`db:seed` is destructive and development-only. It first resets every Gatherory
+table represented by the checked-in Drizzle schema, then creates four accounts
+through Better Auth so their credential records and password hashes use the
+same path as normal registration. Never point `DATABASE_URL` at data you need
+to preserve when running this command:
 
 ```text
 Alex (host):        planner@gatherory.test
@@ -106,11 +164,12 @@ Sam (guest):        guest@gatherory.test
 Password for all:   password
 ```
 
-The scenario includes one personal workspace, its Planning team, Alex and
+The fresh scenario includes one personal workspace, its Planning team, Alex and
 Jordan's wedding, six dated child events across both purpose classifications,
 four participant assignments, attendance states, and one pending guest
-invitation. Rerunning the seed updates only these deterministic development
-records and does not duplicate them.
+invitation. Every run removes existing application records before recreating
+this deterministic development state. Drizzle's migration history is not part
+of the application schema reset.
 
 Do not use `npx auth migrate` for this project. Better Auth's `migrate` command
 supports its built-in Kysely adapters; Gatherory uses the Drizzle adapter, so

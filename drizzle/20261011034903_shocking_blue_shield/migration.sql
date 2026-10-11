@@ -1,0 +1,2 @@
+ALTER TABLE "event_expense" DROP CONSTRAINT "event_expense_idea_same_event_fk", ADD CONSTRAINT "event_expense_idea_same_event_fk" FOREIGN KEY ("organization_id","event_id","source_idea_id") REFERENCES "idea"("organization_id","event_id","id") ON DELETE CASCADE;--> statement-breakpoint
+ALTER TABLE "registry_item" DROP CONSTRAINT "registry_item_idea_same_event_fk", ADD CONSTRAINT "registry_item_idea_same_event_fk" FOREIGN KEY ("organization_id","event_id","source_idea_id") REFERENCES "idea"("organization_id","event_id","id") ON DELETE CASCADE;

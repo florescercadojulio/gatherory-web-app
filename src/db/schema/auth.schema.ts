@@ -7,7 +7,13 @@ import {
   integer,
   index,
   uniqueIndex,
+  pgEnum,
 } from "drizzle-orm/pg-core";
+
+export const organizationType = pgEnum("organization_type", [
+  "event",
+  "business",
+]);
 
 export const user = pgTable("user", {
   id: text("id").primaryKey(),
@@ -15,6 +21,9 @@ export const user = pgTable("user", {
   email: text("email").notNull().unique(),
   emailVerified: boolean("email_verified").default(false).notNull(),
   image: text("image"),
+  hasCompletedOnboarding: boolean("has_completed_onboarding")
+    .default(false)
+    .notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at")
     .defaultNow()
@@ -64,7 +73,13 @@ export const account = pgTable(
       .$onUpdate(() => /* @__PURE__ */ new Date())
       .notNull(),
   },
-  (table) => [index("account_userId_idx").on(table.userId)],
+  (table) => [
+    index("account_userId_idx").on(table.userId),
+    uniqueIndex("account_provider_account_uidx").on(
+      table.providerId,
+      table.accountId,
+    ),
+  ],
 );
 
 export const verification = pgTable(
@@ -92,7 +107,7 @@ export const organization = pgTable(
     logo: text("logo"),
     createdAt: timestamp("created_at").notNull(),
     metadata: text("metadata"),
-    workspaceType: text("workspace_type").default("personal").notNull(),
+    workspaceType: organizationType("workspace_type").default("event").notNull(),
   },
   (table) => [uniqueIndex("organization_slug_uidx").on(table.slug)],
 );
@@ -130,6 +145,7 @@ export const teamMember = pgTable(
   (table) => [
     index("teamMember_teamId_idx").on(table.teamId),
     index("teamMember_userId_idx").on(table.userId),
+    uniqueIndex("team_member_team_user_uidx").on(table.teamId, table.userId),
   ],
 );
 
@@ -149,6 +165,10 @@ export const member = pgTable(
   (table) => [
     index("member_organizationId_idx").on(table.organizationId),
     index("member_userId_idx").on(table.userId),
+    uniqueIndex("member_organization_user_uidx").on(
+      table.organizationId,
+      table.userId,
+    ),
   ],
 );
 

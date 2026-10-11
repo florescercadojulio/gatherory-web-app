@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "@tanstack/react-router"
-import { ThemeProvider } from "next-themes"
+import { ThemeProvider, useTheme } from "next-themes"
 import type { ReactNode } from "react"
 
 import { AuthProvider } from "@/components/auth/auth-provider"
@@ -7,6 +7,7 @@ import { Toaster } from "@/components/ui/sonner"
 import { authClient } from "@/lib/auth-client"
 import { emailOtpPlugin } from "@/lib/auth/email-otp-plugin"
 import { magicLinkPlugin } from "@/lib/auth/magic-link-plugin"
+import { themePlugin } from "@/lib/auth/theme-plugin"
 
 export function Providers({ children }: { children: ReactNode }) {
   const navigate = useNavigate()
@@ -32,6 +33,7 @@ export function Providers({ children }: { children: ReactNode }) {
           requireEmailVerification: true,
         }}
         plugins={[
+          themePlugin({ useTheme }),
           magicLinkPlugin(),
           emailOtpPlugin({
             disableSignUp: true,

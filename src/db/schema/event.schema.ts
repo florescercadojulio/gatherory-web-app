@@ -93,6 +93,51 @@ export const eventInvitationStatus = pgEnum("event_invitation_status", [
   "expired",
 ])
 
+/**
+ * A person can participate in an event before they create a Gatherory account.
+ * `userId` is linked when an invitation is accepted; planning access remains
+ * owned by Better Auth organization membership rather than this contact row.
+ */
+export const workspacePerson = pgTable(
+  "workspace_person",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: text("organization_id")
+      .notNull()
+      .references(() => organization.id, { onDelete: "cascade" }),
+    userId: text("user_id").references(() => user.id, {
+      onDelete: "set null",
+    }),
+    displayName: text("display_name").notNull(),
+    email: text("email"),
+    avatarUrl: text("avatar_url"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [
+    uniqueIndex("workspace_person_organization_id_id_uidx").on(
+      table.organizationId,
+      table.id,
+    ),
+    uniqueIndex("workspace_person_organization_user_uidx")
+      .on(table.organizationId, table.userId)
+      .where(sql`${table.userId} is not null`),
+    index("workspace_person_organization_email_idx").on(
+      table.organizationId,
+      table.email,
+    ),
+    check(
+      "workspace_person_display_name_not_blank_check",
+      sql`length(trim(${table.displayName})) > 0`,
+    ),
+  ],
+)
+
 export const event = pgTable(
   "event",
   {
@@ -163,6 +208,10 @@ export const event = pgTable(
       sql`${table.endsAt} is null or ${table.startsAt} is null or ${table.endsAt} >= ${table.startsAt}`,
     ),
     check(
+      "event_schedule_state_check",
+      sql`(${table.schedulingState} = 'scheduled' and ${table.startsAt} is not null) or (${table.schedulingState} = 'unscheduled' and ${table.startsAt} is null and ${table.endsAt} is null)`,
+    ),
+    check(
       "event_purpose_matches_hierarchy_check",
       sql`(${table.parentEventId} is null and ${table.purpose} is null) or (${table.parentEventId} is not null and ${table.purpose} is not null)`,
     ),
@@ -182,6 +231,8 @@ export const event = pgTable(
       "event_budget_cap_check",
       sql`${table.budgetCap} is null or ${table.budgetCap} >= 0`,
     ),
+    check("event_title_not_blank_check", sql`length(trim(${table.title})) > 0`),
+    check("event_time_zone_not_blank_check", sql`length(trim(${table.timeZone})) > 0`),
   ],
 )
 
@@ -192,9 +243,9 @@ export const eventParticipant = pgTable(
     eventId: uuid("event_id")
       .notNull()
       .references(() => event.id, { onDelete: "cascade" }),
-    userId: text("user_id")
+    personId: uuid("person_id")
       .notNull()
-      .references(() => user.id, { onDelete: "cascade" }),
+      .references(() => workspacePerson.id, { onDelete: "cascade" }),
     role: eventParticipantRole("role").notNull(),
     planningPermission: eventPlanningPermission("planning_permission")
       .default("view_only")
@@ -211,11 +262,15 @@ export const eventParticipant = pgTable(
       .notNull(),
   },
   (table) => [
-    uniqueIndex("event_participant_event_user_uidx").on(
+    uniqueIndex("event_participant_event_person_uidx").on(
       table.eventId,
-      table.userId,
+      table.personId,
     ),
-    index("event_participant_user_id_idx").on(table.userId),
+    index("event_participant_person_id_idx").on(table.personId),
+    check(
+      "event_participant_role_permission_check",
+      sql`(${table.role} = 'host' and ${table.planningPermission} = 'manage') or (${table.role} = 'collaborator' and ${table.planningPermission} in ('manage', 'contribute', 'view_only')) or (${table.role} = 'guest' and ${table.planningPermission} = 'view_only')`,
+    ),
   ],
 )
 
@@ -226,6 +281,9 @@ export const eventInvitation = pgTable(
     eventId: uuid("event_id")
       .notNull()
       .references(() => event.id, { onDelete: "cascade" }),
+    personId: uuid("person_id")
+      .notNull()
+      .references(() => workspacePerson.id, { onDelete: "cascade" }),
     email: text("email").notNull(),
     token: uuid("token").defaultRandom().notNull().unique(),
     role: eventParticipantRole("role").notNull(),
@@ -253,5 +311,9 @@ export const eventInvitation = pgTable(
     uniqueIndex("event_invitation_pending_email_uidx")
       .on(table.eventId, table.email)
       .where(sql`${table.status} = 'pending'`),
+    check(
+      "event_invitation_role_permission_check",
+      sql`(${table.role} = 'host' and ${table.planningPermission} = 'manage') or (${table.role} = 'collaborator' and ${table.planningPermission} in ('manage', 'contribute', 'view_only')) or (${table.role} = 'guest' and ${table.planningPermission} = 'view_only')`,
+    ),
   ],
 )

@@ -142,6 +142,7 @@ export const eventMedia = pgTable(
       table.sortOrder,
     ),
     index("event_media_asset_id_idx").on(table.mediaAssetId),
+    check("event_media_sort_order_check", sql`${table.sortOrder} >= 0`),
   ],
 )
 
@@ -179,6 +180,7 @@ export const ideaMedia = pgTable(
       table.role,
       table.sortOrder,
     ),
+    check("idea_media_sort_order_check", sql`${table.sortOrder} >= 0`),
   ],
 )
 
@@ -216,5 +218,6 @@ export const registryItemMedia = pgTable(
       table.role,
       table.sortOrder,
     ),
+    check("registry_media_sort_order_check", sql`${table.sortOrder} >= 0`),
   ],
 )

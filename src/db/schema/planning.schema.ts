@@ -43,6 +43,11 @@ export const ideaStatus = pgEnum("idea_status", [
   "archived",
 ])
 
+export const ideaGuestVisibility = pgEnum("idea_guest_visibility", [
+  "planning_only",
+  "shown_to_guests",
+])
+
 export const ideaDecisionChoice = pgEnum("idea_decision_choice", [
   "pass",
   "maybe",
@@ -99,6 +104,7 @@ export const workspacePlanningSettings = pgTable(
       .primaryKey()
       .references(() => organization.id, { onDelete: "cascade" }),
     budgetCap: numeric("budget_cap", { precision: 14, scale: 2 }),
+    currencyCode: text("currency_code").default("USD").notNull(),
     registryShared: boolean("registry_shared").default(false).notNull(),
     collaboratorLinkEnabled: boolean("collaborator_link_enabled")
       .default(true)
@@ -124,6 +130,10 @@ export const workspacePlanningSettings = pgTable(
       "workspace_planning_budget_cap_check",
       sql`${table.budgetCap} is null or ${table.budgetCap} >= 0`,
     ),
+    check(
+      "workspace_planning_currency_code_check",
+      sql`${table.currencyCode} ~ '^[A-Z]{3}$'`,
+    ),
   ],
 )
 
@@ -137,12 +147,20 @@ export const idea = pgTable(
     eventId: uuid("event_id").notNull(),
     category: ideaCategory("category").notNull(),
     status: ideaStatus("status").default("new").notNull(),
+    guestVisibility: ideaGuestVisibility("guest_visibility")
+      .default("planning_only")
+      .notNull(),
     title: text("title"),
     note: text("note"),
     estimatedCost: numeric("estimated_cost", { precision: 14, scale: 2 }),
     configuration: jsonb("configuration").$type<IdeaConfiguration>().notNull(),
     submittedByUserId: text("submitted_by_user_id")
       .references(() => user.id, { onDelete: "set null" }),
+    /** The scheduled child event produced by approving an event idea. */
+    materializedEventId: uuid("materialized_event_id").references(
+      () => event.id,
+      { onDelete: "set null" },
+    ),
     createdAt: timestamp("created_at", { withTimezone: true })
       .defaultNow()
       .notNull(),
@@ -156,6 +174,11 @@ export const idea = pgTable(
       table.organizationId,
       table.id,
     ),
+    uniqueIndex("idea_organization_event_id_uidx").on(
+      table.organizationId,
+      table.eventId,
+      table.id,
+    ),
     foreignKey({
       name: "idea_event_same_workspace_fk",
       columns: [table.organizationId, table.eventId],
@@ -167,9 +190,16 @@ export const idea = pgTable(
       table.createdAt,
     ),
     index("idea_submitted_by_user_id_idx").on(table.submittedByUserId),
+    uniqueIndex("idea_materialized_event_uidx")
+      .on(table.materializedEventId)
+      .where(sql`${table.materializedEventId} is not null`),
     check(
       "idea_estimated_cost_check",
       sql`${table.estimatedCost} is null or ${table.estimatedCost} >= 0`,
+    ),
+    check(
+      "idea_configuration_version_check",
+      sql`jsonb_typeof(${table.configuration}) = 'object' and ${table.configuration} @> '{"version": 1}'::jsonb`,
     ),
   ],
 )
@@ -271,10 +301,10 @@ export const eventExpense = pgTable(
       foreignColumns: [event.organizationId, event.id],
     }).onDelete("cascade"),
     foreignKey({
-      name: "event_expense_idea_same_workspace_fk",
-      columns: [table.organizationId, table.sourceIdeaId],
-      foreignColumns: [idea.organizationId, idea.id],
-    }).onDelete("restrict"),
+      name: "event_expense_idea_same_event_fk",
+      columns: [table.organizationId, table.eventId, table.sourceIdeaId],
+      foreignColumns: [idea.organizationId, idea.eventId, idea.id],
+    }).onDelete("cascade"),
     index("event_expense_event_status_idx").on(table.eventId, table.status),
     uniqueIndex("event_expense_source_idea_uidx")
       .on(table.sourceIdeaId)
@@ -341,10 +371,10 @@ export const registryItem = pgTable(
       foreignColumns: [event.organizationId, event.id],
     }).onDelete("cascade"),
     foreignKey({
-      name: "registry_item_idea_same_workspace_fk",
-      columns: [table.organizationId, table.sourceIdeaId],
-      foreignColumns: [idea.organizationId, idea.id],
-    }).onDelete("restrict"),
+      name: "registry_item_idea_same_event_fk",
+      columns: [table.organizationId, table.eventId, table.sourceIdeaId],
+      foreignColumns: [idea.organizationId, idea.eventId, idea.id],
+    }).onDelete("cascade"),
     index("registry_item_event_category_idx").on(table.eventId, table.category),
     uniqueIndex("registry_item_source_idea_uidx")
       .on(table.sourceIdeaId)

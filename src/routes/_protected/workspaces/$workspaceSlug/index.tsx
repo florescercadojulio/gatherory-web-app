@@ -145,7 +145,7 @@ function EventWorkspace({
           <CardHeader>
             <CardTitle>Event schedule</CardTitle>
             <CardDescription>
-              Planning work and guest-facing moments share one event model.
+              A concise view of planning appointments and guest-facing moments.
             </CardDescription>
             <CardAction>
               <Badge variant="outline">{event.childEvents.length} events</Badge>
@@ -170,7 +170,7 @@ function EventWorkspace({
           <CardHeader>
             <CardTitle>People</CardTitle>
             <CardDescription>
-              Event roles stay separate from account access.
+              The people currently connected to this event.
             </CardDescription>
             {event.pendingInvitationCount ? (
               <CardAction>
@@ -267,9 +267,12 @@ function Home() {
   return (
     <div className="flex flex-1 flex-col gap-8 p-4 md:p-8">
       <div className="space-y-1">
-        <h1 className="text-2xl font-semibold tracking-tight">Your events</h1>
+        <div className="flex items-center gap-2">
+          <h1 className="text-2xl font-semibold tracking-tight">Event overview</h1>
+        </div>
         <p className="text-sm text-muted-foreground">
-          The main event and schedule available to your event role.
+          See the event, schedule, and people here. To make changes, use
+          Gatherory on your iPhone.
         </p>
       </div>
 

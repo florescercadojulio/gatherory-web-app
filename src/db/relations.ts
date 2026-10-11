@@ -4,9 +4,16 @@ import * as authSchema from "@/db/schema/auth.schema"
 import * as eventSchema from "@/db/schema/event.schema"
 import * as mediaSchema from "@/db/schema/media.schema"
 import * as planningSchema from "@/db/schema/planning.schema"
+import * as syncSchema from "@/db/schema/sync.schema"
 
 export const databaseRelations = defineRelationsPart(
-  { ...authSchema, ...eventSchema, ...mediaSchema, ...planningSchema },
+  {
+    ...authSchema,
+    ...eventSchema,
+    ...mediaSchema,
+    ...planningSchema,
+    ...syncSchema,
+  },
   (r) => ({
     user: {
       sessions: r.many.session({
@@ -29,9 +36,9 @@ export const databaseRelations = defineRelationsPart(
         from: r.user.id,
         to: r.invitation.inviterId,
       }),
-      eventParticipants: r.many.eventParticipant({
+      workspacePeople: r.many.workspacePerson({
         from: r.user.id,
-        to: r.eventParticipant.userId,
+        to: r.workspacePerson.userId,
       }),
       uploadedMedia: r.many.mediaAsset({
         from: r.user.id,
@@ -48,6 +55,14 @@ export const databaseRelations = defineRelationsPart(
       registryCommitments: r.many.registryCommitment({
         from: r.user.id,
         to: r.registryCommitment.userId,
+      }),
+      nativeWorkspaceSnapshots: r.many.nativeWorkspaceSnapshot({
+        from: r.user.id,
+        to: r.nativeWorkspaceSnapshot.ownerUserId,
+      }),
+      nativeSyncScopeMemberships: r.many.nativeSyncScopeMember({
+        from: r.user.id,
+        to: r.nativeSyncScopeMember.userId,
       }),
     },
     session: {
@@ -90,6 +105,14 @@ export const databaseRelations = defineRelationsPart(
       ideas: r.many.idea({
         from: r.organization.id,
         to: r.idea.organizationId,
+      }),
+      people: r.many.workspacePerson({
+        from: r.organization.id,
+        to: r.workspacePerson.organizationId,
+      }),
+      nativeWorkspaceSnapshot: r.one.nativeWorkspaceSnapshot({
+        from: r.organization.id,
+        to: r.nativeWorkspaceSnapshot.organizationId,
       }),
     },
     member: {
@@ -181,9 +204,27 @@ export const databaseRelations = defineRelationsPart(
         from: r.eventParticipant.eventId,
         to: r.event.id,
       }),
+      person: r.one.workspacePerson({
+        from: r.eventParticipant.personId,
+        to: r.workspacePerson.id,
+      }),
+    },
+    workspacePerson: {
+      workspace: r.one.organization({
+        from: r.workspacePerson.organizationId,
+        to: r.organization.id,
+      }),
       user: r.one.user({
-        from: r.eventParticipant.userId,
+        from: r.workspacePerson.userId,
         to: r.user.id,
+      }),
+      participations: r.many.eventParticipant({
+        from: r.workspacePerson.id,
+        to: r.eventParticipant.personId,
+      }),
+      invitations: r.many.eventInvitation({
+        from: r.workspacePerson.id,
+        to: r.eventInvitation.personId,
       }),
     },
     eventInvitation: {
@@ -200,6 +241,10 @@ export const databaseRelations = defineRelationsPart(
         from: r.eventInvitation.acceptedByUserId,
         to: r.user.id,
         alias: "event_invitation_acceptor",
+      }),
+      person: r.one.workspacePerson({
+        from: r.eventInvitation.personId,
+        to: r.workspacePerson.id,
       }),
     },
     mediaAsset: {
@@ -358,6 +403,40 @@ export const databaseRelations = defineRelationsPart(
       asset: r.one.mediaAsset({
         from: r.registryItemMedia.mediaAssetId,
         to: r.mediaAsset.id,
+      }),
+    },
+    nativeWorkspaceSnapshot: {
+      owner: r.one.user({
+        from: r.nativeWorkspaceSnapshot.ownerUserId,
+        to: r.user.id,
+      }),
+      workspace: r.one.organization({
+        from: r.nativeWorkspaceSnapshot.organizationId,
+        to: r.organization.id,
+      }),
+      members: r.many.nativeSyncScopeMember({
+        from: r.nativeWorkspaceSnapshot.scopeId,
+        to: r.nativeSyncScopeMember.scopeId,
+      }),
+      entities: r.many.nativeSyncEntity({
+        from: r.nativeWorkspaceSnapshot.scopeId,
+        to: r.nativeSyncEntity.scopeId,
+      }),
+    },
+    nativeSyncScopeMember: {
+      workspace: r.one.nativeWorkspaceSnapshot({
+        from: r.nativeSyncScopeMember.scopeId,
+        to: r.nativeWorkspaceSnapshot.scopeId,
+      }),
+      user: r.one.user({
+        from: r.nativeSyncScopeMember.userId,
+        to: r.user.id,
+      }),
+    },
+    nativeSyncEntity: {
+      workspace: r.one.nativeWorkspaceSnapshot({
+        from: r.nativeSyncEntity.scopeId,
+        to: r.nativeWorkspaceSnapshot.scopeId,
       }),
     },
   }),

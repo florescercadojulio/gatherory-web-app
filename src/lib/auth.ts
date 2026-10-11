@@ -103,6 +103,15 @@ export const auth = betterAuth({
     transaction: true,
   }),
   user: {
+    additionalFields: {
+      hasCompletedOnboarding: {
+        type: 'boolean',
+        required: true,
+        defaultValue: false,
+        input: false,
+        returned: true,
+      },
+    },
     deleteUser: {
       enabled: true,
       beforeDelete: async (user) => {
@@ -180,7 +189,7 @@ export const auth = betterAuth({
             workspaceType: {
               type: 'string',
               required: true,
-              defaultValue: 'personal',
+              defaultValue: 'event',
               input: false,
             },
           },

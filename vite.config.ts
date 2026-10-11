@@ -11,8 +11,14 @@ import { nitro } from 'nitro/vite'
 const config = defineConfig(({ mode }) => {
   const fileEnvironment = loadEnv(mode, process.cwd(), '')
   const environment = { ...fileEnvironment, ...process.env }
+  const authHost = environment.BETTER_AUTH_URL
+    ? new URL(environment.BETTER_AUTH_URL).hostname
+    : undefined
 
   return {
+    server: {
+      allowedHosts: authHost ? [authHost] : [],
+    },
     define: {
       'import.meta.env.VITE_APPLE_AUTH_ENABLED': JSON.stringify(
         Boolean(

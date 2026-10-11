@@ -4,6 +4,7 @@ import { AlertTriangle, ShieldCheck, Trash2, UserRound } from "lucide-react"
 import { useState } from "react"
 
 import { AccountSidebar } from "@/components/account-sidebar"
+import { Appearance } from "@/components/auth/theme/appearance"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
@@ -41,7 +42,7 @@ export const Route = createFileRoute("/_protected/account/")({
 
 function AccountSettingsPage() {
   const { defaultWorkspaceContext } = Route.useRouteContext()
-  const { user, workspaces } = defaultWorkspaceContext
+  const { user } = defaultWorkspaceContext
   const initials = user.name
     .split(/\s+/)
     .filter(Boolean)
@@ -51,9 +52,9 @@ function AccountSettingsPage() {
 
   return (
     <SidebarProvider>
-      <AccountSidebar workspaces={workspaces} user={user} />
+      <AccountSidebar user={user} />
       <SidebarInset>
-        <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
+        <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center gap-2 border-b bg-background/85 px-4 backdrop-blur-xl supports-[backdrop-filter]:bg-background/70">
           <SidebarTrigger className="-ml-1" />
           <Separator orientation="vertical" className="mr-2 h-4" />
           <div className="flex min-w-0 items-center gap-2">
@@ -66,7 +67,7 @@ function AccountSettingsPage() {
           <div className="space-y-2">
             <h1 className="text-3xl font-semibold tracking-tight">Account</h1>
             <p className="text-sm leading-6 text-muted-foreground">
-              Manage the identity you use across Gatherory.
+              Manage your Gatherory account.
             </p>
           </div>
 
@@ -90,6 +91,8 @@ function AccountSettingsPage() {
               </div>
             </CardContent>
           </Card>
+
+          <Appearance />
 
           <Card className="ring-destructive/35">
             <CardHeader>

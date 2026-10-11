@@ -49,3 +49,6 @@ jobs:
 
       - name: Apply checked-in migrations
         run: pnpm db:migrate
+
+      - name: Project native sync records into the product model
+        run: pnpm db:materialize-native

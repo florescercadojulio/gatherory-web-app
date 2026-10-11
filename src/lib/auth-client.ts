@@ -17,7 +17,7 @@ export const authClient = createAuthClient({
             workspaceType: {
               type: 'string',
               required: true,
-              defaultValue: 'personal',
+              defaultValue: 'event',
               input: false,
             },
           },

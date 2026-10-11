@@ -2,10 +2,8 @@
 
 import {
   CalendarDays,
-  GalleryVerticalEnd,
-  Lightbulb,
-  Store,
-  Users,
+  LayoutDashboard,
+  Settings,
 } from "lucide-react"
 
 import { NavMain } from "@/components/nav-main.tsx"
@@ -35,35 +33,6 @@ export function AppSidebar({
   user: { name: string; email: string; image?: string | null }
 }) {
   const workspaceUrl = `/workspaces/${workspace.slug}`
-  const navItems =
-    workspace.access === "member"
-      ? [
-          { title: "Events", url: workspaceUrl, icon: CalendarDays },
-          {
-            title: "Ideas",
-            url: workspaceUrl,
-            icon: Lightbulb,
-            disabled: true,
-            note: "Next",
-          },
-          {
-            title: "Participants",
-            url: workspaceUrl,
-            icon: Users,
-            disabled: true,
-            note: "Next",
-          },
-        ]
-      : [
-          { title: "Shared events", url: workspaceUrl, icon: CalendarDays },
-          {
-            title: "People",
-            url: workspaceUrl,
-            icon: Users,
-            disabled: true,
-            note: "Next",
-          },
-        ]
 
   return (
     <Sidebar collapsible="icon" {...props}>
@@ -76,30 +45,13 @@ export function AppSidebar({
       </SidebarHeader>
       <SidebarContent>
         <NavMain
-          label={workspace.access === "member" ? "Plan" : "Shared with you"}
-          items={navItems}
+          label="Gatherory"
+          items={[
+            { title: "All events", url: "/workspaces", icon: LayoutDashboard },
+            { title: "Event details", url: workspaceUrl, icon: CalendarDays },
+            { title: "Account", url: "/account", icon: Settings },
+          ]}
         />
-        {workspace.access === "member" ? (
-          <NavMain
-            label="Coming later"
-            items={[
-              {
-                title: "Professional tools",
-                url: workspaceUrl,
-                icon: Store,
-                disabled: true,
-                note: "Later",
-              },
-              {
-                title: "Template marketplace",
-                url: workspaceUrl,
-                icon: GalleryVerticalEnd,
-                disabled: true,
-                note: "Later",
-              },
-            ]}
-          />
-        ) : null}
       </SidebarContent>
       <SidebarFooter>
         <NavUser

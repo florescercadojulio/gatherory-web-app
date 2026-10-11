@@ -6,6 +6,7 @@ import {
 import { Link } from "@tanstack/react-router"
 
 import { authClient } from "@/lib/auth-client"
+import { ThemeToggleItem } from "@/components/auth/theme/theme-toggle-item"
 
 import {
   Avatar,
@@ -85,6 +86,7 @@ export function NavUser({
                 <BadgeCheck />
                 Account
               </DropdownMenuItem>
+              <ThemeToggleItem />
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuItem

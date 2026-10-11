@@ -1,6 +1,8 @@
 import { and, eq } from "drizzle-orm"
+import { reset } from "drizzle-seed"
 
 import { db, pool } from "@/db"
+import * as authSchema from "@/db/schema/auth.schema"
 import {
   member,
   organization,
@@ -8,11 +10,15 @@ import {
   teamMember,
   user,
 } from "@/db/schema/auth.schema"
+import * as eventSchema from "@/db/schema/event.schema"
 import {
   event,
   eventInvitation,
   eventParticipant,
+  workspacePerson,
 } from "@/db/schema/event.schema"
+import * as mediaSchema from "@/db/schema/media.schema"
+import * as planningSchema from "@/db/schema/planning.schema"
 import {
   eventExpense,
   eventNote,
@@ -23,6 +29,7 @@ import {
   registryItem,
   workspacePlanningSettings,
 } from "@/db/schema/planning.schema"
+import * as syncSchema from "@/db/schema/sync.schema"
 import { auth } from "@/lib/auth"
 
 const developmentUsers = [
@@ -67,6 +74,14 @@ const planningIds = {
   venueExpense: "40000000-0000-4000-8000-000000000001",
   eventNote: "50000000-0000-4000-8000-000000000001",
   registryItem: "60000000-0000-4000-8000-000000000001",
+} as const
+
+const personIds = {
+  alex: "70000000-0000-4000-8000-000000000001",
+  jordan: "70000000-0000-4000-8000-000000000002",
+  maya: "70000000-0000-4000-8000-000000000003",
+  sam: "70000000-0000-4000-8000-000000000004",
+  pendingGuest: "70000000-0000-4000-8000-000000000005",
 } as const
 
 type SeedUser = { id: string; name: string; email: string }
@@ -355,31 +370,58 @@ async function seedEventWorkspace(input: {
       })
   }
 
+  const people = [
+    { id: personIds.alex, account: alex },
+    { id: personIds.jordan, account: jordan },
+    { id: personIds.maya, account: maya },
+    { id: personIds.sam, account: sam },
+  ]
+  for (const person of people) {
+    await db
+      .insert(workspacePerson)
+      .values({
+        id: person.id,
+        organizationId: input.workspaceId,
+        userId: person.account.id,
+        displayName: person.account.name,
+        email: person.account.email.toLowerCase(),
+      })
+      .onConflictDoUpdate({
+        target: workspacePerson.id,
+        set: {
+          userId: person.account.id,
+          displayName: person.account.name,
+          email: person.account.email.toLowerCase(),
+          updatedAt: new Date(),
+        },
+      })
+  }
+
   const participantRecords = Object.values(eventIds).flatMap((eventId) => [
     {
       eventId,
-      userId: alex.id,
+      personId: personIds.alex,
       role: "host" as const,
       planningPermission: "manage" as const,
       attendanceStatus: "going" as const,
     },
     {
       eventId,
-      userId: jordan.id,
+      personId: personIds.jordan,
       role: "host" as const,
       planningPermission: "manage" as const,
       attendanceStatus: "going" as const,
     },
     {
       eventId,
-      userId: maya.id,
+      personId: personIds.maya,
       role: "collaborator" as const,
       planningPermission: "contribute" as const,
       attendanceStatus: "going" as const,
     },
     {
       eventId,
-      userId: sam.id,
+      personId: personIds.sam,
       role: "guest" as const,
       planningPermission: "view_only" as const,
       attendanceStatus: "not_sure" as const,
@@ -391,7 +433,7 @@ async function seedEventWorkspace(input: {
       .insert(eventParticipant)
       .values(participant)
       .onConflictDoUpdate({
-        target: [eventParticipant.eventId, eventParticipant.userId],
+        target: [eventParticipant.eventId, eventParticipant.personId],
         set: {
           role: participant.role,
           planningPermission: participant.planningPermission,
@@ -592,8 +634,18 @@ async function seedEventWorkspace(input: {
   if (!pendingInvitation) {
     const expiresAt = new Date()
     expiresAt.setDate(expiresAt.getDate() + 14)
+    await db
+      .insert(workspacePerson)
+      .values({
+        id: personIds.pendingGuest,
+        organizationId: input.workspaceId,
+        displayName: "Invited Family",
+        email: pendingEmail,
+      })
+      .onConflictDoNothing({ target: workspacePerson.id })
     await db.insert(eventInvitation).values({
       eventId: eventIds.main,
+      personId: personIds.pendingGuest,
       email: pendingEmail,
       role: "guest",
       planningPermission: "view_only",
@@ -608,10 +660,23 @@ async function main() {
     throw new Error("The development seed cannot run in production.")
   }
 
+  console.log("Resetting database...")
+  await reset(db, {
+    ...authSchema,
+    ...eventSchema,
+    ...mediaSchema,
+    ...planningSchema,
+    ...syncSchema,
+  })
+
   const users = await Promise.all(developmentUsers.map(ensureDevelopmentUser))
   const typedUsers = users as [SeedUser, SeedUser, SeedUser, SeedUser]
   const workspace = await ensureWorkspace(typedUsers[0])
   await seedEventWorkspace({ workspaceId: workspace.id, users: typedUsers })
+  await db
+    .update(user)
+    .set({ hasCompletedOnboarding: true })
+    .where(eq(user.id, typedUsers[0].id))
 
   console.log("Seeded Alex & Jordan's event workspace.")
   console.log("All development accounts use password: password")

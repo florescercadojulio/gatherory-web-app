@@ -15,6 +15,9 @@ import { Route as ProtectedAccountIndexRouteImport } from './routes/_protected/a
 import { Route as ProtectedWorkspacesIndexRouteImport } from './routes/_protected/workspaces/index'
 import { Route as ProtectedWorkspacesWorkspaceSlugRouteRouteImport } from './routes/_protected/workspaces/$workspaceSlug/route'
 import { Route as ApiAuthSplatRouteRouteImport } from './routes/api/auth/$/route'
+import { Route as ApiSyncBootstrapRouteImport } from './routes/api/sync/bootstrap'
+import { Route as ApiSyncPullRouteImport } from './routes/api/sync/pull'
+import { Route as ApiSyncPushRouteImport } from './routes/api/sync/push'
 import { Route as AuthPathIndexRouteImport } from './routes/auth/$path/index'
 import { Route as ProtectedWorkspacesWorkspaceSlugIndexRouteImport } from './routes/_protected/workspaces/$workspaceSlug/index'
 
@@ -49,6 +52,21 @@ const ApiAuthSplatRouteRoute = ApiAuthSplatRouteRouteImport.update({
   path: '/api/auth/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiSyncBootstrapRoute = ApiSyncBootstrapRouteImport.update({
+  id: '/api/sync/bootstrap',
+  path: '/api/sync/bootstrap',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiSyncPullRoute = ApiSyncPullRouteImport.update({
+  id: '/api/sync/pull',
+  path: '/api/sync/pull',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiSyncPushRoute = ApiSyncPushRouteImport.update({
+  id: '/api/sync/push',
+  path: '/api/sync/push',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthPathIndexRoute = AuthPathIndexRouteImport.update({
   id: '/auth/$path/',
   path: '/auth/$path/',
@@ -65,6 +83,9 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/workspaces/$workspaceSlug': typeof ProtectedWorkspacesWorkspaceSlugRouteRouteWithChildren
   '/api/auth/$': typeof ApiAuthSplatRouteRoute
+  '/api/sync/bootstrap': typeof ApiSyncBootstrapRoute
+  '/api/sync/pull': typeof ApiSyncPullRoute
+  '/api/sync/push': typeof ApiSyncPushRoute
   '/account/': typeof ProtectedAccountIndexRoute
   '/workspaces/': typeof ProtectedWorkspacesIndexRoute
   '/auth/$path/': typeof AuthPathIndexRoute
@@ -73,6 +94,9 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/api/auth/$': typeof ApiAuthSplatRouteRoute
+  '/api/sync/bootstrap': typeof ApiSyncBootstrapRoute
+  '/api/sync/pull': typeof ApiSyncPullRoute
+  '/api/sync/push': typeof ApiSyncPushRoute
   '/account': typeof ProtectedAccountIndexRoute
   '/workspaces': typeof ProtectedWorkspacesIndexRoute
   '/auth/$path': typeof AuthPathIndexRoute
@@ -84,6 +108,9 @@ export interface FileRoutesById {
   '/_protected': typeof ProtectedRouteRouteWithChildren
   '/_protected/workspaces/$workspaceSlug': typeof ProtectedWorkspacesWorkspaceSlugRouteRouteWithChildren
   '/api/auth/$': typeof ApiAuthSplatRouteRoute
+  '/api/sync/bootstrap': typeof ApiSyncBootstrapRoute
+  '/api/sync/pull': typeof ApiSyncPullRoute
+  '/api/sync/push': typeof ApiSyncPushRoute
   '/_protected/account/': typeof ProtectedAccountIndexRoute
   '/_protected/workspaces/': typeof ProtectedWorkspacesIndexRoute
   '/auth/$path/': typeof AuthPathIndexRoute
@@ -95,6 +122,9 @@ export interface FileRouteTypes {
     | '/'
     | '/workspaces/$workspaceSlug'
     | '/api/auth/$'
+    | '/api/sync/bootstrap'
+    | '/api/sync/pull'
+    | '/api/sync/push'
     | '/account/'
     | '/workspaces/'
     | '/auth/$path/'
@@ -103,6 +133,9 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/api/auth/$'
+    | '/api/sync/bootstrap'
+    | '/api/sync/pull'
+    | '/api/sync/push'
     | '/account'
     | '/workspaces'
     | '/auth/$path'
@@ -113,6 +146,9 @@ export interface FileRouteTypes {
     | '/_protected'
     | '/_protected/workspaces/$workspaceSlug'
     | '/api/auth/$'
+    | '/api/sync/bootstrap'
+    | '/api/sync/pull'
+    | '/api/sync/push'
     | '/_protected/account/'
     | '/_protected/workspaces/'
     | '/auth/$path/'
@@ -123,6 +159,9 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ProtectedRouteRoute: typeof ProtectedRouteRouteWithChildren
   ApiAuthSplatRouteRoute: typeof ApiAuthSplatRouteRoute
+  ApiSyncBootstrapRoute: typeof ApiSyncBootstrapRoute
+  ApiSyncPullRoute: typeof ApiSyncPullRoute
+  ApiSyncPushRoute: typeof ApiSyncPushRoute
   AuthPathIndexRoute: typeof AuthPathIndexRoute
 }
 
@@ -168,6 +207,27 @@ declare module '@tanstack/react-router' {
       path: '/api/auth/$'
       fullPath: '/api/auth/$'
       preLoaderRoute: typeof ApiAuthSplatRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/sync/bootstrap': {
+      id: '/api/sync/bootstrap'
+      path: '/api/sync/bootstrap'
+      fullPath: '/api/sync/bootstrap'
+      preLoaderRoute: typeof ApiSyncBootstrapRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/sync/pull': {
+      id: '/api/sync/pull'
+      path: '/api/sync/pull'
+      fullPath: '/api/sync/pull'
+      preLoaderRoute: typeof ApiSyncPullRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/sync/push': {
+      id: '/api/sync/push'
+      path: '/api/sync/push'
+      fullPath: '/api/sync/push'
+      preLoaderRoute: typeof ApiSyncPushRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth/$path/': {
@@ -223,6 +283,9 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ProtectedRouteRoute: ProtectedRouteRouteWithChildren,
   ApiAuthSplatRouteRoute: ApiAuthSplatRouteRoute,
+  ApiSyncBootstrapRoute: ApiSyncBootstrapRoute,
+  ApiSyncPullRoute: ApiSyncPullRoute,
+  ApiSyncPushRoute: ApiSyncPushRoute,
   AuthPathIndexRoute: AuthPathIndexRoute,
 }
 export const routeTree = rootRouteImport

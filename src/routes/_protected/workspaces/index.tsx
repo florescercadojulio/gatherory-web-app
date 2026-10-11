@@ -1,567 +1,350 @@
-import { useForm } from "@tanstack/react-form"
+import { createFileRoute } from "@tanstack/react-router"
 import {
-  createFileRoute,
-  Link,
-  useNavigate,
-  useRouter,
-} from "@tanstack/react-router"
-import {
-  ArrowUpRight,
   CalendarDays,
-  LayoutGrid,
-  Plus,
+  CheckCircle2,
+  Clock3,
+  Lightbulb,
+  MapPin,
+  Smartphone,
   Users,
+  WalletCards,
 } from "lucide-react"
-import { useState } from "react"
 
 import { AccountSidebar } from "@/components/account-sidebar"
-import type { WorkspaceSwitcherItem } from "@/components/workspace-switcher"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
 import {
   Card,
-  CardAction,
+  CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import { Checkbox } from "@/components/ui/checkbox"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+import { Progress } from "@/components/ui/progress"
 import { Separator } from "@/components/ui/separator"
 import {
   SidebarInset,
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar"
-import { createWorkspace } from "@/server/workspaces/handlers/workspace.handlers"
+import {
+  listNativeWorkspaceInsights,
+  type NativeWorkspaceInsight,
+} from "@/server/sync/native-insights"
 
 export const Route = createFileRoute("/_protected/workspaces/")({
-  component: WorkspaceDirectory,
+  loader: () => listNativeWorkspaceInsights(),
+  component: WorkspaceCompanion,
 })
 
-function WorkspaceDirectory() {
+const dateFormatter = new Intl.DateTimeFormat("en-US", {
+  month: "short",
+  day: "numeric",
+  year: "numeric",
+})
+
+const dateTimeFormatter = new Intl.DateTimeFormat("en-US", {
+  month: "short",
+  day: "numeric",
+  hour: "numeric",
+  minute: "2-digit",
+})
+
+const currencyFormatter = new Intl.NumberFormat("en-US", {
+  style: "currency",
+  currency: "USD",
+  maximumFractionDigits: 0,
+})
+
+function WorkspaceCompanion() {
   const { defaultWorkspaceContext } = Route.useRouteContext()
-  const ownedWorkspaces = defaultWorkspaceContext.workspaces.filter(
-    (workspace) => workspace.access === "member",
-  )
-  const sharedWorkspaces = defaultWorkspaceContext.workspaces.filter(
-    (workspace) => workspace.access === "participant",
+  const insight = Route.useLoaderData()
+  const workspaces = insight.workspaces
+  const totals = workspaces.reduce(
+    (result, workspace) => ({
+      scheduledEvents: result.scheduledEvents + workspace.scheduledEventCount,
+      openIdeas: result.openIdeas + workspace.openIdeaCount,
+      trackedCost: result.trackedCost + workspace.trackedCost,
+      participantCount: result.participantCount + workspace.participantCount,
+    }),
+    { scheduledEvents: 0, openIdeas: 0, trackedCost: 0, participantCount: 0 },
   )
 
   return (
     <SidebarProvider>
       <AccountSidebar
-        workspaces={defaultWorkspaceContext.workspaces}
         user={defaultWorkspaceContext.user}
+        summaryLabel={`${workspaces.length} ${workspaces.length === 1 ? "event" : "events"}`}
       />
       <SidebarInset>
-        <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
+        <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center gap-2 border-b bg-background/85 px-4 backdrop-blur-xl supports-[backdrop-filter]:bg-background/70">
           <SidebarTrigger className="-ml-1" />
           <Separator orientation="vertical" className="mr-2 h-4" />
           <div className="flex min-w-0 items-center gap-2">
-            <LayoutGrid className="size-4 text-muted-foreground" />
-            <span className="truncate text-sm font-medium">All events</span>
+            <CalendarDays className="size-4 text-primary" />
+            <span className="truncate text-sm font-medium">Your events</span>
           </div>
         </header>
 
-        <main className="flex flex-1 flex-col gap-10 p-4 md:p-8">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-            <div className="space-y-2">
-              <h1 className="text-3xl font-semibold tracking-tight">Events</h1>
-              <p className="max-w-2xl text-sm leading-6 text-muted-foreground">
-                Plan an event of your own or join one that has been shared with
-                you.
+        <main className="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-8 p-4 md:p-8">
+          <section className="relative overflow-hidden rounded-3xl border bg-[linear-gradient(135deg,#0b2c8f_0%,#1462df_48%,#1aa9dd_100%)] px-6 py-8 text-white shadow-xl shadow-blue-950/10 md:px-10 md:py-12">
+            <div className="pointer-events-none absolute -right-24 -top-24 size-80 rounded-full bg-cyan-300/30 blur-3xl" />
+            <div className="pointer-events-none absolute -bottom-32 left-1/3 size-80 rounded-full bg-blue-950/35 blur-3xl" />
+            <div className="relative grid gap-8 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
+              <div className="max-w-3xl space-y-5">
+                <Badge className="border-white/20 bg-white/12 text-white hover:bg-white/12">
+                  <Smartphone className="size-3.5" />
+                  Works with Gatherory on iPhone
+                </Badge>
+                <div className="space-y-3">
+                  <h1 className="text-3xl font-semibold tracking-tight text-balance sm:text-4xl">
+                    Your plans, at a glance.
+                  </h1>
+                  <p className="max-w-2xl text-sm leading-6 text-blue-50/85 sm:text-base">
+                    Plan on your iPhone, then come here for a simple view of
+                    your events, ideas, people, and spending.
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3 rounded-2xl border border-white/15 bg-black/10 px-4 py-3 backdrop-blur-xl">
+                <span className="relative flex size-2.5">
+                  <span className="absolute inline-flex size-full animate-ping rounded-full bg-cyan-200 opacity-60 motion-reduce:animate-none" />
+                  <span className="relative inline-flex size-2.5 rounded-full bg-cyan-200" />
+                </span>
+                <div>
+                  <p className="text-sm font-medium">Up to date</p>
+                  <p className="text-xs text-blue-100/75">
+                    Your latest plans are here
+                  </p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4" aria-label="Planning overview">
+            <Metric
+              icon={CalendarDays}
+              label="Events"
+              value={String(workspaces.length)}
+              detail={`${totals.scheduledEvents} activities planned`}
+            />
+            <Metric
+              icon={Lightbulb}
+              label="Ideas to decide"
+              value={String(totals.openIdeas)}
+              detail="Across all your events"
+            />
+            <Metric
+              icon={WalletCards}
+              label="Planned spending"
+              value={currencyFormatter.format(totals.trackedCost)}
+              detail="What you expect to spend so far"
+            />
+            <Metric
+              icon={Users}
+              label="People"
+              value={String(totals.participantCount)}
+              detail="Hosts, helpers, and guests"
+            />
+          </section>
+
+          <section className="space-y-4" aria-labelledby="your-events-heading">
+            <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <h2 id="your-events-heading" className="text-xl font-semibold tracking-tight">
+                  Your events
+                </h2>
+                <p className="text-sm text-muted-foreground">
+                  Everything important, gathered in one place.
+                </p>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Use the iPhone app to make changes.
               </p>
             </div>
-            <CreateEventDialog />
-          </div>
 
-          <WorkspaceSection
-            id="owned-workspaces"
-            title="Your events"
-            description="Events you host and plan with your people."
-            workspaces={ownedWorkspaces}
-            currentWorkspaceId={defaultWorkspaceContext.workspace.id}
-          />
+            {workspaces.length ? (
+              <div className="grid gap-5 xl:grid-cols-2">
+                {workspaces.map((workspace) => (
+                  <WorkspaceInsightCard key={workspace.id} workspace={workspace} />
+                ))}
+              </div>
+            ) : (
+              <EmptyCompanion />
+            )}
 
-          <WorkspaceSection
-            id="shared-workspaces"
-            title="Shared with you"
-            description="Events where you participate without managing the planning space."
-            workspaces={sharedWorkspaces}
-            currentWorkspaceId={defaultWorkspaceContext.workspace.id}
-            emptyMessage="No additional events have been shared with you yet."
-          />
+            {insight.unavailableSnapshotCount ? (
+              <p className="text-xs text-muted-foreground">
+                {insight.unavailableSnapshotCount} older event
+                {insight.unavailableSnapshotCount === 1 ? "" : "s"} will appear
+                after you open and save{" "}
+                {insight.unavailableSnapshotCount === 1 ? "it" : "them"} on
+                your iPhone.
+              </p>
+            ) : null}
+          </section>
         </main>
       </SidebarInset>
     </SidebarProvider>
   )
 }
 
-function CreateEventDialog() {
-  const navigate = useNavigate()
-  const router = useRouter()
-  const [open, setOpen] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const form = useForm({
-    defaultValues: emptyEventFormValues(),
-    onSubmit: async ({ value }) => {
-      const eventName = value.eventName.trim()
-      if (eventName.length < 2) {
-        setError("Enter an event name with at least two characters.")
-        return
-      }
-      if (!value.startsAt) {
-        setError("Choose when the event starts.")
-        return
-      }
-      if (!value.timeZone.trim()) {
-        setError("Enter the event time zone.")
-        return
-      }
-      if (
-        value.endsAt &&
-        new Date(eventDateToIso(value.endsAt, value.isAllDay)) <
-          new Date(eventDateToIso(value.startsAt, value.isAllDay))
-      ) {
-        setError("The event must end after it starts.")
-        return
-      }
-      if (value.budgetCap && !/^\d+(?:\.\d{1,2})?$/.test(value.budgetCap)) {
-        setError("Enter a valid budget with up to two decimal places.")
-        return
-      }
-
-      setError(null)
-      try {
-        const result = await createWorkspace({
-          data: {
-            eventName,
-            startsAt: eventDateToIso(value.startsAt, value.isAllDay),
-            endsAt: value.endsAt
-              ? eventDateToIso(value.endsAt, value.isAllDay)
-              : undefined,
-            isAllDay: value.isAllDay,
-            timeZone: value.timeZone.trim(),
-            locationName: value.locationName.trim() || undefined,
-            locationAddress: value.locationAddress.trim() || undefined,
-            budgetCap: value.budgetCap.trim() || undefined,
-          },
-        })
-        if (!result.ok) {
-          setError(result.error.userMessage)
-          return
-        }
-
-        setOpen(false)
-        form.reset(emptyEventFormValues())
-        await router.invalidate()
-        await navigate({
-          to: "/workspaces/$workspaceSlug",
-          params: { workspaceSlug: result.data.slug },
-        })
-      } catch {
-        setError("The event could not be created. Try again.")
-      }
-    },
-  })
-
-  return (
-    <Dialog
-      open={open}
-      onOpenChange={(nextOpen) => {
-        setOpen(nextOpen)
-        setError(null)
-        if (nextOpen) form.reset(defaultEventFormValues())
-      }}
-    >
-      <DialogTrigger render={<Button className="gap-2" />}>
-        <Plus className="size-4" />
-        New event
-      </DialogTrigger>
-      <DialogContent className="max-h-[min(90vh,52rem)] overflow-y-auto sm:max-w-2xl">
-        <form
-          onSubmit={(event) => {
-            event.preventDefault()
-            event.stopPropagation()
-            void form.handleSubmit()
-          }}
-          className="contents"
-        >
-          <DialogHeader>
-            <DialogTitle>Create an event</DialogTitle>
-            <DialogDescription>
-              Start with the details everyone needs. You can add cover art and
-              invite hosts, collaborators, and guests after creating it.
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="grid gap-6 py-2">
-            <section
-              className="grid gap-3"
-              aria-labelledby="event-details-heading"
-            >
-              <div>
-                <h3 id="event-details-heading" className="font-medium">
-                  Event details
-                </h3>
-                <p className="text-sm text-muted-foreground">
-                  Use the name people will recognize on the invitation.
-                </p>
-              </div>
-              <form.Field name="eventName">
-                {(field) => (
-                  <div className="grid gap-2">
-                    <Label htmlFor={field.name}>Event name</Label>
-                    <Input
-                      id={field.name}
-                      name={field.name}
-                      autoComplete="off"
-                      maxLength={120}
-                      placeholder="Alex & Jordan's wedding"
-                      value={field.state.value}
-                      onBlur={field.handleBlur}
-                      onChange={(event) =>
-                        field.handleChange(event.target.value)
-                      }
-                      autoFocus
-                    />
-                  </div>
-                )}
-              </form.Field>
-            </section>
-
-            <Separator />
-
-            <section
-              className="grid gap-3"
-              aria-labelledby="event-schedule-heading"
-            >
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <h3 id="event-schedule-heading" className="font-medium">
-                    Date & time
-                  </h3>
-                  <p className="text-sm text-muted-foreground">
-                    Sub-events can be added to the timeline later.
-                  </p>
-                </div>
-                <form.Field name="isAllDay">
-                  {(field) => (
-                    <Label className="flex items-center gap-2 pt-0.5 font-normal">
-                      <Checkbox
-                        id="event-is-all-day"
-                        checked={field.state.value}
-                        onCheckedChange={(checked) => {
-                          const isAllDay = checked === true
-                          field.handleChange(isAllDay)
-                          for (const fieldName of [
-                            "startsAt",
-                            "endsAt",
-                          ] as const) {
-                            const value = form.getFieldValue(fieldName)
-                            if (!value) continue
-                            form.setFieldValue(
-                              fieldName,
-                              isAllDay
-                                ? value.slice(0, 10)
-                                : value.length === 10
-                                  ? `${value}T18:00`
-                                  : value,
-                            )
-                          }
-                        }}
-                      />
-                      All-day
-                    </Label>
-                  )}
-                </form.Field>
-              </div>
-              <form.Subscribe selector={(state) => state.values.isAllDay}>
-                {(isAllDay) => (
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    <form.Field name="startsAt">
-                      {(field) => (
-                        <div className="grid gap-2">
-                          <Label htmlFor={field.name}>Starts</Label>
-                          <Input
-                            id={field.name}
-                            type={isAllDay ? "date" : "datetime-local"}
-                            value={field.state.value}
-                            onChange={(event) =>
-                              field.handleChange(event.target.value)
-                            }
-                          />
-                        </div>
-                      )}
-                    </form.Field>
-                    <form.Field name="endsAt">
-                      {(field) => (
-                        <div className="grid gap-2">
-                          <Label htmlFor={field.name}>Ends (optional)</Label>
-                          <Input
-                            id={field.name}
-                            type={isAllDay ? "date" : "datetime-local"}
-                            value={field.state.value}
-                            onChange={(event) =>
-                              field.handleChange(event.target.value)
-                            }
-                          />
-                        </div>
-                      )}
-                    </form.Field>
-                  </div>
-                )}
-              </form.Subscribe>
-              <form.Field name="timeZone">
-                {(field) => (
-                  <div className="grid gap-2 sm:max-w-xs">
-                    <Label htmlFor={field.name}>Time zone</Label>
-                    <Input
-                      id={field.name}
-                      value={field.state.value}
-                      onChange={(event) =>
-                        field.handleChange(event.target.value)
-                      }
-                    />
-                  </div>
-                )}
-              </form.Field>
-            </section>
-
-            <Separator />
-
-            <section
-              className="grid gap-3"
-              aria-labelledby="event-location-heading"
-            >
-              <div>
-                <h3 id="event-location-heading" className="font-medium">
-                  Location (optional)
-                </h3>
-                <p className="text-sm text-muted-foreground">
-                  Add a venue now or leave it open while you decide.
-                </p>
-              </div>
-              <div className="grid gap-3 sm:grid-cols-2">
-                <form.Field name="locationName">
-                  {(field) => (
-                    <div className="grid gap-2">
-                      <Label htmlFor={field.name}>Location name</Label>
-                      <Input
-                        id={field.name}
-                        placeholder="Willow & Stone Estate"
-                        value={field.state.value}
-                        onChange={(event) =>
-                          field.handleChange(event.target.value)
-                        }
-                      />
-                    </div>
-                  )}
-                </form.Field>
-                <form.Field name="locationAddress">
-                  {(field) => (
-                    <div className="grid gap-2">
-                      <Label htmlFor={field.name}>Address</Label>
-                      <Input
-                        id={field.name}
-                        placeholder="Ann Arbor, Michigan"
-                        value={field.state.value}
-                        onChange={(event) =>
-                          field.handleChange(event.target.value)
-                        }
-                      />
-                    </div>
-                  )}
-                </form.Field>
-              </div>
-            </section>
-
-            <Separator />
-
-            <form.Field name="budgetCap">
-              {(field) => (
-                <section
-                  className="grid gap-2"
-                  aria-labelledby="event-budget-heading"
-                >
-                  <div>
-                    <h3 id="event-budget-heading" className="font-medium">
-                      Budget (optional)
-                    </h3>
-                    <p className="text-sm text-muted-foreground">
-                      This starts as the main event budget. You can allocate it
-                      across sub-events later.
-                    </p>
-                  </div>
-                  <Label htmlFor={field.name} className="sr-only">
-                    Budget cap
-                  </Label>
-                  <Input
-                    id={field.name}
-                    inputMode="decimal"
-                    placeholder="12000"
-                    value={field.state.value}
-                    onChange={(event) => field.handleChange(event.target.value)}
-                    className="sm:max-w-xs"
-                  />
-                </section>
-              )}
-            </form.Field>
-
-            {error ? (
-              <p role="alert" className="text-sm text-destructive">
-                {error}
-              </p>
-            ) : null}
-          </div>
-
-          <DialogFooter>
-            <form.Subscribe
-              selector={(state) =>
-                [
-                  state.values.eventName,
-                  state.values.startsAt,
-                  state.isSubmitting,
-                ] as const
-              }
-            >
-              {([eventName, startsAt, isSubmitting]) => (
-                <Button
-                  type="submit"
-                  disabled={
-                    isSubmitting || eventName.trim().length < 2 || !startsAt
-                  }
-                >
-                  {isSubmitting ? "Creating…" : "Create event"}
-                </Button>
-              )}
-            </form.Subscribe>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
-  )
-}
-
-function WorkspaceSection({
-  id,
-  title,
-  description,
-  workspaces,
-  currentWorkspaceId,
-  emptyMessage,
+function Metric({
+  icon: Icon,
+  label,
+  value,
+  detail,
 }: {
-  id: string
-  title: string
-  description: string
-  workspaces: WorkspaceSwitcherItem[]
-  currentWorkspaceId: string
-  emptyMessage?: string
+  icon: typeof CalendarDays
+  label: string
+  value: string
+  detail: string
 }) {
   return (
-    <section className="space-y-4" aria-labelledby={`${id}-heading`}>
-      <div className="space-y-1">
-        <h2 id={`${id}-heading`} className="text-lg font-semibold">
-          {title}
-        </h2>
-        <p className="text-sm text-muted-foreground">{description}</p>
-      </div>
-
-      {workspaces.length ? (
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          {workspaces.map((workspace) => (
-            <Link
-              key={workspace.id}
-              to="/workspaces/$workspaceSlug"
-              params={{ workspaceSlug: workspace.slug }}
-              className="group rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            >
-              <Card className="h-full transition-[border-color,box-shadow,transform] group-hover:-translate-y-0.5 group-hover:border-primary/35 group-hover:shadow-md">
-                <CardHeader>
-                  <div className="mb-5 flex size-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                    {workspace.access === "member" ? (
-                      <CalendarDays className="size-5" />
-                    ) : (
-                      <Users className="size-5" />
-                    )}
-                  </div>
-                  <CardTitle className="pr-8">{workspace.name}</CardTitle>
-                  <CardDescription>
-                    {workspace.access === "member"
-                      ? workspace.type === "personal"
-                        ? "Your event"
-                        : "Team event"
-                      : "Shared with you"}
-                  </CardDescription>
-                  <CardAction className="flex items-center gap-2">
-                    {workspace.id === currentWorkspaceId ? (
-                      <Badge variant="secondary">Current</Badge>
-                    ) : null}
-                    <ArrowUpRight className="size-4 text-muted-foreground transition-colors group-hover:text-foreground" />
-                  </CardAction>
-                </CardHeader>
-              </Card>
-            </Link>
-          ))}
+    <Card className="gap-4 py-5">
+      <CardHeader className="grid grid-cols-[auto_1fr] items-center gap-3 px-5">
+        <div className="flex size-10 items-center justify-center rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400">
+          <Icon className="size-5" />
         </div>
-      ) : (
-        <Card className="border-dashed bg-muted/25">
-          <CardHeader>
-            <CardDescription>
-              {emptyMessage ?? "No events to show yet."}
+        <div className="min-w-0">
+          <CardDescription>{label}</CardDescription>
+          <CardTitle className="mt-0.5 truncate text-2xl tabular-nums">
+            {value}
+          </CardTitle>
+        </div>
+      </CardHeader>
+      <CardContent className="px-5 text-xs text-muted-foreground">
+        {detail}
+      </CardContent>
+    </Card>
+  )
+}
+
+function WorkspaceInsightCard({ workspace }: { workspace: NativeWorkspaceInsight }) {
+  const budgetUsed = workspace.budgetCap
+    ? Math.min((workspace.trackedCost / workspace.budgetCap) * 100, 100)
+    : null
+
+  return (
+    <Card className="overflow-hidden py-0">
+      <div className="h-1.5 bg-[linear-gradient(90deg,#1555e6,#18a6dc)]" />
+      <CardHeader className="gap-4 px-6 pt-6">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <Badge variant="secondary" className="capitalize">
+                <CheckCircle2 className="size-3.5 text-blue-600 dark:text-blue-400" />
+                {workspace.status}
+              </Badge>
+              <span className="text-xs text-muted-foreground">
+                Updated {dateTimeFormatter.format(new Date(workspace.updatedAt))}
+              </span>
+            </div>
+            <CardTitle className="pt-2 text-2xl">{workspace.title}</CardTitle>
+            <CardDescription className="flex flex-wrap gap-x-4 gap-y-1">
+              <span className="inline-flex items-center gap-1.5">
+                <CalendarDays className="size-3.5" />
+                {dateFormatter.format(new Date(workspace.startsAt))}
+              </span>
+              {workspace.location ? (
+                <span className="inline-flex items-center gap-1.5">
+                  <MapPin className="size-3.5" />
+                  {workspace.location}
+                </span>
+              ) : null}
             </CardDescription>
-          </CardHeader>
-        </Card>
-      )}
-    </section>
+          </div>
+          <div className="rounded-2xl bg-blue-500/10 px-3 py-2 text-right text-blue-700 dark:text-blue-300">
+            <p className="text-lg font-semibold tabular-nums">
+              {workspace.participantCount}
+            </p>
+            <p className="text-[11px]">people</p>
+          </div>
+        </div>
+      </CardHeader>
+
+      <CardContent className="space-y-6 px-6 pb-6">
+        <div className="grid grid-cols-3 gap-2">
+          <SmallStat label="Schedule" value={workspace.scheduledEventCount} />
+          <SmallStat label="Open ideas" value={workspace.openIdeaCount} />
+          <SmallStat label="Approved" value={workspace.approvedIdeaCount} />
+        </div>
+
+        {workspace.budgetCap != null ? (
+          <div className="space-y-2 rounded-2xl border bg-muted/25 p-4">
+            <div className="flex items-end justify-between gap-4">
+              <div>
+                <p className="text-xs text-muted-foreground">Budget overview</p>
+                <p className="font-medium tabular-nums">
+                  {currencyFormatter.format(workspace.trackedCost)} planned
+                </p>
+              </div>
+              <p className="text-sm tabular-nums text-muted-foreground">
+                of {currencyFormatter.format(workspace.budgetCap)}
+              </p>
+            </div>
+            <Progress value={budgetUsed ?? 0} className="h-2" />
+          </div>
+        ) : null}
+
+        <div className="space-y-3">
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-sm font-medium">Coming up</p>
+            <span className="text-xs text-muted-foreground">
+              Next {workspace.upcomingEvents.length || 0}
+            </span>
+          </div>
+          {workspace.upcomingEvents.length ? (
+            <div className="divide-y rounded-2xl border">
+              {workspace.upcomingEvents.map((event) => (
+                <div key={event.id} className="flex items-center gap-3 px-4 py-3">
+                  <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground">
+                    <Clock3 className="size-4" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium">{event.title}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {dateTimeFormatter.format(new Date(event.startsAt))}
+                    </p>
+                  </div>
+                  <Badge variant="outline" className="hidden capitalize sm:inline-flex">
+                    {event.purpose === "planning" ? "Planning" : "For guests"}
+                  </Badge>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="rounded-2xl border border-dashed px-4 py-5 text-sm text-muted-foreground">
+              No upcoming activities are planned.
+            </p>
+          )}
+        </div>
+      </CardContent>
+    </Card>
   )
 }
 
-function emptyEventFormValues() {
-  return {
-    eventName: "",
-    startsAt: "",
-    endsAt: "",
-    isAllDay: false,
-    timeZone: "UTC",
-    locationName: "",
-    locationAddress: "",
-    budgetCap: "",
-  }
-}
-
-function defaultEventFormValues() {
-  const startsAt = new Date()
-  startsAt.setMonth(startsAt.getMonth() + 6)
-  startsAt.setHours(18, 0, 0, 0)
-
-  return {
-    ...emptyEventFormValues(),
-    startsAt: toLocalDateTimeValue(startsAt),
-    timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC",
-  }
-}
-
-function toLocalDateTimeValue(value: Date) {
-  const offset = value.getTimezoneOffset() * 60_000
-  return new Date(value.getTime() - offset).toISOString().slice(0, 16)
-}
-
-function eventDateToIso(value: string, isAllDay: boolean) {
-  const date = new Date(
-    isAllDay && value.length === 10 ? `${value}T00:00` : value,
+function SmallStat({ label, value }: { label: string; value: number }) {
+  return (
+    <div className="rounded-xl bg-muted/55 px-3 py-3">
+      <p className="text-lg font-semibold tabular-nums">{value}</p>
+      <p className="truncate text-[11px] text-muted-foreground">{label}</p>
+    </div>
   )
-  if (isAllDay) date.setHours(0, 0, 0, 0)
-  return date.toISOString()
+}
+
+function EmptyCompanion() {
+  return (
+    <Card className="border-dashed bg-muted/20">
+      <CardHeader className="mx-auto w-full max-w-xl justify-items-center px-6 py-12 text-center sm:px-8">
+        <div className="mb-3 flex size-14 items-center justify-center rounded-2xl bg-blue-500/10 text-blue-600 dark:text-blue-400">
+          <Smartphone className="size-7" />
+        </div>
+        <CardTitle>Start on your iPhone</CardTitle>
+        <CardDescription className="w-full max-w-lg text-balance leading-6">
+          Create an event in Gatherory on your iPhone. Its schedule, people,
+          ideas, and budget will appear here.
+        </CardDescription>
+      </CardHeader>
+    </Card>
+  )
 }

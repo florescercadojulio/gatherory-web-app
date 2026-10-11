@@ -50,6 +50,13 @@ export const CreateEventInputSchema = z
     }),
   ])
   .refine(
+    (value) => !value.endsAt || Boolean(value.startsAt),
+    {
+      message: "An event end requires a start.",
+      path: ["endsAt"],
+    },
+  )
+  .refine(
     (value) =>
       !value.startsAt ||
       !value.endsAt ||
@@ -68,6 +75,7 @@ export const ListEventsInputSchema = z.object({
 
 export const InviteEventParticipantInputSchema = z.object({
   eventId: z.uuid(),
+  name: z.string().trim().min(1).max(120).optional(),
   email: z.email().trim().toLowerCase(),
   role: z.enum(["host", "collaborator", "guest"]),
   planningPermission: z.enum(["manage", "contribute", "viewOnly"]),
@@ -87,6 +95,7 @@ export type AcceptEventInvitationInput = z.infer<
 
 export type EventParticipantSummary = {
   id: string
+  userId: string | null
   name: string
   image: string | null
   role: "host" | "collaborator" | "guest"

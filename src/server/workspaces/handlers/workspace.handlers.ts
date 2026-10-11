@@ -1,11 +1,15 @@
-import { and, eq, inArray, isNull } from "drizzle-orm"
+import { and, eq, inArray, isNull, sql } from "drizzle-orm"
 import { createServerFn } from "@tanstack/react-start"
 import { getRequestHeaders } from "@tanstack/react-start/server"
 import { z } from "zod"
 
 import { db } from "@/db"
-import { member, organization, teamMember } from "@/db/schema/auth.schema"
-import { event, eventParticipant } from "@/db/schema/event.schema"
+import { member, organization, teamMember, user } from "@/db/schema/auth.schema"
+import {
+  event,
+  eventParticipant,
+  workspacePerson,
+} from "@/db/schema/event.schema"
 import { workspacePlanningSettings } from "@/db/schema/planning.schema"
 import { auth } from "@/lib/auth"
 import { requireSessionMiddleware } from "@/lib/auth.middleware"
@@ -14,6 +18,8 @@ type AuthWorkspace = {
   id: string
   name: string
   slug: string
+  // Better Auth exposes custom organization fields as strings. PostgreSQL
+  // enforces the event/business vocabulary at the storage boundary.
   workspaceType: string
 }
 
@@ -149,10 +155,15 @@ async function listAccessibleWorkspaces(input: {
     .from(organization)
     .innerJoin(event, eq(event.organizationId, organization.id))
     .innerJoin(
+      workspacePerson,
+      eq(workspacePerson.organizationId, organization.id),
+    )
+    .innerJoin(
       eventParticipant,
       and(
         eq(eventParticipant.eventId, event.id),
-        eq(eventParticipant.userId, input.userId),
+        eq(eventParticipant.personId, workspacePerson.id),
+        eq(workspacePerson.userId, input.userId),
       ),
     )
 
@@ -200,7 +211,7 @@ async function provisionPersonalWorkspace(input: {
       (candidate) => candidate.id === input.activeOrganizationId,
     ) ??
     memberWorkspaces.find(
-      (candidate) => candidate.workspaceType === "personal",
+      (candidate) => candidate.workspaceType === "event",
     ) ??
     memberWorkspaces[0]
 
@@ -325,8 +336,8 @@ export const createWorkspace = createServerFn({ method: "POST" })
             .limit(1)
         : []
 
-      let workspace =
-        activeWorkspace?.workspaceType === "personal" && !activeMainEvent
+      let workspace: AuthWorkspace | null =
+        activeWorkspace?.workspaceType === "event" && !activeMainEvent
           ? activeWorkspace
           : null
 
@@ -385,9 +396,32 @@ export const createWorkspace = createServerFn({ method: "POST" })
 
         if (!mainEvent) throw new Error("MAIN_EVENT_CREATE_FAILED")
 
+        const [hostPerson] = await transaction
+          .insert(workspacePerson)
+          .values({
+            organizationId: workspace.id,
+            userId: context.user.id,
+            displayName: context.user.name,
+            email: context.user.email.trim().toLowerCase(),
+            avatarUrl: context.user.image,
+          })
+          .onConflictDoUpdate({
+            target: [workspacePerson.organizationId, workspacePerson.userId],
+            targetWhere: sql`${workspacePerson.userId} is not null`,
+            set: {
+              displayName: context.user.name,
+              email: context.user.email.trim().toLowerCase(),
+              avatarUrl: context.user.image,
+              updatedAt: new Date(),
+            },
+          })
+          .returning({ id: workspacePerson.id })
+
+        if (!hostPerson) throw new Error("WORKSPACE_PERSON_CREATE_FAILED")
+
         await transaction.insert(eventParticipant).values({
           eventId: mainEvent.id,
-          userId: context.user.id,
+          personId: hostPerson.id,
           role: "host",
           planningPermission: "manage",
           attendanceStatus: "going",
@@ -406,6 +440,11 @@ export const createWorkspace = createServerFn({ method: "POST" })
               updatedAt: new Date(),
             },
           })
+
+        await transaction
+          .update(user)
+          .set({ hasCompletedOnboarding: true })
+          .where(eq(user.id, context.user.id))
       })
 
       return {

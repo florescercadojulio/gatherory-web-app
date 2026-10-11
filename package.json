@@ -4,6 +4,7 @@
   "type": "module",
   "scripts": {
     "dev": "dotenv run -f .env.local -- sh -c \"NODE_OPTIONS='--import ./instrument.server.mjs' vite dev --port 3003\"",
+    "dev:device": "dotenv run -f .env.local -- sh -c \"NODE_OPTIONS='--import ./instrument.server.mjs' vite dev --host 0.0.0.0 --port 3003\"",
     "generate-routes": "tsr generate",
     "typecheck": "tsc --noEmit",
     "auth:schema": "dotenv run -f .env.local -- pnpm dlx auth@1.7.7 generate --config ./src/lib/auth.ts --output ./src/db/schema/auth.schema.ts --yes",
@@ -11,7 +12,10 @@
     "auth:secret": "pnpm dlx auth@1.7.7 secret",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
+    "db:materialize-native": "tsx scripts/materialize-native-sync.ts",
+    "db:materialize-native:local": "dotenv run -f .env.local -- pnpm db:materialize-native",
     "db:push": "drizzle-kit push",
+    "db:reset": "dotenv run -f .env.local -- tsx scripts/reset-database.ts",
     "db:seed": "dotenv run -f .env.local -- tsx src/db/seed.ts",
     "db:studio": "drizzle-kit studio",
     "email:dev": "email dev --dir src/emails --port 3004",
@@ -104,6 +108,7 @@
     "@vitejs/plugin-react": "^6.0.1",
     "babel-plugin-react-compiler": "^1.0.0",
     "drizzle-kit": "1.0.0-rc.4",
+    "drizzle-seed": "1.0.0-rc.4",
     "tsx": "^4.23.15",
     "typescript": "^7.0.2",
     "vite": "^8.0.0"

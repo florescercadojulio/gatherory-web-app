@@ -1,53 +1,69 @@
 "use client"
 
-import { Inbox, LayoutGrid } from "lucide-react"
+import { Link } from "@tanstack/react-router"
+import { LayoutDashboard, Settings } from "lucide-react"
 
 import { NavMain } from "@/components/nav-main"
 import { NavUser } from "@/components/nav-user"
-import {
-  WorkspaceSwitcher,
-  type WorkspaceSwitcherItem,
-} from "@/components/workspace-switcher"
 import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
   SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
   SidebarRail,
 } from "@/components/ui/sidebar"
 
 export function AccountSidebar({
-  workspaces,
   user,
+  summaryLabel = "Your events",
   ...props
 }: React.ComponentProps<typeof Sidebar> & {
-  workspaces: WorkspaceSwitcherItem[]
   user: { name: string; email: string; image?: string | null }
+  summaryLabel?: string
 }) {
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
-        <WorkspaceSwitcher
-          workspace={null}
-          workspaces={workspaces}
-          planningTeamName={null}
-        />
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              size="lg"
+              render={<Link to="/workspaces" />}
+              tooltip="Gatherory overview"
+            >
+              <div className="flex aspect-square size-8 items-center justify-center overflow-hidden rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
+                <img
+                  src="/gatherory-icon.png"
+                  alt=""
+                  className="size-full object-cover"
+                />
+              </div>
+              <div className="grid flex-1 text-left text-sm leading-tight">
+                <span className="truncate font-medium">Gatherory</span>
+                <span className="truncate text-xs text-muted-foreground">
+                  {summaryLabel}
+                </span>
+              </div>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
         <NavMain
-          label="Account"
+          label="Gatherory"
           items={[
             {
-              title: "Events",
+              title: "Overview",
               url: "/workspaces",
-              icon: LayoutGrid,
+              icon: LayoutDashboard,
             },
             {
-              title: "Invitations",
-              url: "/workspaces",
-              icon: Inbox,
-              disabled: true,
-              note: "Next",
+              title: "Account",
+              url: "/account",
+              icon: Settings,
             },
           ]}
         />

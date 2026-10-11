@@ -1,7 +1,11 @@
 import { and, asc, eq, ne } from "drizzle-orm"
 
 import { db } from "@/db"
-import { event, eventParticipant } from "@/db/schema/event.schema"
+import {
+  event,
+  eventParticipant,
+  workspacePerson,
+} from "@/db/schema/event.schema"
 import { eventMedia, mediaAsset } from "@/db/schema/media.schema"
 
 import type { PrepareEventMediaUploadInput } from "../contracts/media.contracts"
@@ -19,9 +23,13 @@ export async function getEventMediaActorContext(input: {
     .from(event)
     .innerJoin(
       eventParticipant,
+      eq(eventParticipant.eventId, event.id),
+    )
+    .innerJoin(
+      workspacePerson,
       and(
-        eq(eventParticipant.eventId, event.id),
-        eq(eventParticipant.userId, input.userId),
+        eq(workspacePerson.id, eventParticipant.personId),
+        eq(workspacePerson.userId, input.userId),
       ),
     )
     .where(eq(event.id, input.eventId))
@@ -95,9 +103,13 @@ export async function getEventMediaAccessContext(input: {
     .innerJoin(eventMedia, eq(eventMedia.mediaAssetId, mediaAsset.id))
     .innerJoin(
       eventParticipant,
+      eq(eventParticipant.eventId, eventMedia.eventId),
+    )
+    .innerJoin(
+      workspacePerson,
       and(
-        eq(eventParticipant.eventId, eventMedia.eventId),
-        eq(eventParticipant.userId, input.userId),
+        eq(workspacePerson.id, eventParticipant.personId),
+        eq(workspacePerson.userId, input.userId),
       ),
     )
     .where(eq(mediaAsset.id, input.mediaAssetId))
