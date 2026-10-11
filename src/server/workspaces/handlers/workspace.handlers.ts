@@ -13,6 +13,7 @@ import {
 import { workspacePlanningSettings } from "@/db/schema/planning.schema"
 import { auth } from "@/lib/auth"
 import { requireSessionMiddleware } from "@/lib/auth.middleware"
+import { createEventWorkspace } from "@/server/workspaces/create-event-workspace"
 
 type AuthWorkspace = {
   id: string
@@ -217,12 +218,10 @@ async function provisionPersonalWorkspace(input: {
 
   if (!workspace) {
     try {
-      workspace = await auth.api.createOrganization({
+      workspace = await createEventWorkspace({
         headers: input.headers,
-        body: {
-          name: `${input.userName}'s Workspace`,
-          slug: personalWorkspaceSlug(input.userId),
-        },
+        name: `${input.userName}'s Workspace`,
+        slug: personalWorkspaceSlug(input.userId),
       })
     } catch (error) {
       memberWorkspaces = await auth.api.listOrganizations({
@@ -352,12 +351,10 @@ export const createWorkspace = createServerFn({ method: "POST" })
           .where(eq(organization.id, workspace.id))
         workspace = { ...workspace, name: data.eventName }
       } else {
-        workspace = await auth.api.createOrganization({
+        workspace = await createEventWorkspace({
           headers,
-          body: {
-            name: data.eventName,
-            slug: await availableWorkspaceSlug(data.eventName),
-          },
+          name: data.eventName,
+          slug: await availableWorkspaceSlug(data.eventName),
         })
         disposableWorkspaceId = workspace.id
       }

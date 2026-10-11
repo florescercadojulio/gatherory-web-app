@@ -31,6 +31,7 @@ import {
 } from "@/db/schema/planning.schema"
 import * as syncSchema from "@/db/schema/sync.schema"
 import { auth } from "@/lib/auth"
+import { createEventWorkspace } from "@/server/workspaces/create-event-workspace"
 
 const developmentUsers = [
   {
@@ -133,12 +134,10 @@ async function ensureWorkspace(owner: SeedUser) {
     .limit(1)
 
   if (!workspace) {
-    workspace = await auth.api.createOrganization({
-      body: {
-        name: "Alex & Jordan's Gatherory",
-        slug,
-        userId: owner.id,
-      },
+    workspace = await createEventWorkspace({
+      name: "Alex & Jordan's Gatherory",
+      slug,
+      userId: owner.id,
     })
   } else if (workspace.name !== "Alex & Jordan's Gatherory") {
     await db

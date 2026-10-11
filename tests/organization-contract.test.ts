@@ -12,10 +12,7 @@ test("the Better Auth default is accepted by the PostgreSQL enum", () => {
   assert.equal(defaultOrganizationType, "event");
   assert.deepEqual(organizationType.enumValues, organizationTypes);
   assert.ok(organizationType.enumValues.includes(defaultOrganizationType));
-  assert.equal(
-    organizationType.enumValues.includes("personal" as never),
-    false,
-  );
+  assert.ok(organizationType.enumValues.includes("personal"));
 });
 
 test("organization creation replaces a legacy personal type", () => {

@@ -1,4 +1,10 @@
-export const organizationTypes = ["event", "business"] as const;
+/**
+ * `personal` is retained as a storage-level compatibility value because older
+ * Better Auth clients/configurations can apply it while creating an
+ * organization. Product workspaces are normalized to `event` immediately
+ * after creation.
+ */
+export const organizationTypes = ["personal", "event", "business"] as const;
 
 export type OrganizationType = (typeof organizationTypes)[number];
 
