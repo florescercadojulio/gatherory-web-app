@@ -59,14 +59,21 @@ export async function getEventParticipant(input: {
       role: eventParticipant.role,
       planningPermission: eventParticipant.planningPermission,
     })
-    .from(eventParticipant)
+    .from(event)
+    .innerJoin(
+      eventParticipant,
+      eq(eventParticipant.eventId, event.id),
+    )
     .innerJoin(
       workspacePerson,
-      eq(workspacePerson.id, eventParticipant.personId),
+      and(
+        eq(workspacePerson.id, eventParticipant.personId),
+        eq(workspacePerson.organizationId, event.organizationId),
+      ),
     )
     .where(
       and(
-        eq(eventParticipant.eventId, input.eventId),
+        eq(event.id, input.eventId),
         eq(workspacePerson.userId, input.userId),
       ),
     )
@@ -213,6 +220,7 @@ export async function listVisibleMainEvents(input: {
       locationName: event.locationName,
     })
     .from(event)
+    .innerJoin(organization, eq(organization.id, event.organizationId))
     .innerJoin(
       workspacePerson,
       eq(workspacePerson.organizationId, organization.id),
@@ -225,7 +233,6 @@ export async function listVisibleMainEvents(input: {
         eq(workspacePerson.userId, input.userId),
       ),
     )
-    .innerJoin(organization, eq(organization.id, event.organizationId))
     .where(
       and(
         eq(event.organizationId, input.organizationId),
@@ -270,6 +277,13 @@ export async function listVisibleMainEvents(input: {
       .innerJoin(
         workspacePerson,
         eq(workspacePerson.id, eventParticipant.personId),
+      )
+      .innerJoin(
+        event,
+        and(
+          eq(event.id, eventParticipant.eventId),
+          eq(event.organizationId, workspacePerson.organizationId),
+        ),
       )
       .leftJoin(user, eq(user.id, workspacePerson.userId))
       .where(inArray(eventParticipant.eventId, allEventIds)),

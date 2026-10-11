@@ -29,6 +29,7 @@ export async function getEventMediaActorContext(input: {
       workspacePerson,
       and(
         eq(workspacePerson.id, eventParticipant.personId),
+        eq(workspacePerson.organizationId, event.organizationId),
         eq(workspacePerson.userId, input.userId),
       ),
     )
@@ -102,13 +103,22 @@ export async function getEventMediaAccessContext(input: {
     .from(mediaAsset)
     .innerJoin(eventMedia, eq(eventMedia.mediaAssetId, mediaAsset.id))
     .innerJoin(
+      event,
+      and(
+        eq(event.id, eventMedia.eventId),
+        eq(event.organizationId, eventMedia.organizationId),
+        eq(event.organizationId, mediaAsset.organizationId),
+      ),
+    )
+    .innerJoin(
       eventParticipant,
-      eq(eventParticipant.eventId, eventMedia.eventId),
+      eq(eventParticipant.eventId, event.id),
     )
     .innerJoin(
       workspacePerson,
       and(
         eq(workspacePerson.id, eventParticipant.personId),
+        eq(workspacePerson.organizationId, event.organizationId),
         eq(workspacePerson.userId, input.userId),
       ),
     )
