@@ -200,6 +200,11 @@ export const auth = betterAuth({
           data: {
             ...workspace,
             slug: workspace.slug?.trim().toLowerCase(),
+            // The database intentionally supports event and business
+            // organizations. Set this explicitly at the server boundary so
+            // organization creation cannot inherit an older client/default
+            // value such as `personal`.
+            workspaceType: 'event',
           },
         }),
         beforeCreateTeam: async ({ team }) => ({

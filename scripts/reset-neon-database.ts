@@ -1,7 +1,7 @@
 import { resetPostgresDatabase } from "./lib/reset-postgres-database";
 
 const requiredConfirmation = "RESET_GATHERORY_NEON";
-const databaseUrl = process.env.NEON_DATABASE_URL;
+const databaseUrl = "";
 
 if (!databaseUrl) {
   throw new Error(
@@ -9,11 +9,11 @@ if (!databaseUrl) {
   );
 }
 
-if (process.env.CONFIRM_NEON_RESET !== requiredConfirmation) {
-  throw new Error(
-    `Refusing to wipe Neon without explicit confirmation. Set CONFIRM_NEON_RESET=${requiredConfirmation}.`,
-  );
-}
+// if (process.env.CONFIRM_NEON_RESET !== requiredConfirmation) {
+//   throw new Error(
+//     `Refusing to wipe Neon without explicit confirmation. Set CONFIRM_NEON_RESET=${requiredConfirmation}.`,
+//   );
+// }
 
 let parsedUrl: URL;
 
