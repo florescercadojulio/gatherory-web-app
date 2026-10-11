@@ -48,7 +48,7 @@ export const listNativeWorkspaceInsights = createServerFn({ method: "GET" })
   .middleware([requireSessionMiddleware])
   .handler(async ({ context }) => {
     const mainEvents = await db
-      .selectDistinct({
+      .select({
         id: event.id,
         organizationId: event.organizationId,
         workspaceName: organization.name,
