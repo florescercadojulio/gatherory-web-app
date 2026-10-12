@@ -1,0 +1,57 @@
+{
+  "$schema": "https://schemas.gatherory.com/service-package/v1.json",
+  "kind": "service_package",
+  "schemaVersion": 1,
+  "id": "tulum-full-service",
+  "revision": 1,
+  "businessId": "business_123",
+  "name": "Tulum Full-Service Wedding",
+  "blueprint": {
+    "id": "destination-wedding",
+    "revision": 1
+  },
+  "destination": {
+    "countryCode": "MX",
+    "region": "Quintana Roo",
+    "city": "Tulum",
+    "timeZone": "America/Cancun"
+  },
+  "capacity": {
+    "minimumGuests": 20,
+    "includedGuests": 50,
+    "maximumGuests": 100
+  },
+  "pricing": {
+    "starting": {
+      "amount": "18500.00",
+      "currency": "USD"
+    },
+    "model": "base_plus_guest",
+    "additionalGuest": {
+      "amount": "175.00",
+      "currency": "USD"
+    }
+  },
+  "includedServices": [
+    {
+      "serviceId": "venue_coordination",
+      "quantity": 1,
+      "required": true
+    },
+    {
+      "serviceId": "photography",
+      "quantity": 8,
+      "unit": "hour",
+      "required": true
+    }
+  ],
+  "addOns": [
+    {
+      "serviceId": "welcome_party",
+      "starting": {
+        "amount": "3500.00",
+        "currency": "USD"
+      }
+    }
+  ]
+}

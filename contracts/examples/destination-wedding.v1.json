@@ -1,0 +1,62 @@
+{
+  "$schema": "https://schemas.gatherory.com/experience-blueprint/v1.json",
+  "kind": "experience_blueprint",
+  "schemaVersion": 1,
+  "blueprint": {
+    "id": "destination-wedding",
+    "revision": 1,
+    "name": "Destination Wedding"
+  },
+  "experienceDefaults": {
+    "type": "wedding",
+    "timeZone": "America/Cancun"
+  },
+  "roles": [
+    {
+      "key": "host",
+      "permissions": ["experience.manage", "ideas.decide", "budget.manage"]
+    },
+    {
+      "key": "planner",
+      "permissions": ["experience.manage", "ideas.manage", "budget.edit"]
+    },
+    {
+      "key": "guest",
+      "permissions": ["invitation.view", "attendance.respond"]
+    }
+  ],
+  "modules": [
+    {
+      "key": "schedule",
+      "type": "experience_tree",
+      "version": 1,
+      "required": true,
+      "config": {
+        "suggestedChildren": ["welcome_party", "ceremony", "reception", "farewell_brunch"]
+      }
+    },
+    {
+      "key": "ideas",
+      "type": "ideas",
+      "version": 1,
+      "required": true,
+      "config": {
+        "categories": ["venue", "attire", "flowers", "food", "music"]
+      }
+    },
+    {
+      "key": "travel",
+      "type": "travel_guide",
+      "version": 1,
+      "required": false,
+      "config": {
+        "sections": ["arrival", "accommodation", "transportation"]
+      }
+    }
+  ],
+  "presentation": {
+    "theme": "sage",
+    "coverAssetId": null,
+    "moduleOrder": ["schedule", "ideas", "travel"]
+  }
+}

@@ -1,0 +1,91 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "oneOf": [
+    {
+      "type": "object",
+      "properties": {
+        "scope": {
+          "type": "string",
+          "const": "author_only"
+        }
+      },
+      "required": [
+        "scope"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "scope": {
+          "type": "string",
+          "const": "participant_group"
+        },
+        "groupId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        }
+      },
+      "required": [
+        "scope",
+        "groupId"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "scope": {
+          "type": "string",
+          "const": "experience_participants"
+        }
+      },
+      "required": [
+        "scope"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "scope": {
+          "type": "string",
+          "const": "experience_managers"
+        }
+      },
+      "required": [
+        "scope"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "scope": {
+          "type": "string",
+          "const": "resource_community"
+        }
+      },
+      "required": [
+        "scope"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "scope": {
+          "type": "string",
+          "const": "external_public"
+        }
+      },
+      "required": [
+        "scope"
+      ],
+      "additionalProperties": false
+    }
+  ],
+  "$id": "https://schemas.gatherory.com/contribution-visibility/v1.json",
+  "title": "Gatherory Contribution Visibility v1"
+}

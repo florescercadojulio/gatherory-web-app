@@ -1,0 +1,71 @@
+{
+  "$schema": "https://schemas.gatherory.com/experience-blueprint/v1.json",
+  "kind": "experience_blueprint",
+  "schemaVersion": 1,
+  "blueprint": {
+    "id": "family-cabin-stay",
+    "revision": 1,
+    "name": "Family Cabin Stay"
+  },
+  "experienceDefaults": {
+    "type": "property_stay",
+    "timeZone": "America/Detroit"
+  },
+  "roles": [
+    {
+      "key": "resource_owner",
+      "permissions": ["experience.manage", "resource.manage"]
+    },
+    {
+      "key": "primary_visitor",
+      "permissions": ["experience.view", "participants.invite", "contributions.create"]
+    },
+    {
+      "key": "visitor",
+      "permissions": ["experience.view", "contributions.create"]
+    }
+  ],
+  "modules": [
+    {
+      "key": "arrival",
+      "type": "arrival_guide",
+      "version": 1,
+      "required": true,
+      "config": {
+        "sections": ["directions", "parking", "entry", "utilities", "emergency_contacts"]
+      }
+    },
+    {
+      "key": "rules",
+      "type": "rules",
+      "version": 1,
+      "required": true,
+      "config": {
+        "acknowledgementRequired": true
+      }
+    },
+    {
+      "key": "departure",
+      "type": "checklist",
+      "version": 1,
+      "required": true,
+      "config": {
+        "groups": ["arrival", "during_stay", "departure"]
+      }
+    },
+    {
+      "key": "journal",
+      "type": "private_journal",
+      "version": 1,
+      "required": false,
+      "config": {
+        "defaultVisibility": "participant_group"
+      }
+    }
+  ],
+  "presentation": {
+    "theme": "forest",
+    "coverAssetId": null,
+    "moduleOrder": ["arrival", "rules", "departure", "journal"]
+  }
+}

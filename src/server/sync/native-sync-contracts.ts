@@ -9,6 +9,7 @@ const nativeUUIDSchema = z.uuid().transform((value) => value.toLowerCase())
 const mutationSchema = z.object({
   id: nativeUUIDSchema,
   scopeID: nativeUUIDSchema,
+  payloadSchemaVersion: z.literal(1).default(1),
   entityType: z.enum([
     "workspace",
     "event",

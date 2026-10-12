@@ -272,6 +272,7 @@ Start here before adding product behavior:
 
 - [Product model](./docs/product-model.md)
 - [Data model](./docs/data-model.md)
+- [Cross-platform experience architecture](./docs/experience-blueprints.md)
 - [Server architecture](./docs/server.architecture.md)
 - [Page creation standard](./docs/page-creation.md)
 - [Roadmap guide](./docs/roadmap-guide.md)
@@ -280,6 +281,12 @@ The server boundary is event-scoped. A signed-in person can be a host,
 collaborator, or guest on different events, so identity middleware and event
 authorization remain separate concerns. Routes and components call typed server
 functions; they do not import Drizzle, repositories, or provider SDKs.
+
+Cross-platform contract sources live in `src/contracts`; generated JSON Schema
+documents and portable examples live in `contracts`. Run
+`pnpm contracts:generate` after changing a source schema. `pnpm test` checks
+that generated documents are current before running the contract and server
+test suites.
 
 ## Adding shadcn components
 

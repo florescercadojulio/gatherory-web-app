@@ -92,6 +92,11 @@ uses stable API values (`approved`, `not_sure`, `view_only`). The
 materialization adapter translates these enums explicitly; it must not
 persist Swift raw values directly into normalized enum columns.
 
+Every mutation and remote envelope declares a `payloadSchemaVersion`. Version
+1 remains the compatibility default for clients and deployments created before
+the field existed. Unsupported future versions are rejected at the transport
+boundary before their payload reaches materialization.
+
 ## Event state
 
 Main events use the lifecycle states `draft`, `ongoing`, and `finished`.

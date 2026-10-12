@@ -115,7 +115,7 @@ its business revision:
   "$schema": "https://schemas.gatherory.com/experience-blueprint/v1.json",
   "kind": "experience_blueprint",
   "schemaVersion": 1,
-  "template": {
+  "blueprint": {
     "id": "destination-wedding",
     "revision": 3,
     "name": "Destination Wedding"
@@ -139,6 +139,7 @@ its business revision:
       "key": "schedule",
       "type": "experience_tree",
       "version": 1,
+      "required": true,
       "config": {
         "suggestedChildren": [
           { "key": "ceremony", "category": "ceremony" },
@@ -150,6 +151,7 @@ its business revision:
       "key": "ideas",
       "type": "ideas",
       "version": 1,
+      "required": true,
       "config": {
         "categories": ["venue", "attire", "flowers", "food", "music"]
       }
@@ -304,8 +306,9 @@ only to reserve them speculatively.
 The existing event and wedding models remain valid first-release concepts.
 Evolution should be additive:
 
-1. Establish a `contracts` package containing schemas, examples, and fixtures.
-2. Add schema versions to native entity payloads and explicit adapters around
+1. **Complete:** establish contract sources plus generated JSON Schemas,
+   examples, and cross-platform fixtures.
+2. **Complete:** add schema versions to native entity payloads and explicit adapters around
    existing Swift payloads.
 3. Introduce blueprint authoring and immutable revisions after release.
 4. Implement private authoring and preview before public discovery.

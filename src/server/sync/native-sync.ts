@@ -392,6 +392,7 @@ export async function pullNativeChanges(input: {
     changes: page.map((change) => ({
       id: change.id,
       scopeID: change.scopeId,
+      payloadSchemaVersion: 1,
       entityType: change.entityType,
       entityID: change.entityId,
       operation: change.operation,
@@ -481,12 +482,14 @@ export async function listNativeWorkspaceSnapshots(userId: string) {
     account: { hasCompletedOnboarding },
     snapshots: rows.map((snapshot) => ({
       scopeID: snapshot.scopeId,
+      payloadSchemaVersion: 1,
       payload: snapshot.payload,
       serverVersion: snapshot.serverVersion,
       updatedAt: nativeISODate(snapshot.updatedAt),
     })),
     entities: entities.map((entity) => ({
       scopeID: entity.scopeId,
+      payloadSchemaVersion: 1,
       entityType: entity.entityType,
       entityID: entity.entityId,
       payload: entity.payload,

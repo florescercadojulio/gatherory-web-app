@@ -66,6 +66,7 @@ async function main() {
       const workspaceMutation: NativeMutation = {
         id: crypto.randomUUID(),
         scopeID: snapshot.scopeId,
+        payloadSchemaVersion: 1,
         entityType: "workspace",
         entityID: snapshot.scopeId,
         operation: snapshot.isDeleted ? "delete" : "update",
@@ -87,6 +88,7 @@ async function main() {
           mutation: {
             id: crypto.randomUUID(),
             scopeID: entity.scopeId,
+            payloadSchemaVersion: 1,
             entityType: entity.entityType,
             entityID: entity.entityId,
             operation: entity.isDeleted ? "delete" : "update",
