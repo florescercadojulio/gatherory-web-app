@@ -1,6 +1,5 @@
 import { resetPostgresDatabase } from "./lib/reset-postgres-database";
 
-const requiredConfirmation = "RESET_GATHERORY_NEON";
 const databaseUrl = "";
 
 if (!databaseUrl) {

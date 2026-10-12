@@ -10,6 +10,147 @@ import {
 import { eventMedia, mediaAsset } from "@/db/schema/media.schema"
 
 import type { PrepareEventMediaUploadInput } from "../contracts/media.contracts"
+import type { PrepareNativeMediaUploadInput } from "../contracts/media.contracts"
+
+export function getWorkspaceMediaActorContext(input: {
+  organizationId: string
+  userId: string
+}) {
+  return Effect.gen(function* () {
+    const db = yield* DB
+    const [context] = yield* db
+      .select({ organizationId: workspacePerson.organizationId })
+      .from(workspacePerson)
+      .where(
+        and(
+          eq(workspacePerson.organizationId, input.organizationId),
+          eq(workspacePerson.userId, input.userId),
+        ),
+      )
+      .limit(1)
+
+    return context ?? null
+  })
+}
+
+export function upsertPendingNativeMedia(input: {
+  organizationId: string
+  uploadedByUserId: string
+  bucket: string
+  storageKey: string
+  media: PrepareNativeMediaUploadInput
+}) {
+  return Effect.gen(function* () {
+    const db = yield* DB
+    const [inserted] = yield* db
+      .insert(mediaAsset)
+      .values({
+        id: input.media.mediaAssetId,
+        organizationId: input.organizationId,
+        uploadedByUserId: input.uploadedByUserId,
+        kind: "image",
+        status: "pending",
+        visibility: "private",
+        storageProvider: "r2",
+        bucket: input.bucket,
+        storageKey: input.storageKey,
+        originalFilename: input.media.originalFilename,
+        contentType: input.media.contentType,
+        byteSize: input.media.byteSize,
+      })
+      .onConflictDoNothing({ target: mediaAsset.id })
+      .returning({
+        id: mediaAsset.id,
+        organizationId: mediaAsset.organizationId,
+        uploadedByUserId: mediaAsset.uploadedByUserId,
+        status: mediaAsset.status,
+      })
+
+    if (inserted) return inserted
+
+    const [existing] = yield* db
+      .select({
+        id: mediaAsset.id,
+        organizationId: mediaAsset.organizationId,
+        uploadedByUserId: mediaAsset.uploadedByUserId,
+        status: mediaAsset.status,
+      })
+      .from(mediaAsset)
+      .where(eq(mediaAsset.id, input.media.mediaAssetId))
+      .limit(1)
+    if (
+      !existing ||
+      existing.organizationId !== input.organizationId ||
+      existing.uploadedByUserId !== input.uploadedByUserId ||
+      existing.status !== "pending"
+    ) {
+      return yield* Effect.fail(new Error("MEDIA_INVALID_STATE"))
+    }
+
+    yield* db
+      .update(mediaAsset)
+      .set({
+        originalFilename: input.media.originalFilename,
+        contentType: input.media.contentType,
+        byteSize: input.media.byteSize,
+        updatedAt: new Date(),
+      })
+      .where(
+        and(
+          eq(mediaAsset.id, input.media.mediaAssetId),
+          eq(mediaAsset.organizationId, input.organizationId),
+          eq(mediaAsset.uploadedByUserId, input.uploadedByUserId),
+          eq(mediaAsset.status, "pending"),
+        ),
+      )
+    return existing
+  })
+}
+
+export function getNativeMediaAccessContext(input: {
+  mediaAssetId: string
+  userId: string
+}) {
+  return Effect.gen(function* () {
+    const db = yield* DB
+    const [context] = yield* db
+      .select({
+        mediaAssetId: mediaAsset.id,
+        organizationId: mediaAsset.organizationId,
+        uploadedByUserId: mediaAsset.uploadedByUserId,
+        status: mediaAsset.status,
+        bucket: mediaAsset.bucket,
+        storageKey: mediaAsset.storageKey,
+        contentType: mediaAsset.contentType,
+        byteSize: mediaAsset.byteSize,
+      })
+      .from(mediaAsset)
+      .innerJoin(
+        workspacePerson,
+        and(
+          eq(workspacePerson.organizationId, mediaAsset.organizationId),
+          eq(workspacePerson.userId, input.userId),
+        ),
+      )
+      .where(eq(mediaAsset.id, input.mediaAssetId))
+      .limit(1)
+
+    return context ?? null
+  })
+}
+
+export function markNativeMediaReady(input: {
+  mediaAssetId: string
+  checksum: string | null
+}) {
+  return Effect.gen(function* () {
+    const db = yield* DB
+    yield* db
+      .update(mediaAsset)
+      .set({ status: "ready", checksum: input.checksum, updatedAt: new Date() })
+      .where(eq(mediaAsset.id, input.mediaAssetId))
+  })
+}
 
 export function getEventMediaActorContext(input: {
   eventId: string

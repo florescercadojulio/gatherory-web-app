@@ -164,6 +164,9 @@ workspace planning graph.
 ## Deferred model
 
 Professional planner workspaces and published templates remain described in
-`product-model.md`, but no marketplace tables are added yet. The current schema
-prioritizes the first release: a host creates an event, invites people, and
-plans through event-scoped ideas, decisions, and details.
+`product-model.md`. The broader cross-platform blueprint, package, resource,
+participant-group, and contribution-visibility direction is recorded in
+`experience-blueprints.md`. No speculative marketplace or generic-experience
+tables are added yet. The current schema prioritizes the first release: a host
+creates an event, invites people, and plans through event-scoped ideas,
+decisions, and details.

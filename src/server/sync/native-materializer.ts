@@ -8,7 +8,12 @@ import {
   eventParticipant,
   workspacePerson,
 } from "@/db/schema/event.schema"
-import { eventMedia, mediaAsset } from "@/db/schema/media.schema"
+import {
+  eventMedia,
+  ideaMedia,
+  mediaAsset,
+  registryItemMedia,
+} from "@/db/schema/media.schema"
 import {
   eventExpense,
   eventNote,
@@ -18,7 +23,7 @@ import {
 } from "@/db/schema/planning.schema"
 import { nativeSyncEntity } from "@/db/schema/sync.schema"
 
-import type { NativeMutation } from "./native-sync"
+import type { NativeMutation } from "./native-sync-contracts"
 
 type NativeTransaction = Parameters<Parameters<typeof db.transaction>[0]>[0]
 
@@ -60,6 +65,7 @@ export async function materializeNativeMutation(
       scopeId: mutation.scopeID,
       entityId: mutation.entityID,
       payload: decodeNativePayload(mutation.payload),
+      organizationId: input.organizationId,
     })
   }
 
@@ -164,6 +170,7 @@ async function materializeWorkspace(
     scopeId: string
     entityId: string
     payload: unknown
+    organizationId?: string
   },
 ) {
   const payload = asRecord(input.payload)
@@ -173,7 +180,10 @@ async function materializeWorkspace(
   }
 
   const title = requiredTrimmed(payload.title, "WORKSPACE_TITLE_MISSING")
-  const organizationId = input.scopeId
+  // Existing workspaces, including seeded review fixtures, can have a Better
+  // Auth organization ID distinct from their native root-event scope. New
+  // iOS-created workspaces retain the legacy scope-as-organization behavior.
+  const organizationId = input.organizationId ?? input.scopeId
   const slug = `${slugify(title)}-${input.scopeId.slice(0, 8)}`
   const now = new Date()
 
@@ -276,6 +286,7 @@ async function materializeWorkspace(
         payload.defaultCollaboratorPermission,
       ),
     })
+
     .onConflictDoUpdate({
       target: workspacePlanningSettings.organizationId,
       set: {
@@ -292,6 +303,12 @@ async function materializeWorkspace(
         updatedAt: now,
       },
     })
+
+  await materializeEventCover(transaction, {
+    organizationId,
+    eventId: mainEventId,
+    mediaAssetId: optionalUUID(payload.mainEventMediaAssetID),
+  })
 
   const people = Array.isArray(payload.members)
     ? payload.members.map(asRecord)
@@ -592,6 +609,12 @@ async function materializeChildEvent(
         ),
       )
   }
+
+  await materializeEventCover(transaction, {
+    organizationId: input.organizationId,
+    eventId: input.entityId,
+    mediaAssetId: optionalUUID(input.payload.mediaAssetID),
+  })
 }
 
 async function materializeIdea(
@@ -669,6 +692,11 @@ async function materializeIdea(
       .where(eq(idea.id, input.entityId))
     break
   }
+  await materializeIdeaCover(transaction, {
+    organizationId: input.organizationId,
+    ideaId: input.entityId,
+    mediaAssetId: optionalUUID(input.payload.mediaAssetID),
+  })
 }
 
 async function materializeExpense(
@@ -766,6 +794,12 @@ async function materializeRegistryItem(
         updatedAt: new Date(),
       },
     })
+
+  await materializeRegistryCover(transaction, {
+    organizationId: input.organizationId,
+    registryItemId: input.entityId,
+    mediaAssetId: optionalUUID(input.payload.mediaAssetID),
+  })
 }
 
 async function materializeNote(
@@ -845,6 +879,108 @@ async function materializeMoment(
       target: eventMedia.id,
       set: { eventId, mediaAssetId },
     })
+}
+
+async function readyMediaAsset(
+  transaction: NativeTransaction,
+  organizationId: string,
+  mediaAssetId: string | null,
+) {
+  if (!mediaAssetId) return null
+  const [asset] = await transaction
+    .select({ id: mediaAsset.id })
+    .from(mediaAsset)
+    .where(
+      and(
+        eq(mediaAsset.id, mediaAssetId),
+        eq(mediaAsset.organizationId, organizationId),
+        eq(mediaAsset.status, "ready"),
+      ),
+    )
+    .limit(1)
+  return asset?.id ?? null
+}
+
+async function materializeEventCover(
+  transaction: NativeTransaction,
+  input: {
+    organizationId: string
+    eventId: string
+    mediaAssetId: string | null
+  },
+) {
+  const assetId = await readyMediaAsset(
+    transaction,
+    input.organizationId,
+    input.mediaAssetId,
+  )
+  await transaction
+    .delete(eventMedia)
+    .where(
+      and(eq(eventMedia.eventId, input.eventId), eq(eventMedia.role, "cover")),
+    )
+  if (!assetId) return
+  await transaction.insert(eventMedia).values({
+    organizationId: input.organizationId,
+    eventId: input.eventId,
+    mediaAssetId: assetId,
+    role: "cover",
+  })
+}
+
+async function materializeIdeaCover(
+  transaction: NativeTransaction,
+  input: {
+    organizationId: string
+    ideaId: string
+    mediaAssetId: string | null
+  },
+) {
+  const assetId = await readyMediaAsset(
+    transaction,
+    input.organizationId,
+    input.mediaAssetId,
+  )
+  await transaction
+    .delete(ideaMedia)
+    .where(and(eq(ideaMedia.ideaId, input.ideaId), eq(ideaMedia.role, "cover")))
+  if (!assetId) return
+  await transaction.insert(ideaMedia).values({
+    organizationId: input.organizationId,
+    ideaId: input.ideaId,
+    mediaAssetId: assetId,
+    role: "cover",
+  })
+}
+
+async function materializeRegistryCover(
+  transaction: NativeTransaction,
+  input: {
+    organizationId: string
+    registryItemId: string
+    mediaAssetId: string | null
+  },
+) {
+  const assetId = await readyMediaAsset(
+    transaction,
+    input.organizationId,
+    input.mediaAssetId,
+  )
+  await transaction
+    .delete(registryItemMedia)
+    .where(
+      and(
+        eq(registryItemMedia.registryItemId, input.registryItemId),
+        eq(registryItemMedia.role, "cover"),
+      ),
+    )
+  if (!assetId) return
+  await transaction.insert(registryItemMedia).values({
+    organizationId: input.organizationId,
+    registryItemId: input.registryItemId,
+    mediaAssetId: assetId,
+    role: "cover",
+  })
 }
 
 async function deleteCanonicalEntity(
@@ -1294,6 +1430,7 @@ function mapIdeaCategory(value: unknown) {
   return mapValue(value, {
     event: "event",
     registry: "registry",
+    link: "link",
     venue: "venue",
     attire: "attire",
     flowers: "flowers",

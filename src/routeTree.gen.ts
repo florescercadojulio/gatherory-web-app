@@ -20,6 +20,9 @@ import { Route as ApiSyncPullRouteImport } from './routes/api/sync/pull'
 import { Route as ApiSyncPushRouteImport } from './routes/api/sync/push'
 import { Route as AuthPathIndexRouteImport } from './routes/auth/$path/index'
 import { Route as ProtectedWorkspacesWorkspaceSlugIndexRouteImport } from './routes/_protected/workspaces/$workspaceSlug/index'
+import { Route as ApiMediaNativeFinalizeRouteImport } from './routes/api/media/native/finalize'
+import { Route as ApiMediaNativePrepareRouteImport } from './routes/api/media/native/prepare'
+import { Route as ApiMediaNativeUrlRouteImport } from './routes/api/media/native/url'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -78,6 +81,21 @@ const ProtectedWorkspacesWorkspaceSlugIndexRoute =
     path: '/',
     getParentRoute: () => ProtectedWorkspacesWorkspaceSlugRouteRoute,
   } as any)
+const ApiMediaNativeFinalizeRoute = ApiMediaNativeFinalizeRouteImport.update({
+  id: '/api/media/native/finalize',
+  path: '/api/media/native/finalize',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiMediaNativePrepareRoute = ApiMediaNativePrepareRouteImport.update({
+  id: '/api/media/native/prepare',
+  path: '/api/media/native/prepare',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiMediaNativeUrlRoute = ApiMediaNativeUrlRouteImport.update({
+  id: '/api/media/native/url',
+  path: '/api/media/native/url',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -89,6 +107,9 @@ export interface FileRoutesByFullPath {
   '/account/': typeof ProtectedAccountIndexRoute
   '/workspaces/': typeof ProtectedWorkspacesIndexRoute
   '/auth/$path/': typeof AuthPathIndexRoute
+  '/api/media/native/finalize': typeof ApiMediaNativeFinalizeRoute
+  '/api/media/native/prepare': typeof ApiMediaNativePrepareRoute
+  '/api/media/native/url': typeof ApiMediaNativeUrlRoute
   '/workspaces/$workspaceSlug/': typeof ProtectedWorkspacesWorkspaceSlugIndexRoute
 }
 export interface FileRoutesByTo {
@@ -100,6 +121,9 @@ export interface FileRoutesByTo {
   '/account': typeof ProtectedAccountIndexRoute
   '/workspaces': typeof ProtectedWorkspacesIndexRoute
   '/auth/$path': typeof AuthPathIndexRoute
+  '/api/media/native/finalize': typeof ApiMediaNativeFinalizeRoute
+  '/api/media/native/prepare': typeof ApiMediaNativePrepareRoute
+  '/api/media/native/url': typeof ApiMediaNativeUrlRoute
   '/workspaces/$workspaceSlug': typeof ProtectedWorkspacesWorkspaceSlugIndexRoute
 }
 export interface FileRoutesById {
@@ -114,6 +138,9 @@ export interface FileRoutesById {
   '/_protected/account/': typeof ProtectedAccountIndexRoute
   '/_protected/workspaces/': typeof ProtectedWorkspacesIndexRoute
   '/auth/$path/': typeof AuthPathIndexRoute
+  '/api/media/native/finalize': typeof ApiMediaNativeFinalizeRoute
+  '/api/media/native/prepare': typeof ApiMediaNativePrepareRoute
+  '/api/media/native/url': typeof ApiMediaNativeUrlRoute
   '/_protected/workspaces/$workspaceSlug/': typeof ProtectedWorkspacesWorkspaceSlugIndexRoute
 }
 export interface FileRouteTypes {
@@ -128,6 +155,9 @@ export interface FileRouteTypes {
     | '/account/'
     | '/workspaces/'
     | '/auth/$path/'
+    | '/api/media/native/finalize'
+    | '/api/media/native/prepare'
+    | '/api/media/native/url'
     | '/workspaces/$workspaceSlug/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -139,6 +169,9 @@ export interface FileRouteTypes {
     | '/account'
     | '/workspaces'
     | '/auth/$path'
+    | '/api/media/native/finalize'
+    | '/api/media/native/prepare'
+    | '/api/media/native/url'
     | '/workspaces/$workspaceSlug'
   id:
     | '__root__'
@@ -152,6 +185,9 @@ export interface FileRouteTypes {
     | '/_protected/account/'
     | '/_protected/workspaces/'
     | '/auth/$path/'
+    | '/api/media/native/finalize'
+    | '/api/media/native/prepare'
+    | '/api/media/native/url'
     | '/_protected/workspaces/$workspaceSlug/'
   fileRoutesById: FileRoutesById
 }
@@ -163,6 +199,9 @@ export interface RootRouteChildren {
   ApiSyncPullRoute: typeof ApiSyncPullRoute
   ApiSyncPushRoute: typeof ApiSyncPushRoute
   AuthPathIndexRoute: typeof AuthPathIndexRoute
+  ApiMediaNativeFinalizeRoute: typeof ApiMediaNativeFinalizeRoute
+  ApiMediaNativePrepareRoute: typeof ApiMediaNativePrepareRoute
+  ApiMediaNativeUrlRoute: typeof ApiMediaNativeUrlRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -244,6 +283,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProtectedWorkspacesWorkspaceSlugIndexRouteImport
       parentRoute: typeof ProtectedWorkspacesWorkspaceSlugRouteRoute
     }
+    '/api/media/native/finalize': {
+      id: '/api/media/native/finalize'
+      path: '/api/media/native/finalize'
+      fullPath: '/api/media/native/finalize'
+      preLoaderRoute: typeof ApiMediaNativeFinalizeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/media/native/prepare': {
+      id: '/api/media/native/prepare'
+      path: '/api/media/native/prepare'
+      fullPath: '/api/media/native/prepare'
+      preLoaderRoute: typeof ApiMediaNativePrepareRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/media/native/url': {
+      id: '/api/media/native/url'
+      path: '/api/media/native/url'
+      fullPath: '/api/media/native/url'
+      preLoaderRoute: typeof ApiMediaNativeUrlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -287,6 +347,9 @@ const rootRouteChildren: RootRouteChildren = {
   ApiSyncPullRoute: ApiSyncPullRoute,
   ApiSyncPushRoute: ApiSyncPushRoute,
   AuthPathIndexRoute: AuthPathIndexRoute,
+  ApiMediaNativeFinalizeRoute: ApiMediaNativeFinalizeRoute,
+  ApiMediaNativePrepareRoute: ApiMediaNativePrepareRoute,
+  ApiMediaNativeUrlRoute: ApiMediaNativeUrlRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

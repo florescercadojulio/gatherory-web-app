@@ -23,7 +23,7 @@ import {
   prepareEventMediaUploadWorkflow,
 } from "../workflows/media.workflows"
 
-function mediaError(error: unknown) {
+export function mediaError(error: unknown) {
   if (error instanceof Error) {
     if (error.message === "MEDIA_STORAGE_NOT_CONFIGURED") {
       return new ExternalServiceError({

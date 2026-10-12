@@ -1,4 +1,4 @@
-import { Skeleton } from "@/components/ui/skeleton"
+import { Skeleton } from "@/components/ui/skeleton";
 
 export function PageSkeleton() {
   return (
@@ -9,30 +9,30 @@ export function PageSkeleton() {
       aria-label="Loading page"
     >
       <span className="sr-only">Loading…</span>
-      <header className="flex h-14 items-center gap-3 border-b px-4 md:px-8">
-        <Skeleton className="size-8 rounded-xl" />
+      <header className="app-toolbar">
+        <Skeleton className="size-8 rounded-md" />
         <Skeleton className="h-4 w-28" />
         <div className="ml-auto flex items-center gap-2">
           <Skeleton className="size-8 rounded-full" />
-          <Skeleton className="hidden h-8 w-24 rounded-full sm:block" />
+          <Skeleton className="hidden h-8 w-24 rounded-md sm:block" />
         </div>
       </header>
-      <main className="mx-auto flex w-full max-w-7xl flex-col gap-8 p-4 md:p-8">
+      <main className="app-page-shell">
         <section className="space-y-3">
           <Skeleton className="h-9 w-56 max-w-2/3" />
           <Skeleton className="h-4 w-full max-w-xl" />
         </section>
-        <Skeleton className="h-56 w-full rounded-3xl" />
+        <Skeleton className="h-56 w-full rounded-2xl" />
         <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           {Array.from({ length: 4 }, (_, index) => (
-            <Skeleton key={index} className="h-28 rounded-2xl" />
+            <Skeleton key={index} className="h-28 rounded-lg" />
           ))}
         </section>
         <section className="grid gap-5 lg:grid-cols-2">
-          <Skeleton className="h-64 rounded-2xl" />
-          <Skeleton className="h-64 rounded-2xl" />
+          <Skeleton className="h-64 rounded-lg" />
+          <Skeleton className="h-64 rounded-lg" />
         </section>
       </main>
     </div>
-  )
+  );
 }

@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router"
+import { createFileRoute } from "@tanstack/react-router";
 import {
   CalendarDays,
   CheckCircle2,
@@ -8,63 +8,57 @@ import {
   Smartphone,
   Users,
   WalletCards,
-} from "lucide-react"
+} from "lucide-react";
 
-import { AccountSidebar } from "@/components/account-sidebar"
-import { ServerErrorToast } from "@/components/route-feedback"
-import { Badge } from "@/components/ui/badge"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
-import { Progress } from "@/components/ui/progress"
-import { Separator } from "@/components/ui/separator"
+import { AccountSidebar } from "@/components/account-sidebar";
+import { ParticipantAvatars } from "@/components/participant-avatars";
+import { ServerErrorToast } from "@/components/route-feedback";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { Separator } from "@/components/ui/separator";
 import {
   SidebarInset,
   SidebarProvider,
   SidebarTrigger,
-} from "@/components/ui/sidebar"
+} from "@/components/ui/sidebar";
 import {
   listNativeWorkspaceInsights,
   type NativeWorkspaceInsight,
-} from "@/server/sync/native-insights"
+} from "@/server/sync/native-insights";
 
 export const Route = createFileRoute("/_protected/workspaces/")({
   loader: () => listNativeWorkspaceInsights(),
   component: WorkspaceCompanion,
-})
+});
 
 const dateFormatter = new Intl.DateTimeFormat("en-US", {
   month: "short",
   day: "numeric",
   year: "numeric",
-})
+});
 
 const dateTimeFormatter = new Intl.DateTimeFormat("en-US", {
   month: "short",
   day: "numeric",
   hour: "numeric",
   minute: "2-digit",
-})
+});
 
 const currencyFormatter = new Intl.NumberFormat("en-US", {
   style: "currency",
   currency: "USD",
   maximumFractionDigits: 0,
-})
+});
 
 function WorkspaceCompanion() {
-  const { defaultWorkspaceContext } = Route.useRouteContext()
-  const insightResult = Route.useLoaderData()
-  if (!defaultWorkspaceContext) return null
+  const { defaultWorkspaceContext } = Route.useRouteContext();
+  const insightResult = Route.useLoaderData();
+  if (!defaultWorkspaceContext) return null;
 
   const insight = insightResult.ok
     ? insightResult.data
-    : { workspaces: [], unavailableSnapshotCount: 0 }
-  const workspaces = insight.workspaces
+    : { workspaces: [], unavailableSnapshotCount: 0 };
+  const workspaces = insight.workspaces;
   const totals = workspaces.reduce(
     (result, workspace) => ({
       scheduledEvents: result.scheduledEvents + workspace.scheduledEventCount,
@@ -73,7 +67,7 @@ function WorkspaceCompanion() {
       participantCount: result.participantCount + workspace.participantCount,
     }),
     { scheduledEvents: 0, openIdeas: 0, trackedCost: 0, participantCount: 0 },
-  )
+  );
 
   return (
     <SidebarProvider>
@@ -83,52 +77,58 @@ function WorkspaceCompanion() {
         summaryLabel={`${workspaces.length} ${workspaces.length === 1 ? "event" : "events"}`}
       />
       <SidebarInset>
-        <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center gap-2 border-b bg-background/85 px-4 backdrop-blur-xl supports-[backdrop-filter]:bg-background/70">
+        <header className="app-toolbar">
           <SidebarTrigger className="-ml-1" />
           <Separator orientation="vertical" className="mr-2 h-4" />
           <div className="flex min-w-0 items-center gap-2">
-            <CalendarDays className="size-4 text-primary" />
+            <CalendarDays className="size-4 text-brand-ink" />
             <span className="truncate text-sm font-medium">Your events</span>
           </div>
         </header>
 
-        <main className="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-8 p-4 md:p-8">
-          <section className="relative overflow-hidden rounded-3xl border bg-[linear-gradient(135deg,#0b2c8f_0%,#1462df_48%,#1aa9dd_100%)] px-6 py-8 text-white shadow-xl shadow-blue-950/10 md:px-10 md:py-12">
-            <div className="pointer-events-none absolute -right-24 -top-24 size-80 rounded-full bg-cyan-300/30 blur-3xl" />
-            <div className="pointer-events-none absolute -bottom-32 left-1/3 size-80 rounded-full bg-blue-950/35 blur-3xl" />
-            <div className="relative grid gap-8 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
-              <div className="max-w-3xl space-y-5">
-                <Badge className="border-white/20 bg-white/12 text-white hover:bg-white/12">
-                  <Smartphone className="size-3.5" />
-                  Works with Gatherory on iPhone
-                </Badge>
+        <main className="app-page-shell">
+          <section className="app-brand-panel px-6 py-8 md:px-8 md:py-10">
+            <div className="grid gap-8 md:grid-cols-[minmax(0,1fr)_17rem] md:items-end">
+              <div className="max-w-3xl space-y-6">
+                <div className="flex items-center gap-3">
+                  <div className="size-12 overflow-hidden rounded-lg border border-white/10 bg-[#121212]">
+                    <img
+                      src="/gatherory-icon.png"
+                      alt=""
+                      className="size-full object-cover"
+                    />
+                  </div>
+                  <span className="app-keycap">
+                    <Smartphone className="mr-1.5 size-3.5" />
+                    iPhone companion
+                  </span>
+                </div>
                 <div className="space-y-3">
-                  <h1 className="text-3xl font-semibold tracking-tight text-balance sm:text-4xl">
+                  <h1 className="text-3xl leading-tight font-semibold tracking-[-0.025em] text-balance sm:text-4xl">
                     Your plans, at a glance.
                   </h1>
-                  <p className="max-w-2xl text-sm leading-6 text-blue-50/85 sm:text-base">
-                    Plan on your iPhone, then come here for a simple view of
+                  <p className="max-w-2xl text-sm leading-6 text-[#cdcdcd] sm:text-base">
+                    Plan on your iPhone, then come here for a focused view of
                     your events, ideas, people, and spending.
                   </p>
                 </div>
               </div>
-              <div className="flex items-center gap-3 rounded-2xl border border-white/15 bg-black/10 px-4 py-3 backdrop-blur-xl">
-                <span className="relative flex size-2.5">
-                  <span className="absolute inline-flex size-full animate-ping rounded-full bg-cyan-200 opacity-60 motion-reduce:animate-none" />
-                  <span className="relative inline-flex size-2.5 rounded-full bg-cyan-200" />
-                </span>
-                <div>
-                  <p className="text-sm font-medium">Up to date</p>
-                  <p className="text-xs text-blue-100/75">
-                    Your latest plans are here
-                  </p>
+              <div className="rounded-lg border border-white/10 bg-[#101111] p-3">
+                <div className="flex items-center gap-3 rounded-md bg-[#121212] px-3 py-2.5">
+                  <span className="size-2 rounded-full bg-[#57c1ff]" />
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-white">Up to date</p>
+                    <p className="truncate text-xs text-[#9c9c9d]">
+                      Your latest plans are here
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
           </section>
 
           <section
-            className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4"
+            className="grid border-y sm:grid-cols-2 xl:grid-cols-4"
             aria-label="Planning overview"
           >
             <Metric
@@ -160,10 +160,7 @@ function WorkspaceCompanion() {
           <section className="space-y-4" aria-labelledby="your-events-heading">
             <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
               <div>
-                <h2
-                  id="your-events-heading"
-                  className="text-xl font-semibold tracking-tight"
-                >
+                <h2 id="your-events-heading" className="app-section-heading">
                   Your events
                 </h2>
                 <p className="text-sm text-muted-foreground">
@@ -176,7 +173,7 @@ function WorkspaceCompanion() {
             </div>
 
             {workspaces.length ? (
-              <div className="grid gap-5 xl:grid-cols-2">
+              <div className="divide-y border-y">
                 {workspaces.map((workspace) => (
                   <WorkspaceInsightCard
                     key={workspace.id}
@@ -201,7 +198,7 @@ function WorkspaceCompanion() {
         </main>
       </SidebarInset>
     </SidebarProvider>
-  )
+  );
 }
 
 function Metric({
@@ -210,88 +207,81 @@ function Metric({
   value,
   detail,
 }: {
-  icon: typeof CalendarDays
-  label: string
-  value: string
-  detail: string
+  icon: typeof CalendarDays;
+  label: string;
+  value: string;
+  detail: string;
 }) {
   return (
-    <Card className="gap-4 py-5">
-      <CardHeader className="grid grid-cols-[auto_1fr] items-center gap-3 px-5">
-        <div className="flex size-10 items-center justify-center rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400">
-          <Icon className="size-5" />
-        </div>
-        <div className="min-w-0">
-          <CardDescription>{label}</CardDescription>
-          <CardTitle className="mt-0.5 truncate text-2xl tabular-nums">
-            {value}
-          </CardTitle>
-        </div>
-      </CardHeader>
-      <CardContent className="px-5 text-xs text-muted-foreground">
-        {detail}
-      </CardContent>
-    </Card>
-  )
+    <div className="flex min-w-0 gap-3 py-5 sm:px-5 sm:first:pl-0 xl:border-r xl:last:border-r-0 xl:first:pl-0">
+      <div className="app-icon-tile">
+        <Icon className="size-5" />
+      </div>
+      <div className="min-w-0">
+        <p className="text-sm text-muted-foreground">{label}</p>
+        <p className="mt-0.5 truncate text-2xl leading-tight font-medium tabular-nums">
+          {value}
+        </p>
+        <p className="mt-2 text-xs text-muted-foreground">{detail}</p>
+      </div>
+    </div>
+  );
 }
 
 function WorkspaceInsightCard({
   workspace,
 }: {
-  workspace: NativeWorkspaceInsight
+  workspace: NativeWorkspaceInsight;
 }) {
   const budgetUsed = workspace.budgetCap
     ? Math.min((workspace.trackedCost / workspace.budgetCap) * 100, 100)
-    : null
+    : null;
 
   return (
-    <Card className="overflow-hidden py-0">
-      <div className="h-1.5 bg-[linear-gradient(90deg,#1555e6,#18a6dc)]" />
-      <CardHeader className="gap-4 px-6 pt-6">
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              <Badge variant="secondary" className="capitalize">
-                <CheckCircle2 className="size-3.5 text-blue-600 dark:text-blue-400" />
-                {workspace.status}
-              </Badge>
-              <span className="text-xs text-muted-foreground">
-                Updated{" "}
-                {dateTimeFormatter.format(new Date(workspace.updatedAt))}
-              </span>
-            </div>
-            <CardTitle className="pt-2 text-2xl">{workspace.title}</CardTitle>
-            <CardDescription className="flex flex-wrap gap-x-4 gap-y-1">
+    <article className="grid gap-8 py-8 lg:grid-cols-[minmax(15rem,0.8fr)_minmax(0,1.2fr)]">
+      <header className="space-y-4">
+        <div className="flex flex-wrap items-center gap-2">
+          <Badge variant="secondary" className="capitalize">
+            <CheckCircle2 className="size-3.5 text-brand-ink" />
+            {workspace.status}
+          </Badge>
+          <span className="text-xs text-muted-foreground">
+            Updated {dateTimeFormatter.format(new Date(workspace.updatedAt))}
+          </span>
+        </div>
+        <div>
+          <h3 className="text-2xl font-medium tracking-[-0.02em]">
+            {workspace.title}
+          </h3>
+          <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground">
+            <span className="inline-flex items-center gap-1.5">
+              <CalendarDays className="size-3.5" />
+              {dateFormatter.format(new Date(workspace.startsAt))}
+            </span>
+            {workspace.location ? (
               <span className="inline-flex items-center gap-1.5">
-                <CalendarDays className="size-3.5" />
-                {dateFormatter.format(new Date(workspace.startsAt))}
+                <MapPin className="size-3.5" />
+                {workspace.location}
               </span>
-              {workspace.location ? (
-                <span className="inline-flex items-center gap-1.5">
-                  <MapPin className="size-3.5" />
-                  {workspace.location}
-                </span>
-              ) : null}
-            </CardDescription>
-          </div>
-          <div className="rounded-2xl bg-blue-500/10 px-3 py-2 text-right text-blue-700 dark:text-blue-300">
-            <p className="text-lg font-semibold tabular-nums">
-              {workspace.participantCount}
-            </p>
-            <p className="text-[11px]">people</p>
+            ) : null}
           </div>
         </div>
-      </CardHeader>
-
-      <CardContent className="space-y-6 px-6 pb-6">
-        <div className="grid grid-cols-3 gap-2">
+        <ParticipantAvatars
+          participants={workspace.participants}
+          totalCount={workspace.participantCount}
+          maxVisible={5}
+        />
+        <div className="grid grid-cols-4 divide-x border-y py-3">
+          <SmallStat label="People" value={workspace.participantCount} />
           <SmallStat label="Schedule" value={workspace.scheduledEventCount} />
           <SmallStat label="Open ideas" value={workspace.openIdeaCount} />
           <SmallStat label="Approved" value={workspace.approvedIdeaCount} />
         </div>
+      </header>
 
+      <div className="space-y-6">
         {workspace.budgetCap != null ? (
-          <div className="space-y-2 rounded-2xl border bg-muted/25 p-4">
+          <div className="space-y-2">
             <div className="flex items-end justify-between gap-4">
               <div>
                 <p className="text-xs text-muted-foreground">Budget overview</p>
@@ -315,13 +305,10 @@ function WorkspaceInsightCard({
             </span>
           </div>
           {workspace.upcomingEvents.length ? (
-            <div className="divide-y rounded-2xl border">
+            <div className="divide-y border-y">
               {workspace.upcomingEvents.map((event) => (
-                <div
-                  key={event.id}
-                  className="flex items-center gap-3 px-4 py-3"
-                >
-                  <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground">
+                <div key={event.id} className="flex items-center gap-3 py-3">
+                  <div className="flex size-8 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground">
                     <Clock3 className="size-4" />
                   </div>
                   <div className="min-w-0 flex-1">
@@ -332,6 +319,13 @@ function WorkspaceInsightCard({
                       {dateTimeFormatter.format(new Date(event.startsAt))}
                     </p>
                   </div>
+                  <ParticipantAvatars
+                    participants={event.participants}
+                    totalCount={event.participantCount}
+                    maxVisible={3}
+                    size="sm"
+                    showLabel={false}
+                  />
                   <Badge
                     variant="outline"
                     className="hidden capitalize sm:inline-flex"
@@ -342,38 +336,36 @@ function WorkspaceInsightCard({
               ))}
             </div>
           ) : (
-            <p className="rounded-2xl border border-dashed px-4 py-5 text-sm text-muted-foreground">
+            <p className="border-y py-5 text-sm text-muted-foreground">
               No upcoming activities are planned.
             </p>
           )}
         </div>
-      </CardContent>
-    </Card>
-  )
+      </div>
+    </article>
+  );
 }
 
 function SmallStat({ label, value }: { label: string; value: number }) {
   return (
-    <div className="rounded-xl bg-muted/55 px-3 py-3">
-      <p className="text-lg font-semibold tabular-nums">{value}</p>
+    <div className="min-w-0 px-3 first:pl-0 last:pr-0">
+      <p className="text-lg font-medium tabular-nums">{value}</p>
       <p className="truncate text-[11px] text-muted-foreground">{label}</p>
     </div>
-  )
+  );
 }
 
 function EmptyCompanion() {
   return (
-    <Card className="border-dashed bg-muted/20">
-      <CardHeader className="mx-auto w-full max-w-xl justify-items-center px-6 py-12 text-center sm:px-8">
-        <div className="mb-3 flex size-14 items-center justify-center rounded-2xl bg-blue-500/10 text-blue-600 dark:text-blue-400">
-          <Smartphone className="size-7" />
-        </div>
-        <CardTitle>Start on your iPhone</CardTitle>
-        <CardDescription className="w-full max-w-lg text-balance leading-6">
-          Create an event in Gatherory on your iPhone. Its schedule, people,
-          ideas, and budget will appear here.
-        </CardDescription>
-      </CardHeader>
-    </Card>
-  )
+    <div className="border-y py-14 text-center">
+      <div className="app-icon-tile mx-auto mb-4 size-14">
+        <Smartphone className="size-7" />
+      </div>
+      <h3 className="text-base font-medium">Start on your iPhone</h3>
+      <p className="mx-auto mt-2 w-full max-w-lg text-balance text-sm leading-6 text-muted-foreground">
+        Create an event in Gatherory on your iPhone. Its schedule, people,
+        ideas, and budget will appear here.
+      </p>
+    </div>
+  );
 }

@@ -9,7 +9,9 @@ import {
 
 import type {
   FinalizeEventMediaUploadInput,
+  NativeMediaAssetInput,
   PrepareEventMediaUploadInput,
+  PrepareNativeMediaUploadInput,
 } from "../contracts/media.contracts"
 import {
   createMediaReadUrl,
@@ -22,8 +24,12 @@ import {
   createPendingEventMedia,
   getEventMediaAccessContext,
   getEventMediaActorContext,
+  getNativeMediaAccessContext,
+  getWorkspaceMediaActorContext,
   markEventMediaFailed,
   markEventMediaReady,
+  markNativeMediaReady,
+  upsertPendingNativeMedia,
 } from "../repos/media.repo"
 
 function requireCapabilities(input: {
@@ -201,6 +207,119 @@ export function getEventMediaUrlWorkflow(input: {
         bucket: context.bucket,
         key: context.storageKey,
       }),
+    )
+    return { mediaAssetId: context.mediaAssetId, url }
+  })
+}
+
+export function prepareNativeMediaUploadWorkflow(input: {
+  userId: string
+  media: PrepareNativeMediaUploadInput
+}) {
+  return Effect.gen(function* () {
+    const actor = yield* getWorkspaceMediaActorContext({
+      organizationId: input.media.scopeId,
+      userId: input.userId,
+    })
+    if (!actor) return yield* Effect.fail(new Error("MEDIA_FORBIDDEN"))
+
+    const storageKey = MediaKeys.original({
+      workspaceId: actor.organizationId,
+      mediaAssetId: input.media.mediaAssetId,
+      contentType: input.media.contentType,
+    })
+    const signedUpload = yield* externalOperation(() =>
+      createMediaUploadUrl({
+        key: storageKey,
+        contentType: input.media.contentType,
+        mediaAssetId: input.media.mediaAssetId,
+        visibility: "private",
+      }),
+    )
+
+    yield* upsertPendingNativeMedia({
+      organizationId: actor.organizationId,
+      uploadedByUserId: input.userId,
+      bucket: signedUpload.bucket,
+      storageKey,
+      media: input.media,
+    })
+
+    return {
+      mediaAssetId: input.media.mediaAssetId,
+      uploadUrl: signedUpload.uploadUrl,
+      method: "PUT" as const,
+      requiredHeaders: { "Content-Type": input.media.contentType },
+      expiresAt: new Date(
+        Date.now() + signedUpload.expiresInSeconds * 1_000,
+      ).toISOString(),
+    }
+  })
+}
+
+export function finalizeNativeMediaUploadWorkflow(input: {
+  userId: string
+  media: NativeMediaAssetInput
+}) {
+  return Effect.gen(function* () {
+    const context = yield* getNativeMediaAccessContext({
+      mediaAssetId: input.media.mediaAssetId,
+      userId: input.userId,
+    })
+    if (!context || context.uploadedByUserId !== input.userId) {
+      return yield* Effect.fail(new Error("MEDIA_FORBIDDEN"))
+    }
+
+    if (context.status === "ready") {
+      const url = yield* externalOperation(() =>
+        createMediaReadUrl({ bucket: context.bucket, key: context.storageKey }),
+      )
+      return { mediaAssetId: context.mediaAssetId, url }
+    }
+    if (context.status !== "pending") {
+      return yield* Effect.fail(new Error("MEDIA_INVALID_STATE"))
+    }
+
+    const storedObject = yield* externalOperation(() =>
+      inspectMediaObject({ bucket: context.bucket, key: context.storageKey }),
+    )
+    const matchesPendingAsset =
+      storedObject.mediaAssetId === context.mediaAssetId &&
+      storedObject.contentType === context.contentType &&
+      storedObject.byteSize === context.byteSize
+
+    if (!matchesPendingAsset) {
+      yield* markEventMediaFailed(context.mediaAssetId)
+      yield* externalOperation(() =>
+        deleteMediaObject({ bucket: context.bucket, key: context.storageKey }).catch(
+          () => undefined,
+        ),
+      )
+      return yield* Effect.fail(new Error("MEDIA_UPLOAD_MISMATCH"))
+    }
+
+    yield* markNativeMediaReady({
+      mediaAssetId: context.mediaAssetId,
+      checksum: storedObject.checksum,
+    })
+    const url = yield* externalOperation(() =>
+      createMediaReadUrl({ bucket: context.bucket, key: context.storageKey }),
+    )
+    return { mediaAssetId: context.mediaAssetId, url }
+  })
+}
+
+export function getNativeMediaUrlWorkflow(input: {
+  userId: string
+  mediaAssetId: string
+}) {
+  return Effect.gen(function* () {
+    const context = yield* getNativeMediaAccessContext(input)
+    if (!context || context.status !== "ready") {
+      return yield* Effect.fail(new Error("MEDIA_NOT_FOUND"))
+    }
+    const url = yield* externalOperation(() =>
+      createMediaReadUrl({ bucket: context.bucket, key: context.storageKey }),
     )
     return { mediaAssetId: context.mediaAssetId, url }
   })

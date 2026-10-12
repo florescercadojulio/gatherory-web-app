@@ -167,7 +167,16 @@ not give that planner access to the consumer's event. A consumer who hires the
 planner must separately invite the planner or a planner-workspace member as an
 event collaborator.
 
-## Event templates
+## Experience blueprints and event templates
+
+The cross-platform contract generalizes reusable configuration as an
+**experience blueprint**. An event template is the event-planning product form
+of that blueprint. This lets Gatherory later support destination packages,
+resource stays, participant groups, and private contributions without making
+the first-release UI generic or replacing the canonical event model.
+
+The complete contract, privacy rules, package separation, and compatibility
+strategy are recorded in [`experience-blueprints.md`](experience-blueprints.md).
 
 An **event template** is a reusable blueprint owned by a workspace. Templates
 can be created by individuals, but the professional ecosystem is centered on

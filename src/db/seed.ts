@@ -30,6 +30,11 @@ import {
   workspacePlanningSettings,
 } from "@/db/schema/planning.schema"
 import * as syncSchema from "@/db/schema/sync.schema"
+import {
+  createReviewWorkspaceArchive,
+  encodeNativeWorkspaceSnapshot,
+  reviewWorkspaceIds,
+} from "@/db/review-workspace-fixture"
 import { auth } from "@/lib/auth"
 import { createEventWorkspace } from "@/server/workspaces/create-event-workspace"
 
@@ -54,36 +59,18 @@ const developmentUsers = [
     email: "guest@gatherory.test",
     password: "password",
   },
+  // This is intentionally a local review fixture. Keep the actual App Review
+  // credentials in App Store Connect; this seed always refuses production.
+  {
+    name: "Gatherory App Review",
+    email: "appreview@gatherory.test",
+    password: "password",
+  },
 ] as const
 
-const eventIds = {
-  main: "10000000-0000-4000-8000-000000000001",
-  venueTour: "10000000-0000-4000-8000-000000000002",
-  tasting: "10000000-0000-4000-8000-000000000003",
-  rehearsal: "10000000-0000-4000-8000-000000000004",
-  ceremony: "10000000-0000-4000-8000-000000000005",
-  reception: "10000000-0000-4000-8000-000000000006",
-  afterParty: "10000000-0000-4000-8000-000000000007",
-} as const
-
-const planningIds = {
-  venueIdea: "20000000-0000-4000-8000-000000000001",
-  musicIdea: "20000000-0000-4000-8000-000000000002",
-  attireIdea: "20000000-0000-4000-8000-000000000003",
-  registryIdea: "20000000-0000-4000-8000-000000000004",
-  musicTrack: "30000000-0000-4000-8000-000000000001",
-  venueExpense: "40000000-0000-4000-8000-000000000001",
-  eventNote: "50000000-0000-4000-8000-000000000001",
-  registryItem: "60000000-0000-4000-8000-000000000001",
-} as const
-
-const personIds = {
-  alex: "70000000-0000-4000-8000-000000000001",
-  jordan: "70000000-0000-4000-8000-000000000002",
-  maya: "70000000-0000-4000-8000-000000000003",
-  sam: "70000000-0000-4000-8000-000000000004",
-  pendingGuest: "70000000-0000-4000-8000-000000000005",
-} as const
+const eventIds = reviewWorkspaceIds.events
+const planningIds = reviewWorkspaceIds.planning
+const personIds = reviewWorkspaceIds.people
 
 type SeedUser = { id: string; name: string; email: string }
 
@@ -213,14 +200,125 @@ async function ensureWorkspace(owner: SeedUser) {
     .set({ memberCount: 1, updatedAt: new Date() })
     .where(eq(team.id, planningTeam.id))
 
-  return workspace
+  return { workspace, planningTeam }
+}
+
+async function ensureReviewAccess(input: {
+  workspaceId: string
+  planningTeamId: string
+  reviewer: SeedUser
+}) {
+  const [existingMembership] = await db
+    .select({ id: member.id })
+    .from(member)
+    .where(
+      and(
+        eq(member.organizationId, input.workspaceId),
+        eq(member.userId, input.reviewer.id),
+      ),
+    )
+    .limit(1)
+
+  if (!existingMembership) {
+    await db.insert(member).values({
+      id: crypto.randomUUID(),
+      organizationId: input.workspaceId,
+      userId: input.reviewer.id,
+      // Full access lets App Review exercise every organizer workflow.
+      role: "owner",
+      createdAt: new Date(),
+    })
+  }
+
+  const [existingTeamMembership] = await db
+    .select({ id: teamMember.id })
+    .from(teamMember)
+    .where(
+      and(
+        eq(teamMember.teamId, input.planningTeamId),
+        eq(teamMember.userId, input.reviewer.id),
+      ),
+    )
+    .limit(1)
+
+  if (!existingTeamMembership) {
+    await db.insert(teamMember).values({
+      id: crypto.randomUUID(),
+      teamId: input.planningTeamId,
+      userId: input.reviewer.id,
+      membershipKey: `${input.planningTeamId}:${input.reviewer.id}`,
+      createdAt: new Date(),
+    })
+  }
+
+  await db
+    .update(team)
+    .set({ memberCount: 2, updatedAt: new Date() })
+    .where(eq(team.id, input.planningTeamId))
+}
+
+/**
+ * iOS reads a versioned native snapshot during its first cloud bootstrap;
+ * the web app reads the normalized rows seeded below. Write both sides so the
+ * local App Review fixture opens as a populated workspace on either client.
+ */
+async function seedNativeReviewWorkspace(input: {
+  workspaceId: string
+  users: readonly [SeedUser, SeedUser, SeedUser, SeedUser, SeedUser]
+}) {
+  const [alex, jordan, maya, sam, reviewer] = input.users
+  const archive = createReviewWorkspaceArchive({ users: input.users })
+
+  await db
+    .insert(syncSchema.nativeWorkspaceSnapshot)
+    .values({
+      scopeId: eventIds.main,
+      ownerUserId: alex.id,
+      organizationId: input.workspaceId,
+      payload: encodeNativeWorkspaceSnapshot(archive),
+      serverVersion: 1,
+      isDeleted: false,
+    })
+    .onConflictDoUpdate({
+      target: syncSchema.nativeWorkspaceSnapshot.scopeId,
+      set: {
+        ownerUserId: alex.id,
+        organizationId: input.workspaceId,
+        payload: encodeNativeWorkspaceSnapshot(archive),
+        serverVersion: 1,
+        isDeleted: false,
+        updatedAt: new Date(),
+      },
+    })
+
+  const scopeMembers = [
+    { userId: alex.id, role: "owner" as const },
+    { userId: jordan.id, role: "owner" as const },
+    { userId: maya.id, role: "editor" as const },
+    { userId: sam.id, role: "viewer" as const },
+    // App Review can exercise organizer flows without needing Alex's account.
+    { userId: reviewer.id, role: "owner" as const },
+  ]
+
+  for (const scopeMember of scopeMembers) {
+    await db
+      .insert(syncSchema.nativeSyncScopeMember)
+      .values({ scopeId: eventIds.main, ...scopeMember })
+      .onConflictDoUpdate({
+        target: [
+          syncSchema.nativeSyncScopeMember.scopeId,
+          syncSchema.nativeSyncScopeMember.userId,
+        ],
+        set: { role: scopeMember.role, updatedAt: new Date() },
+      })
+  }
 }
 
 async function seedEventWorkspace(input: {
   workspaceId: string
-  users: readonly [SeedUser, SeedUser, SeedUser, SeedUser]
+  users: readonly [SeedUser, SeedUser, SeedUser, SeedUser, SeedUser]
 }) {
-  const [alex, jordan, maya, sam] = input.users
+  const [alex, jordan, maya, sam, appReview] = input.users
   const shared = {
     organizationId: input.workspaceId,
     timeZone: "America/Detroit",
@@ -374,6 +472,7 @@ async function seedEventWorkspace(input: {
     { id: personIds.jordan, account: jordan },
     { id: personIds.maya, account: maya },
     { id: personIds.sam, account: sam },
+    { id: personIds.appReview, account: appReview },
   ]
   for (const person of people) {
     await db
@@ -424,6 +523,13 @@ async function seedEventWorkspace(input: {
       role: "guest" as const,
       planningPermission: "view_only" as const,
       attendanceStatus: "not_sure" as const,
+    },
+    {
+      eventId,
+      personId: personIds.appReview,
+      role: "host" as const,
+      planningPermission: "manage" as const,
+      attendanceStatus: "going" as const,
     },
   ])
 
@@ -551,10 +657,13 @@ async function seedEventWorkspace(input: {
     .values({
       id: planningIds.musicTrack,
       provider: "apple_music",
-      providerTrackId: "seed-first-dance-track",
-      title: "Golden Hour",
-      artistName: "Gatherory Seed Artist",
-      albumTitle: "Celebration",
+      providerTrackId: "i.4YBN1YWf2a62bq9",
+      title: "BABYDOLL (Speed)",
+      artistName: "Ari Abdul",
+      albumTitle: "BABYDOLL (Speed) - Single",
+      artworkUrl:
+        "musicKit://artwork/library/4B2C9115-D692-4636-BDB7-31676E1FB4AB/600x600?aat=Music126%2Fv4%2F23%2F73%2F2f%2F23732f5f%2D181f%2D2bbd%2Dfeb5%2D3ab42eb958ff%2F196589059925%2Ejpg&at=item&id=316369963290033991&lid=4B2C9115%2DD692%2D4636%2DBDB7%2D31676E1FB4AB&mt=music",
+      durationMs: 156651,
     })
     .onConflictDoNothing({ target: musicTrack.id })
 
@@ -669,16 +778,33 @@ async function main() {
   })
 
   const users = await Promise.all(developmentUsers.map(ensureDevelopmentUser))
-  const typedUsers = users as [SeedUser, SeedUser, SeedUser, SeedUser]
-  const workspace = await ensureWorkspace(typedUsers[0])
+  const typedUsers = users as [SeedUser, SeedUser, SeedUser, SeedUser, SeedUser]
+  const { workspace, planningTeam } = await ensureWorkspace(typedUsers[0])
+  await ensureReviewAccess({
+    workspaceId: workspace.id,
+    planningTeamId: planningTeam.id,
+    reviewer: typedUsers[4],
+  })
   await seedEventWorkspace({ workspaceId: workspace.id, users: typedUsers })
+  await seedNativeReviewWorkspace({
+    workspaceId: workspace.id,
+    users: typedUsers,
+  })
   await db
     .update(user)
     .set({ hasCompletedOnboarding: true })
     .where(eq(user.id, typedUsers[0].id))
+  await db
+    .update(user)
+    .set({ hasCompletedOnboarding: true })
+    .where(eq(user.id, typedUsers[4].id))
 
   console.log("Seeded Alex & Jordan's event workspace.")
   console.log("All development accounts use password: password")
+  console.log("App Review fixture: appreview@gatherory.test / password")
+  console.log(
+    "The review fixture starts in the seeded workspace; contextual onboarding primers remain unseen on a clean app install.",
+  )
 }
 
 main()

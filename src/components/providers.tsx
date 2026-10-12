@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "@tanstack/react-router"
 import { ThemeProvider, useTheme } from "next-themes"
-import type { ReactNode } from "react"
+import { useEffect, type ReactNode } from "react"
 
 import { AuthProvider } from "@/components/auth/auth-provider"
 import { Toaster } from "@/components/ui/sonner"
@@ -12,8 +12,8 @@ import { themePlugin } from "@/lib/auth/theme-plugin"
 export function Providers({ children }: { children: ReactNode }) {
   const navigate = useNavigate()
   const socialProviders = [
-    ...(import.meta.env.VITE_GOOGLE_AUTH_ENABLED ? (["google"] as const) : []),
     ...(import.meta.env.VITE_APPLE_AUTH_ENABLED ? (["apple"] as const) : []),
+    ...(import.meta.env.VITE_GOOGLE_AUTH_ENABLED ? (["google"] as const) : []),
   ]
 
   return (
@@ -23,6 +23,7 @@ export function Providers({ children }: { children: ReactNode }) {
       enableSystem
       disableTransitionOnChange
     >
+      <BrowserChromeTheme />
       <AuthProvider
         authClient={authClient}
         redirectTo="/"
@@ -49,4 +50,26 @@ export function Providers({ children }: { children: ReactNode }) {
       </AuthProvider>
     </ThemeProvider>
   )
+}
+
+/** Keep iOS Safari's safe-area/status-bar surface aligned with an explicit
+ * in-app theme, even when it differs from the device color scheme. */
+function BrowserChromeTheme() {
+  const { resolvedTheme } = useTheme()
+
+  useEffect(() => {
+    if (!resolvedTheme) return
+    let meta = document.querySelector<HTMLMetaElement>(
+      'meta[name="theme-color"][data-gatherory-theme]',
+    )
+    if (!meta) {
+      meta = document.createElement("meta")
+      meta.name = "theme-color"
+      meta.dataset.gatheroryTheme = "true"
+      document.head.append(meta)
+    }
+    meta.content = resolvedTheme === "dark" ? "#07080a" : "#f7f7f8"
+  }, [resolvedTheme])
+
+  return null
 }

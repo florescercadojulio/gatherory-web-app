@@ -1,9 +1,9 @@
-import { and, asc, eq, inArray, isNull } from "drizzle-orm"
+import { and, asc, eq, inArray, isNull, sql } from "drizzle-orm"
 import { createServerFn } from "@tanstack/react-start"
 import { Effect } from "effect"
 
 import { DB, PgClientLive } from "@/db"
-import { organization } from "@/db/schema/auth.schema"
+import { organization, user } from "@/db/schema/auth.schema"
 import {
   event,
   eventParticipant,
@@ -27,6 +27,11 @@ export type NativeWorkspaceInsight = {
   location: string | null
   status: string
   participantCount: number
+  participants: Array<{
+    id: string
+    name: string
+    image: string | null
+  }>
   scheduledEventCount: number
   openIdeaCount: number
   approvedIdeaCount: number
@@ -38,6 +43,12 @@ export type NativeWorkspaceInsight = {
     title: string
     startsAt: string
     purpose: string
+    participantCount: number
+    participants: Array<{
+      id: string
+      name: string
+      image: string | null
+    }>
   }>
 }
 
@@ -111,9 +122,26 @@ export const listNativeWorkspaceInsights = createServerFn({ method: "GET" })
           .where(inArray(event.parentEventId, mainEventIds))
           .orderBy(asc(event.startsAt), asc(event.createdAt))
         const participants = yield* db
-          .select({ eventId: eventParticipant.eventId })
+          .select({
+            eventId: eventParticipant.eventId,
+            id: workspacePerson.id,
+            name: workspacePerson.displayName,
+            image: sql<
+              string | null
+            >`coalesce(${user.image}, ${workspacePerson.avatarUrl})`,
+          })
           .from(eventParticipant)
-          .where(inArray(eventParticipant.eventId, mainEventIds))
+          .innerJoin(
+            workspacePerson,
+            eq(workspacePerson.id, eventParticipant.personId),
+          )
+          .leftJoin(user, eq(user.id, workspacePerson.userId))
+          .where(
+            inArray(eventParticipant.eventId, [
+              ...mainEventIds,
+              ...children.map((child) => child.id),
+            ]),
+          )
         const ideas = yield* db
           .select({ eventId: idea.eventId, status: idea.status })
           .from(idea)
@@ -171,7 +199,15 @@ export const listNativeWorkspaceInsights = createServerFn({ method: "GET" })
                 title: child.title,
                 startsAt: child.startsAt!.toISOString(),
                 purpose: child.purpose ?? "part_of_event",
+                participantCount:
+                  participantsByEvent.get(child.id)?.length ?? 0,
+                participants: (participantsByEvent.get(child.id) ?? [])
+                  .slice(0, 4)
+                  .map(({ eventId: _eventId, ...participant }) => participant),
               }))
+
+            const mainEventParticipants =
+              participantsByEvent.get(mainEvent.id) ?? []
 
             return {
               id: mainEvent.id,
@@ -188,8 +224,10 @@ export const listNativeWorkspaceInsights = createServerFn({ method: "GET" })
                   .filter(Boolean)
                   .join(" · ") || null,
               status: mainEvent.status ?? "draft",
-              participantCount:
-                participantsByEvent.get(mainEvent.id)?.length ?? 0,
+              participantCount: mainEventParticipants.length,
+              participants: mainEventParticipants
+                .slice(0, 5)
+                .map(({ eventId: _eventId, ...participant }) => participant),
               scheduledEventCount: childEvents.filter(
                 (child) => child.schedulingState === "scheduled",
               ).length,

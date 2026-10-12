@@ -1,6 +1,7 @@
 import { viewPaths } from "@better-auth-ui/core"
 import { createFileRoute, redirect } from "@tanstack/react-router"
-import { CheckIcon, SparklesIcon } from "lucide-react"
+import { cn } from "cn"
+import { CheckIcon } from "lucide-react"
 
 import { Auth } from "@/components/auth/auth"
 import { ServerErrorToast } from "@/components/route-feedback"
@@ -44,11 +45,24 @@ export const Route = createFileRoute("/auth/$path/")({
 function AuthPage() {
   const { path } = Route.useParams()
   const { sessionError } = Route.useRouteContext()
+  const isSignIn = path === viewPaths.auth.signIn
+  const isSignUp = path === viewPaths.auth.signUp
+  const hidesCardHeader = isSignIn || isSignUp
 
   return (
-    <main className="auth-page min-h-svh px-4 py-6 sm:px-6 sm:py-8">
+    <main
+      className={cn(
+        "auth-page min-h-svh px-4 py-6 sm:px-6 sm:py-8",
+        "auth-signin-page",
+      )}
+    >
       <ServerErrorToast error={sessionError} />
-      <div className="auth-shell mx-auto grid min-h-[calc(100svh-3rem)] w-full max-w-6xl overflow-hidden rounded-[2rem] border border-white/70 bg-white/72 shadow-2xl shadow-blue-950/10 backdrop-blur-2xl dark:border-white/10 dark:bg-slate-950/74 lg:grid-cols-[1.05fr_0.95fr]">
+      <div
+        className={cn(
+          "auth-shell mx-auto grid min-h-[calc(100svh-3rem)] w-full max-w-6xl overflow-hidden rounded-[2rem] border border-white/70 bg-white/72 shadow-2xl shadow-blue-950/10 backdrop-blur-2xl dark:border-white/10 dark:bg-slate-950/74 lg:grid-cols-[1.05fr_0.95fr]",
+          "auth-signin-shell",
+        )}
+      >
         <section className="auth-story relative hidden overflow-hidden p-12 lg:flex lg:flex-col lg:justify-between">
           <div className="auth-orb auth-orb-one" />
           <div className="auth-orb auth-orb-two" />
@@ -67,10 +81,6 @@ function AuthPage() {
           </div>
 
           <div className="relative z-10 max-w-xl">
-            <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/12 px-3 py-1.5 text-sm font-medium text-blue-50 backdrop-blur-xl">
-              <SparklesIcon className="size-4" aria-hidden="true" />
-              One place for every gathering
-            </div>
             <h1 className="max-w-lg text-5xl font-semibold leading-[1.02] tracking-[-0.04em] text-white">
               Bring the plan and the people together.
             </h1>
@@ -101,9 +111,24 @@ function AuthPage() {
           </p>
         </section>
 
-        <section className="flex items-center justify-center px-5 py-8 sm:px-10 lg:px-14">
-          <div className="w-full max-w-md">
-            <div className="mb-8 flex flex-col items-center gap-3 text-center lg:items-start lg:text-left">
+        <section
+          className={cn(
+            "flex items-center justify-center px-5 py-8 sm:px-10 lg:px-14",
+            "auth-signin-pane",
+          )}
+        >
+          <div
+            className={cn(
+              "w-full max-w-md",
+              "auth-signin-stage",
+            )}
+          >
+            <div
+              className={cn(
+                "mb-8 flex flex-col items-center gap-3 text-center lg:items-start lg:text-left",
+                "auth-signin-intro",
+              )}
+            >
               <div className="size-12 overflow-hidden rounded-2xl shadow-lg lg:hidden">
                 <img
                   src="/gatherory-icon.png"
@@ -123,12 +148,21 @@ function AuthPage() {
 
             <Auth
               path={path}
-              className="auth-card max-w-none"
+              className={cn(
+                "auth-card max-w-none",
+                "auth-signin-card",
+                hidesCardHeader && "auth-hide-header",
+              )}
               socialPosition="bottom"
               socialLayout="grid"
             />
 
-            <p className="mx-auto mt-6 max-w-sm text-center text-xs leading-5 text-muted-foreground">
+            <p
+              className={cn(
+                "mx-auto mt-6 max-w-sm text-center text-xs leading-5 text-muted-foreground",
+                "auth-signin-legal",
+              )}
+            >
               By continuing, you agree to Gatherory&apos;s Terms and acknowledge
               the Privacy Policy.
             </p>

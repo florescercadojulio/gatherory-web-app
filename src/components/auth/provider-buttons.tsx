@@ -40,6 +40,8 @@ export function ProviderButtons({
 
   return (
     <div
+      data-slot="auth-provider-list"
+      data-layout={resolvedSocialLayout}
       className={cn(
         "gap-3",
         resolvedSocialLayout === "grid" && "grid grid-cols-2",

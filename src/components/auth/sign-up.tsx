@@ -185,7 +185,7 @@ export function SignUp({
       </CardHeader>
 
       <CardContent>
-        <div className="flex flex-col gap-6">
+        <div className="auth-signin-stack flex flex-col gap-6">
           {socialPosition === "top" && (
             <>
               {socialProviders && socialProviders.length > 0 && (
@@ -203,7 +203,7 @@ export function SignUp({
           {emailAndPassword?.enabled && (
             <form.AppForm>
               <form.AuthFormRoot>
-                <FieldGroup>
+                <FieldGroup className="auth-signin-fields">
                   {emailAndPassword.name !== false && (
                     <form.AppField
                       name="name"
@@ -221,12 +221,16 @@ export function SignUp({
                         )
 
                         return (
-                          <Field data-invalid={isInvalid}>
+                          <Field
+                            className="auth-signin-field"
+                            data-invalid={isInvalid}
+                          >
                             <FieldLabel htmlFor="name">
                               {localization.auth.name}
                             </FieldLabel>
 
                             <Input
+                              className="auth-signin-input"
                               id="name"
                               name={field.name}
                               type="text"
@@ -263,12 +267,16 @@ export function SignUp({
                       const isInvalid = isAuthFormFieldInvalid(field.state.meta)
 
                       return (
-                        <Field data-invalid={isInvalid}>
+                        <Field
+                          className="auth-signin-field"
+                          data-invalid={isInvalid}
+                        >
                           <FieldLabel htmlFor="email">
                             {localization.auth.email}
                           </FieldLabel>
 
                           <Input
+                            className="auth-signin-input"
                             id="email"
                             name={field.name}
                             type="email"
@@ -337,12 +345,15 @@ export function SignUp({
                         isCompromised
 
                       return (
-                        <Field data-invalid={isInvalid}>
+                        <Field
+                          className="auth-signin-field auth-signup-password-field"
+                          data-invalid={isInvalid}
+                        >
                           <FieldLabel htmlFor="password">
                             {localization.auth.password}
                           </FieldLabel>
 
-                          <InputGroup>
+                          <InputGroup className="auth-signin-input">
                             <InputGroupInput
                               id="password"
                               name={field.name}
@@ -387,14 +398,23 @@ export function SignUp({
                           </InputGroup>
 
                           {isCompromised ? (
-                            <FieldError>
-                              {localization.auth.passwordCompromised}
-                            </FieldError>
+                            <div
+                              aria-live="polite"
+                              data-slot="auth-field-error-space"
+                            >
+                              <FieldError>
+                                {localization.auth.passwordCompromised}
+                              </FieldError>
+                            </div>
                           ) : (
                             <field.AuthFormFieldError />
                           )}
 
-                          <PasswordStrengthMeter password={field.state.value} />
+                          <div className="auth-signup-strength-space">
+                            <PasswordStrengthMeter
+                              password={field.state.value}
+                            />
+                          </div>
                         </Field>
                       )
                     }}
@@ -433,12 +453,15 @@ export function SignUp({
                         )
 
                         return (
-                          <Field data-invalid={isInvalid}>
+                          <Field
+                            className="auth-signin-field"
+                            data-invalid={isInvalid}
+                          >
                             <FieldLabel htmlFor="confirmPassword">
                               {localization.auth.confirmPassword}
                             </FieldLabel>
 
-                            <InputGroup>
+                            <InputGroup className="auth-signin-input">
                               <InputGroupInput
                                 id="confirmPassword"
                                 name={field.name}
@@ -523,7 +546,10 @@ export function SignUp({
                   )}
 
                   <div className="flex flex-col gap-3">
-                    <form.AuthFormSubmitButton disabled={isPending}>
+                    <form.AuthFormSubmitButton
+                      className="auth-signin-submit"
+                      disabled={isPending}
+                    >
                       {localization.auth.signUp}
                     </form.AuthFormSubmitButton>
 
@@ -557,7 +583,7 @@ export function SignUp({
         </div>
 
         {emailAndPassword?.enabled && (
-          <div className="flex flex-col gap-3 items-center w-full mt-4">
+          <div className="auth-signin-secondary-actions mt-4 flex w-full flex-col items-center gap-3">
             <FieldDescription className="text-center">
               {localization.auth.alreadyHaveAnAccount}{" "}
               <Link

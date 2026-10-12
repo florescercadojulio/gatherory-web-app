@@ -167,7 +167,7 @@ refuses to run without the confirmation phrase. Keep the connection string in
 your shell or secret manager; do not commit it.
 
 `db:seed` is destructive and development-only. It first resets every Gatherory
-table represented by the checked-in Drizzle schema, then creates four accounts
+table represented by the checked-in Drizzle schema, then creates five accounts
 through Better Auth so their credential records and password hashes use the
 same path as normal registration. Never point `DATABASE_URL` at data you need
 to preserve when running this command:
@@ -177,8 +177,15 @@ Alex (host):        planner@gatherory.test
 Jordan (host):      jordan@gatherory.test
 Maya (collaborator): coordinator@gatherory.test
 Sam (guest):        guest@gatherory.test
+App Review (host):  appreview@gatherory.test
 Password for all:   password
 ```
+
+The App Review fixture has full organizer access to the representative wedding
+workspace. It deliberately skips the first-workspace setup so seeded data is
+immediately available; its contextual iOS primers remain unseen on a clean app
+install. This is only a local fixture—submit separate production credentials in
+App Store Connect.
 
 The fresh scenario includes one personal workspace, its Planning team, Alex and
 Jordan's wedding, six dated child events across both purpose classifications,

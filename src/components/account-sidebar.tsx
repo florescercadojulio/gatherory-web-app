@@ -1,10 +1,10 @@
-"use client"
+"use client";
 
-import { Link } from "@tanstack/react-router"
-import { LayoutDashboard, Settings } from "lucide-react"
+import { Link } from "@tanstack/react-router";
+import { LayoutDashboard, Settings } from "lucide-react";
 
-import { NavMain } from "@/components/nav-main"
-import { NavUser } from "@/components/nav-user"
+import { NavMain } from "@/components/nav-main";
+import { NavUser } from "@/components/nav-user";
 import {
   Sidebar,
   SidebarContent,
@@ -14,15 +14,15 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarRail,
-} from "@/components/ui/sidebar"
+} from "@/components/ui/sidebar";
 
 export function AccountSidebar({
   user,
   summaryLabel = "Your events",
   ...props
 }: React.ComponentProps<typeof Sidebar> & {
-  user: { name: string; email: string; image?: string | null }
-  summaryLabel?: string
+  user: { name: string; email: string; image?: string | null };
+  summaryLabel?: string;
 }) {
   return (
     <Sidebar collapsible="icon" {...props}>
@@ -34,7 +34,7 @@ export function AccountSidebar({
               render={<Link to="/workspaces" />}
               tooltip="Gatherory overview"
             >
-              <div className="flex aspect-square size-8 items-center justify-center overflow-hidden rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
+              <div className="flex aspect-square size-8 items-center justify-center overflow-hidden rounded-md border border-sidebar-border bg-sidebar-primary text-sidebar-primary-foreground">
                 <img
                   src="/gatherory-icon.png"
                   alt=""
@@ -79,5 +79,5 @@ export function AccountSidebar({
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>
-  )
+  );
 }

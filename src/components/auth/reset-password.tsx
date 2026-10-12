@@ -117,7 +117,7 @@ export function ResetPassword({ className }: ResetPasswordProps) {
       <CardContent>
         <form.AppForm>
           <form.AuthFormRoot>
-            <FieldGroup>
+            <FieldGroup className="auth-signin-fields">
               <form.AppField
                 name="password"
                 validators={{
@@ -142,12 +142,15 @@ export function ResetPassword({ className }: ResetPasswordProps) {
                     isAuthFormFieldInvalid(field.state.meta) || isCompromised
 
                   return (
-                    <Field data-invalid={isInvalid}>
+                    <Field
+                      className="auth-signin-field auth-signup-password-field"
+                      data-invalid={isInvalid}
+                    >
                       <FieldLabel htmlFor="password">
                         {localization.auth.password}
                       </FieldLabel>
 
-                      <InputGroup>
+                      <InputGroup className="auth-signin-input">
                         <InputGroupInput
                           id="password"
                           type={isPasswordVisible ? "text" : "password"}
@@ -190,14 +193,21 @@ export function ResetPassword({ className }: ResetPasswordProps) {
                       </InputGroup>
 
                       {isCompromised ? (
-                        <FieldError>
-                          {localization.auth.passwordCompromised}
-                        </FieldError>
+                        <div
+                          aria-live="polite"
+                          data-slot="auth-field-error-space"
+                        >
+                          <FieldError>
+                            {localization.auth.passwordCompromised}
+                          </FieldError>
+                        </div>
                       ) : (
                         <field.AuthFormFieldError />
                       )}
 
-                      <PasswordStrengthMeter password={field.state.value} />
+                      <div className="auth-signup-strength-space">
+                        <PasswordStrengthMeter password={field.state.value} />
+                      </div>
                     </Field>
                   )
                 }}
@@ -233,12 +243,15 @@ export function ResetPassword({ className }: ResetPasswordProps) {
                     const isInvalid = isAuthFormFieldInvalid(field.state.meta)
 
                     return (
-                      <Field data-invalid={isInvalid}>
+                      <Field
+                        className="auth-signin-field"
+                        data-invalid={isInvalid}
+                      >
                         <FieldLabel htmlFor="confirmPassword">
                           {localization.auth.confirmPassword}
                         </FieldLabel>
 
-                        <InputGroup>
+                        <InputGroup className="auth-signin-input">
                           <InputGroupInput
                             id="confirmPassword"
                             name={field.name}
@@ -293,7 +306,10 @@ export function ResetPassword({ className }: ResetPasswordProps) {
               )}
 
               <div className="flex flex-col gap-3">
-                <form.AuthFormSubmitButton disabled={isPending}>
+                <form.AuthFormSubmitButton
+                  className="auth-signin-submit"
+                  disabled={isPending}
+                >
                   {localization.auth.resetPassword}
                 </form.AuthFormSubmitButton>
               </div>
@@ -301,7 +317,7 @@ export function ResetPassword({ className }: ResetPasswordProps) {
           </form.AuthFormRoot>
         </form.AppForm>
 
-        <div className="flex flex-col gap-3 items-center w-full mt-4">
+        <div className="auth-signin-secondary-actions mt-4 flex w-full flex-col items-center gap-3">
           <FieldDescription className="text-center">
             {localization.auth.rememberYourPassword}{" "}
             <Link

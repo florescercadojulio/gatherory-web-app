@@ -90,6 +90,7 @@ export function ProviderButton({
   return (
     <Button
       type="button"
+      data-provider={providerId}
       variant={variant}
       disabled={isPending}
       onClick={handleSignIn}

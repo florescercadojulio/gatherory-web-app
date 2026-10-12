@@ -7,7 +7,7 @@ import {
 } from "@/db/schema/sync.schema"
 import { materializeNativeMutation } from "@/server/sync/native-materializer"
 
-import type { NativeMutation } from "@/server/sync/native-sync"
+import type { NativeMutation } from "@/server/sync/native-sync-contracts"
 
 const supportedTypes = new Set<NativeMutation["entityType"]>([
   "workspace",

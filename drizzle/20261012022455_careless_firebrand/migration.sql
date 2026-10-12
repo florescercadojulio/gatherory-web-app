@@ -1,0 +1,1 @@
+ALTER TYPE "idea_category" ADD VALUE 'link' BEFORE 'venue';

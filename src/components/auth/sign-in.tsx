@@ -130,7 +130,7 @@ export function SignIn({
       </CardHeader>
 
       <CardContent>
-        <div className="flex flex-col gap-6">
+        <div className="auth-signin-stack flex flex-col gap-6">
           {socialPosition === "top" && (
             <>
               {socialProviders && socialProviders.length > 0 && (
@@ -148,7 +148,7 @@ export function SignIn({
           {emailAndPassword?.enabled && (
             <form.AppForm>
               <form.AuthFormRoot>
-                <FieldGroup>
+                <FieldGroup className="auth-signin-fields">
                   <form.AppField
                     name="email"
                     validators={{
@@ -162,12 +162,16 @@ export function SignIn({
                     {(field) => {
                       const isInvalid = isAuthFormFieldInvalid(field.state.meta)
                       return (
-                        <Field data-invalid={isInvalid}>
+                        <Field
+                          className="auth-signin-field"
+                          data-invalid={isInvalid}
+                        >
                           <FieldLabel htmlFor="email">
                             {localization.auth.email}
                           </FieldLabel>
 
                           <Input
+                            className="auth-signin-input"
                             id="email"
                             name={field.name}
                             type="email"
@@ -212,12 +216,15 @@ export function SignIn({
                     {(field) => {
                       const isInvalid = isAuthFormFieldInvalid(field.state.meta)
                       return (
-                        <Field data-invalid={isInvalid}>
+                        <Field
+                          className="auth-signin-field"
+                          data-invalid={isInvalid}
+                        >
                           <FieldLabel htmlFor="password">
                             {localization.auth.password}
                           </FieldLabel>
 
-                          <InputGroup>
+                          <InputGroup className="auth-signin-input">
                             <InputGroupInput
                               id="password"
                               name={field.name}
@@ -298,14 +305,24 @@ export function SignIn({
                   )}
 
                   <div className="flex flex-col gap-3">
-                    <form.AuthFormSubmitButton
-                      className="relative overflow-visible"
-                      disabled={isPending}
+                    <form.Subscribe
+                      selector={(state) =>
+                        Boolean(
+                          state.values.email.trim() && state.values.password
+                        )
+                      }
                     >
-                      {localization.auth.signIn}
+                      {(hasCredentials) => (
+                        <form.AuthFormSubmitButton
+                          className="auth-signin-submit relative overflow-visible"
+                          disabled={isPending || !hasCredentials}
+                        >
+                          {localization.auth.signIn}
 
-                      <LastUsedBadge method="email" floating />
-                    </form.AuthFormSubmitButton>
+                          <LastUsedBadge method="email" floating />
+                        </form.AuthFormSubmitButton>
+                      )}
+                    </form.Subscribe>
 
                     {plugins.flatMap((plugin) =>
                       (plugin.authButtons ?? []).map((AuthButton, index) => (
@@ -336,7 +353,7 @@ export function SignIn({
           )}
         </div>
 
-        <div className="flex flex-col gap-3 items-center w-full mt-4">
+        <div className="auth-signin-secondary-actions mt-4 flex w-full flex-col items-center gap-3">
           {emailAndPassword?.enabled && emailAndPassword?.forgotPassword && (
             <Link
               href={`${basePaths.auth}/${viewPaths.auth.forgotPassword}`}

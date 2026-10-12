@@ -1,13 +1,13 @@
-"use client"
+"use client";
 
-import { Link } from "@tanstack/react-router"
+import { Link } from "@tanstack/react-router";
 import {
   CalendarDays,
   Check,
   ChevronsUpDown,
   LayoutGrid,
   Users,
-} from "lucide-react"
+} from "lucide-react";
 
 import {
   DropdownMenu,
@@ -17,32 +17,32 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+} from "@/components/ui/dropdown-menu";
 import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
-} from "@/components/ui/sidebar"
+} from "@/components/ui/sidebar";
 
 export type WorkspaceSwitcherItem = {
-  id: string
-  name: string
-  slug: string
-  type: string
-  access: "member" | "participant"
-}
+  id: string;
+  name: string;
+  slug: string;
+  type: string;
+  access: "member" | "participant";
+};
 
 export function WorkspaceSwitcher({
   workspace,
   workspaces,
   planningTeamName,
 }: {
-  workspace: WorkspaceSwitcherItem | null
-  workspaces: WorkspaceSwitcherItem[]
-  planningTeamName: string | null
+  workspace: WorkspaceSwitcherItem | null;
+  workspaces: WorkspaceSwitcherItem[];
+  planningTeamName: string | null;
 }) {
-  const { isMobile } = useSidebar()
+  const { isMobile } = useSidebar();
 
   return (
     <SidebarMenu>
@@ -56,7 +56,7 @@ export function WorkspaceSwitcher({
               />
             }
           >
-            <div className="flex aspect-square size-8 items-center justify-center overflow-hidden rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
+            <div className="flex aspect-square size-8 items-center justify-center overflow-hidden rounded-md border border-sidebar-border bg-sidebar-primary text-sidebar-primary-foreground">
               <img
                 src="/gatherory-icon.png"
                 alt=""
@@ -136,5 +136,5 @@ export function WorkspaceSwitcher({
         </DropdownMenu>
       </SidebarMenuItem>
     </SidebarMenu>
-  )
+  );
 }

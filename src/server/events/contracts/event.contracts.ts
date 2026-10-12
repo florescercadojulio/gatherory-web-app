@@ -103,6 +103,11 @@ export type EventParticipantSummary = {
   attendanceStatus: "pending" | "going" | "not_sure" | "not_going"
 }
 
+export type EventParticipantPreview = Pick<
+  EventParticipantSummary,
+  "id" | "name" | "image"
+>
+
 export type ChildEventSummary = {
   id: string
   title: string
@@ -113,6 +118,7 @@ export type ChildEventSummary = {
   timeZone: string
   locationName: string | null
   participantCount: number
+  participants: EventParticipantPreview[]
 }
 
 export type EventWorkspaceSummary = {

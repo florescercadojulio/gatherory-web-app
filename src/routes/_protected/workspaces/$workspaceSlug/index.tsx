@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router"
+import { createFileRoute } from "@tanstack/react-router";
 import {
   CalendarDays,
   Clock3,
@@ -6,12 +6,12 @@ import {
   MailPlus,
   MapPin,
   PartyPopper,
-  Users,
-} from "lucide-react"
+} from "lucide-react";
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { ServerErrorToast } from "@/components/route-feedback"
-import { Badge } from "@/components/ui/badge"
+import { ParticipantAvatars } from "@/components/participant-avatars";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { ServerErrorToast } from "@/components/route-feedback";
+import { Badge } from "@/components/ui/badge";
 import {
   Card,
   CardAction,
@@ -19,10 +19,10 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
-import { Separator } from "@/components/ui/separator"
-import type { EventWorkspaceSummary } from "@/server/events/contracts/event.contracts"
-import { listEvents } from "@/server/events/handlers/event.handlers"
+} from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import type { EventWorkspaceSummary } from "@/server/events/contracts/event.contracts";
+import { listEvents } from "@/server/events/handlers/event.handlers";
 
 export const Route = createFileRoute("/_protected/workspaces/$workspaceSlug/")({
   loader: ({ context }) => {
@@ -33,24 +33,24 @@ export const Route = createFileRoute("/_protected/workspaces/$workspaceSlug/")({
           userMessage: "This workspace could not be loaded. Try again.",
           errorId: crypto.randomUUID(),
         },
-      }
+      };
     }
 
     return listEvents({
       data: {
         organizationId: context.workspaceContext.workspace.id,
       },
-    })
+    });
   },
   component: Home,
-})
+});
 
 const dateFormatter = new Intl.DateTimeFormat("en-US", {
   month: "short",
   day: "numeric",
   year: "numeric",
   timeZone: "America/Detroit",
-})
+});
 
 const dateTimeFormatter = new Intl.DateTimeFormat("en-US", {
   month: "short",
@@ -58,7 +58,7 @@ const dateTimeFormatter = new Intl.DateTimeFormat("en-US", {
   hour: "numeric",
   minute: "2-digit",
   timeZone: "America/Detroit",
-})
+});
 
 function initials(name: string) {
   return name
@@ -66,33 +66,33 @@ function initials(name: string) {
     .slice(0, 2)
     .map((part) => part[0])
     .join("")
-    .toUpperCase()
+    .toUpperCase();
 }
 
 function label(value: string) {
-  return value.replaceAll("_", " ")
+  return value.replaceAll("_", " ");
 }
 
 function EventWorkspace({
   event,
   shared,
 }: {
-  event: EventWorkspaceSummary
-  shared: boolean
+  event: EventWorkspaceSummary;
+  shared: boolean;
 }) {
   const planningEvents = event.childEvents.filter(
     (child) => child.purpose === "planning_scouting",
-  )
+  );
   const guestEvents = event.childEvents.filter(
     (child) => child.purpose === "part_of_event",
-  )
+  );
 
   return (
     <section className="space-y-6" aria-labelledby={`event-${event.id}`}>
-      <Card className="relative min-h-72 overflow-hidden bg-linear-to-br from-primary/15 via-card to-sky-500/10">
-        <div className="pointer-events-none absolute -top-20 right-0 size-72 rounded-full bg-primary/15 blur-3xl" />
-        <CardHeader className="relative">
-          <div className="mb-6 flex size-12 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-sm">
+      <Card className="min-h-72 overflow-hidden py-0">
+        <div className="h-1 bg-[linear-gradient(90deg,#1858cf_0%,#2878ff_48%,#55dcff_100%)]" />
+        <CardHeader className="px-6 pt-6">
+          <div className="app-icon-tile mb-6 size-12">
             <PartyPopper className="size-6" />
           </div>
           <CardTitle id={`event-${event.id}`} className="text-2xl sm:text-3xl">
@@ -113,57 +113,40 @@ function EventWorkspace({
             </div>
           </CardAction>
         </CardHeader>
-        <CardContent className="relative mt-auto grid gap-5 sm:grid-cols-[1fr_auto] sm:items-end">
+        <CardContent className="mt-auto grid gap-5 px-6 pb-6 sm:grid-cols-[1fr_auto] sm:items-end">
           <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm">
             <span className="inline-flex items-center gap-2">
-              <CalendarDays className="size-4 text-primary" />
+              <CalendarDays className="size-4 text-brand-ink" />
               {event.startsAt
                 ? dateFormatter.format(new Date(event.startsAt))
                 : "Date not set"}
             </span>
             {event.locationName ? (
               <span className="inline-flex items-center gap-2">
-                <MapPin className="size-4 text-primary" />
+                <MapPin className="size-4 text-brand-ink" />
                 {event.locationName}
               </span>
             ) : null}
           </div>
-          <div className="flex items-center gap-3">
-            <div className="flex -space-x-2" aria-label="Event participants">
-              {event.participants.slice(0, 4).map((participant) => (
-                <Avatar
-                  key={participant.id}
-                  className="size-8 border-2 border-card"
-                >
-                  <AvatarImage
-                    src={participant.image ?? undefined}
-                    alt={participant.name}
-                  />
-                  <AvatarFallback className="text-[10px]">
-                    {initials(participant.name)}
-                  </AvatarFallback>
-                </Avatar>
-              ))}
-            </div>
-            <span className="text-sm text-muted-foreground">
-              {event.participants.length} people
-            </span>
-          </div>
+          <ParticipantAvatars participants={event.participants} />
         </CardContent>
       </Card>
 
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_22rem]">
-        <Card>
-          <CardHeader>
-            <CardTitle>Event schedule</CardTitle>
-            <CardDescription>
-              A concise view of planning appointments and guest-facing moments.
-            </CardDescription>
-            <CardAction>
+      <div className="grid gap-10 pt-2 xl:grid-cols-[minmax(0,1fr)_22rem]">
+        <section className="border-t pt-6">
+          <header className="mb-6 flex items-start justify-between gap-4">
+            <div>
+              <h2 className="app-section-heading">Event schedule</h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                A concise view of planning appointments and guest-facing
+                moments.
+              </p>
+            </div>
+            <div>
               <Badge variant="outline">{event.childEvents.length} events</Badge>
-            </CardAction>
-          </CardHeader>
-          <CardContent className="space-y-6">
+            </div>
+          </header>
+          <div className="space-y-6">
             <EventGroup
               title="Planning & scouting"
               icon={Compass}
@@ -175,27 +158,32 @@ function EventWorkspace({
               icon={PartyPopper}
               events={guestEvents}
             />
-          </CardContent>
-        </Card>
+          </div>
+        </section>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>People</CardTitle>
-            <CardDescription>
-              The people currently connected to this event.
-            </CardDescription>
+        <section className="border-t pt-6">
+          <header className="mb-6 flex items-start justify-between gap-4">
+            <div>
+              <h2 className="app-section-heading">People</h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                The people currently connected to this event.
+              </p>
+            </div>
             {event.pendingInvitationCount ? (
-              <CardAction>
+              <div>
                 <Badge variant="outline" className="gap-1">
                   <MailPlus />
                   {event.pendingInvitationCount} pending
                 </Badge>
-              </CardAction>
+              </div>
             ) : null}
-          </CardHeader>
-          <CardContent className="space-y-4">
+          </header>
+          <div className="divide-y border-y">
             {event.participants.map((participant) => (
-              <div key={participant.id} className="flex items-center gap-3">
+              <div
+                key={participant.id}
+                className="flex items-center gap-3 py-3"
+              >
                 <Avatar className="size-9">
                   <AvatarImage
                     src={participant.image ?? undefined}
@@ -218,11 +206,11 @@ function EventWorkspace({
                 </Badge>
               </div>
             ))}
-          </CardContent>
-        </Card>
+          </div>
+        </section>
       </div>
     </section>
-  )
+  );
 }
 
 function EventGroup({
@@ -230,60 +218,65 @@ function EventGroup({
   icon: Icon,
   events,
 }: {
-  title: string
-  icon: typeof Compass
-  events: EventWorkspaceSummary["childEvents"]
+  title: string;
+  icon: typeof Compass;
+  events: EventWorkspaceSummary["childEvents"];
 }) {
   return (
     <div className="space-y-3">
       <div className="flex items-center gap-2 text-sm font-medium">
-        <Icon className="size-4 text-primary" />
+        <Icon className="size-4 text-brand-ink" />
         {title}
       </div>
-      <div className="grid gap-3 sm:grid-cols-2">
+      <div className="divide-y border-y">
         {events.map((event) => (
           <div
             key={event.id}
-            className="rounded-lg border bg-muted/25 p-4 transition-colors hover:bg-muted/50"
+            className="flex items-center gap-4 py-4"
           >
-            <p className="font-medium">{event.title}</p>
-            <div className="mt-2 space-y-1 text-xs text-muted-foreground">
-              <p className="flex items-center gap-1.5">
-                <Clock3 className="size-3.5" />
-                {event.startsAt
-                  ? dateTimeFormatter.format(new Date(event.startsAt))
-                  : "Date not set"}
-              </p>
-              {event.locationName ? (
+            <div className="min-w-0 flex-1">
+              <p className="truncate font-medium">{event.title}</p>
+              <div className="mt-2 space-y-1 text-xs text-muted-foreground">
                 <p className="flex items-center gap-1.5">
-                  <MapPin className="size-3.5" />
-                  {event.locationName}
+                  <Clock3 className="size-3.5" />
+                  {event.startsAt
+                    ? dateTimeFormatter.format(new Date(event.startsAt))
+                    : "Date not set"}
                 </p>
-              ) : null}
-              <p className="flex items-center gap-1.5">
-                <Users className="size-3.5" />
-                {event.participantCount} participants
-              </p>
+                {event.locationName ? (
+                  <p className="flex items-center gap-1.5">
+                    <MapPin className="size-3.5" />
+                    {event.locationName}
+                  </p>
+                ) : null}
+              </div>
             </div>
+            <ParticipantAvatars
+              participants={event.participants}
+              totalCount={event.participantCount}
+              maxVisible={3}
+              size="sm"
+              showLabel={false}
+            />
           </div>
         ))}
       </div>
     </div>
-  )
+  );
 }
 
 function Home() {
-  const result = Route.useLoaderData()
-  const { workspaceContext } = Route.useRouteContext()
+  const result = Route.useLoaderData();
+  const { workspaceContext } = Route.useRouteContext();
 
-  if (!workspaceContext) return null
+  if (!workspaceContext) return null;
 
   return (
-    <div className="flex flex-1 flex-col gap-8 p-4 md:p-8">
+    <div className="app-page-shell">
       <ServerErrorToast error={result.ok ? null : result.error} />
       <div className="space-y-1">
         <div className="flex items-center gap-2">
-          <h1 className="text-2xl font-semibold tracking-tight">
+          <h1 className="text-2xl font-medium tracking-[-0.015em]">
             Event overview
           </h1>
         </div>
@@ -306,7 +299,7 @@ function Home() {
       ) : result.data.length === 0 ? (
         <Card className="max-w-2xl border-dashed bg-muted/30">
           <CardHeader>
-            <div className="mb-3 flex size-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
+            <div className="app-icon-tile mb-3">
               <CalendarDays className="size-5" />
             </div>
             <CardTitle>Your first event starts here</CardTitle>
@@ -326,5 +319,5 @@ function Home() {
         ))
       )}
     </div>
-  )
+  );
 }

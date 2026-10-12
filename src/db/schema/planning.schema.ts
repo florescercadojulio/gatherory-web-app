@@ -22,6 +22,7 @@ import { event, eventPlanningPermission } from "./event.schema"
 export const ideaCategory = pgEnum("idea_category", [
   "event",
   "registry",
+  "link",
   "venue",
   "attire",
   "flowers",

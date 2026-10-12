@@ -1,5 +1,4 @@
 import { and, asc, eq, gt, inArray, or } from "drizzle-orm"
-import { z } from "zod"
 
 import { db } from "@/db"
 import { user } from "@/db/schema/auth.schema"
@@ -15,41 +14,16 @@ import {
   materializeNativeMutation,
   NativeMaterializationError,
 } from "./native-materializer"
+import { type NativeMutation } from "./native-sync-contracts"
+import { compareNativeMutationOrder } from "./native-sync-ordering"
+
+export { pushRequestSchema } from "./native-sync-contracts"
 
 function nativeISODate(date: Date) {
   // Foundation's `.iso8601` decoder consistently accepts the seconds form;
   // JavaScript's default `toISOString()` always adds fractional seconds.
   return date.toISOString().replace(/\.\d{3}Z$/, "Z")
 }
-
-const mutationSchema = z.object({
-  id: z.uuid(),
-  scopeID: z.uuid(),
-  entityType: z.enum([
-    "workspace",
-    "event",
-    "idea",
-    "participant",
-    "event_participation",
-    "attendance",
-    "expense",
-    "registry_item",
-    "note",
-    "moment",
-  ]),
-  entityID: z.uuid(),
-  operation: z.enum(["create", "update", "delete"]),
-  payload: z.string().max(3_000_000),
-  baseVersion: z.number().int().nonnegative().nullable().optional(),
-  createdAt: z.iso.datetime(),
-  attemptCount: z.number().int().nonnegative(),
-})
-
-export const pushRequestSchema = z.object({
-  mutations: z.array(mutationSchema).min(1).max(50),
-})
-
-export type NativeMutation = z.infer<typeof mutationSchema>
 
 export type NativePushResult = {
   mutationID: string
@@ -93,7 +67,7 @@ export async function applyNativeMutations(input: {
 }) {
   const resultsByMutationId = new Map<string, NativePushResult>()
 
-  for (const mutation of input.mutations.toSorted(compareMutationOrder)) {
+  for (const mutation of input.mutations.toSorted(compareNativeMutationOrder)) {
     let result: NativePushResult
     try {
       result = await db.transaction(async (transaction) => {
@@ -325,28 +299,6 @@ export async function applyNativeMutations(input: {
       (mutation) => resultsByMutationId.get(mutation.id)!,
     ),
   }
-}
-
-const mutationDependencyOrder: Record<NativeMutation["entityType"], number> = {
-  workspace: 0,
-  participant: 1,
-  event: 2,
-  idea: 3,
-  event_participation: 4,
-  attendance: 5,
-  expense: 6,
-  registry_item: 7,
-  note: 8,
-  moment: 9,
-}
-
-function compareMutationOrder(left: NativeMutation, right: NativeMutation) {
-  const leftOrder = mutationDependencyOrder[left.entityType]
-  const rightOrder = mutationDependencyOrder[right.entityType]
-  if (left.operation === "delete" && right.operation !== "delete") return 1
-  if (left.operation !== "delete" && right.operation === "delete") return -1
-  if (left.operation === "delete") return rightOrder - leftOrder
-  return leftOrder - rightOrder
 }
 
 async function recordConflictingMutation(

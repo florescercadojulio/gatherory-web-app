@@ -18,6 +18,7 @@ import {
   type ReactNode,
   useRef
 } from "react"
+import { cn } from "cn"
 
 import { Button } from "@/components/ui/button.tsx"
 import {
@@ -48,12 +49,17 @@ export function focusFirstInvalidAuthFormControl(form: HTMLFormElement) {
 function AuthFormFieldError() {
   const field = useFieldContext<unknown>()
   const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
+  const errors = isInvalid ? getFormFieldErrors(field.state.meta.errors) : []
 
-  if (!isInvalid) return null
-
-  const errors = getFormFieldErrors(field.state.meta.errors)
-
-  return errors.length > 0 ? <FieldError errors={errors} /> : null
+  return (
+    <div
+      aria-live="polite"
+      className={cn(errors.length === 0 && "hidden")}
+      data-slot="auth-field-error-space"
+    >
+      {errors.length > 0 ? <FieldError errors={errors} /> : null}
+    </div>
+  )
 }
 
 function AuthFormServerError() {
@@ -67,7 +73,11 @@ function AuthFormServerError() {
             ? error.form
             : error
         const errors = getFormFieldErrors(formError ? [formError] : [])
-        return errors.length > 0 ? <FieldError errors={errors} /> : null
+        return (
+          <div aria-live="polite" data-slot="auth-form-error-space">
+            {errors.length > 0 ? <FieldError errors={errors} /> : null}
+          </div>
+        )
       }}
     </form.Subscribe>
   )

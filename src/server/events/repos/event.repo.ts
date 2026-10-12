@@ -1,44 +1,42 @@
-import { and, asc, eq, inArray, isNull, sql } from "drizzle-orm"
-import type { EffectDrizzleQueryError } from "drizzle-orm/effect-core"
-import type { PgClient } from "@effect/sql-pg/PgClient"
-import { Context, Effect } from "effect"
-import type { SqlError } from "effect/unstable/sql/SqlError"
+import { and, asc, eq, inArray, isNull, sql } from "drizzle-orm";
+import type { EffectDrizzleQueryError } from "drizzle-orm/effect-core";
+import type { PgClient } from "@effect/sql-pg/PgClient";
+import { Context, Effect } from "effect";
+import type { SqlError } from "effect/unstable/sql/SqlError";
 
-import { DB } from "@/db"
-import { member, organization, user } from "@/db/schema/auth.schema"
+import { DB } from "@/db";
+import { member, organization, user } from "@/db/schema/auth.schema";
 import {
   event,
   eventInvitation,
   eventParticipant,
   workspacePerson,
-} from "@/db/schema/event.schema"
+} from "@/db/schema/event.schema";
 import {
   nativeSyncScopeMember,
   nativeWorkspaceSnapshot,
-} from "@/db/schema/sync.schema"
+} from "@/db/schema/sync.schema";
 
 import type {
   AcceptEventInvitationInput,
   CreateEventInput,
   InviteEventParticipantInput,
-} from "../contracts/event.contracts"
-import { PersistenceError } from "@/server/effect"
+} from "../contracts/event.contracts";
+import { PersistenceError } from "@/server/effect";
 
 const planningPermissionToDatabase = {
   manage: "manage",
   contribute: "contribute",
   viewOnly: "view_only",
-} as const
+} as const;
 
 type InheritedParticipant = Pick<
   typeof eventParticipant.$inferSelect,
   "personId" | "role" | "planningPermission" | "attendanceStatus"
->
+>;
 
 type EventPersistenceError =
-  | EffectDrizzleQueryError
-  | SqlError
-  | PersistenceError
+  EffectDrizzleQueryError | SqlError | PersistenceError;
 
 function persistenceFailure(code: string) {
   return Effect.fail(
@@ -48,15 +46,15 @@ function persistenceFailure(code: string) {
       cause: new Error(code),
       debugMessage: code,
     }),
-  )
+  );
 }
 
 export function hasWorkspaceMembership(input: {
-  organizationId: string
-  userId: string
+  organizationId: string;
+  userId: string;
 }) {
   return Effect.gen(function* () {
-    const db = yield* DB
+    const db = yield* DB;
     const [membership] = yield* db
       .select({ id: member.id })
       .from(member)
@@ -66,18 +64,18 @@ export function hasWorkspaceMembership(input: {
           eq(member.userId, input.userId),
         ),
       )
-      .limit(1)
+      .limit(1);
 
-    return Boolean(membership)
-  })
+    return Boolean(membership);
+  });
 }
 
 export function getEventParticipant(input: {
-  eventId: string
-  userId: string
+  eventId: string;
+  userId: string;
 }) {
   return Effect.gen(function* () {
-    const db = yield* DB
+    const db = yield* DB;
     const [participant] = yield* db
       .select({
         role: eventParticipant.role,
@@ -98,22 +96,22 @@ export function getEventParticipant(input: {
           eq(workspacePerson.userId, input.userId),
         ),
       )
-      .limit(1)
+      .limit(1);
 
-    return participant
-  })
+    return participant;
+  });
 }
 
 export function createEventWithParticipants(input: {
-  organizationId: string
-  userId: string
-  event: CreateEventInput
+  organizationId: string;
+  userId: string;
+  event: CreateEventInput;
 }) {
   return Effect.gen(function* () {
-    const db = yield* DB
+    const db = yield* DB;
     return yield* db.transaction((transaction) =>
       Effect.gen(function* () {
-        let inheritedParticipants: InheritedParticipant[] = []
+        let inheritedParticipants: InheritedParticipant[] = [];
 
         if (input.event.parentEventId) {
           const [parent] = yield* transaction
@@ -129,12 +127,12 @@ export function createEventWithParticipants(input: {
                 eq(event.organizationId, input.organizationId),
               ),
             )
-            .limit(1)
+            .limit(1);
 
           if (!parent)
-            return yield* persistenceFailure("EVENT_PARENT_NOT_FOUND")
+            return yield* persistenceFailure("EVENT_PARENT_NOT_FOUND");
           if (parent.parentEventId)
-            return yield* persistenceFailure("EVENT_DEPTH_EXCEEDED")
+            return yield* persistenceFailure("EVENT_DEPTH_EXCEEDED");
 
           inheritedParticipants = yield* transaction
             .select({
@@ -144,7 +142,7 @@ export function createEventWithParticipants(input: {
               attendanceStatus: eventParticipant.attendanceStatus,
             })
             .from(eventParticipant)
-            .where(eq(eventParticipant.eventId, parent.id))
+            .where(eq(eventParticipant.eventId, parent.id));
         }
 
         const [createdEvent] = yield* transaction
@@ -179,10 +177,10 @@ export function createEventWithParticipants(input: {
             title: event.title,
             status: event.status,
             parentEventId: event.parentEventId,
-          })
+          });
 
         if (!createdEvent)
-          return yield* persistenceFailure("EVENT_CREATE_FAILED")
+          return yield* persistenceFailure("EVENT_CREATE_FAILED");
 
         if (inheritedParticipants.length) {
           yield* transaction.insert(eventParticipant).values(
@@ -190,15 +188,15 @@ export function createEventWithParticipants(input: {
               ...participant,
               eventId: createdEvent.id,
             })),
-          )
+          );
         } else {
           const [account] = yield* transaction
             .select({ name: user.name, email: user.email, image: user.image })
             .from(user)
             .where(eq(user.id, input.userId))
-            .limit(1)
+            .limit(1);
           if (!account)
-            return yield* persistenceFailure("EVENT_ACTOR_NOT_FOUND")
+            return yield* persistenceFailure("EVENT_ACTOR_NOT_FOUND");
 
           const [person] = yield* transaction
             .insert(workspacePerson)
@@ -219,9 +217,9 @@ export function createEventWithParticipants(input: {
                 updatedAt: new Date(),
               },
             })
-            .returning({ id: workspacePerson.id })
+            .returning({ id: workspacePerson.id });
           if (!person)
-            return yield* persistenceFailure("EVENT_PERSON_CREATE_FAILED")
+            return yield* persistenceFailure("EVENT_PERSON_CREATE_FAILED");
 
           yield* transaction.insert(eventParticipant).values({
             eventId: createdEvent.id,
@@ -229,21 +227,21 @@ export function createEventWithParticipants(input: {
             role: "host",
             planningPermission: "manage",
             attendanceStatus: "going",
-          })
+          });
         }
 
-        return createdEvent
+        return createdEvent;
       }),
-    )
-  })
+    );
+  });
 }
 
 export function listVisibleMainEvents(input: {
-  organizationId: string
-  userId: string
+  organizationId: string;
+  userId: string;
 }) {
   return Effect.gen(function* () {
-    const db = yield* DB
+    const db = yield* DB;
     const mainEvents = yield* db
       .select({
         id: event.id,
@@ -277,11 +275,11 @@ export function listVisibleMainEvents(input: {
           isNull(event.parentEventId),
         ),
       )
-      .orderBy(asc(event.startsAt), asc(event.createdAt))
+      .orderBy(asc(event.startsAt), asc(event.createdAt));
 
-    if (!mainEvents.length) return []
+    if (!mainEvents.length) return [];
 
-    const mainEventIds = mainEvents.map((item) => item.id)
+    const mainEventIds = mainEvents.map((item) => item.id);
     const childEvents = yield* db
       .select({
         id: event.id,
@@ -296,9 +294,12 @@ export function listVisibleMainEvents(input: {
       })
       .from(event)
       .where(inArray(event.parentEventId, mainEventIds))
-      .orderBy(asc(event.startsAt), asc(event.createdAt))
+      .orderBy(asc(event.startsAt), asc(event.createdAt));
 
-    const allEventIds = [...mainEventIds, ...childEvents.map((item) => item.id)]
+    const allEventIds = [
+      ...mainEventIds,
+      ...childEvents.map((item) => item.id),
+    ];
     const participants = yield* db
       .select({
         eventId: eventParticipant.eventId,
@@ -325,7 +326,7 @@ export function listVisibleMainEvents(input: {
         ),
       )
       .leftJoin(user, eq(user.id, workspacePerson.userId))
-      .where(inArray(eventParticipant.eventId, allEventIds))
+      .where(inArray(eventParticipant.eventId, allEventIds));
     const invitations = yield* db
       .select({ eventId: eventInvitation.eventId })
       .from(eventInvitation)
@@ -334,34 +335,34 @@ export function listVisibleMainEvents(input: {
           inArray(eventInvitation.eventId, allEventIds),
           eq(eventInvitation.status, "pending"),
         ),
-      )
+      );
 
     const participantsByEvent = Map.groupBy(
       participants,
       (participant) => participant.eventId,
-    )
+    );
     const invitationsByEvent = Map.groupBy(
       invitations,
       (invitation) => invitation.eventId,
-    )
+    );
     const childrenByParent = Map.groupBy(
       childEvents,
       (child) => child.parentEventId,
-    )
+    );
 
     return yield* Effect.forEach(mainEvents, (mainEvent) =>
       Effect.gen(function* () {
         if (!mainEvent.status)
-          return yield* persistenceFailure("MAIN_EVENT_STATUS_MISSING")
-        const status = mainEvent.status
+          return yield* persistenceFailure("MAIN_EVENT_STATUS_MISSING");
+        const status = mainEvent.status;
         const eventParticipants = (
           participantsByEvent.get(mainEvent.id) ?? []
-        ).map(({ eventId: _eventId, ...participant }) => participant)
+        ).map(({ eventId: _eventId, ...participant }) => participant);
         const currentParticipant = eventParticipants.find(
           (participant) => participant.userId === input.userId,
-        )
+        );
         if (!currentParticipant)
-          return yield* persistenceFailure("EVENT_PARTICIPANT_NOT_FOUND")
+          return yield* persistenceFailure("EVENT_PARTICIPANT_NOT_FOUND");
 
         return {
           ...mainEvent,
@@ -372,34 +373,37 @@ export function listVisibleMainEvents(input: {
           participants: eventParticipants,
           childEvents: (childrenByParent.get(mainEvent.id) ?? []).flatMap(
             (child) => {
-              if (!child.purpose || !child.status) return []
-              const status = child.status
-              const { parentEventId: _parentEventId, ...childEvent } = child
+              if (!child.purpose || !child.status) return [];
+              const status = child.status;
+              const { parentEventId: _parentEventId, ...childEvent } = child;
+              const childParticipants = participantsByEvent.get(child.id) ?? [];
               return [
                 {
                   ...childEvent,
                   status,
                   purpose: child.purpose,
-                  participantCount:
-                    participantsByEvent.get(child.id)?.length ?? 0,
+                  participantCount: childParticipants.length,
+                  participants: childParticipants
+                    .slice(0, 4)
+                    .map(({ id, name, image }) => ({ id, name, image })),
                 },
-              ]
+              ];
             },
           ),
-        }
+        };
       }),
-    )
-  })
+    );
+  });
 }
 
 export function createEventInvitation(input: {
-  actorUserId: string
-  invitation: InviteEventParticipantInput
+  actorUserId: string;
+  invitation: InviteEventParticipantInput;
 }) {
   return Effect.gen(function* () {
-    const db = yield* DB
-    const expiresAt = new Date()
-    expiresAt.setDate(expiresAt.getDate() + 14)
+    const db = yield* DB;
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + 14);
 
     const invitation = yield* db.transaction((transaction) =>
       Effect.gen(function* () {
@@ -407,10 +411,10 @@ export function createEventInvitation(input: {
           .select({ organizationId: event.organizationId })
           .from(event)
           .where(eq(event.id, input.invitation.eventId))
-          .limit(1)
-        if (!targetEvent) return yield* persistenceFailure("EVENT_NOT_FOUND")
+          .limit(1);
+        if (!targetEvent) return yield* persistenceFailure("EVENT_NOT_FOUND");
 
-        const email = input.invitation.email.trim().toLowerCase()
+        const email = input.invitation.email.trim().toLowerCase();
         const [existingPerson] = yield* transaction
           .select({ id: workspacePerson.id })
           .from(workspacePerson)
@@ -420,7 +424,7 @@ export function createEventInvitation(input: {
               eq(workspacePerson.email, email),
             ),
           )
-          .limit(1)
+          .limit(1);
 
         const person = existingPerson
           ? existingPerson
@@ -432,9 +436,9 @@ export function createEventInvitation(input: {
                   input.invitation.name || email.split("@")[0] || email,
                 email,
               })
-              .returning({ id: workspacePerson.id }))[0]
+              .returning({ id: workspacePerson.id }))[0];
         if (!person)
-          return yield* persistenceFailure("EVENT_INVITEE_CREATE_FAILED")
+          return yield* persistenceFailure("EVENT_INVITEE_CREATE_FAILED");
 
         const [createdInvitation] = yield* transaction
           .insert(eventInvitation)
@@ -468,24 +472,24 @@ export function createEventInvitation(input: {
             token: eventInvitation.token,
             email: eventInvitation.email,
             expiresAt: eventInvitation.expiresAt,
-          })
-        return createdInvitation
+          });
+        return createdInvitation;
       }),
-    )
+    );
 
     if (!invitation)
-      return yield* persistenceFailure("EVENT_INVITATION_CREATE_FAILED")
-    return invitation
-  })
+      return yield* persistenceFailure("EVENT_INVITATION_CREATE_FAILED");
+    return invitation;
+  });
 }
 
 export function acceptEventInvitation(input: {
-  userId: string
-  userEmail: string
-  invitation: AcceptEventInvitationInput
+  userId: string;
+  userEmail: string;
+  invitation: AcceptEventInvitationInput;
 }) {
   return Effect.gen(function* () {
-    const db = yield* DB
+    const db = yield* DB;
     return yield* db.transaction((transaction) =>
       Effect.gen(function* () {
         const [pendingInvitation] = yield* transaction
@@ -507,22 +511,22 @@ export function acceptEventInvitation(input: {
               eq(eventInvitation.status, "pending"),
             ),
           )
-          .limit(1)
+          .limit(1);
 
         if (!pendingInvitation)
-          return yield* persistenceFailure("EVENT_INVITATION_NOT_FOUND")
+          return yield* persistenceFailure("EVENT_INVITATION_NOT_FOUND");
         if (pendingInvitation.expiresAt <= new Date())
-          return yield* persistenceFailure("EVENT_INVITATION_EXPIRED")
+          return yield* persistenceFailure("EVENT_INVITATION_EXPIRED");
         if (pendingInvitation.email !== input.userEmail.trim().toLowerCase())
-          return yield* persistenceFailure("EVENT_INVITATION_EMAIL_MISMATCH")
+          return yield* persistenceFailure("EVENT_INVITATION_EMAIL_MISMATCH");
 
         const [account] = yield* transaction
           .select({ name: user.name, email: user.email, image: user.image })
           .from(user)
           .where(eq(user.id, input.userId))
-          .limit(1)
+          .limit(1);
         if (!account)
-          return yield* persistenceFailure("EVENT_INVITEE_ACCOUNT_NOT_FOUND")
+          return yield* persistenceFailure("EVENT_INVITEE_ACCOUNT_NOT_FOUND");
 
         const [linkedPerson] = yield* transaction
           .select({ id: workspacePerson.id })
@@ -536,9 +540,9 @@ export function acceptEventInvitation(input: {
               eq(workspacePerson.userId, input.userId),
             ),
           )
-          .limit(1)
+          .limit(1);
 
-        let acceptedPersonId = linkedPerson?.id ?? pendingInvitation.personId
+        let acceptedPersonId = linkedPerson?.id ?? pendingInvitation.personId;
         if (!linkedPerson) {
           const [updatedPerson] = yield* transaction
             .update(workspacePerson)
@@ -550,15 +554,15 @@ export function acceptEventInvitation(input: {
               updatedAt: new Date(),
             })
             .where(eq(workspacePerson.id, pendingInvitation.personId))
-            .returning({ id: workspacePerson.id })
+            .returning({ id: workspacePerson.id });
           if (!updatedPerson)
-            return yield* persistenceFailure("EVENT_INVITEE_LINK_FAILED")
-          acceptedPersonId = updatedPerson.id
+            return yield* persistenceFailure("EVENT_INVITEE_LINK_FAILED");
+          acceptedPersonId = updatedPerson.id;
         } else if (linkedPerson.id !== pendingInvitation.personId) {
           const oldParticipations = yield* transaction
             .select()
             .from(eventParticipant)
-            .where(eq(eventParticipant.personId, pendingInvitation.personId))
+            .where(eq(eventParticipant.personId, pendingInvitation.personId));
           for (const oldParticipation of oldParticipations) {
             const [existingParticipation] = yield* transaction
               .select({ id: eventParticipant.id })
@@ -569,7 +573,7 @@ export function acceptEventInvitation(input: {
                   eq(eventParticipant.personId, linkedPerson.id),
                 ),
               )
-              .limit(1)
+              .limit(1);
             if (existingParticipation) {
               yield* transaction
                 .update(eventParticipant)
@@ -579,24 +583,24 @@ export function acceptEventInvitation(input: {
                   attendanceStatus: oldParticipation.attendanceStatus,
                   updatedAt: new Date(),
                 })
-                .where(eq(eventParticipant.id, existingParticipation.id))
+                .where(eq(eventParticipant.id, existingParticipation.id));
               yield* transaction
                 .delete(eventParticipant)
-                .where(eq(eventParticipant.id, oldParticipation.id))
+                .where(eq(eventParticipant.id, oldParticipation.id));
             } else {
               yield* transaction
                 .update(eventParticipant)
                 .set({ personId: linkedPerson.id, updatedAt: new Date() })
-                .where(eq(eventParticipant.id, oldParticipation.id))
+                .where(eq(eventParticipant.id, oldParticipation.id));
             }
           }
           yield* transaction
             .update(eventInvitation)
             .set({ personId: linkedPerson.id, updatedAt: new Date() })
-            .where(eq(eventInvitation.personId, pendingInvitation.personId))
+            .where(eq(eventInvitation.personId, pendingInvitation.personId));
           yield* transaction
             .delete(workspacePerson)
-            .where(eq(workspacePerson.id, pendingInvitation.personId))
+            .where(eq(workspacePerson.id, pendingInvitation.personId));
         }
 
         const accepted = yield* transaction
@@ -613,10 +617,10 @@ export function acceptEventInvitation(input: {
               eq(eventInvitation.status, "pending"),
             ),
           )
-          .returning({ id: eventInvitation.id })
+          .returning({ id: eventInvitation.id });
 
         if (!accepted[0])
-          return yield* persistenceFailure("EVENT_INVITATION_ALREADY_USED")
+          return yield* persistenceFailure("EVENT_INVITATION_ALREADY_USED");
 
         yield* transaction
           .insert(eventParticipant)
@@ -628,7 +632,7 @@ export function acceptEventInvitation(input: {
           })
           .onConflictDoNothing({
             target: [eventParticipant.eventId, eventParticipant.personId],
-          })
+          });
 
         // Native workspaces use the root event UUID as their sync scope today.
         // Only a planning role on the main event implies workspace-wide access.
@@ -637,19 +641,19 @@ export function acceptEventInvitation(input: {
           .select({ id: event.id, parentEventId: event.parentEventId })
           .from(event)
           .where(eq(event.id, pendingInvitation.eventId))
-          .limit(1)
+          .limit(1);
         const nativeScopeId =
           acceptedEvent &&
           acceptedEvent.parentEventId === null &&
           pendingInvitation.role !== "guest"
             ? acceptedEvent.id
-            : null
+            : null;
         if (nativeScopeId) {
           const [nativeScope] = yield* transaction
             .select({ id: nativeWorkspaceSnapshot.scopeId })
             .from(nativeWorkspaceSnapshot)
             .where(eq(nativeWorkspaceSnapshot.scopeId, nativeScopeId))
-            .limit(1)
+            .limit(1);
           if (nativeScope) {
             yield* transaction
               .insert(nativeSyncScopeMember)
@@ -673,7 +677,7 @@ export function acceptEventInvitation(input: {
                       : "editor",
                   updatedAt: new Date(),
                 },
-              })
+              });
           }
         }
 
@@ -681,46 +685,45 @@ export function acceptEventInvitation(input: {
           eventId: pendingInvitation.eventId,
           role: pendingInvitation.role,
           planningPermission: pendingInvitation.planningPermission,
-        }
+        };
       }),
-    )
-  })
+    );
+  });
 }
 
-type EffectSuccess<T> = T extends Effect.Effect<infer A, unknown, unknown>
-  ? A
-  : never
+type EffectSuccess<T> =
+  T extends Effect.Effect<infer A, unknown, unknown> ? A : never;
 
 type EventRepoResult<T> = Effect.Effect<
   EffectSuccess<T>,
   EventPersistenceError,
   PgClient
->
+>;
 
 export type EventRepoShape = {
   readonly hasWorkspaceMembership: (
     input: Parameters<typeof hasWorkspaceMembership>[0],
-  ) => EventRepoResult<ReturnType<typeof hasWorkspaceMembership>>
+  ) => EventRepoResult<ReturnType<typeof hasWorkspaceMembership>>;
   readonly getEventParticipant: (
     input: Parameters<typeof getEventParticipant>[0],
-  ) => EventRepoResult<ReturnType<typeof getEventParticipant>>
+  ) => EventRepoResult<ReturnType<typeof getEventParticipant>>;
   readonly createEventWithParticipants: (
     input: Parameters<typeof createEventWithParticipants>[0],
-  ) => EventRepoResult<ReturnType<typeof createEventWithParticipants>>
+  ) => EventRepoResult<ReturnType<typeof createEventWithParticipants>>;
   readonly listVisibleMainEvents: (
     input: Parameters<typeof listVisibleMainEvents>[0],
-  ) => EventRepoResult<ReturnType<typeof listVisibleMainEvents>>
+  ) => EventRepoResult<ReturnType<typeof listVisibleMainEvents>>;
   readonly createEventInvitation: (
     input: Parameters<typeof createEventInvitation>[0],
-  ) => EventRepoResult<ReturnType<typeof createEventInvitation>>
+  ) => EventRepoResult<ReturnType<typeof createEventInvitation>>;
   readonly acceptEventInvitation: (
     input: Parameters<typeof acceptEventInvitation>[0],
-  ) => EventRepoResult<ReturnType<typeof acceptEventInvitation>>
-}
+  ) => EventRepoResult<ReturnType<typeof acceptEventInvitation>>;
+};
 
 /** Persistence contract consumed by the Event service. */
 export class EventRepo extends Context.Service<EventRepo, EventRepoShape>()(
   "EventRepo",
 ) {}
 
-export type EventRepoError = EventPersistenceError
+export type EventRepoError = EventPersistenceError;
