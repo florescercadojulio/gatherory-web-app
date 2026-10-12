@@ -71,18 +71,18 @@ initial setup short without creating an empty workspace shell.
 
 | PostgreSQL | iOS |
 | --- | --- |
-| `organization` + `workspace_planning_settings` | `WeddingWorkspace` |
-| root `event` | main-event fields on `WeddingWorkspace` |
+| `organization` + `workspace_planning_settings` | `PlanningWorkspace` |
+| root `event` | main-event fields on `PlanningWorkspace` |
 | child `event` | `TimelineItem` |
-| `workspace_person` | `WeddingMember` |
+| `workspace_person` | `WorkspaceMember` |
 | `event_participant` | `EventParticipation` |
-| `idea` | `WeddingIdea` |
+| `idea` | `PlanningIdea` |
 | `event_expense` | `EventExpense` |
 | `event_note` | `EventNote` |
 | `registry_item` | `RegistryItem` |
 | `media_asset` + placement | `EventMoment.mediaAssetID` and local upload state |
 
-`WeddingMember` can exist without an account. Its optional Better Auth user ID
+`WorkspaceMember` can exist without an account. Its optional Better Auth user ID
 is linked after invitation acceptance. Role and RSVP are event-specific and
 live in `EventParticipation` / `event_participant`.
 
@@ -93,9 +93,9 @@ materialization adapter translates these enums explicitly; it must not
 persist Swift raw values directly into normalized enum columns.
 
 Every mutation and remote envelope declares a `payloadSchemaVersion`. Version
-1 remains the compatibility default for clients and deployments created before
-the field existed. Unsupported future versions are rejected at the transport
-boundary before their payload reaches materialization.
+1 is the first public contract and uses `mainEventStartsAt`; the unreleased
+`weddingDate` key is intentionally unsupported. Future versions are rejected
+at the transport boundary until an explicit migration is implemented.
 
 ## Event state
 

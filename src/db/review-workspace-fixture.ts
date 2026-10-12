@@ -235,7 +235,7 @@ export function createReviewWorkspaceArchive(input: {
   return {
     mainEventID: events.main,
     title: "Alex & Jordan's Wedding",
-    weddingDate: foundationDate("2027-06-13T20:00:00.000Z"),
+    mainEventStartsAt: foundationDate("2027-06-13T20:00:00.000Z"),
     mainEventEndsAt: foundationDate("2027-06-14T05:00:00.000Z"),
     mainEventIsAllDay: false,
     mainEventTimeZoneIdentifier: "America/Detroit",

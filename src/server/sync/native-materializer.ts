@@ -213,7 +213,7 @@ async function materializeWorkspace(
     .onConflictDoNothing({ target: [member.organizationId, member.userId] })
 
   const location = optionalRecord(payload.mainEventLocation)
-  const start = nativeDate(payload.weddingDate, "WORKSPACE_START_MISSING")
+  const start = nativeDate(payload.mainEventStartsAt, "WORKSPACE_START_MISSING")
   const end = optionalNativeDate(payload.mainEventEndsAt)
   const timeZone = optionalTrimmed(payload.mainEventTimeZoneIdentifier) ?? "UTC"
   const planningMode = mapValue(payload.planningMode, {

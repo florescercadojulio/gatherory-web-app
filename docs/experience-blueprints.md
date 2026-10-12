@@ -301,15 +301,18 @@ Names and exact normalization should be finalized with the contract and use
 cases. These tables are intentionally not added to the first-release migration
 only to reserve them speculatively.
 
-## Compatibility strategy
+## Evolution strategy
 
-The existing event and wedding models remain valid first-release concepts.
-Evolution should be additive:
+The unreleased native model now uses experience-neutral names throughout:
+`PlanningWorkspace`, `PlanningIdea`, `WorkspaceMember`, `WorkspaceRole`, and
+`mainEventStartsAt`. Wedding remains a supported experience type and fixture,
+not a storage or runtime assumption. Evolution after release should be
+additive:
 
 1. **Complete:** establish contract sources plus generated JSON Schemas,
    examples, and cross-platform fixtures.
-2. **Complete:** add schema versions to native entity payloads and explicit adapters around
-   existing Swift payloads.
+2. **Complete:** add schema versions to native entity payloads and align the
+   Swift and TypeScript contract vocabulary before release.
 3. Introduce blueprint authoring and immutable revisions after release.
 4. Implement private authoring and preview before public discovery.
 5. Add resources, participant groups, and contribution visibility with
@@ -318,10 +321,10 @@ Evolution should be additive:
    stable.
 7. Add Android by consuming the same wire schemas through Kotlin DTO adapters.
 
-Existing names should be renamed only when they cross the new public contract
-or when a compatibility adapter makes the migration low risk. A broad
-first-release rename of database tables or Swift domain types would add risk
-without improving the contract.
+Because no public release depends on the earlier wedding-specific native
+schema, schema v1 uses the generalized names directly and carries no legacy
+aliases. Once released, future contract changes require a new version and an
+explicit migration.
 
 ## Required invariants
 

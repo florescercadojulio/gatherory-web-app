@@ -81,8 +81,9 @@ test("App Review fixture creates a populated iOS workspace snapshot", () => {
 test("App Review snapshot uses Foundation reference dates and valid UUIDs", () => {
   const archive = createReviewWorkspaceArchive({ users })
 
-  assert.equal(typeof archive.weddingDate, "number")
-  assert.ok(archive.weddingDate > 0)
+  assert.equal(typeof archive.mainEventStartsAt, "number")
+  assert.ok(archive.mainEventStartsAt > 0)
+  assert.equal("weddingDate" in archive, false)
   assert.match(
     archive.mainEventID,
     /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
