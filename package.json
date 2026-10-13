@@ -11,6 +11,7 @@
     "typecheck": "tsc --noEmit",
     "moderation:grant": "dotenv run -f .env.local -- tsx scripts/grant-moderator.ts",
     "test:media:r2": "dotenv run -f .env.local -- sh -c 'RUN_R2_MEDIA_TESTS=1 tsx --test tests/native-media-r2.test.ts'",
+    "test:account-deletion:local": "dotenv run -f .env.local -- sh -c 'RUN_ACCOUNT_DELETION_HTTP_TESTS=1 RUN_ACCOUNT_DELETION_R2_TESTS=1 tsx --test tests/account-deletion-http.database.test.ts'",
     "contracts:generate": "tsx scripts/generate-contract-schemas.ts",
     "contracts:check": "tsx scripts/generate-contract-schemas.ts --check",
     "auth:schema": "dotenv run -f .env.local -- pnpm dlx auth@1.7.7 generate --config ./src/lib/auth.ts --output ./src/db/schema/auth.schema.ts --yes",

@@ -17,6 +17,7 @@ import {
 } from "./native-materializer"
 import { type NativeMutation } from "./native-sync-contracts"
 import { compareNativeMutationOrder } from "./native-sync-ordering"
+import { deletedAccountTombstone } from "./native-tombstones"
 
 export { pushRequestSchema } from "./native-sync-contracts"
 
@@ -211,6 +212,12 @@ export async function applyNativeMutations(input: {
           )
           .limit(1)
 
+        // Reject even another delete: replacing this marker with an ordinary
+        // empty tombstone would allow a later unversioned create to resurrect it.
+        if (entity?.isDeleted && entity.payload === deletedAccountTombstone) {
+          return recordRejectedMutation(transaction, { userId: input.userId, mutation,
+            failureCode: "PARTICIPANT_ACCOUNT_DELETED" })
+        }
         if (
           entity &&
           mutation.baseVersion != null &&

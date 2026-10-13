@@ -50,10 +50,16 @@ test("native media routes authenticate and use the shared Effect boundary", () =
       join(process.cwd(), `src/routes/api/media/native/${route}.ts`),
       "utf8",
     )
-    assert.match(source, /nativeSyncUser\(request\)/)
-    assert.match(source, /runServerEffect\(/)
+    assert.match(source, /requestUser\(request\)/)
+    assert.match(source, /runServerResponse\(/)
     assert.match(source, /Effect\.provide\(PgClientLive\)/)
   }
+  const authentication = readFileSync(
+    join(process.cwd(), "src/server/http-errors.ts"), "utf8",
+  )
+  assert.match(authentication, /nativeSyncUser\(request\)/)
+  assert.match(authentication, /Effect\.fail\(new ForbiddenError\(/)
+  assert.match(authentication, /code: "UNAUTHORIZED", httpStatus: 401/)
 })
 
 test("native materialization projects every image-bearing domain onto typed media joins", () => {
