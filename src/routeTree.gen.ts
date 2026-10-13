@@ -21,6 +21,7 @@ import { Route as ProtectedWorkspacesWorkspaceSlugRouteRouteImport } from './rou
 import { Route as ApiAdminReportImageRouteImport } from './routes/api/admin/report-image'
 import { Route as ApiAdminReportsRouteImport } from './routes/api/admin/reports'
 import { Route as ApiAuthSplatRouteRouteImport } from './routes/api/auth/$/route'
+import { Route as ApiAuthAppleTokenRouteImport } from './routes/api/auth/apple-token'
 import { Route as ApiEventsInvitationsRouteImport } from './routes/api/events/invitations'
 import { Route as ApiInvitationsAcceptRouteImport } from './routes/api/invitations/accept'
 import { Route as ApiInvitationsPreviewRouteImport } from './routes/api/invitations/preview'
@@ -96,6 +97,11 @@ const ApiAdminReportsRoute = ApiAdminReportsRouteImport.update({
 const ApiAuthSplatRouteRoute = ApiAuthSplatRouteRouteImport.update({
   id: '/api/auth/$',
   path: '/api/auth/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAuthAppleTokenRoute = ApiAuthAppleTokenRouteImport.update({
+  id: '/api/auth/apple-token',
+  path: '/api/auth/apple-token',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiEventsInvitationsRoute = ApiEventsInvitationsRouteImport.update({
@@ -180,6 +186,7 @@ export interface FileRoutesByFullPath {
   '/api/auth/$': typeof ApiAuthSplatRouteRoute
   '/api/admin/report-image': typeof ApiAdminReportImageRoute
   '/api/admin/reports': typeof ApiAdminReportsRoute
+  '/api/auth/apple-token': typeof ApiAuthAppleTokenRoute
   '/api/events/invitations': typeof ApiEventsInvitationsRoute
   '/api/invitations/accept': typeof ApiInvitationsAcceptRoute
   '/api/invitations/preview': typeof ApiInvitationsPreviewRoute
@@ -206,6 +213,7 @@ export interface FileRoutesByTo {
   '/api/auth/$': typeof ApiAuthSplatRouteRoute
   '/api/admin/report-image': typeof ApiAdminReportImageRoute
   '/api/admin/reports': typeof ApiAdminReportsRoute
+  '/api/auth/apple-token': typeof ApiAuthAppleTokenRoute
   '/api/events/invitations': typeof ApiEventsInvitationsRoute
   '/api/invitations/accept': typeof ApiInvitationsAcceptRoute
   '/api/invitations/preview': typeof ApiInvitationsPreviewRoute
@@ -235,6 +243,7 @@ export interface FileRoutesById {
   '/api/auth/$': typeof ApiAuthSplatRouteRoute
   '/api/admin/report-image': typeof ApiAdminReportImageRoute
   '/api/admin/reports': typeof ApiAdminReportsRoute
+  '/api/auth/apple-token': typeof ApiAuthAppleTokenRoute
   '/api/events/invitations': typeof ApiEventsInvitationsRoute
   '/api/invitations/accept': typeof ApiInvitationsAcceptRoute
   '/api/invitations/preview': typeof ApiInvitationsPreviewRoute
@@ -264,6 +273,7 @@ export interface FileRouteTypes {
     | '/api/auth/$'
     | '/api/admin/report-image'
     | '/api/admin/reports'
+    | '/api/auth/apple-token'
     | '/api/events/invitations'
     | '/api/invitations/accept'
     | '/api/invitations/preview'
@@ -290,6 +300,7 @@ export interface FileRouteTypes {
     | '/api/auth/$'
     | '/api/admin/report-image'
     | '/api/admin/reports'
+    | '/api/auth/apple-token'
     | '/api/events/invitations'
     | '/api/invitations/accept'
     | '/api/invitations/preview'
@@ -318,6 +329,7 @@ export interface FileRouteTypes {
     | '/api/auth/$'
     | '/api/admin/report-image'
     | '/api/admin/reports'
+    | '/api/auth/apple-token'
     | '/api/events/invitations'
     | '/api/invitations/accept'
     | '/api/invitations/preview'
@@ -346,6 +358,7 @@ export interface RootRouteChildren {
   ApiAuthSplatRouteRoute: typeof ApiAuthSplatRouteRoute
   ApiAdminReportImageRoute: typeof ApiAdminReportImageRoute
   ApiAdminReportsRoute: typeof ApiAdminReportsRoute
+  ApiAuthAppleTokenRoute: typeof ApiAuthAppleTokenRoute
   ApiEventsInvitationsRoute: typeof ApiEventsInvitationsRoute
   ApiModerationBlocksRoute: typeof ApiModerationBlocksRoute
   ApiModerationHideRoute: typeof ApiModerationHideRoute
@@ -443,6 +456,13 @@ declare module '@tanstack/react-router' {
       path: '/api/auth/$'
       fullPath: '/api/auth/$'
       preLoaderRoute: typeof ApiAuthSplatRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/auth/apple-token': {
+      id: '/api/auth/apple-token'
+      path: '/api/auth/apple-token'
+      fullPath: '/api/auth/apple-token'
+      preLoaderRoute: typeof ApiAuthAppleTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/events/invitations': {
@@ -603,6 +623,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAuthSplatRouteRoute: ApiAuthSplatRouteRoute,
   ApiAdminReportImageRoute: ApiAdminReportImageRoute,
   ApiAdminReportsRoute: ApiAdminReportsRoute,
+  ApiAuthAppleTokenRoute: ApiAuthAppleTokenRoute,
   ApiEventsInvitationsRoute: ApiEventsInvitationsRoute,
   ApiModerationBlocksRoute: ApiModerationBlocksRoute,
   ApiModerationHideRoute: ApiModerationHideRoute,

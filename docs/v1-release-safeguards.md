@@ -34,26 +34,27 @@ explicitly. The support mailbox is not a role. The local provisioning command
 refuses missing/unverified accounts and remote databases. No real grant has
 been made during this pass.
 
-## Account deletion: unresolved findings
+## Account deletion: implemented and remaining checks
 
-The existing Better Auth deletion hook is not yet a completed release audit.
-It deletes uploader media and handles organization ownership, but remaining
-member selection currently does not verify event planning authority. Native
-snapshot/entity/change ownership still references users with cascading deletion,
-so deleting an owner or writer can remove shared replication history unless
-those records are transferred/sanitized deliberately. Native archive payloads
-and author/contact details require explicit cleanup, not only foreign-key nulling.
+The Better Auth deletion hook preserves shared planning and transfers ownership
+to an existing planner while removing the departing user's contact details,
+private workspaces, and uploaded R2 objects. The local HTTP/PostgreSQL/dev-R2
+deletion test covers owner and collaborator cases.
 
-The installed Better Auth deletion path does not revoke provider tokens. The
-native Apple sign-in currently transmits only an identity token and nonce; it
-does not exchange the authorization code for refresh/access tokens. New account
-creation needs a verified code-exchange/storage path, and deletion needs token
-revocation plus removal of local and server user data. Existing accounts without
-revocable credentials still require deletion and a clearly explained manual
-Apple-revocation fallback—not a permanently blocked Delete Account button.
-See [Apple TN3194](https://developer.apple.com/documentation/technotes/tn3194-handling-account-deletions-and-revoking-tokens-for-sign-in-with-apple).
+Native Sign in with Apple sends its single-use authorization code to the server
+after Better Auth verifies the identity token. The server exchanges the code
+with Apple, verifies the returned identity and App ID, binds it to the signed-in
+Apple account, and encrypts the refresh and access tokens in the Better Auth
+account record. Account deletion revokes a stored refresh token (or access token)
+with Apple's `/auth/revoke` endpoint before local deletion. A failed revocation
+leaves the Gatherory account available so deletion can be retried. Accounts
+created before code capture still delete without a token, and the iOS Delete
+Account sheet explains how to remove Gatherory manually in Apple settings.
+This follows [Apple TN3194](https://developer.apple.com/documentation/technotes/tn3194-handling-account-deletions-and-revoking-tokens-for-sign-in-with-apple).
 
-No live account-deletion or real R2-deletion test has been performed in this pass.
+The token exchange and revocation paths have controlled local database tests
+with signed fixture identity tokens and mocked Apple responses. A physical
+Sign in with Apple account and production Apple endpoint remain unverified.
 
 ## Content filtering: decision/provisioning still needed
 

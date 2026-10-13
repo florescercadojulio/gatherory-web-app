@@ -8,7 +8,6 @@ import { emailOTP } from 'better-auth/plugins/email-otp'
 import { magicLink } from 'better-auth/plugins/magic-link'
 import { organization } from 'better-auth/plugins/organization'
 import { tanstackStartCookies } from 'better-auth/tanstack-start'
-import { importPKCS8, SignJWT } from 'jose'
 
 import { db } from '@/db'
 import * as authSchema from '@/db/schema/auth.schema'
@@ -24,6 +23,7 @@ import {
   scheduleVerificationEmail,
 } from '@/server/email/auth-email'
 import { prepareGatheroryAccountDeletion } from '@/server/auth/account-deletion'
+import { generateAppleClientSecret, revokeAppleAccountsBeforeDeletion } from '@/server/auth/apple-tokens'
 
 const google =
   env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET
@@ -47,45 +47,13 @@ if (hasAnyAppleCredential && !hasAllAppleCredentials) {
   throw new ConfigurationError({ category: "system", code: "CONFIGURATION_INVALID", debugMessage: 'Apple authentication requires APPLE_CLIENT_ID, APPLE_TEAM_ID, APPLE_KEY_ID, and APPLE_PRIVATE_KEY.' })
 }
 
-async function generateAppleClientSecret({
-  clientId,
-  teamId,
-  keyId,
-  privateKey,
-}: {
-  clientId: string
-  teamId: string
-  keyId: string
-  privateKey: string
-}) {
-  const signingKey = await importPKCS8(
-    privateKey.replace(/\\n/g, '\n').trim(),
-    'ES256',
-  )
-  const now = Math.floor(Date.now() / 1000)
-
-  return new SignJWT({})
-    .setProtectedHeader({ alg: 'ES256', kid: keyId })
-    .setIssuer(teamId)
-    .setSubject(clientId)
-    .setAudience('https://appleid.apple.com')
-    .setIssuedAt(now)
-    .setExpirationTime(now + 180 * 24 * 60 * 60)
-    .sign(signingKey)
-}
-
 const apple = hasAllAppleCredentials
   ? async () => {
       const clientId = env.APPLE_CLIENT_ID!
 
       return {
         clientId,
-        clientSecret: await generateAppleClientSecret({
-          clientId,
-          teamId: env.APPLE_TEAM_ID!,
-          keyId: env.APPLE_KEY_ID!,
-          privateKey: env.APPLE_PRIVATE_KEY!,
-        }),
+        clientSecret: await generateAppleClientSecret(clientId),
         ...(env.APPLE_APP_BUNDLE_IDENTIFIER
           ? { appBundleIdentifier: env.APPLE_APP_BUNDLE_IDENTIFIER }
           : {}),
@@ -119,10 +87,12 @@ export const auth = betterAuth({
     deleteUser: {
       enabled: true,
       beforeDelete: async (user) => {
+        await revokeAppleAccountsBeforeDeletion(user.id)
         await prepareGatheroryAccountDeletion(user.id)
       },
     },
   },
+  account: { encryptOAuthTokens: true },
   emailAndPassword: {
     enabled: true,
     requireEmailVerification: true,
