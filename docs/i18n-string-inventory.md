@@ -26,11 +26,11 @@ Other non-copy values include route paths, query parameter names, database/API f
 
 ## Current implementation signals
 
-- `src/i18n/locales/en.ts` is the initial namespaced English catalog, and `src/i18n/index.ts` configures i18next/react-i18next with English as the only supported locale for now.
+- `src/i18n/locales/en.ts` is the namespaced English interface catalog. Application error copy also has matching English and Spanish catalogs in `en.server-errors.ts` and `es.server-errors.ts`; the remaining interface still falls back to English.
 - The app provider exposes i18next to the UI. Better Auth theme, magic-link, and email-code plugin copy is mapped from the English catalog; Better Auth's core auth views still use its own `locale`/`localization` structure.
 - The workspace overview, event workspace, account/delete flow, invitation flow, auth story, app navigation, route feedback, and common accessible UI labels now read from the catalog.
 - Workspace/invitation date display follows the active i18next language and event/activity counts use plural-aware keys. The workspace overview uses locale-aware currency formatting with USD because the current insight model does not provide a currency field.
-- Server failures still cross the server/client boundary as English `userMessage` prose. Stable error codes/categories should become client-side localization keys before a second locale is enabled.
+- Backend tagged errors identify safe copy with `userMessageKey`. `src/server/effect-utils.ts` translates it using request language (English fallback) and returns `userMessage`, `messageKey`, optional safe interpolation values, and `errorId`. Its isolated i18next instance never mutates the browser language or a shared request locale. Debug messages, original causes, and raw validation issues remain in developer logs. React error boundaries and Sonner continue to handle frontend errors normally.
 - Email content remains authored in React email components and plain text in the sending service; it is not yet extracted into a locale-aware resource.
 - Legal content and public marketing/SEO copy remain in the separate landing project and are not part of this app catalog.
 
@@ -38,7 +38,7 @@ Other non-copy values include route paths, query parameter names, database/API f
 
 `common`, `navigation`, `switcher`, `overview`, `event`, `roles`, `account`, `authStory`, `authPlugin`, `authForm`, `invitation`, `notFound`, `errors`, `feedback`, `picker`, `userMenu`, `appearance`, and `ui` separate reusable controls from feature-specific copy. Keep this distinction as further strings are extracted; avoid moving user-entered event/workspace content into the catalog.
 
-This is an English-only foundation, not a claim that every server response, email, legal page, or library-owned auth string has been translated. The remaining inventory above should be completed before adding a second supported locale.
+English and Spanish application-error copy and Better Auth error translations are supported. The remaining interface, email, and legal inventory should be completed before advertising a fully translated Spanish experience.
 
 ## Suggested extraction domains
 

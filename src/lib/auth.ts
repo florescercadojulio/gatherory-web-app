@@ -1,3 +1,4 @@
+import { ConfigurationError } from "@/lib/domain-errors"
 import { drizzleAdapter } from '@better-auth/drizzle-adapter/relations-v2'
 import { waitUntil } from '@vercel/functions'
 import { betterAuth } from 'better-auth'
@@ -43,9 +44,7 @@ const hasAnyAppleCredential = appleCredentialValues.some(Boolean)
 const hasAllAppleCredentials = appleCredentialValues.every(Boolean)
 
 if (hasAnyAppleCredential && !hasAllAppleCredentials) {
-  throw new Error(
-    'Apple authentication requires APPLE_CLIENT_ID, APPLE_TEAM_ID, APPLE_KEY_ID, and APPLE_PRIVATE_KEY.',
-  )
+  throw new ConfigurationError({ category: "system", code: "CONFIGURATION_INVALID", debugMessage: 'Apple authentication requires APPLE_CLIENT_ID, APPLE_TEAM_ID, APPLE_KEY_ID, and APPLE_PRIVATE_KEY.' })
 }
 
 async function generateAppleClientSecret({

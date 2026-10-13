@@ -1,3 +1,5 @@
+import { transportInput } from "@/lib/input-validation"
+import { validateInput } from "@/server/validation"
 import { createServerFn } from "@tanstack/react-start"
 import type { PgClient } from "@effect/sql-pg/PgClient"
 import { Effect } from "effect"
@@ -29,20 +31,20 @@ import { EventServiceLive } from "../services/event.service.live"
 import { acceptEventShareLink, previewEventShareLink } from "../repos/event-share-link.repo"
 
 export const getSharedEventInvitation = createServerFn({ method: "GET" })
-  .validator(AcceptEventInvitationInputSchema)
-  .handler(({ data }) => runServerEffect(previewEventShareLink(data.token).pipe(Effect.provide(PgClientLive))))
+  .validator(transportInput(AcceptEventInvitationInputSchema))
+  .handler(({ data }) => runServerEffect(validateInput(AcceptEventInvitationInputSchema, data).pipe(Effect.flatMap((data) =>previewEventShareLink(data.token).pipe(Effect.provide(PgClientLive))))))
 
 export const getJoinedSharedInvitation = createServerFn({ method: "GET" })
   .middleware([requireSessionMiddleware])
-  .validator(AcceptEventInvitationInputSchema)
-  .handler(({ data, context }) => runServerEffect(previewEventShareLink(data.token, context.user.id).pipe(Effect.provide(PgClientLive))))
+  .validator(transportInput(AcceptEventInvitationInputSchema))
+  .handler(({ data, context }) => runServerEffect(validateInput(AcceptEventInvitationInputSchema, data).pipe(Effect.flatMap((data) =>previewEventShareLink(data.token, context.user.id).pipe(Effect.provide(PgClientLive))))))
 
 export const acceptSharedEventInvitation = createServerFn({ method: "POST" })
   .middleware([requireSessionMiddleware])
-  .validator(AcceptEventInvitationInputSchema)
-  .handler(({ data, context }) => runServerEffect(
+  .validator(transportInput(AcceptEventInvitationInputSchema))
+  .handler(({ data, context }) => runServerEffect(validateInput(AcceptEventInvitationInputSchema, data).pipe(Effect.flatMap((data) =>
     acceptEventShareLink(context.user.id, data.token).pipe(Effect.provide(PgClientLive)),
-  ))
+  ))))
 
 const provideEventLayers = <A, E>(
   program: Effect.Effect<A, E, EventService | PgClient>,
@@ -56,22 +58,22 @@ const provideEventLayers = <A, E>(
 
 export const createEvent = createServerFn({ method: "POST" })
   .middleware([requireSessionMiddleware])
-  .validator(CreateEventInputSchema)
+  .validator(transportInput(CreateEventInputSchema))
   .handler(({ data, context }) => {
     const organizationId = context.session.activeOrganizationId
     if (!organizationId) {
-      return runServerEffect(
+      return runServerEffect(validateInput(CreateEventInputSchema, data).pipe(Effect.flatMap(() =>
         Effect.fail(
           new InvalidInputError({
             category: "validation",
             code: "ACTIVE_WORKSPACE_REQUIRED",
-            userMessage: "Choose a workspace and try again.",
+            userMessageKey: "serverErrors.ACTIVE_WORKSPACE_REQUIRED",
           }),
         ),
-      )
+      )))
     }
 
-    return runServerEffect(
+    return runServerEffect(validateInput(CreateEventInputSchema, data).pipe(Effect.flatMap((data) =>
       provideEventLayers(
         createEventWorkflow({
           organizationId,
@@ -79,29 +81,29 @@ export const createEvent = createServerFn({ method: "POST" })
           event: data,
         }),
       ),
-    )
+    )))
   })
 
 export const listEvents = createServerFn({ method: "GET" })
   .middleware([requireSessionMiddleware])
-  .validator(ListEventsInputSchema)
+  .validator(transportInput(ListEventsInputSchema))
   .handler(
     ({ data, context }): Promise<ServerResult<EventWorkspaceSummary[]>> =>
-      runServerEffect(
+      runServerEffect(validateInput(ListEventsInputSchema, data).pipe(Effect.flatMap((data) =>
         provideEventLayers(
           listEventsWorkflow({
             organizationId: data.organizationId,
             userId: context.user.id,
           }),
         ),
-      ),
+      ))),
   )
 
 export const inviteEventParticipant = createServerFn({ method: "POST" })
   .middleware([requireSessionMiddleware])
-  .validator(InviteEventParticipantInputSchema)
+  .validator(transportInput(InviteEventParticipantInputSchema))
   .handler(({ data, context }) =>
-    runServerEffect(
+    runServerEffect(validateInput(InviteEventParticipantInputSchema, data).pipe(Effect.flatMap((data) =>
       provideEventLayers(
         inviteEventParticipantWorkflow({
           userId: context.user.id,
@@ -113,18 +115,18 @@ export const inviteEventParticipant = createServerFn({ method: "POST" })
           })),
         ),
       ),
-    ),
+    ))),
   )
 
 export const acceptEventInvitation = createServerFn({ method: "POST" })
   .middleware([requireSessionMiddleware])
-  .validator(AcceptEventInvitationInputSchema)
+  .validator(transportInput(AcceptEventInvitationInputSchema))
   .handler(({ data, context }) =>
-    runServerEffect(
+    runServerEffect(validateInput(AcceptEventInvitationInputSchema, data).pipe(Effect.flatMap((data) =>
       !context.user.emailVerified
         ? Effect.fail(new ForbiddenError({
             category: "authorization", code: "INVITATION_EMAIL_UNVERIFIED",
-            userMessage: "Verify your email address before accepting this invitation.",
+            userMessageKey: "serverErrors.INVITATION_EMAIL_UNVERIFIED",
           }))
         :
       provideEventLayers(
@@ -134,14 +136,14 @@ export const acceptEventInvitation = createServerFn({ method: "POST" })
           invitation: data,
         }),
       ),
-    ),
+    ))),
   )
 
 /** Invitation details are private to the addressed account, even with a token. */
 export const getEventInvitation = createServerFn({ method: "GET" })
   .middleware([requireSessionMiddleware])
-  .validator(AcceptEventInvitationInputSchema)
-  .handler(({ data, context }) => runServerEffect(
+  .validator(transportInput(AcceptEventInvitationInputSchema))
+  .handler(({ data, context }) => runServerEffect(validateInput(AcceptEventInvitationInputSchema, data).pipe(Effect.flatMap((data) =>
     Effect.gen(function* () {
       const db = yield* DB
       const [invitation] = yield* db.select({
@@ -155,9 +157,9 @@ export const getEventInvitation = createServerFn({ method: "GET" })
       if (!invitation || !["pending", "accepted"].includes(invitation.status)) {
         return yield* Effect.fail(new EntityNotFoundError({
           category: "not_found", code: "INVITATION_UNAVAILABLE",
-          userMessage: "This invitation is unavailable. Use the email address that was invited, or ask the host for a new link.",
+          userMessageKey: "serverErrors.INVITATION_UNAVAILABLE",
         }))
       }
       return { ...invitation, expiresAt: invitation.expiresAt.toISOString() }
     }).pipe(Effect.provide(PgClientLive)),
-  ))
+  ))))

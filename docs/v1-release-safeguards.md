@@ -8,8 +8,8 @@
 - A guest can leave exactly their selected invitation after server acknowledgement.
   A durable departure marker prevents stale native participation from restoring
   access; only a fresh validated invitation clears it.
-- iOS exposes workspace-scoped durable save/upload feedback. Draft editors
-  distinguish saved state from unsaved form input.
+- iOS Account centralizes sync/media-transfer status and manual retry. Editors
+  and invitation content do not duplicate sync indicators or explanatory copy.
 - Add to Calendar uses the native editor, exports a copy, and handles all-day
   inclusive dates and time zones. It does not request calendar read permission.
 - Personal photo hide/report, account-isolated caches, user blocking/unblocking,

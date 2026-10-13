@@ -1,4 +1,7 @@
+import { transportInput } from "@/lib/input-validation"
+import { validateInput } from "@/server/validation"
 import { and, eq, inArray, isNull, sql } from "drizzle-orm"
+import { Effect } from "effect"
 import { createServerFn } from "@tanstack/react-start"
 import { getRequestHeaders } from "@tanstack/react-start/server"
 import { z } from "zod"
@@ -13,7 +16,7 @@ import {
 import { workspacePlanningSettings } from "@/db/schema/planning.schema"
 import { auth } from "@/lib/auth"
 import { requireSessionMiddleware } from "@/lib/auth.middleware"
-import { runServerEffect, tryServerOperation } from "@/server/effect"
+import { PersistenceError, runServerEffect, tryServerOperation } from "@/server/effect"
 import { createEventWorkspace } from "@/server/workspaces/create-event-workspace"
 
 type AuthWorkspace = {
@@ -269,7 +272,7 @@ export const ensurePersonalWorkspace = createServerFn({ method: "GET" })
         {
           category: "system",
           code: "PERSONAL_WORKSPACE_PROVISION_FAILED",
-          userMessage: "Your workspace could not be prepared. Try again.",
+          userMessageKey: "serverErrors.PERSONAL_WORKSPACE_PROVISION_FAILED",
         },
         async () => {
           const headers = getRequestHeaders()
@@ -306,14 +309,14 @@ export const ensurePersonalWorkspace = createServerFn({ method: "GET" })
 
 export const createWorkspace = createServerFn({ method: "POST" })
   .middleware([requireSessionMiddleware])
-  .validator(CreateWorkspaceInputSchema)
+  .validator(transportInput(CreateWorkspaceInputSchema))
   .handler(({ data, context }) =>
-    runServerEffect(
+    runServerEffect(validateInput(CreateWorkspaceInputSchema, data).pipe(Effect.flatMap((data) =>
       tryServerOperation(
         {
           category: "system",
           code: "WORKSPACE_CREATE_FAILED",
-          userMessage: "The workspace could not be created. Try again.",
+          userMessageKey: "serverErrors.WORKSPACE_CREATE_FAILED",
         },
         async () => {
           let disposableWorkspaceId: string | null = null
@@ -410,7 +413,7 @@ export const createWorkspace = createServerFn({ method: "POST" })
                 })
                 .returning({ id: event.id })
 
-              if (!mainEvent) throw new Error("MAIN_EVENT_CREATE_FAILED")
+              if (!mainEvent) throw new PersistenceError({ category: "system", code: "MAIN_EVENT_CREATE_FAILED", userMessageKey: "serverErrors.MAIN_EVENT_CREATE_FAILED", debugMessage: "The insert returned no main event." })
 
               const [hostPerson] = await transaction
                 .insert(workspacePerson)
@@ -436,7 +439,7 @@ export const createWorkspace = createServerFn({ method: "POST" })
                 })
                 .returning({ id: workspacePerson.id })
 
-              if (!hostPerson) throw new Error("WORKSPACE_PERSON_CREATE_FAILED")
+              if (!hostPerson) throw new PersistenceError({ category: "system", code: "WORKSPACE_PERSON_CREATE_FAILED", userMessageKey: "serverErrors.WORKSPACE_PERSON_CREATE_FAILED", debugMessage: "The insert returned no host person." })
 
               await transaction.insert(eventParticipant).values({
                 eventId: mainEvent.id,
@@ -493,7 +496,7 @@ export const createWorkspace = createServerFn({ method: "POST" })
           }
         },
       ),
-    ),
+    ))),
   )
 
 const ResolveWorkspaceInputSchema = z.object({
@@ -502,14 +505,14 @@ const ResolveWorkspaceInputSchema = z.object({
 
 export const resolveWorkspace = createServerFn({ method: "GET" })
   .middleware([requireSessionMiddleware])
-  .validator(ResolveWorkspaceInputSchema)
+  .validator(transportInput(ResolveWorkspaceInputSchema))
   .handler(({ data, context }) =>
-    runServerEffect(
+    runServerEffect(validateInput(ResolveWorkspaceInputSchema, data).pipe(Effect.flatMap((data) =>
       tryServerOperation(
         {
           category: "system",
           code: "WORKSPACE_RESOLVE_FAILED",
-          userMessage: "This workspace could not be loaded. Try again.",
+          userMessageKey: "serverErrors.WORKSPACE_RESOLVE_FAILED",
         },
         async () => {
           const headers = getRequestHeaders()
@@ -549,5 +552,5 @@ export const resolveWorkspace = createServerFn({ method: "GET" })
           }
         },
       ),
-    ),
+    ))),
   )

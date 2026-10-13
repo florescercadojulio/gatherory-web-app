@@ -8,6 +8,7 @@ import {
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner"
 
 import { env } from "@/env"
+import { ExternalServiceError } from "@/lib/domain-errors"
 
 export type MediaVisibility = "private" | "public"
 
@@ -66,7 +67,7 @@ function requireConfiguredBucket(
     bucket !== configuration.privateBucket &&
     bucket !== configuration.publicBucket
   ) {
-    throw new Error("MEDIA_STORAGE_BUCKET_INVALID")
+    throw new ExternalServiceError({ category: "external", code: "MEDIA_STORAGE_BUCKET_INVALID", userMessageKey: "serverErrors.MEDIA_STORAGE_BUCKET_INVALID", debugMessage: "The asset bucket is not an allowed R2 bucket." })
   }
 
   return bucket

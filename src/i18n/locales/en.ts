@@ -1,4 +1,7 @@
+import serverErrors from "./en.server-errors"
+
 const en = {
+  serverErrors,
   moderation: {
     title: "Abuse reports", description: "Review reported images. Normal uploads do not need host approval.",
     signIn: "Sign in with a moderator account", loadFailed: "Could not load reports. Try again.",

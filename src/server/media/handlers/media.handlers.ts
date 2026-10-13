@@ -1,17 +1,11 @@
+import { transportInput } from "@/lib/input-validation"
+import { validateInput } from "@/server/validation"
 import { createServerFn } from "@tanstack/react-start"
 import { Effect } from "effect"
 
 import { PgClientLive } from "@/db"
 import { requireSessionMiddleware } from "@/lib/auth.middleware"
-import {
-  ConflictError,
-  EntityNotFoundError,
-  ExternalServiceError,
-  ForbiddenError,
-  InvalidInputError,
-  ServerOperationError,
-  runServerEffect,
-} from "@/server/effect"
+import { runServerEffect, serverOperationError } from "@/server/effect"
 
 import {
   FinalizeEventMediaUploadInputSchema,
@@ -24,83 +18,43 @@ import {
   prepareEventMediaUploadWorkflow,
 } from "../workflows/media.workflows"
 
-export function mediaError(error: unknown) {
-  if (error instanceof EntityNotFoundError) return error
-  if (error instanceof Error) {
-    if (error.message === "MEDIA_STORAGE_NOT_CONFIGURED") {
-      return new ExternalServiceError({
-        category: "external",
-        code: error.message,
-        userMessage: "Media storage is not configured yet.",
-        cause: error,
-      })
-    }
-    if (error.message === "MEDIA_FORBIDDEN") {
-      return new ForbiddenError({
-        category: "authorization",
-        code: error.message,
-        userMessage: "You do not have permission to change this event's media.",
-        cause: error,
-      })
-    }
-    if (error.message === "MEDIA_UPLOAD_MISMATCH") {
-      return new InvalidInputError({
-        category: "validation",
-        code: error.message,
-        userMessage: "The uploaded image did not match the selected file.",
-        cause: error,
-      })
-    }
-    if (error.message === "MEDIA_INVALID_STATE") {
-      return new ConflictError({
-        category: "conflict",
-        code: error.message,
-        userMessage: "This media upload can no longer be completed.",
-        cause: error,
-      })
-    }
-  }
-
-  return new ServerOperationError({
-    category: "system",
-    code: "MEDIA_OPERATION_FAILED",
-    userMessage: "The media operation could not be completed. Try again.",
-    cause: error,
-  })
+/** Expected tagged failures preserve their identity at promise boundaries. */
+export function mediaError(cause: unknown) {
+  return serverOperationError(cause, { category: "system", code: "MEDIA_OPERATION_FAILED", userMessageKey: "serverErrors.MEDIA_OPERATION_FAILED" })
 }
 
 export const prepareEventMediaUpload = createServerFn({ method: "POST" })
   .middleware([requireSessionMiddleware])
-  .validator(PrepareEventMediaUploadInputSchema)
+  .validator(transportInput(PrepareEventMediaUploadInputSchema))
   .handler(({ data, context }) =>
-    runServerEffect(
+    runServerEffect(validateInput(PrepareEventMediaUploadInputSchema, data).pipe(Effect.flatMap((data) =>
       prepareEventMediaUploadWorkflow({
         userId: context.user.id,
         media: data,
       }).pipe(Effect.mapError(mediaError), Effect.provide(PgClientLive)),
-    ),
+    ))),
   )
 
 export const finalizeEventMediaUpload = createServerFn({ method: "POST" })
   .middleware([requireSessionMiddleware])
-  .validator(FinalizeEventMediaUploadInputSchema)
+  .validator(transportInput(FinalizeEventMediaUploadInputSchema))
   .handler(({ data, context }) =>
-    runServerEffect(
+    runServerEffect(validateInput(FinalizeEventMediaUploadInputSchema, data).pipe(Effect.flatMap((data) =>
       finalizeEventMediaUploadWorkflow({
         userId: context.user.id,
         media: data,
       }).pipe(Effect.mapError(mediaError), Effect.provide(PgClientLive)),
-    ),
+    ))),
   )
 
 export const getEventMediaUrl = createServerFn({ method: "GET" })
   .middleware([requireSessionMiddleware])
-  .validator(GetEventMediaUrlInputSchema)
+  .validator(transportInput(GetEventMediaUrlInputSchema))
   .handler(({ data, context }) =>
-    runServerEffect(
+    runServerEffect(validateInput(GetEventMediaUrlInputSchema, data).pipe(Effect.flatMap((data) =>
       getEventMediaUrlWorkflow({
         userId: context.user.id,
         mediaAssetId: data.mediaAssetId,
       }).pipe(Effect.mapError(mediaError), Effect.provide(PgClientLive)),
-    ),
+    ))),
   )

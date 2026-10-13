@@ -25,7 +25,8 @@ import type {
   CreateEventInput,
   InviteEventParticipantInput,
 } from "../contracts/event.contracts";
-import { PersistenceError, type ConflictError, type EntityNotFoundError, type ForbiddenError } from "@/server/effect";
+import { type ConflictError, type EntityNotFoundError, type ForbiddenError } from "@/server/effect";
+import { EventRepositoryError, eventRepositoryError } from "../errors";
 import { requireUnblockedInvitation } from "@/server/moderation/user-block.repo";
 import { requireJoinableEvent } from "./event-lifecycle.repo";
 import { retainedEventAccess } from "./event-departure.repo";
@@ -42,17 +43,10 @@ type InheritedParticipant = Pick<
 >;
 
 type EventPersistenceError =
-  EffectDrizzleQueryError | SqlError | PersistenceError | ConflictError | EntityNotFoundError | ForbiddenError;
+  EffectDrizzleQueryError | SqlError | EventRepositoryError | ConflictError | EntityNotFoundError | ForbiddenError;
 
 function persistenceFailure(code: string) {
-  return Effect.fail(
-    new PersistenceError({
-      category: "system",
-      code,
-      cause: new Error(code),
-      debugMessage: code,
-    }),
-  );
+  return Effect.fail(eventRepositoryError(code));
 }
 
 export function hasWorkspaceMembership(input: {

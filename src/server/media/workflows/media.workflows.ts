@@ -21,9 +21,10 @@ import {
 } from "../connectors/media-storage.con"
 import { MediaKeys } from "../media.keys"
 import { canReadMedia } from "@/server/moderation/media-visibility"
-import { EntityNotFoundError } from "@/server/effect"
+import { EntityNotFoundError, ExternalServiceError, isDomainError } from "@/server/effect"
+import { mediaFailure } from "../errors"
 
-const unavailableMedia = () => new EntityNotFoundError({ category: "not_found", code: "MEDIA_NOT_FOUND", userMessage: "This image is no longer available." })
+const unavailableMedia = () => new EntityNotFoundError({ category: "not_found", code: "MEDIA_NOT_FOUND", userMessageKey: "serverErrors.MEDIA_NOT_FOUND" })
 import {
   createPendingEventMedia,
   getEventMediaAccessContext,
@@ -52,14 +53,16 @@ function requireCapabilities(input: {
       input.required,
     )
   ) {
-    return Effect.fail(new Error("MEDIA_FORBIDDEN"))
+    return Effect.fail(mediaFailure("MEDIA_FORBIDDEN"))
   }
 
   return Effect.void
 }
 
 function externalOperation<A>(operation: () => Promise<A>) {
-  return Effect.tryPromise({ try: operation, catch: (error) => error })
+  return Effect.tryPromise({ try: operation, catch: (cause) => isDomainError(cause) ? cause : new ExternalServiceError({
+    category: "external", code: "MEDIA_STORAGE_OPERATION_FAILED", userMessageKey: "serverErrors.MEDIA_OPERATION_FAILED", cause,
+  }) })
 }
 
 function logUploadMismatch(
@@ -88,7 +91,7 @@ export function prepareEventMediaUploadWorkflow(input: {
       eventId: input.media.eventId,
       userId: input.userId,
     })
-    if (!actor) return yield* Effect.fail(new Error("MEDIA_FORBIDDEN"))
+    if (!actor) return yield* Effect.fail(mediaFailure("MEDIA_FORBIDDEN"))
 
     yield* requireCapabilities({
       role: actor.role,
@@ -143,7 +146,7 @@ export function finalizeEventMediaUploadWorkflow(input: {
       mediaAssetId: input.media.mediaAssetId,
       userId: input.userId,
     })
-    if (!context) return yield* Effect.fail(new Error("MEDIA_FORBIDDEN"))
+    if (!context) return yield* Effect.fail(mediaFailure("MEDIA_FORBIDDEN"))
 
     yield* requireCapabilities({
       role: context.participantRole,
@@ -164,7 +167,7 @@ export function finalizeEventMediaUploadWorkflow(input: {
       return { mediaAssetId: context.mediaAssetId, url }
     }
     if (context.status !== "pending")
-      return yield* Effect.fail(new Error("MEDIA_INVALID_STATE"))
+      return yield* Effect.fail(mediaFailure("MEDIA_INVALID_STATE"))
 
     const storedObject = yield* externalOperation(() =>
       inspectMediaObject({
@@ -186,7 +189,7 @@ export function finalizeEventMediaUploadWorkflow(input: {
           key: context.storageKey,
         }).catch(() => undefined),
       )
-      return yield* Effect.fail(new Error("MEDIA_UPLOAD_MISMATCH"))
+      return yield* Effect.fail(mediaFailure("MEDIA_UPLOAD_MISMATCH"))
     }
 
     yield* markEventMediaReady({
@@ -244,7 +247,7 @@ export function prepareNativeMediaUploadWorkflow(input: {
       scopeId: input.media.scopeId,
       userId: input.userId,
     })
-    if (!actor) return yield* Effect.fail(new Error("MEDIA_FORBIDDEN"))
+    if (!actor) return yield* Effect.fail(mediaFailure("MEDIA_FORBIDDEN"))
 
     const storageKey = MediaKeys.original({
       workspaceId: actor.organizationId,
@@ -290,7 +293,7 @@ export function finalizeNativeMediaUploadWorkflow(input: {
       userId: input.userId,
     })
     if (!context || context.uploadedByUserId !== input.userId) {
-      return yield* Effect.fail(new Error("MEDIA_FORBIDDEN"))
+      return yield* Effect.fail(mediaFailure("MEDIA_FORBIDDEN"))
     }
 
     if (context.status === "ready") {
@@ -301,7 +304,7 @@ export function finalizeNativeMediaUploadWorkflow(input: {
       return { mediaAssetId: context.mediaAssetId, url }
     }
     if (context.status !== "pending") {
-      return yield* Effect.fail(new Error("MEDIA_INVALID_STATE"))
+      return yield* Effect.fail(mediaFailure("MEDIA_INVALID_STATE"))
     }
 
     const storedObject = yield* externalOperation(() =>
@@ -320,7 +323,7 @@ export function finalizeNativeMediaUploadWorkflow(input: {
           () => undefined,
         ),
       )
-      return yield* Effect.fail(new Error("MEDIA_UPLOAD_MISMATCH"))
+      return yield* Effect.fail(mediaFailure("MEDIA_UPLOAD_MISMATCH"))
     }
 
     yield* markNativeMediaReady({

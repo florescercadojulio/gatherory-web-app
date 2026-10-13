@@ -1,4 +1,6 @@
 import { and, eq, sql } from "drizzle-orm"
+import { Data } from "effect"
+import type { DomainErrorShape } from "@/lib/domain-errors"
 
 import { db } from "@/db"
 import { member, organization, user } from "@/db/schema/auth.schema"
@@ -30,10 +32,13 @@ type NativeTransaction = Parameters<Parameters<typeof db.transaction>[0]>[0]
 
 const appleReferenceDateOffsetSeconds = 978_307_200
 
-export class NativeMaterializationError extends Error {
-  constructor(readonly code: string) {
-    super(code)
-  }
+export class NativeMaterializationError extends Data.TaggedError("NativeMaterializationError")<DomainErrorShape & { code: string }> {}
+
+function nativeMaterializationFailure(code: string) {
+  return new NativeMaterializationError({
+    category: /SCOPE_MISMATCH/.test(code) ? "authorization" : code === "EVENT_DEPTH_EXCEEDED" ? "conflict" : "validation",
+    code, userMessageKey: "serverErrors.INVALID_NATIVE_PAYLOAD", debugMessage: code,
+  })
 }
 
 export async function materializeNativeMutation(
@@ -177,7 +182,7 @@ async function materializeWorkspace(
   const payload = asRecord(input.payload)
   const mainEventId = requiredUUID(payload.mainEventID, "WORKSPACE_ID_MISSING")
   if (mainEventId !== input.scopeId || input.entityId !== input.scopeId) {
-    throw new NativeMaterializationError("WORKSPACE_SCOPE_MISMATCH")
+    throw nativeMaterializationFailure("WORKSPACE_SCOPE_MISMATCH")
   }
 
   const title = requiredTrimmed(payload.title, "WORKSPACE_TITLE_MISSING")
@@ -327,7 +332,7 @@ async function materializeWorkspace(
       .from(user)
       .where(eq(user.id, input.userId))
       .limit(1)
-    if (!account) throw new NativeMaterializationError("OWNER_ACCOUNT_MISSING")
+    if (!account) throw nativeMaterializationFailure("OWNER_ACCOUNT_MISSING")
 
     await transaction
       .insert(workspacePerson)
@@ -526,7 +531,7 @@ async function materializeChildEvent(
   const parentEventId =
     optionalUUID(input.payload.parentEventID) ?? input.scopeId
   if (parentEventId !== input.scopeId) {
-    throw new NativeMaterializationError("EVENT_DEPTH_EXCEEDED")
+    throw nativeMaterializationFailure("EVENT_DEPTH_EXCEEDED")
   }
   await requireScopedEvent(transaction, input.organizationId, parentEventId)
 
@@ -824,7 +829,7 @@ async function materializeNote(
   const eventId = optionalUUID(input.payload.eventID) ?? input.scopeId
   await requireScopedEvent(transaction, input.organizationId, eventId)
   const body = requiredTrimmed(input.payload.body, "NOTE_BODY_MISSING")
-  if (body.length > 750) throw new NativeMaterializationError("NOTE_TOO_LONG")
+  if (body.length > 750) throw nativeMaterializationFailure("NOTE_TOO_LONG")
 
   await transaction
     .insert(eventNote)
@@ -1089,7 +1094,7 @@ async function assertScopedEvent(
     .where(eq(event.id, eventId))
     .limit(1)
   if (existing && existing.organizationId !== organizationId) {
-    throw new NativeMaterializationError("ENTITY_SCOPE_MISMATCH")
+    throw nativeMaterializationFailure("ENTITY_SCOPE_MISMATCH")
   }
 }
 
@@ -1105,7 +1110,7 @@ async function requireScopedEvent(
       and(eq(event.id, eventId), eq(event.organizationId, organizationId)),
     )
     .limit(1)
-  if (!existing) throw new NativeMaterializationError("EVENT_NOT_MATERIALIZED")
+  if (!existing) throw nativeMaterializationFailure("EVENT_NOT_MATERIALIZED")
 }
 
 async function assertScopedPerson(
@@ -1119,7 +1124,7 @@ async function assertScopedPerson(
     .where(eq(workspacePerson.id, personId))
     .limit(1)
   if (existing && existing.organizationId !== organizationId) {
-    throw new NativeMaterializationError("ENTITY_SCOPE_MISMATCH")
+    throw nativeMaterializationFailure("ENTITY_SCOPE_MISMATCH")
   }
 }
 
@@ -1138,7 +1143,7 @@ async function requireScopedPerson(
       ),
     )
     .limit(1)
-  if (!existing) throw new NativeMaterializationError("PERSON_NOT_MATERIALIZED")
+  if (!existing) throw nativeMaterializationFailure("PERSON_NOT_MATERIALIZED")
 }
 
 async function assertScopedIdea(
@@ -1218,7 +1223,7 @@ async function assertScopedParticipation(
     .where(eq(eventParticipant.id, id))
     .limit(1)
   if (existing && existing.organizationId !== organizationId) {
-    throw new NativeMaterializationError("ENTITY_SCOPE_MISMATCH")
+    throw nativeMaterializationFailure("ENTITY_SCOPE_MISMATCH")
   }
 }
 
@@ -1230,7 +1235,7 @@ function assertOrganization(
     existingOrganizationId &&
     existingOrganizationId !== expectedOrganizationId
   ) {
-    throw new NativeMaterializationError("ENTITY_SCOPE_MISMATCH")
+    throw nativeMaterializationFailure("ENTITY_SCOPE_MISMATCH")
   }
 }
 
@@ -1238,13 +1243,13 @@ function decodeNativePayload(payload: string): unknown {
   try {
     return JSON.parse(Buffer.from(payload, "base64").toString("utf8"))
   } catch {
-    throw new NativeMaterializationError("INVALID_ENTITY_PAYLOAD")
+    throw nativeMaterializationFailure("INVALID_ENTITY_PAYLOAD")
   }
 }
 
 function asRecord(value: unknown): Record<string, unknown> {
   if (typeof value !== "object" || value === null || Array.isArray(value)) {
-    throw new NativeMaterializationError("INVALID_ENTITY_PAYLOAD")
+    throw nativeMaterializationFailure("INVALID_ENTITY_PAYLOAD")
   }
   return value as Record<string, unknown>
 }
@@ -1256,7 +1261,7 @@ function optionalRecord(value: unknown) {
 
 function requiredString(value: unknown, code: string) {
   if (typeof value !== "string" || !value) {
-    throw new NativeMaterializationError(code)
+    throw nativeMaterializationFailure(code)
   }
   return value
 }
@@ -1269,13 +1274,13 @@ function optionalTrimmed(value: unknown) {
 
 function requiredTrimmed(value: unknown, code: string) {
   const result = optionalTrimmed(value)
-  if (!result) throw new NativeMaterializationError(code)
+  if (!result) throw nativeMaterializationFailure(code)
   return result
 }
 
 function requiredUUID(value: unknown, code: string) {
   const result = optionalUUID(value)
-  if (!result) throw new NativeMaterializationError(code)
+  if (!result) throw nativeMaterializationFailure(code)
   return result
 }
 
@@ -1293,13 +1298,13 @@ function optionalUUID(value: unknown) {
 
 function assertPayloadId(entityId: string, payloadId: unknown) {
   if (requiredUUID(payloadId, "ENTITY_ID_MISSING") !== entityId) {
-    throw new NativeMaterializationError("ENTITY_ID_MISMATCH")
+    throw nativeMaterializationFailure("ENTITY_ID_MISMATCH")
   }
 }
 
 function nativeDate(value: unknown, code: string) {
   const date = optionalNativeDate(value)
-  if (!date) throw new NativeMaterializationError(code)
+  if (!date) throw nativeMaterializationFailure(code)
   return date
 }
 
@@ -1323,7 +1328,7 @@ function optionalDecimal(value: unknown): string | null {
 
 function requiredDecimal(value: unknown, code: string) {
   const result = optionalDecimal(value)
-  if (result == null) throw new NativeMaterializationError(code)
+  if (result == null) throw nativeMaterializationFailure(code)
   return result
 }
 

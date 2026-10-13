@@ -10,14 +10,14 @@ import { nextReportStatus } from "./contracts"
 import { retainedEventAccess } from "@/server/events/repos/event-departure.repo"
 import type { ReportImageInput, ReviewReportInput, reportStatuses } from "./contracts"
 
-const unavailable = () => new EntityNotFoundError({ category: "not_found", code: "REPORT_IMAGE_UNAVAILABLE", userMessage: "This image is no longer available." })
+const unavailable = () => new EntityNotFoundError({ category: "not_found", code: "REPORT_IMAGE_UNAVAILABLE", userMessageKey: "serverErrors.REPORT_IMAGE_UNAVAILABLE" })
 export function requireModerator(userId: string) {
   return Effect.gen(function* () {
     const db = yield* DB
     const [staff] = yield* db.select({ id: moderationStaff.userId }).from(moderationStaff)
       .innerJoin(user, eq(user.id, moderationStaff.userId))
       .where(and(eq(moderationStaff.userId, userId), isNull(moderationStaff.revokedAt), eq(user.emailVerified, true))).limit(1).for("share")
-    if (!staff) return yield* Effect.fail(new ForbiddenError({ category: "authorization", code: "MODERATOR_REQUIRED", userMessage: "This page is only available to designated moderators." }))
+    if (!staff) return yield* Effect.fail(new ForbiddenError({ category: "authorization", code: "MODERATOR_REQUIRED", userMessageKey: "serverErrors.MODERATOR_REQUIRED" }))
   })
 }
 
@@ -100,9 +100,9 @@ export function reviewAbuseReport(actorUserId: string, input: z.infer<typeof Rev
       yield* requireModerator(actorUserId)
       const db = yield* DB
       const [report] = yield* db.select().from(abuseReport).where(eq(abuseReport.id, input.reportId)).limit(1).for("update")
-      if (!report) return yield* Effect.fail(new EntityNotFoundError({ category: "not_found", code: "REPORT_NOT_FOUND", userMessage: "This report is no longer available." }))
+      if (!report) return yield* Effect.fail(new EntityNotFoundError({ category: "not_found", code: "REPORT_NOT_FOUND", userMessageKey: "serverErrors.REPORT_NOT_FOUND" }))
       const status = nextReportStatus(report.status, input.action)
-      if (report.status !== input.expectedStatus || !status) return yield* Effect.fail(new ConflictError({ category: "conflict", code: "REPORT_REVIEW_CONFLICT", userMessage: "This report has changed. Refresh the queue before reviewing it." }))
+      if (report.status !== input.expectedStatus || !status) return yield* Effect.fail(new ConflictError({ category: "conflict", code: "REPORT_REVIEW_CONFLICT", userMessageKey: "serverErrors.REPORT_REVIEW_CONFLICT" }))
       if (input.action === "hide_image" && report.mediaAssetId) {
         yield* db.update(mediaAsset).set({ moderationHiddenAt: new Date(), updatedAt: new Date() }).where(eq(mediaAsset.id, report.mediaAssetId))
       }

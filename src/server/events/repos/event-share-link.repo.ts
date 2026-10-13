@@ -13,7 +13,7 @@ import { requireUnblockedInvitation } from "@/server/moderation/user-block.repo"
 
 const unavailable = () => new EntityNotFoundError({
   category: "not_found", code: "SHARE_LINK_UNAVAILABLE",
-  userMessage: "This invitation has expired or been disabled. Ask the host for a new link.",
+  userMessageKey: "serverErrors.SHARE_LINK_UNAVAILABLE",
 })
 
 function requireManager(eventId: string, userId: string) {
@@ -24,7 +24,7 @@ function requireManager(eventId: string, userId: string) {
     }, { event: ["manage_participants"] })) {
       return yield* Effect.fail(new ForbiddenError({
         category: "authorization", code: "EVENT_PERMISSION_REQUIRED",
-        userMessage: "You do not have permission to share this event.",
+        userMessageKey: "serverErrors.EVENT_PERMISSION_REQUIRED",
       }))
     }
   })
@@ -103,7 +103,7 @@ export function acceptEventShareLink(userId: string, token: string) {
       const [account] = yield* db.select({ email: user.email, name: user.name, verified: user.emailVerified }).from(user).where(eq(user.id, userId)).limit(1)
       if (!account?.verified) return yield* Effect.fail(new ForbiddenError({
         category: "authorization", code: "INVITATION_EMAIL_UNVERIFIED",
-        userMessage: "Verify your email address before accepting this invitation.",
+        userMessageKey: "serverErrors.INVITATION_EMAIL_UNVERIFIED",
       }))
       // Joining is idempotent and never changes an existing participant's access.
       const existing = yield* getEventParticipant({ eventId: link.eventId, userId })

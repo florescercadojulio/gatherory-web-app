@@ -1,3 +1,4 @@
+import { ConfigurationError } from "@/lib/domain-errors"
 import { createEnv } from "@t3-oss/env-core";
 import { config } from "dotenv";
 import { z } from "zod";
@@ -74,7 +75,5 @@ if (
     env.CLOUDFLARE_R2_PRIVATE_BUCKET_NAME.toLowerCase(),
   )
 ) {
-  throw new Error(
-    "Production must use a dedicated R2 private bucket, not the development bucket.",
-  );
+  throw new ConfigurationError({ category: "system", code: "CONFIGURATION_INVALID", debugMessage: "Production must use a dedicated R2 private bucket, not the development bucket." });
 }

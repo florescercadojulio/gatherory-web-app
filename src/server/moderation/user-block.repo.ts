@@ -20,7 +20,7 @@ export function listBlockedPeople(actorUserId: string) {
 
 export function blockPerson(actorUserId: string, targetUserId: string) {
   return Effect.gen(function* () {
-    if (actorUserId === targetUserId) return yield* Effect.fail(new InvalidInputError({ category: "validation", code: "BLOCK_SELF_FORBIDDEN", userMessage: "Choose another person to block." }))
+    if (actorUserId === targetUserId) return yield* Effect.fail(new InvalidInputError({ category: "validation", code: "BLOCK_SELF_FORBIDDEN", userMessageKey: "serverErrors.BLOCK_SELF_FORBIDDEN" }))
     const db = yield* DB
     const mine = alias(eventParticipant, "blocking_participant")
     const me = alias(workspacePerson, "blocking_person")
@@ -29,7 +29,7 @@ export function blockPerson(actorUserId: string, targetUserId: string) {
       .where(and(eq(workspacePerson.userId, targetUserId), exists(db.select({ id: mine.id }).from(mine)
         .innerJoin(me, eq(me.id, mine.personId))
         .where(and(eq(mine.eventId, eventParticipant.eventId), eq(me.userId, actorUserId)))))).limit(1)
-    if (!target) return yield* Effect.fail(new ForbiddenError({ category: "authorization", code: "BLOCK_TARGET_UNAVAILABLE", userMessage: "This person is no longer available in your events." }))
+    if (!target) return yield* Effect.fail(new ForbiddenError({ category: "authorization", code: "BLOCK_TARGET_UNAVAILABLE", userMessageKey: "serverErrors.BLOCK_TARGET_UNAVAILABLE" }))
     yield* db.insert(userBlock).values({ userId: actorUserId, blockedUserId: targetUserId }).onConflictDoNothing()
     // No membership, roles, or anyone else's shared records are changed.
     return { blockedUserId: targetUserId }
@@ -49,6 +49,6 @@ export function requireUnblockedInvitation(firstUserId: string, secondUserId: st
     if (!secondUserId) return
     const db = yield* DB
     const [blocked] = yield* db.select({ id: userBlock.userId }).from(userBlock).where(sql`(${userBlock.userId} = ${firstUserId} and ${userBlock.blockedUserId} = ${secondUserId}) or (${userBlock.userId} = ${secondUserId} and ${userBlock.blockedUserId} = ${firstUserId})`).limit(1)
-    if (blocked) return yield* Effect.fail(new ForbiddenError({ category: "authorization", code: "INVITATION_BLOCKED", userMessage: "This invitation cannot be sent or accepted." }))
+    if (blocked) return yield* Effect.fail(new ForbiddenError({ category: "authorization", code: "INVITATION_BLOCKED", userMessageKey: "serverErrors.INVITATION_BLOCKED" }))
   })
 }

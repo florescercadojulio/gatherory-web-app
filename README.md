@@ -112,9 +112,9 @@ marker prevents old planning snapshots from restoring the guest, and a fresh,
 valid invitation acceptance explicitly clears it. Previously issued media
 URLs can remain valid until their five-minute expiry.
 
-iOS provides native Add to Calendar as a one-time copy, not two-way sync. Save
-status is scoped to the workspace's durable outbox and media transfers. Draft
-editors explain that Save is still needed to keep unsaved form changes.
+iOS provides native Add to Calendar as a one-time copy, not two-way sync.
+Sync status, media-transfer status, and manual retry stay in Account. Event and
+idea editors and invitation content do not duplicate sync indicators or copy.
 
 Remaining release audit items are tracked in
 [`docs/v1-release-safeguards.md`](./docs/v1-release-safeguards.md).

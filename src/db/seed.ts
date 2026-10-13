@@ -1,3 +1,4 @@
+import { ServerOperationError } from "@/lib/domain-errors"
 import { and, eq } from "drizzle-orm"
 import { reset } from "drizzle-seed"
 
@@ -172,7 +173,7 @@ async function ensureWorkspace(owner: SeedUser) {
     planningTeam = createdTeam
   }
 
-  if (!planningTeam) throw new Error("Unable to seed the Planning team.")
+  if (!planningTeam) throw new ServerOperationError({ category: "system", code: "SEED_FAILED", debugMessage: "Unable to seed the Planning team." })
 
   const [ownerTeamMembership] = await db
     .select({ id: teamMember.id })
@@ -873,7 +874,7 @@ async function seedEventWorkspace(input: {
 
 async function main() {
   if (process.env.NODE_ENV === "production") {
-    throw new Error("The development seed cannot run in production.")
+    throw new ServerOperationError({ category: "system", code: "SEED_FAILED", debugMessage: "The development seed cannot run in production." })
   }
 
   console.log("Resetting database...")

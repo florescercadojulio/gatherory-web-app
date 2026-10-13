@@ -93,6 +93,29 @@ match the reference architecture:
 full failure with trace and error IDs while returning only safe product copy.
 This is also why handlers must not maintain their own `try/catch` error maps.
 
+The implementation lives in `src/server/effect-utils.ts`; `effect.ts` re-exports
+it for existing callers. Backend expected failures use `Data.TaggedError` with
+`DomainErrorShape` and stable codes. Set `userMessageKey` to a typed
+`serverErrors.*` catalog entry; `debugMessage` and `cause` are developer-only
+and can remain English. Promise adapters preserve existing tagged errors.
+Never manufacture `new Error(code)` or inspect `cause.message` to classify a
+domain failure. Configuration and native materialization failures are tagged
+as well; native mutation rejection codes remain part of the sync protocol.
+
+`runServerEffect` resolves safe copy with an isolated, per-call translator.
+`runServerResponse` adds category-based HTTP status handling for API routes;
+native sync retains its successful wire shapes and legacy error-code field.
+The client receives a translated `userMessage`, a translation key where
+available, and a support ID, never the original cause or stack. Frontend React
+invariant/request errors continue using ordinary `Error` and Sonner.
+
+Use `transportInput(schema)` only for server-function input typing, then call
+`validateInput(schema, data)` inside the Effect passed to `runServerEffect`.
+This makes invalid input use the same safe localized response rather than
+letting Zod throw before the response boundary. Domain-specific parsers can
+provide more specific tagged input failures. Framework redirects remain
+navigation control flow, not domain failures.
+
 ## Workspace ownership and event authorization
 
 Workspaces own main events, templates, brand settings, and workspace
@@ -179,13 +202,17 @@ client visibility checks improve navigation, but do not authorize data access.
 ```ts
 export const updateEvent = createServerFn({ method: "POST" })
   .middleware([requireSessionMiddleware])
-  .validator(UpdateEventSchema)
+  .validator(transportInput(UpdateEventSchema))
   .handler(({ data, context }) =>
     runServerEffect(
-      updateEventWorkflow(data, { userId: context.user.id }).pipe(
-        Effect.provide(EventServiceLive),
-        Effect.provide(EventRepoLive),
-        Effect.provide(EventAuthorizationLive),
+      validateInput(UpdateEventSchema, data).pipe(
+        Effect.flatMap(input =>
+          updateEventWorkflow(input, { userId: context.user.id }).pipe(
+            Effect.provide(EventServiceLive),
+            Effect.provide(EventRepoLive),
+            Effect.provide(EventAuthorizationLive),
+          ),
+        ),
       ),
     ),
   )

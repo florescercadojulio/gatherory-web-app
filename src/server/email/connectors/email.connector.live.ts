@@ -9,7 +9,7 @@ function deliveryError(code: string, cause?: unknown) {
   return new ExternalServiceError({
     category: "external",
     code,
-    userMessage: "We could not send the email. Please try again later.",
+    userMessageKey: "serverErrors.EMAIL_DELIVERY_FAILED",
     cause,
     debugMessage: cause instanceof Error ? cause.message : undefined,
   })
@@ -35,12 +35,12 @@ export const EmailConnectorLive = Layer.sync(EmailConnector, () => {
             ...(env.EMAIL_REPLY_TO ? { replyTo: env.EMAIL_REPLY_TO } : {}),
           })
 
-          if (error) throw error
-          if (!data) throw new Error("Resend returned no delivery receipt.")
+          if (error) throw deliveryError("EMAIL_DELIVERY_FAILED", error)
+          if (!data) throw new ExternalServiceError({ category: "external", code: "EMAIL_RECEIPT_MISSING", userMessageKey: "serverErrors.EMAIL_DELIVERY_FAILED", debugMessage: "Resend returned no delivery receipt." })
 
           return { messageId: data.id }
         },
-        catch: (cause) => deliveryError("EMAIL_DELIVERY_FAILED", cause),
+        catch: (cause) => cause instanceof ExternalServiceError ? cause : deliveryError("EMAIL_DELIVERY_FAILED", cause),
       })
     },
   }

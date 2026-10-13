@@ -60,5 +60,5 @@ export function leaveGuestEvent(userId: string, eventId: string) {
 }
 
 function leaveForbidden() {
-  return Effect.fail(new ForbiddenError({ category: "authorization", code: "EVENT_LEAVE_FORBIDDEN", userMessage: "Only a guest can leave this invitation. Hosts and collaborators manage access in Workspace Settings." }))
+  return Effect.fail(new ForbiddenError({ category: "authorization", code: "EVENT_LEAVE_FORBIDDEN", userMessageKey: "serverErrors.EVENT_LEAVE_FORBIDDEN" }))
 }

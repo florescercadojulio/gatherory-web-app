@@ -1,47 +1,21 @@
 import { createFileRoute } from "@tanstack/react-router"
+import { Effect } from "effect"
+import { InvalidInputError, runServerResponse, tryServerOperation } from "@/server/effect-utils"
+import { requestJson, requestUser } from "@/server/http-errors"
+import { applyNativeMutations, pushRequestSchema } from "@/server/sync/native-sync"
 
-import {
-  applyNativeMutations,
-  pushRequestSchema,
-} from "@/server/sync/native-sync"
-import { nativeSyncUser, syncJSON } from "@/server/sync/native-sync-auth"
-
-export const Route = createFileRoute("/api/sync/push")({
-  server: {
-    handlers: {
-      POST: async ({ request }) => {
-        try {
-          const user = await nativeSyncUser(request)
-          if (!user) return syncJSON({ error: "UNAUTHORIZED" }, 401)
-
-          const parsed = pushRequestSchema.safeParse(await request.json())
-          if (!parsed.success) {
-            const payloadTooLarge = parsed.error.issues.some(
-              (issue) =>
-                issue.code === "too_big" && issue.path.at(-1) === "payload",
-            )
-            return syncJSON(
-              {
-                error: payloadTooLarge
-                  ? "SYNC_PAYLOAD_TOO_LARGE"
-                  : "INVALID_SYNC_REQUEST",
-                details: parsed.error.issues,
-              },
-              payloadTooLarge ? 413 : 400,
-            )
-          }
-
-          return syncJSON(
-            await applyNativeMutations({
-              userId: user.id,
-              mutations: parsed.data.mutations,
-            }),
-          )
-        } catch (error) {
-          console.error("Native sync push failed", error)
-          return syncJSON({ error: "SYNC_PUSH_FAILED" }, 500)
-        }
-      },
-    },
-  },
-})
+export const Route = createFileRoute("/api/sync/push")({ server: { handlers: {
+  POST: ({ request }) => runServerResponse(Effect.gen(function* () {
+    const user = yield* requestUser(request)
+    const parsed = pushRequestSchema.safeParse(yield* requestJson(request))
+    if (!parsed.success) {
+      const oversized = parsed.error.issues.some(issue => issue.code === "too_big" && issue.path.at(-1) === "payload")
+      return yield* Effect.fail(new InvalidInputError({
+        category: "validation", code: oversized ? "SYNC_PAYLOAD_TOO_LARGE" : "INVALID_SYNC_REQUEST",
+        userMessageKey: oversized ? "serverErrors.SYNC_PAYLOAD_TOO_LARGE" : "serverErrors.INVALID_SYNC_REQUEST",
+        httpStatus: oversized ? 413 : 400, cause: parsed.error,
+      }))
+    }
+    return yield* tryServerOperation({ category: "system", code: "SYNC_PUSH_FAILED", userMessageKey: "serverErrors.SYNC_PUSH_FAILED" }, () => applyNativeMutations({ userId: user.id, mutations: parsed.data.mutations }))
+  }), { headers: request.headers, successEnvelope: false, legacyErrorCode: true }),
+} } })

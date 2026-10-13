@@ -13,7 +13,7 @@ export const getSession = createServerFn({ method: "GET" }).handler(() =>
       {
         category: "external",
         code: "SESSION_LOOKUP_FAILED",
-        userMessage: "Your session could not be checked. Try again.",
+        userMessageKey: "serverErrors.SESSION_LOOKUP_FAILED",
       },
       () => auth.api.getSession({ headers: getRequestHeaders() }),
     ),

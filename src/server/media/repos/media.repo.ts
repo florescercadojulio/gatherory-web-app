@@ -2,6 +2,7 @@ import { and, asc, eq, ne, isNull, inArray } from "drizzle-orm"
 import { Effect } from "effect"
 
 import { DB } from "@/db"
+import { mediaFailure } from "../errors"
 import {
   event,
   eventParticipant,
@@ -98,7 +99,7 @@ export function upsertPendingNativeMedia(input: {
       existing.storageKey !== input.storageKey ||
       (existing.status !== "pending" && existing.status !== "failed")
     ) {
-      return yield* Effect.fail(new Error("MEDIA_INVALID_STATE"))
+      return yield* Effect.fail(mediaFailure("MEDIA_INVALID_STATE"))
     }
 
     // Reuse the durable native transfer ID after a failed PUT/finalize. Never
@@ -129,7 +130,7 @@ export function upsertPendingNativeMedia(input: {
         uploadedByUserId: mediaAsset.uploadedByUserId,
         status: mediaAsset.status,
       })
-    if (!retried) return yield* Effect.fail(new Error("MEDIA_INVALID_STATE"))
+    if (!retried) return yield* Effect.fail(mediaFailure("MEDIA_INVALID_STATE"))
     return retried
   })
 }
@@ -244,7 +245,7 @@ export function createPendingEventMedia(input: {
           })
           .returning({ id: mediaAsset.id })
 
-        if (!asset) return yield* Effect.fail(new Error("MEDIA_CREATE_FAILED"))
+        if (!asset) return yield* Effect.fail(mediaFailure("MEDIA_CREATE_FAILED"))
 
         yield* transaction.insert(eventMedia).values({
           organizationId: input.organizationId,

@@ -3,8 +3,8 @@ import { Effect } from "effect"
 import { z } from "zod"
 import { DB, PgClientLive } from "@/db"
 import { event, eventInvitation, eventShareLink } from "@/db/schema"
-import { ConflictError, EntityNotFoundError, ForbiddenError, InvalidInputError, runServerEffect } from "@/server/effect"
-import { nativeSyncUser, syncJSON } from "@/server/sync/native-sync-auth"
+import { EntityNotFoundError, ForbiddenError, InvalidInputError, runServerResponse, tryServerOperation } from "@/server/effect"
+import { nativeSyncUser } from "@/server/sync/native-sync-auth"
 import { acceptEventShareLink, previewEventShareLink } from "./repos/event-share-link.repo"
 import { guestEventInvitations, respondToEvent } from "./repos/guest-invitation.repo"
 import { leaveGuestEvent } from "./repos/event-departure.repo"
@@ -18,39 +18,37 @@ const tokenInput = z.object({ token: z.uuid().transform((value) => value.toLower
 const responseInput = z.object({ eventId: z.uuid().transform((value) => value.toLowerCase()), attendance: z.enum(["going", "not_sure", "not_going"]) })
 
 export async function invitationConsumptionResponse(request: Request, operation: "preview" | "accept" | "events" | "respond" | "leave") {
-  let status = 500
-  const result = await runServerEffect(Effect.gen(function* () {
-    const account = yield* Effect.tryPromise(() => nativeSyncUser(request))
+  return runServerResponse(Effect.gen(function* () {
+    const account = yield* tryServerOperation({ category: "system", code: "SESSION_LOOKUP_FAILED", userMessageKey: "serverErrors.SESSION_LOOKUP_FAILED" }, () => nativeSyncUser(request))
     if (operation !== "preview" && !account?.emailVerified) {
-      status = account ? 403 : 401
       return yield* Effect.fail(new ForbiddenError({ category: "authorization", code: "INVITATION_SESSION_REQUIRED",
-        userMessage: account ? "Verify your email before continuing." : "Sign in to continue with this invitation." }))
+        userMessageKey: "serverErrors.INVITATION_SESSION_REQUIRED", httpStatus: account ? 403 : 401 }))
     }
     if (operation === "events") return { events: yield* guestEventInvitations(account!.id) }
     if (operation !== "preview" && !isTrustedModerationMutation(request, process.env.BETTER_AUTH_URL)) {
-      return yield* Effect.fail(new ForbiddenError({ category: "authorization", code: "UNTRUSTED_INVITATION_REQUEST", userMessage: "Open Gatherory and try again." }))
+      return yield* Effect.fail(new ForbiddenError({ category: "authorization", code: "UNTRUSTED_INVITATION_REQUEST", userMessageKey: "serverErrors.UNTRUSTED_INVITATION_REQUEST" }))
     }
     const body = operation === "preview" ? { token: new URL(request.url).searchParams.get("token") }
-      : yield* Effect.tryPromise({ try: () => request.json(), catch: () => new InvalidInputError({ category: "validation", code: "INVALID_INVITATION", userMessage: "This invitation could not be read." }) })
+      : yield* Effect.tryPromise({ try: () => request.json(), catch: (cause) => new InvalidInputError({ category: "validation", code: "INVALID_INVITATION", userMessageKey: "serverErrors.INVALID_INVITATION", cause }) })
     if (operation === "respond") {
       const parsed = responseInput.safeParse(body)
-      if (!parsed.success) { status = 400; return yield* Effect.fail(new InvalidInputError({ category: "validation", code: "INVALID_RESPONSE", userMessage: "Choose an attendance response and try again." })) }
+      if (!parsed.success) { return yield* Effect.fail(new InvalidInputError({ category: "validation", code: "INVALID_RESPONSE", userMessageKey: "serverErrors.INVALID_RESPONSE" })) }
       return yield* respondToEvent(account!.id, parsed.data.eventId, parsed.data.attendance)
     }
     if (operation === "leave") {
       const parsed = z.object({ eventId: z.uuid().transform(value => value.toLowerCase()) }).strict().safeParse(body)
-      if (!parsed.success) return yield* Effect.fail(new InvalidInputError({ category: "validation", code: "INVALID_EVENT", userMessage: "Choose an event and try again." }))
+      if (!parsed.success) return yield* Effect.fail(new InvalidInputError({ category: "validation", code: "INVALID_EVENT", userMessageKey: "serverErrors.INVALID_EVENT" }))
       return yield* leaveGuestEvent(account!.id, parsed.data.eventId)
     }
     const parsed = tokenInput.safeParse(body)
-    if (!parsed.success) { status = 400; return yield* Effect.fail(new InvalidInputError({ category: "validation", code: "INVALID_INVITATION", userMessage: "This invitation link is invalid. Ask the host for a new one." })) }
+    if (!parsed.success) { return yield* Effect.fail(new InvalidInputError({ category: "validation", code: "INVALID_INVITATION", userMessageKey: "serverErrors.INVALID_INVITATION" })) }
     const token = parsed.data.token
     const db = yield* DB
     const [shared] = yield* db.select({ id: eventShareLink.eventId }).from(eventShareLink).where(eq(eventShareLink.token, token)).limit(1)
     if (operation === "preview") {
       if (shared) {
         const preview = yield* previewEventShareLink(token, account?.id)
-        if (!preview) return yield* Effect.fail(new EntityNotFoundError({ category: "not_found", code: "INVITATION_UNAVAILABLE", userMessage: "This invitation has expired or been disabled. Ask the host for a new link." }))
+        if (!preview) return yield* Effect.fail(new EntityNotFoundError({ category: "not_found", code: "INVITATION_UNAVAILABLE", userMessageKey: "serverErrors.INVITATION_UNAVAILABLE" }))
         return { ...preview, requiresSignIn: false }
       }
       if (!account) return { requiresSignIn: true }
@@ -59,7 +57,7 @@ export async function invitationConsumptionResponse(request: Request, operation:
         .from(eventInvitation).innerJoin(event, eq(event.id, eventInvitation.eventId))
         .where(and(eq(eventInvitation.token, token), eq(eventInvitation.email, account.email.trim().toLowerCase()))).limit(1)
       if (!invitation || !["pending", "accepted"].includes(invitation.status) || (invitation.status !== "accepted" && invitation.expiresAt <= new Date())) {
-        return yield* Effect.fail(new EntityNotFoundError({ category: "not_found", code: "INVITATION_UNAVAILABLE", userMessage: "This invitation is unavailable. Check the invited email address or ask the host for a new link." }))
+        return yield* Effect.fail(new EntityNotFoundError({ category: "not_found", code: "INVITATION_UNAVAILABLE", userMessageKey: "serverErrors.INVITATION_UNAVAILABLE" }))
       }
       return { ...invitation, expiresAt: invitation.expiresAt.toISOString(), startsAt: invitation.startsAt?.toISOString() ?? null, requiresSignIn: false }
     }
@@ -69,11 +67,5 @@ export async function invitationConsumptionResponse(request: Request, operation:
     const [target] = yield* db.select({ parent: event.parentEventId }).from(event).where(eq(event.id, accepted.eventId)).limit(1)
     return { ...accepted, planningScopeId: target?.parent === null && accepted.role !== "guest" ? accepted.eventId : null }
   }).pipe(Effect.provide(EventServiceLive), Effect.provide(EventRepoLive), Effect.provide(EventAuthorizationLive), Effect.provide(PgClientLive),
-    Effect.tapError((error) => Effect.sync(() => {
-      if (error instanceof ForbiddenError) status = status === 401 ? 401 : 403
-      else if (error instanceof InvalidInputError) status = 400
-      else if (error instanceof EntityNotFoundError) status = 404
-      else if (error instanceof ConflictError) status = 409
-    }))))
-  return syncJSON(result, result.ok ? 200 : status)
+  ), { headers: request.headers })
 }

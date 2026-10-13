@@ -1,6 +1,10 @@
+import type { MessageParams, UserMessageKey } from "@/lib/domain-errors"
+
 export type ClientError = {
   userMessage: string
   errorId: string
+  messageKey?: UserMessageKey
+  messageParams?: MessageParams
 }
 
 export type ServerResult<T> =

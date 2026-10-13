@@ -84,7 +84,7 @@ export function respondToEvent(userId: string, eventId: string, attendance: "goi
     return yield* pg.withTransaction(Effect.gen(function* () {
       const db = yield* DB
       const [scope] = yield* db.select({ parentId: event.parentEventId }).from(event).where(eq(event.id, eventId)).limit(1)
-      if (!scope) return yield* Effect.fail(new ForbiddenError({ category: "authorization", code: "EVENT_RESPONSE_FORBIDDEN", userMessage: "You no longer have access to this event." }))
+      if (!scope) return yield* Effect.fail(new ForbiddenError({ category: "authorization", code: "EVENT_RESPONSE_FORBIDDEN", userMessageKey: "serverErrors.EVENT_RESPONSE_FORBIDDEN" }))
       // Parent lifecycle is locked before a child. Cancellation cannot commit
       // between checking the parent status and accepting this RSVP.
       const [parent] = yield* db.select({ status: event.status }).from(event)
@@ -96,13 +96,13 @@ export function respondToEvent(userId: string, eventId: string, attendance: "goi
         .from(eventParticipant).innerJoin(workspacePerson, eq(workspacePerson.id, eventParticipant.personId))
         .where(and(eq(eventParticipant.eventId, eventId), eq(workspacePerson.userId, userId), retainedEventAccess(userId, eventParticipant.eventId))).limit(1)
       if (!target || !participation) return yield* Effect.fail(new ForbiddenError({
-        category: "authorization", code: "EVENT_RESPONSE_FORBIDDEN", userMessage: "You no longer have access to this event.",
+        category: "authorization", code: "EVENT_RESPONSE_FORBIDDEN", userMessageKey: "serverErrors.EVENT_RESPONSE_FORBIDDEN",
       }))
       if (target.status === "cancelled" || target.planningStatus === "cancelled" || parent?.status === "cancelled") return yield* Effect.fail(new ConflictError({
-        category: "conflict", code: "EVENT_CANCELLED", userMessage: "This event was cancelled. Attendance can no longer be changed.",
+        category: "conflict", code: "EVENT_CANCELLED", userMessageKey: "serverErrors.EVENT_CANCELLED",
       }))
       if (target.status === "finished" || target.complete === "complete" || parent?.status === "finished") return yield* Effect.fail(new ConflictError({
-        category: "conflict", code: "EVENT_COMPLETE", userMessage: "This event is complete. Attendance can no longer be changed.",
+        category: "conflict", code: "EVENT_COMPLETE", userMessageKey: "serverErrors.EVENT_COMPLETE",
       }))
       yield* db.update(eventParticipant).set({ attendanceStatus: attendance, updatedAt: new Date() }).where(eq(eventParticipant.id, participation.id))
       const scopeId = target.parentId ?? target.id

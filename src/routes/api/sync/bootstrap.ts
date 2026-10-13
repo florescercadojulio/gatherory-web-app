@@ -1,21 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router"
-
+import { Effect } from "effect"
+import { runServerResponse, tryServerOperation } from "@/server/effect-utils"
+import { requestUser } from "@/server/http-errors"
 import { listNativeWorkspaceSnapshots } from "@/server/sync/native-sync"
-import { nativeSyncUser, syncJSON } from "@/server/sync/native-sync-auth"
 
-export const Route = createFileRoute("/api/sync/bootstrap")({
-  server: {
-    handlers: {
-      GET: async ({ request }) => {
-        try {
-          const user = await nativeSyncUser(request)
-          if (!user) return syncJSON({ error: "UNAUTHORIZED" }, 401)
-          return syncJSON(await listNativeWorkspaceSnapshots(user.id))
-        } catch (error) {
-          console.error("Native sync bootstrap failed", error)
-          return syncJSON({ error: "SYNC_BOOTSTRAP_FAILED" }, 500)
-        }
-      },
-    },
-  },
-})
+export const Route = createFileRoute("/api/sync/bootstrap")({ server: { handlers: {
+  GET: ({ request }) => runServerResponse(Effect.gen(function* () {
+    const user = yield* requestUser(request)
+    return yield* tryServerOperation({ category: "system", code: "SYNC_BOOTSTRAP_FAILED", userMessageKey: "serverErrors.SYNC_BOOTSTRAP_FAILED" }, () => listNativeWorkspaceSnapshots(user.id))
+  }), { headers: request.headers, successEnvelope: false, legacyErrorCode: true }),
+} } })
