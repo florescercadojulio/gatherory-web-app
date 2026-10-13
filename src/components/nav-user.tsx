@@ -7,6 +7,7 @@ import { Link } from "@tanstack/react-router"
 
 import { authClient } from "@/lib/auth-client"
 import { ThemeToggleItem } from "@/components/auth/theme/theme-toggle-item"
+import { useTranslation } from "react-i18next"
 
 import {
   Avatar,
@@ -38,7 +39,14 @@ export function NavUser({
     avatar: string
   }
 }) {
+  const { t } = useTranslation()
   const { isMobile } = useSidebar()
+  const initials = user.name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase())
+    .join("")
 
   return (
     <SidebarMenu>
@@ -52,7 +60,7 @@ export function NavUser({
           >
               <Avatar className="h-8 w-8 rounded-lg">
                 <AvatarImage src={user.avatar} alt={user.name} />
-                <AvatarFallback className="rounded-lg">CN</AvatarFallback>
+                <AvatarFallback className="rounded-lg">{initials || "G"}</AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-medium">{user.name}</span>
@@ -71,7 +79,7 @@ export function NavUser({
                 <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                   <Avatar className="h-8 w-8 rounded-lg">
                     <AvatarImage src={user.avatar} alt={user.name} />
-                    <AvatarFallback className="rounded-lg">CN</AvatarFallback>
+                    <AvatarFallback className="rounded-lg">{initials || "G"}</AvatarFallback>
                   </Avatar>
                   <div className="grid flex-1 text-left text-sm leading-tight">
                     <span className="truncate font-medium">{user.name}</span>
@@ -84,7 +92,7 @@ export function NavUser({
             <DropdownMenuGroup>
               <DropdownMenuItem render={<Link to="/account" />}>
                 <BadgeCheck />
-                Account
+                {t("userMenu.account")}
               </DropdownMenuItem>
               <ThemeToggleItem />
             </DropdownMenuGroup>
@@ -101,7 +109,7 @@ export function NavUser({
               }
             >
               <LogOut />
-              Log out
+              {t("userMenu.logOut")}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 import {
   CalendarDays,
   Clock3,
@@ -45,21 +46,6 @@ export const Route = createFileRoute("/_protected/workspaces/$workspaceSlug/")({
   component: Home,
 });
 
-const dateFormatter = new Intl.DateTimeFormat("en-US", {
-  month: "short",
-  day: "numeric",
-  year: "numeric",
-  timeZone: "America/Detroit",
-});
-
-const dateTimeFormatter = new Intl.DateTimeFormat("en-US", {
-  month: "short",
-  day: "numeric",
-  hour: "numeric",
-  minute: "2-digit",
-  timeZone: "America/Detroit",
-});
-
 function initials(name: string) {
   return name
     .split(" ")
@@ -69,10 +55,6 @@ function initials(name: string) {
     .toUpperCase();
 }
 
-function label(value: string) {
-  return value.replaceAll("_", " ");
-}
-
 function EventWorkspace({
   event,
   shared,
@@ -80,6 +62,10 @@ function EventWorkspace({
   event: EventWorkspaceSummary;
   shared: boolean;
 }) {
+  const { t, i18n } = useTranslation();
+  const dateFormatter = new Intl.DateTimeFormat(i18n.language, {
+    month: "short", day: "numeric", year: "numeric", timeZone: "America/Detroit",
+  });
   const planningEvents = event.childEvents.filter(
     (child) => child.purpose === "planning_scouting",
   );
@@ -103,12 +89,12 @@ function EventWorkspace({
           </CardDescription>
           <CardAction>
             <div className="flex flex-wrap justify-end gap-2">
-              {shared ? <Badge variant="outline">Shared with you</Badge> : null}
+              {shared ? <Badge variant="outline">{t("event.sharedWithYou")}</Badge> : null}
               <Badge variant="secondary" className="capitalize">
-                {event.currentParticipant.role}
+                {t(`event.roles.${event.currentParticipant.role}`)}
               </Badge>
               <Badge variant="secondary" className="capitalize">
-                {event.status}
+                {t(`event.status.${event.status}`)}
               </Badge>
             </div>
           </CardAction>
@@ -119,7 +105,7 @@ function EventWorkspace({
               <CalendarDays className="size-4 text-brand-ink" />
               {event.startsAt
                 ? dateFormatter.format(new Date(event.startsAt))
-                : "Date not set"}
+                : t("event.dateNotSet")}
             </span>
             {event.locationName ? (
               <span className="inline-flex items-center gap-2">
@@ -136,25 +122,24 @@ function EventWorkspace({
         <section className="border-t pt-6">
           <header className="mb-6 flex items-start justify-between gap-4">
             <div>
-              <h2 className="app-section-heading">Event schedule</h2>
+              <h2 className="app-section-heading">{t("event.schedule")}</h2>
               <p className="mt-1 text-sm text-muted-foreground">
-                A concise view of planning appointments and guest-facing
-                moments.
+                {t("event.scheduleDescription")}
               </p>
             </div>
             <div>
-              <Badge variant="outline">{event.childEvents.length} events</Badge>
+              <Badge variant="outline">{t("event.eventCount", { count: event.childEvents.length })}</Badge>
             </div>
           </header>
           <div className="space-y-6">
             <EventGroup
-              title="Planning & scouting"
+              title={t("event.purpose.planning_scouting")}
               icon={Compass}
               events={planningEvents}
             />
             <Separator />
             <EventGroup
-              title="Part of the experience"
+              title={t("event.purpose.part_of_event")}
               icon={PartyPopper}
               events={guestEvents}
             />
@@ -164,16 +149,16 @@ function EventWorkspace({
         <section className="border-t pt-6">
           <header className="mb-6 flex items-start justify-between gap-4">
             <div>
-              <h2 className="app-section-heading">People</h2>
+              <h2 className="app-section-heading">{t("common.people")}</h2>
               <p className="mt-1 text-sm text-muted-foreground">
-                The people currently connected to this event.
+                {t("event.peopleDescription")}
               </p>
             </div>
             {event.pendingInvitationCount ? (
               <div>
                 <Badge variant="outline" className="gap-1">
                   <MailPlus />
-                  {event.pendingInvitationCount} pending
+                  {t("event.pending", { count: event.pendingInvitationCount })}
                 </Badge>
               </div>
             ) : null}
@@ -198,11 +183,11 @@ function EventWorkspace({
                     {participant.name}
                   </p>
                   <p className="capitalize text-xs text-muted-foreground">
-                    {participant.role}
+                    {t(`event.roles.${participant.role}`)}
                   </p>
                 </div>
                 <Badge variant="secondary" className="capitalize">
-                  {label(participant.attendanceStatus)}
+                  {t(`event.attendance.${participant.attendanceStatus}`)}
                 </Badge>
               </div>
             ))}
@@ -222,6 +207,10 @@ function EventGroup({
   icon: typeof Compass;
   events: EventWorkspaceSummary["childEvents"];
 }) {
+  const { t, i18n } = useTranslation();
+  const dateTimeFormatter = new Intl.DateTimeFormat(i18n.language, {
+    month: "short", day: "numeric", hour: "numeric", minute: "2-digit", timeZone: "America/Detroit",
+  });
   return (
     <div className="space-y-3">
       <div className="flex items-center gap-2 text-sm font-medium">
@@ -241,7 +230,7 @@ function EventGroup({
                   <Clock3 className="size-3.5" />
                   {event.startsAt
                     ? dateTimeFormatter.format(new Date(event.startsAt))
-                    : "Date not set"}
+                    : t("event.dateNotSet")}
                 </p>
                 {event.locationName ? (
                   <p className="flex items-center gap-1.5">
@@ -266,6 +255,7 @@ function EventGroup({
 }
 
 function Home() {
+  const { t } = useTranslation();
   const result = Route.useLoaderData();
   const { workspaceContext } = Route.useRouteContext();
 
@@ -277,22 +267,20 @@ function Home() {
       <div className="space-y-1">
         <div className="flex items-center gap-2">
           <h1 className="text-2xl font-medium tracking-[-0.015em]">
-            Event overview
+            {t("event.overview")}
           </h1>
         </div>
         <p className="text-sm text-muted-foreground">
-          See the event, schedule, and people here. To make changes, use
-          Gatherory on your iPhone.
+          {t("event.description")}
         </p>
       </div>
 
       {!result.ok ? (
         <Card className="max-w-2xl border-dashed bg-muted/30">
           <CardHeader>
-            <CardTitle>Event details will appear here</CardTitle>
+            <CardTitle>{t("event.detailsWillAppear")}</CardTitle>
             <CardDescription>
-              Gatherory could not refresh these details just now. You can still
-              use the rest of the workspace.
+              {t("event.couldNotRefresh")}
             </CardDescription>
           </CardHeader>
         </Card>
@@ -302,10 +290,9 @@ function Home() {
             <div className="app-icon-tile mb-3">
               <CalendarDays className="size-5" />
             </div>
-            <CardTitle>Your first event starts here</CardTitle>
+            <CardTitle>{t("event.firstEvent")}</CardTitle>
             <CardDescription>
-              Create a main event, add its schedule, and invite hosts,
-              collaborators, and guests.
+              {t("event.firstEventDescription")}
             </CardDescription>
           </CardHeader>
         </Card>

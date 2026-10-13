@@ -1,4 +1,5 @@
 import { createFileRoute, notFound, Outlet } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 
 import { AppSidebar } from "@/components/app-sidebar";
 import { PageUnavailable, ServerErrorToast } from "@/components/route-feedback";
@@ -34,6 +35,7 @@ export const Route = createFileRoute("/_protected/workspaces/$workspaceSlug")({
 });
 
 function WorkspaceLayout() {
+  const { t } = useTranslation();
   const { workspaceContext, workspaceError } = Route.useRouteContext();
 
   if (!workspaceContext) {
@@ -41,8 +43,8 @@ function WorkspaceLayout() {
       <>
         <ServerErrorToast error={workspaceError} />
         <PageUnavailable
-          title="This workspace could not be loaded"
-          description="Your other Gatherory pages are still available. Try loading this workspace again."
+          title={t("feedback.workspaceLoadTitle")}
+          description={t("feedback.workspaceLoadDescription")}
         />
       </>
     );

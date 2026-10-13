@@ -1,4 +1,5 @@
 import { Link } from "@tanstack/react-router"
+import { useTranslation } from "react-i18next"
 import {
   ArrowLeftIcon,
   CalendarDaysIcon,
@@ -9,6 +10,7 @@ import {
 import { Button } from "@/components/ui/button"
 
 export function NotFoundPage() {
+  const { t } = useTranslation()
   const goBack = () => {
     if (window.history.length > 1) {
       window.history.back()
@@ -27,25 +29,24 @@ export function NotFoundPage() {
 
         <p className="mt-6 text-sm font-medium text-primary">404</p>
         <h1 className="mt-2 text-3xl font-semibold tracking-tight">
-          This page isn&apos;t on the itinerary.
+          {t("notFound.title")}
         </h1>
         <p className="mt-3 text-pretty leading-7 text-muted-foreground">
-          The link may be outdated, or the page may have moved to another
-          workspace.
+          {t("notFound.description")}
         </p>
 
         <div className="mt-7 flex flex-wrap justify-center gap-2">
           <Button render={<Link to="/workspaces" />}>
             <HouseIcon aria-hidden="true" />
-            Home
+            {t("common.home")}
           </Button>
           <Button variant="outline" onClick={goBack}>
             <ArrowLeftIcon aria-hidden="true" />
-            Go back
+            {t("common.goBack")}
           </Button>
           <Button variant="outline" onClick={() => window.location.reload()}>
             <RefreshCwIcon aria-hidden="true" />
-            Try again
+            {t("common.tryAgain")}
           </Button>
         </div>
       </section>

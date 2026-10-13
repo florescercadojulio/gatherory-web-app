@@ -3,6 +3,7 @@ import type { RowData } from "@tanstack/react-table"
 import { CheckCircle2Icon, PencilIcon, SearchIcon } from "lucide-react"
 import { Popover as PopoverPrimitive } from "radix-ui"
 import { toast } from "sonner"
+import { useTranslation } from "react-i18next"
 
 import type {
   EntityTablePageRequest,
@@ -59,11 +60,12 @@ export function EntityPicker<
   invalid,
   query: controlledQuery,
   onQueryChange,
-  emptyMessage = "No choices found.",
+  emptyMessage,
   required,
   maxLength,
   onBlur,
 }: EntityPickerProps<TData, TInput>) {
+  const { t } = useTranslation()
   const inputRef = useRef<HTMLInputElement>(null)
   const [open, setOpen] = useState(false)
   const [localQuery, setLocalQuery] = useState("")
@@ -112,7 +114,7 @@ export function EntityPicker<
           if (!cancelled) {
             setItems([])
             setHasNextPage(false)
-            toast.error("Unable to load choices.")
+            toast.error(t("picker.loadFailed"))
           }
         })
         .finally(() => {
@@ -180,8 +182,8 @@ export function EntityPicker<
             <InputGroupAddon align="inline-end">
               <InputGroupButton
                 size="icon-xs"
-                aria-label={`Choose another ${placeholder.toLowerCase()}`}
-                title="Choose another"
+                aria-label={t("picker.chooseAnother", { label: placeholder.toLowerCase() })}
+                title={t("picker.chooseAnother", { label: placeholder.toLowerCase() })}
                 onPointerDown={(event) => event.preventDefault()}
                 onClick={chooseAnother}
               >
@@ -215,10 +217,10 @@ export function EntityPicker<
                 </button>
               ))
             ) : isLoading ? (
-              <p className="p-3 text-sm text-muted-foreground">Loading…</p>
+              <p className="p-3 text-sm text-muted-foreground">{t("common.loading")}</p>
             ) : (
               <p className="p-3 text-sm text-muted-foreground">
-                {emptyMessage}
+                {emptyMessage ?? t("picker.noChoices")}
               </p>
             )}
           </div>
@@ -231,7 +233,7 @@ export function EntityPicker<
               onClick={() => setPageIndex((index) => index - 1)}
               disabled={pageIndex === 0 || isLoading}
             >
-              Previous
+              {t("picker.previous")}
             </Button>
             <Button
               type="button"
@@ -239,7 +241,7 @@ export function EntityPicker<
               size="xs"
               onClick={() => setOpen(false)}
             >
-              Cancel
+              {t("picker.cancel")}
             </Button>
             <Button
               type="button"
@@ -249,7 +251,7 @@ export function EntityPicker<
               onClick={() => setPageIndex((index) => index + 1)}
               disabled={!hasNextPage || isLoading}
             >
-              Next
+              {t("picker.next")}
             </Button>
           </div>
         </PopoverPrimitive.Content>

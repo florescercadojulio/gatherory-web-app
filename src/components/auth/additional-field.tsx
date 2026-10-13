@@ -10,6 +10,7 @@ import { useAuth, useCopyToClipboard } from "@better-auth-ui/react"
 import { format } from "date-fns"
 import { CalendarIcon, Check, ChevronDownIcon, Copy } from "lucide-react"
 import { type ComponentType, useRef, useState } from "react"
+import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
 
 import { buttonVariants } from "@/components/ui/button.tsx"
@@ -147,6 +148,7 @@ export function AdditionalField({
   isPending,
   optionalLabel
 }: AdditionalFieldProps) {
+  const { t } = useTranslation()
   const field =
     optionalLabel && !configuredField.required
       ? {
@@ -366,7 +368,7 @@ export function AdditionalField({
           />
 
           <ComboboxContent>
-            <ComboboxEmpty>No items found.</ComboboxEmpty>
+            <ComboboxEmpty>{t("picker.noItemsFound")}</ComboboxEmpty>
 
             <ComboboxList>
               {(option) => (

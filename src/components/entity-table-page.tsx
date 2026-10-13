@@ -22,6 +22,7 @@ import {
   XIcon,
 } from "lucide-react"
 import { toast } from "sonner"
+import { useTranslation } from "react-i18next"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -105,7 +106,7 @@ export function EntityTablePage<
   TInput extends object = Record<never, never>,
 >({
   config,
-  emptyMessage = "No results found.",
+  emptyMessage,
   className,
   layout = "page",
 }: {
@@ -114,6 +115,7 @@ export function EntityTablePage<
   className?: string
   layout?: "page" | "section"
 }) {
+  const { t } = useTranslation()
   const pageSizeOptions =
     config.pagination?.pageSizeOptions ?? defaultPageSizeOptions
   const [rows, setRows] = useState<TData[]>([])
@@ -200,7 +202,7 @@ export function EntityTablePage<
         if (!cancelled) {
           setRows([])
           setHasNextPage(false)
-          toast.error("Unable to load this table. Please try again.")
+          toast.error(t("picker.tableLoadFailed"))
         }
       })
       .finally(() => {
@@ -267,8 +269,8 @@ export function EntityTablePage<
                   ref={searchRef}
                   value={search}
                   onChange={(event) => setSearch(event.target.value)}
-                  placeholder={config.search.placeholder ?? "Search"}
-                  aria-label={config.search.placeholder ?? "Search"}
+                  placeholder={config.search.placeholder ?? t("picker.search")}
+                  aria-label={config.search.placeholder ?? t("picker.search")}
                   className="h-9 bg-background/80 pr-20 pl-9"
                 />
                 {search ? (
@@ -278,7 +280,7 @@ export function EntityTablePage<
                     size="icon-xs"
                     className="absolute top-1/2 right-2 -translate-y-1/2 text-muted-foreground"
                     onClick={clearSearch}
-                    aria-label="Clear search"
+                    aria-label={t("common.clearSearch")}
                   >
                     <XIcon />
                   </Button>
@@ -295,7 +297,7 @@ export function EntityTablePage<
                   className="flex-1 sm:flex-none"
                   disabled={isLoading}
                 >
-                  Search
+                  {t("picker.search")}
                 </Button>
                 <Button
                   type="button"
@@ -303,7 +305,7 @@ export function EntityTablePage<
                   size="icon"
                   onClick={() => setRefreshVersion((version) => version + 1)}
                   disabled={isLoading}
-                  aria-label="Refresh table"
+                  aria-label={t("common.refresh")}
                 >
                   <RefreshCwIcon className={isLoading ? "animate-spin" : ""} />
                 </Button>
@@ -410,7 +412,7 @@ export function EntityTablePage<
                   colSpan={columns.length}
                   className="h-24 text-center text-sm text-muted-foreground"
                 >
-                  {emptyMessage}
+                  {emptyMessage ?? t("picker.noResults")}
                 </td>
               </tr>
             )}
@@ -421,13 +423,13 @@ export function EntityTablePage<
       <footer className="flex min-h-10 shrink-0 flex-wrap items-center justify-between gap-4 border-t border-border/70 bg-background">
         <p className="text-xs tabular-nums text-muted-foreground">
           {isLoading
-            ? "Loading…"
+            ? t("common.loading")
             : rows.length === 0
-              ? "No results"
-              : `${rows.length} loaded`}
+              ? t("picker.noResultsShort")
+              : t("picker.loadedCount", { count: rows.length })}
         </p>
         <div className="flex items-center gap-2">
-          <span className="text-xs text-muted-foreground">Rows per page</span>
+          <span className="text-xs text-muted-foreground">{t("common.rowsPerPage")}</span>
           <Select
             value={String(pageSize)}
             onValueChange={(value) => {
@@ -452,7 +454,7 @@ export function EntityTablePage<
             onClick={() => setPageIndex((page) => page - 1)}
             disabled={pageIndex === 0 || isLoading}
           >
-            <ChevronLeftIcon /> Previous
+            <ChevronLeftIcon /> {t("picker.previous")}
           </Button>
           <Button
             variant="outline"
@@ -460,7 +462,7 @@ export function EntityTablePage<
             onClick={() => setPageIndex((page) => page + 1)}
             disabled={!hasNextPage || isLoading}
           >
-            Next <ChevronRightIcon />
+            {t("picker.next")} <ChevronRightIcon />
           </Button>
         </div>
       </footer>

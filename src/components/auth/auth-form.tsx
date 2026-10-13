@@ -30,11 +30,12 @@ import {
 import { Input } from "@/components/ui/input.tsx"
 import { Spinner } from "@/components/ui/spinner.tsx"
 import { AdditionalField, type AdditionalFieldProps } from "./additional-field"
+import i18n from "@/i18n"
 
 const { fieldContext, formContext, useFieldContext, useFormContext } =
   createFormHookContexts()
 
-const DEFAULT_AUTH_FORM_SERVER_ERROR = "Unable to submit this form. Try again."
+const DEFAULT_AUTH_FORM_SERVER_ERROR = i18n.t("authForm.submitFailed")
 
 export function focusFirstInvalidAuthFormControl(form: HTMLFormElement) {
   requestAnimationFrame(() => {

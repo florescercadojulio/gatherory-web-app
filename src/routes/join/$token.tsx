@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { z } from "zod";
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -82,6 +83,7 @@ export const Route = createFileRoute("/join/$token")({
 });
 
 function JoinInvitation() {
+  const { t, i18n } = useTranslation();
   const { token } = Route.useParams();
   const { session, invitation, error, shared } = Route.useLoaderData();
   const [pending, setPending] = useState(false);
@@ -105,14 +107,14 @@ function JoinInvitation() {
       )({ data: { token } });
       if (!result.ok) {
         toast.error(result.error.userMessage, {
-          description: `Reference: ${result.error.errorId}`,
+          description: t("errors.reference", { id: result.error.errorId }),
         });
         return;
       }
       setAcceptance({ token, role: result.data.role });
-      toast.success("Invitation accepted");
+      toast.success(t("invitation.acceptedToast"));
     } catch {
-      toast.error("Your invitation could not be accepted. Try again.");
+      toast.error(t("invitation.acceptFailed"));
     } finally {
       setPending(false);
     }
@@ -128,22 +130,22 @@ function JoinInvitation() {
           className="size-14 rounded-2xl"
         />
         <h1 className="text-3xl font-semibold tracking-tight">
-          {invitation?.title ?? "Gatherory invitation"}
+          {invitation?.title ?? t("invitation.title")}
         </h1>
         {!valid ? (
-          <p>This invitation link is invalid. Ask the host for a new one.</p>
+          <p>{t("invitation.invalid")}</p>
         ) : !session ? (
           <>
             <p className="text-muted-foreground">
               {shared
-                ? `Anyone with this link can join as a ${invitation?.role}. Sign in or create an account to accept.`
-                : "Sign in or create an account to check this invitation. Email-specific invitations must be accepted by the addressed account."}
+                ? t("invitation.sharedJoin", { role: roleLabel(t, invitation?.role) })
+                : t("invitation.privateJoin")}
             </p>
             {shared &&
               invitation &&
               "startsAt" in invitation &&
               invitation.startsAt && (
-                <p>{new Date(invitation.startsAt).toLocaleString()}</p>
+                <p>{new Date(invitation.startsAt).toLocaleString(i18n.language)}</p>
               )}
             {shared &&
               invitation &&
@@ -155,7 +157,7 @@ function JoinInvitation() {
               params={{ path: "sign-in" }}
               search={{ redirectTo: continuation }}
             >
-              Sign In
+              {t("invitation.signIn")}
             </Link>
             <Link
               className={buttonVariants({ variant: "outline" })}
@@ -163,14 +165,13 @@ function JoinInvitation() {
               params={{ path: "sign-up" }}
               search={{ redirectTo: continuation }}
             >
-              Create Account
+              {t("invitation.createAccount")}
             </Link>
           </>
         ) : !invitation ? (
           <>
             <p className="text-muted-foreground">
-              This invitation could not be loaded. Make sure you are using the
-              invited email address.
+              {t("invitation.notLoaded")}
             </p>
             <Link
               className={buttonVariants({ variant: "outline" })}
@@ -178,52 +179,48 @@ function JoinInvitation() {
               params={{ path: "sign-out" }}
               search={{ redirectTo: continuation }}
             >
-              Switch Account
+              {t("invitation.switchAccount")}
             </Link>
           </>
         ) : accepted ? (
           <>
             <p>
-              You joined as a{" "}
-              {acceptance?.token === token ? acceptance.role : invitation.role}.
-              Your host can now include you in the event.
+              {t("invitation.joinedAs", { role: roleLabel(t, acceptance?.token === token ? acceptance.role : invitation.role) })}
             </p>
             <p className="text-sm text-muted-foreground">
-              Open Gatherory on your iPhone and refresh to see this event.
-              Guests see the invitation; main-event planning collaborators also
-              receive planning access.
+              {t("invitation.refreshOnIPhone")}
             </p>
             <Link className={buttonVariants()} to="/workspaces">
-              Continue to Gatherory
+              {t("invitation.continue")}
             </Link>
           </>
         ) : (
           <>
             <p className="text-muted-foreground">
-              You are invited as a {invitation.role}. This invitation expires{" "}
-              {new Date(invitation.expiresAt).toLocaleDateString()}.
+              {t("invitation.invitedAs", { role: roleLabel(t, invitation.role), date: new Date(invitation.expiresAt).toLocaleDateString(i18n.language) })}
             </p>
             {shared && invitation.role === "collaborator" && (
-              <p>
-                Accepting grants planning access to this event. Only share this
-                link with people you trust.
-              </p>
+              <p>{t("invitation.collaboratorAccess")}</p>
             )}
             <Button
               disabled={pending || !session.user.emailVerified || expired}
               onClick={accept}
             >
-              {pending ? "Accepting…" : "Accept Invitation"}
+              {pending ? t("invitation.accepting") : t("invitation.accept")}
             </Button>
             {expired && (
-              <p>This invitation has expired. Ask the host for a new link.</p>
+              <p>{t("invitation.expired")}</p>
             )}
             {!session.user.emailVerified && (
-              <p>Verify your email address, then return to this invitation.</p>
+              <p>{t("invitation.verifyEmail")}</p>
             )}
           </>
         )}
       </section>
     </main>
   );
+}
+
+function roleLabel(t: (key: string) => string, role: string | undefined) {
+  return role ? t(`roles.${role}`) : "";
 }

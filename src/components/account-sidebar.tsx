@@ -1,6 +1,7 @@
 "use client";
 
 import { Link } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 import { LayoutDashboard, Settings } from "lucide-react";
 
 import { NavMain } from "@/components/nav-main";
@@ -18,12 +19,13 @@ import {
 
 export function AccountSidebar({
   user,
-  summaryLabel = "Your events",
+  summaryLabel,
   ...props
 }: React.ComponentProps<typeof Sidebar> & {
   user: { name: string; email: string; image?: string | null };
   summaryLabel?: string;
 }) {
+  const { t } = useTranslation();
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
@@ -32,7 +34,7 @@ export function AccountSidebar({
             <SidebarMenuButton
               size="lg"
               render={<Link to="/workspaces" />}
-              tooltip="Gatherory overview"
+              tooltip={t("navigation.yourEvents")}
             >
               <div className="flex aspect-square size-8 items-center justify-center overflow-hidden rounded-md border border-sidebar-border bg-sidebar-primary text-sidebar-primary-foreground">
                 <img
@@ -44,7 +46,7 @@ export function AccountSidebar({
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-medium">Gatherory</span>
                 <span className="truncate text-xs text-muted-foreground">
-                  {summaryLabel}
+                  {summaryLabel ?? t("navigation.yourEvents")}
                 </span>
               </div>
             </SidebarMenuButton>
@@ -53,15 +55,15 @@ export function AccountSidebar({
       </SidebarHeader>
       <SidebarContent>
         <NavMain
-          label="Gatherory"
+          label={t("navigation.gatherory")}
           items={[
             {
-              title: "Overview",
+              title: t("navigation.overview"),
               url: "/workspaces",
               icon: LayoutDashboard,
             },
             {
-              title: "Account",
+              title: t("common.account"),
               url: "/account",
               icon: Settings,
             },

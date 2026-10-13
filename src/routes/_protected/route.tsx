@@ -1,4 +1,5 @@
 import { createFileRoute, Outlet } from "@tanstack/react-router"
+import { useTranslation } from "react-i18next"
 
 import { PageUnavailable, ServerErrorToast } from "@/components/route-feedback"
 import { ensurePersonalWorkspace } from "@/server/workspaces/handlers/workspace.handlers"
@@ -16,6 +17,7 @@ export const Route = createFileRoute("/_protected")({
 })
 
 function ProtectedLayout() {
+  const { t } = useTranslation()
   const { defaultWorkspaceContext, defaultWorkspaceError } =
     Route.useRouteContext()
 
@@ -24,8 +26,8 @@ function ProtectedLayout() {
       <>
         <ServerErrorToast error={defaultWorkspaceError} />
         <PageUnavailable
-          title="Your workspace could not be prepared"
-          description="Gatherory kept the rest of the app available. Try loading your workspace again."
+          title={t("feedback.workspacePrepareTitle")}
+          description={t("feedback.workspacePrepareDescription")}
         />
       </>
     )

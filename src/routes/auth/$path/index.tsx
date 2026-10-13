@@ -2,6 +2,7 @@ import { viewPaths } from "@better-auth-ui/core"
 import { createFileRoute, redirect } from "@tanstack/react-router"
 import { cn } from "cn"
 import { CheckIcon } from "lucide-react"
+import { useTranslation } from "react-i18next"
 
 import { Auth } from "@/components/auth/auth"
 import { ServerErrorToast } from "@/components/route-feedback"
@@ -51,6 +52,7 @@ export const Route = createFileRoute("/auth/$path/")({
 })
 
 function AuthPage() {
+  const { t } = useTranslation()
   const { path } = Route.useParams()
   const { sessionError } = Route.useRouteContext()
   const isSignIn = path === viewPaths.auth.signIn
@@ -90,18 +92,17 @@ function AuthPage() {
 
           <div className="relative z-10 max-w-xl">
             <h1 className="max-w-lg text-5xl font-semibold leading-[1.02] tracking-[-0.04em] text-white">
-              Bring the plan and the people together.
+              {t("authStory.headline")}
             </h1>
             <p className="mt-5 max-w-lg text-base leading-7 text-blue-50/80">
-              Shape the main event, collect ideas, make decisions, and keep
-              every collaborator moving in the same direction.
+              {t("authStory.description")}
             </p>
 
             <ul className="mt-8 grid gap-3 text-sm text-white/90">
               {[
-                "A shared planning space for every event",
-                "Decisions, schedules, and guests in context",
-                "Designed for planning together",
+                t("authStory.pointOne"),
+                t("authStory.pointTwo"),
+                t("authStory.pointThree"),
               ].map((item) => (
                 <li key={item} className="flex items-center gap-3">
                   <span className="grid size-6 place-items-center rounded-full bg-white/15">
@@ -114,8 +115,7 @@ function AuthPage() {
           </div>
 
           <p className="relative z-10 text-xs text-blue-100/65">
-            Gatherory keeps the story of an event connected from first idea to
-            final memory.
+            {t("authStory.footer")}
           </p>
         </section>
 
@@ -149,7 +149,7 @@ function AuthPage() {
                   Gatherory
                 </p>
                 <p className="mt-1 text-sm leading-6 text-muted-foreground">
-                  Sign in to continue planning, or create a new account.
+                  {t("authStory.signInIntro")}
                 </p>
               </div>
             </div>
@@ -171,8 +171,7 @@ function AuthPage() {
                 "auth-signin-legal",
               )}
             >
-              By continuing, you agree to Gatherory&apos;s Terms and acknowledge
-              the Privacy Policy.
+              {t("authStory.legal")}
             </p>
           </div>
         </section>

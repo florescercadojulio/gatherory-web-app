@@ -2,6 +2,7 @@ import { useDeleteUser } from "@better-auth-ui/react";
 import { createFileRoute } from "@tanstack/react-router";
 import { AlertTriangle, ShieldCheck, Trash2, UserRound } from "lucide-react";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
 import { AccountSidebar } from "@/components/account-sidebar";
@@ -34,6 +35,7 @@ export const Route = createFileRoute("/_protected/account/")({
 });
 
 function AccountSettingsPage() {
+  const { t } = useTranslation();
   const { defaultWorkspaceContext } = Route.useRouteContext();
   if (!defaultWorkspaceContext) return null;
 
@@ -54,25 +56,25 @@ function AccountSettingsPage() {
           <Separator orientation="vertical" className="mr-2 h-4" />
           <div className="flex min-w-0 items-center gap-2">
             <UserRound className="size-4 text-brand-ink" />
-            <span className="truncate text-sm font-medium">Account</span>
+            <span className="truncate text-sm font-medium">{t("account.title")}</span>
           </div>
         </header>
 
         <main className="app-page-shell max-w-3xl">
           <div className="space-y-2">
             <h1 className="text-3xl font-semibold tracking-[-0.025em]">
-              Account
+              {t("account.title")}
             </h1>
             <p className="text-sm leading-6 text-muted-foreground">
-              Manage your Gatherory account.
+              {t("account.description")}
             </p>
           </div>
 
           <section className="border-y py-6">
             <div>
-              <h2 className="app-section-heading">Profile</h2>
+              <h2 className="app-section-heading">{t("account.profile")}</h2>
               <p className="mt-1 text-sm text-muted-foreground">
-                Your name and email come from your Gatherory sign-in account.
+                {t("account.profileDescription")}
               </p>
             </div>
             <div className="mt-5 flex items-center gap-4">
@@ -94,21 +96,19 @@ function AccountSettingsPage() {
           <section className="border-t pt-6">
             <div>
               <h2 className="app-section-heading text-destructive">
-                Danger zone
+                {t("account.dangerZone")}
               </h2>
               <p className="mt-1 text-sm text-muted-foreground">
-                Account deletion is permanent and cannot be undone.
+                {t("account.deletionPermanent")}
               </p>
             </div>
             <div className="mt-5 border-y border-destructive/25 py-4">
               <div className="flex items-start gap-3">
                 <ShieldCheck className="mt-0.5 size-5 shrink-0 text-destructive" />
                 <div className="space-y-1">
-                  <p className="font-medium">Delete your Gatherory account</p>
+                  <p className="font-medium">{t("account.deleteTitle")}</p>
                   <p className="text-sm leading-6 text-muted-foreground">
-                    Private events you solely own will be deleted. In shared
-                    events, another member becomes the owner and your personal
-                    participation, decisions, and uploaded media are removed.
+                    {t("account.deleteDescription")}
                   </p>
                 </div>
               </div>
@@ -124,6 +124,7 @@ function AccountSettingsPage() {
 }
 
 function DeleteAccountDialog() {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [confirmation, setConfirmation] = useState("");
   const deletion = useDeleteUser(authClient);
@@ -140,8 +141,8 @@ function DeleteAccountDialog() {
       toast.error(
         detail?.toLowerCase().includes("fresh") ||
           detail?.toLowerCase().includes("session")
-          ? "For security, sign out and sign in again before deleting your account."
-          : "Your account could not be deleted. Try again.",
+          ? t("account.deleteReauth")
+          : t("account.deleteFailed"),
       );
     }
   }
@@ -159,33 +160,31 @@ function DeleteAccountDialog() {
     >
       <DialogTrigger render={<Button variant="destructive" />}>
         <Trash2 className="size-4" />
-        Delete account
+        {t("account.deleteAccount")}
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Delete your account?</DialogTitle>
+          <DialogTitle>{t("account.deleteQuestion")}</DialogTitle>
           <DialogDescription>
-            This permanently removes your Gatherory identity and personal data.
-            This action cannot be undone.
+            {t("account.deleteDialogDescription")}
           </DialogDescription>
         </DialogHeader>
 
         <Alert variant="destructive">
           <AlertTriangle />
-          <AlertTitle>This is permanent</AlertTitle>
+          <AlertTitle>{t("account.deleteWarning")}</AlertTitle>
           <AlertDescription>
-            Type DELETE below to confirm. Gatherory may ask you to sign in again
-            if your current session is no longer recent.
+            {t("account.typeToConfirm")}
           </AlertDescription>
         </Alert>
 
         <div className="grid gap-2">
-          <Label htmlFor="delete-account-confirmation">Confirmation</Label>
+          <Label htmlFor="delete-account-confirmation">{t("account.confirmation")}</Label>
           <Input
             id="delete-account-confirmation"
             value={confirmation}
             onChange={(event) => setConfirmation(event.target.value)}
-            placeholder="Type DELETE"
+            placeholder={t("account.typeDelete")}
             autoComplete="off"
             autoCapitalize="characters"
           />
@@ -193,14 +192,14 @@ function DeleteAccountDialog() {
 
         <DialogFooter>
           <DialogClose render={<Button variant="outline" />}>
-            Cancel
+            {t("account.cancel")}
           </DialogClose>
           <Button
             variant="destructive"
             disabled={!canDelete || deletion.isPending}
             onClick={() => void deleteAccount()}
           >
-            {deletion.isPending ? "Deleting…" : "Delete account"}
+            {deletion.isPending ? t("account.deleting") : t("account.deleteAccount")}
           </Button>
         </DialogFooter>
       </DialogContent>

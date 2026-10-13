@@ -1,6 +1,7 @@
 import { drizzleAdapter } from '@better-auth/drizzle-adapter/relations-v2'
 import { waitUntil } from '@vercel/functions'
 import { betterAuth } from 'better-auth'
+import { i18n, locales } from '@better-auth/i18n'
 import { bearer } from 'better-auth/plugins/bearer'
 import { emailOTP } from 'better-auth/plugins/email-otp'
 import { magicLink } from 'better-auth/plugins/magic-link'
@@ -162,6 +163,13 @@ export const auth = betterAuth({
     },
   },
   plugins: [
+    i18n({
+      defaultLocale: 'en',
+      translations: {
+        en: locales.en,
+        es: locales.es,
+      },
+    }),
     bearer(),
     emailOTP({
       otpLength: 6,

@@ -1,5 +1,6 @@
 import type { ErrorComponentProps } from "@tanstack/react-router"
 import { useEffect, useState } from "react"
+import { useTranslation } from "react-i18next"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -31,21 +32,22 @@ export function ServerErrorToast({
 }
 
 export function PageUnavailable({
-  title = "This page is temporarily unavailable",
-  description = "The rest of Gatherory is still available. Try loading this page again.",
+  title,
+  description,
 }: {
   title?: string
   description?: string
 }) {
+  const { t } = useTranslation()
   return (
     <main className="mx-auto flex min-h-[70svh] w-full max-w-3xl items-center p-4 md:p-8">
       <Card className="w-full border-dashed">
         <CardHeader>
-          <CardTitle>{title}</CardTitle>
-          <CardDescription>{description}</CardDescription>
+          <CardTitle>{title ?? t("feedback.pageUnavailable")}</CardTitle>
+          <CardDescription>{description ?? t("feedback.restAvailable")}</CardDescription>
         </CardHeader>
         <CardContent>
-          <Button onClick={() => window.location.reload()}>Try again</Button>
+          <Button onClick={() => window.location.reload()}>{t("feedback.tryAgain")}</Button>
         </CardContent>
       </Card>
     </main>
@@ -53,6 +55,7 @@ export function PageUnavailable({
 }
 
 export function RouteErrorFallback({ reset }: ErrorComponentProps) {
+  const { t } = useTranslation()
   const [errorId] = useState(() => crypto.randomUUID())
 
   useEffect(() => {
@@ -63,14 +66,13 @@ export function RouteErrorFallback({ reset }: ErrorComponentProps) {
     <main className="mx-auto flex min-h-[70svh] w-full max-w-3xl items-center p-4 md:p-8">
       <Card className="w-full border-dashed">
         <CardHeader>
-          <CardTitle>This page could not finish loading</CardTitle>
+          <CardTitle>{t("feedback.couldNotFinish")}</CardTitle>
           <CardDescription>
-            The rest of Gatherory is still available. Try loading this page
-            again.
+            {t("feedback.restAvailable")}
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Button onClick={reset}>Try again</Button>
+          <Button onClick={reset}>{t("feedback.tryAgain")}</Button>
         </CardContent>
       </Card>
     </main>

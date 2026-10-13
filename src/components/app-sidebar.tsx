@@ -5,6 +5,7 @@ import {
   LayoutDashboard,
   Settings,
 } from "lucide-react"
+import { useTranslation } from "react-i18next"
 
 import { NavMain } from "@/components/nav-main.tsx"
 import { NavUser } from "@/components/nav-user.tsx"
@@ -32,6 +33,7 @@ export function AppSidebar({
   planningTeamName: string | null
   user: { name: string; email: string; image?: string | null }
 }) {
+  const { t } = useTranslation()
   const workspaceUrl = `/workspaces/${workspace.slug}`
 
   return (
@@ -45,11 +47,11 @@ export function AppSidebar({
       </SidebarHeader>
       <SidebarContent>
         <NavMain
-          label="Gatherory"
+          label={t("navigation.gatherory")}
           items={[
-            { title: "All events", url: "/workspaces", icon: LayoutDashboard },
-            { title: "Event details", url: workspaceUrl, icon: CalendarDays },
-            { title: "Account", url: "/account", icon: Settings },
+            { title: t("common.allEvents"), url: "/workspaces", icon: LayoutDashboard },
+            { title: t("navigation.eventDetails"), url: workspaceUrl, icon: CalendarDays },
+            { title: t("common.account"), url: "/account", icon: Settings },
           ]}
         />
       </SidebarContent>

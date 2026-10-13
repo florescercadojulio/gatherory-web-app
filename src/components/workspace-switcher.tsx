@@ -1,6 +1,7 @@
 "use client";
 
 import { Link } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 import {
   CalendarDays,
   Check,
@@ -42,6 +43,7 @@ export function WorkspaceSwitcher({
   workspaces: WorkspaceSwitcherItem[];
   planningTeamName: string | null;
 }) {
+  const { t } = useTranslation();
   const { isMobile } = useSidebar();
 
   return (
@@ -65,14 +67,14 @@ export function WorkspaceSwitcher({
             </div>
             <div className="grid flex-1 text-left text-sm leading-tight">
               <span className="truncate font-medium">
-                {workspace?.name ?? "All events"}
+                {workspace?.name ?? t("common.allEvents")}
               </span>
               <span className="truncate text-xs text-muted-foreground">
                 {!workspace
-                  ? `${workspaces.length} ${workspaces.length === 1 ? "event" : "events"}`
+                  ? t("common.events", { count: workspaces.length })
                   : workspace.access === "member"
-                    ? `${planningTeamName ?? "Planning"} team`
-                    : "Shared with you"}
+                    ? t("switcher.planningTeam", { team: planningTeamName ?? t("navigation.plan") })
+                    : t("common.sharedWithYou")}
               </span>
             </div>
             <ChevronsUpDown className="ml-auto size-4" />
@@ -91,14 +93,14 @@ export function WorkspaceSwitcher({
                 <div className="flex size-7 items-center justify-center rounded-md border">
                   <LayoutGrid className="size-4" />
                 </div>
-                <span className="flex-1">All events</span>
+                <span className="flex-1">{t("common.allEvents")}</span>
                 {!workspace ? <Check className="ml-auto size-4" /> : null}
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
               <DropdownMenuLabel className="text-xs text-muted-foreground">
-                Events
+                {t("navigation.yourEvents")}
               </DropdownMenuLabel>
               {workspaces.map((candidate) => (
                 <DropdownMenuItem
@@ -122,8 +124,8 @@ export function WorkspaceSwitcher({
                     <span className="truncate">{candidate.name}</span>
                     <span className="truncate text-xs text-muted-foreground">
                       {candidate.access === "member"
-                        ? "Your event"
-                        : "Shared with you"}
+                        ? t("common.yourEvent")
+                        : t("common.sharedWithYou")}
                     </span>
                   </div>
                   {candidate.id === workspace?.id ? (

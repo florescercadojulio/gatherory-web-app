@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import {
   Avatar,
   AvatarFallback,
@@ -37,12 +38,13 @@ export function ParticipantAvatars({
   className?: string;
   showLabel?: boolean;
 }) {
+  const { t } = useTranslation();
   const visibleParticipants = participants.slice(0, maxVisible);
   const remainingCount = Math.max(totalCount - visibleParticipants.length, 0);
 
   return (
     <div className={cn("flex min-w-0 items-center gap-3", className)}>
-      <AvatarGroup aria-label="Event participants">
+      <AvatarGroup aria-label={t("common.eventParticipants")}>
         {visibleParticipants.map((participant) => (
           <Avatar key={participant.id} size={size}>
             <AvatarImage
@@ -55,14 +57,14 @@ export function ParticipantAvatars({
           </Avatar>
         ))}
         {remainingCount > 0 ? (
-          <AvatarGroupCount aria-label={`${remainingCount} more people`}>
+          <AvatarGroupCount aria-label={t("common.morePeople", { count: remainingCount })}>
             +{remainingCount}
           </AvatarGroupCount>
         ) : null}
       </AvatarGroup>
       {showLabel ? (
         <span className="truncate text-xs text-muted-foreground">
-          {totalCount} {totalCount === 1 ? "person" : "people"}
+          {t("event.participantsCount", { count: totalCount })}
         </span>
       ) : null}
     </div>

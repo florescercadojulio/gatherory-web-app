@@ -1,5 +1,6 @@
 import { Link, useRouterState } from "@tanstack/react-router"
 import type { LucideIcon } from "lucide-react"
+import { useTranslation } from "react-i18next"
 
 import {
   SidebarGroup,
@@ -22,6 +23,7 @@ export function NavMain({
   }[]
   label?: string
 }) {
+  const { t } = useTranslation()
   const pathname = useRouterState({ select: (state) => state.location.pathname })
 
   return (
@@ -44,7 +46,7 @@ export function NavMain({
           return (
             <SidebarMenuItem key={item.title}>
               {item.disabled ? (
-                <SidebarMenuButton disabled tooltip={`${item.title} — later`}>
+                  <SidebarMenuButton disabled tooltip={`${item.title} — ${t("navigation.later")} `}>
                   {content}
                 </SidebarMenuButton>
               ) : (

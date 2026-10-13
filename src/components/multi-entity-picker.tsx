@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type ReactNode } from "react"
 import type { RowData } from "@tanstack/react-table"
 import { CheckIcon, SearchIcon, XIcon } from "lucide-react"
 import { toast } from "sonner"
+import { useTranslation } from "react-i18next"
 
 import type {
   EntityTablePageRequest,
@@ -56,6 +57,7 @@ export function MultiEntityPicker<
   invalid,
   maxSelected = 25,
 }: MultiEntityPickerProps<TData, TInput>) {
+  const { t } = useTranslation()
   const inputRef = useRef<HTMLInputElement>(null)
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState("")
@@ -91,7 +93,7 @@ export function MultiEntityPicker<
         if (!cancelled) {
           setItems([])
           setHasNextPage(false)
-          toast.error("Unable to load choices.")
+          toast.error(t("picker.loadFailed"))
         }
       })
       .finally(() => {
@@ -180,10 +182,10 @@ export function MultiEntityPicker<
                 )
               })
             ) : isLoading ? (
-              <p className="p-3 text-sm text-muted-foreground">Loading…</p>
+              <p className="p-3 text-sm text-muted-foreground">{t("common.loading")}</p>
             ) : (
               <p className="p-3 text-sm text-muted-foreground">
-                No choices found.
+                {t("picker.noChoices")}
               </p>
             )}
           </div>
@@ -196,7 +198,7 @@ export function MultiEntityPicker<
               onClick={() => setPageIndex((index) => index - 1)}
               disabled={pageIndex === 0 || isLoading}
             >
-              Previous
+              {t("picker.previous")}
             </Button>
             <Button
               type="button"
@@ -204,7 +206,7 @@ export function MultiEntityPicker<
               size="xs"
               onClick={() => setOpen(false)}
             >
-              Done
+              {t("picker.done")}
             </Button>
             <Button
               type="button"
@@ -214,14 +216,14 @@ export function MultiEntityPicker<
               onClick={() => setPageIndex((index) => index + 1)}
               disabled={!hasNextPage || isLoading}
             >
-              Next
+              {t("picker.next")}
             </Button>
           </div>
         </PopoverContent>
       </Popover>
 
       {selectedItems.length > 0 && (
-        <div className="flex flex-wrap gap-1" aria-label="Selected items">
+        <div className="flex flex-wrap gap-1" aria-label={t("common.selectedItems")}>
           {selectedItems.map((item) => {
             const label = getItemLabel(item)
             return (
@@ -235,7 +237,7 @@ export function MultiEntityPicker<
                   type="button"
                   variant="ghost"
                   size="icon-xs"
-                  aria-label={`Remove ${label}`}
+                  aria-label={t("picker.removeItem", { label })}
                   onClick={() => toggle(item)}
                 >
                   <XIcon />
@@ -247,7 +249,7 @@ export function MultiEntityPicker<
       )}
       {selectedItems.length === maxSelected && (
         <p className="text-xs text-muted-foreground">
-          Maximum {maxSelected} selections.
+          {t("picker.maximumSelected", { count: maxSelected })}
         </p>
       )}
     </div>

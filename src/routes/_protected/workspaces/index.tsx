@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 import {
   CalendarDays,
   CheckCircle2,
@@ -31,26 +32,11 @@ export const Route = createFileRoute("/_protected/workspaces/")({
   component: WorkspaceCompanion,
 });
 
-const dateFormatter = new Intl.DateTimeFormat("en-US", {
-  month: "short",
-  day: "numeric",
-  year: "numeric",
-});
-
-const dateTimeFormatter = new Intl.DateTimeFormat("en-US", {
-  month: "short",
-  day: "numeric",
-  hour: "numeric",
-  minute: "2-digit",
-});
-
-const currencyFormatter = new Intl.NumberFormat("en-US", {
-  style: "currency",
-  currency: "USD",
-  maximumFractionDigits: 0,
-});
-
 function WorkspaceCompanion() {
+  const { t, i18n } = useTranslation();
+  const currencyFormatter = new Intl.NumberFormat(i18n.language, {
+    style: "currency", currency: "USD", maximumFractionDigits: 0,
+  });
   const { defaultWorkspaceContext } = Route.useRouteContext();
   const insightResult = Route.useLoaderData();
   if (!defaultWorkspaceContext) return null;
@@ -74,7 +60,7 @@ function WorkspaceCompanion() {
       <ServerErrorToast error={insightResult.ok ? null : insightResult.error} />
       <AccountSidebar
         user={defaultWorkspaceContext.user}
-        summaryLabel={`${workspaces.length} ${workspaces.length === 1 ? "event" : "events"}`}
+        summaryLabel={t("common.events", { count: workspaces.length })}
       />
       <SidebarInset>
         <header className="app-toolbar">
@@ -82,7 +68,7 @@ function WorkspaceCompanion() {
           <Separator orientation="vertical" className="mr-2 h-4" />
           <div className="flex min-w-0 items-center gap-2">
             <CalendarDays className="size-4 text-brand-ink" />
-            <span className="truncate text-sm font-medium">Your events</span>
+            <span className="truncate text-sm font-medium">{t("overview.events")}</span>
           </div>
         </header>
 
@@ -100,16 +86,15 @@ function WorkspaceCompanion() {
                   </div>
                   <span className="app-keycap">
                     <Smartphone className="mr-1.5 size-3.5" />
-                    iPhone companion
+                    {t("overview.eyebrow")}
                   </span>
                 </div>
                 <div className="space-y-3">
                   <h1 className="text-3xl leading-tight font-semibold tracking-[-0.025em] text-balance sm:text-4xl">
-                    Your plans, at a glance.
+                    {t("overview.title")}
                   </h1>
                   <p className="max-w-2xl text-sm leading-6 text-[#cdcdcd] sm:text-base">
-                    Plan on your iPhone, then come here for a focused view of
-                    your events, ideas, people, and spending.
+                    {t("overview.description")}
                   </p>
                 </div>
               </div>
@@ -117,9 +102,9 @@ function WorkspaceCompanion() {
                 <div className="flex items-center gap-3 rounded-md bg-[#121212] px-3 py-2.5">
                   <span className="size-2 rounded-full bg-[#57c1ff]" />
                   <div className="min-w-0">
-                    <p className="text-sm font-medium text-white">Up to date</p>
+                    <p className="text-sm font-medium text-white">{t("overview.upToDate")}</p>
                     <p className="truncate text-xs text-[#9c9c9d]">
-                      Your latest plans are here
+                      {t("overview.latestPlans")}
                     </p>
                   </div>
                 </div>
@@ -129,31 +114,31 @@ function WorkspaceCompanion() {
 
           <section
             className="grid border-y sm:grid-cols-2 xl:grid-cols-4"
-            aria-label="Planning overview"
+            aria-label={t("ui.planningOverview")}
           >
             <Metric
               icon={CalendarDays}
-              label="Events"
+              label={t("overview.events")}
               value={String(workspaces.length)}
-              detail={`${totals.scheduledEvents} activities planned`}
+              detail={t("overview.plannedActivities", { count: totals.scheduledEvents })}
             />
             <Metric
               icon={Lightbulb}
-              label="Ideas to decide"
+              label={t("overview.ideasToDecide")}
               value={String(totals.openIdeas)}
-              detail="Across all your events"
+              detail={t("overview.acrossEvents")}
             />
             <Metric
               icon={WalletCards}
-              label="Planned spending"
+              label={t("overview.plannedSpending")}
               value={currencyFormatter.format(totals.trackedCost)}
-              detail="What you expect to spend so far"
+              detail={t("overview.spendingSoFar")}
             />
             <Metric
               icon={Users}
-              label="People"
+              label={t("common.people")}
               value={String(totals.participantCount)}
-              detail="Hosts, helpers, and guests"
+              detail={t("overview.hostsHelpersGuests")}
             />
           </section>
 
@@ -161,14 +146,14 @@ function WorkspaceCompanion() {
             <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
               <div>
                 <h2 id="your-events-heading" className="app-section-heading">
-                  Your events
+                  {t("overview.yourEvents")}
                 </h2>
                 <p className="text-sm text-muted-foreground">
-                  Everything important, gathered in one place.
+                  {t("overview.allTogether")}
                 </p>
               </div>
               <p className="text-xs text-muted-foreground">
-                Use the iPhone app to make changes.
+                {t("overview.useIPhoneToChange")}
               </p>
             </div>
 
@@ -187,11 +172,7 @@ function WorkspaceCompanion() {
 
             {insight.unavailableSnapshotCount ? (
               <p className="text-xs text-muted-foreground">
-                {insight.unavailableSnapshotCount} older event
-                {insight.unavailableSnapshotCount === 1 ? "" : "s"} will appear
-                after you open and save{" "}
-                {insight.unavailableSnapshotCount === 1 ? "it" : "them"} on your
-                iPhone.
+                {t("overview.olderEvents", { count: insight.unavailableSnapshotCount })}
               </p>
             ) : null}
           </section>
@@ -233,6 +214,16 @@ function WorkspaceInsightCard({
 }: {
   workspace: NativeWorkspaceInsight;
 }) {
+  const { t, i18n } = useTranslation();
+  const dateTimeFormatter = new Intl.DateTimeFormat(i18n.language, {
+    month: "short", day: "numeric", hour: "numeric", minute: "2-digit",
+  });
+  const dateFormatter = new Intl.DateTimeFormat(i18n.language, {
+    month: "short", day: "numeric", year: "numeric",
+  });
+  const currencyFormatter = new Intl.NumberFormat(i18n.language, {
+    style: "currency", currency: "USD", maximumFractionDigits: 0,
+  });
   const budgetUsed = workspace.budgetCap
     ? Math.min((workspace.trackedCost / workspace.budgetCap) * 100, 100)
     : null;
@@ -246,7 +237,7 @@ function WorkspaceInsightCard({
             {workspace.status}
           </Badge>
           <span className="text-xs text-muted-foreground">
-            Updated {dateTimeFormatter.format(new Date(workspace.updatedAt))}
+            {t("overview.updatedAt", { date: dateTimeFormatter.format(new Date(workspace.updatedAt)) })}
           </span>
         </div>
         <div>
@@ -272,10 +263,10 @@ function WorkspaceInsightCard({
           maxVisible={5}
         />
         <div className="grid grid-cols-4 divide-x border-y py-3">
-          <SmallStat label="People" value={workspace.participantCount} />
-          <SmallStat label="Schedule" value={workspace.scheduledEventCount} />
-          <SmallStat label="Open ideas" value={workspace.openIdeaCount} />
-          <SmallStat label="Approved" value={workspace.approvedIdeaCount} />
+          <SmallStat label={t("common.people")} value={workspace.participantCount} />
+          <SmallStat label={t("event.schedule")} value={workspace.scheduledEventCount} />
+          <SmallStat label={t("overview.ideasToDecide")} value={workspace.openIdeaCount} />
+          <SmallStat label={t("event.approved")} value={workspace.approvedIdeaCount} />
         </div>
       </header>
 
@@ -284,13 +275,13 @@ function WorkspaceInsightCard({
           <div className="space-y-2">
             <div className="flex items-end justify-between gap-4">
               <div>
-                <p className="text-xs text-muted-foreground">Budget overview</p>
+                <p className="text-xs text-muted-foreground">{t("overview.budget")}</p>
                 <p className="font-medium tabular-nums">
-                  {currencyFormatter.format(workspace.trackedCost)} planned
+                  {currencyFormatter.format(workspace.trackedCost)} {t("overview.planned")}
                 </p>
               </div>
               <p className="text-sm tabular-nums text-muted-foreground">
-                of {currencyFormatter.format(workspace.budgetCap)}
+                {t("overview.ofBudget", { amount: currencyFormatter.format(workspace.budgetCap) })}
               </p>
             </div>
             <Progress value={budgetUsed ?? 0} className="h-2" />
@@ -299,9 +290,9 @@ function WorkspaceInsightCard({
 
         <div className="space-y-3">
           <div className="flex items-center justify-between gap-3">
-            <p className="text-sm font-medium">Coming up</p>
+            <p className="text-sm font-medium">{t("overview.comingUp")}</p>
             <span className="text-xs text-muted-foreground">
-              Next {workspace.upcomingEvents.length || 0}
+              {t("overview.nextCount", { count: workspace.upcomingEvents.length || 0 })}
             </span>
           </div>
           {workspace.upcomingEvents.length ? (
@@ -330,14 +321,14 @@ function WorkspaceInsightCard({
                     variant="outline"
                     className="hidden capitalize sm:inline-flex"
                   >
-                    {event.purpose === "planning" ? "Planning" : "For guests"}
+                    {event.purpose === "planning" ? t("overview.planning") : t("overview.forGuests")}
                   </Badge>
                 </div>
               ))}
             </div>
           ) : (
             <p className="border-y py-5 text-sm text-muted-foreground">
-              No upcoming activities are planned.
+              {t("overview.noUpcoming")}
             </p>
           )}
         </div>
@@ -356,15 +347,15 @@ function SmallStat({ label, value }: { label: string; value: number }) {
 }
 
 function EmptyCompanion() {
+  const { t } = useTranslation();
   return (
     <div className="border-y py-14 text-center">
       <div className="app-icon-tile mx-auto mb-4 size-14">
         <Smartphone className="size-7" />
       </div>
-      <h3 className="text-base font-medium">Start on your iPhone</h3>
+      <h3 className="text-base font-medium">{t("overview.firstEvent")}</h3>
       <p className="mx-auto mt-2 w-full max-w-lg text-balance text-sm leading-6 text-muted-foreground">
-        Create an event in Gatherory on your iPhone. Its schedule, people,
-        ideas, and budget will appear here.
+        {t("overview.firstEventDescription")}
       </p>
     </div>
   );

@@ -1,4 +1,5 @@
 import { createAuthClient } from 'better-auth/react'
+import { i18nClient } from '@better-auth/i18n/client'
 import {
   emailOTPClient,
   magicLinkClient,
@@ -9,6 +10,7 @@ import { defaultOrganizationType } from '@/lib/organization-contract'
 
 export const authClient = createAuthClient({
   plugins: [
+    i18nClient(),
     emailOTPClient(),
     magicLinkClient(),
     organizationClient({
