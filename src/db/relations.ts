@@ -178,6 +178,10 @@ export const databaseRelations = defineRelationsPart(
         from: r.event.id,
         to: r.eventInvitation.eventId,
       }),
+      shareLink: r.one.eventShareLink({
+        from: r.event.id,
+        to: r.eventShareLink.eventId,
+      }),
       media: r.many.eventMedia({
         from: r.event.id,
         to: r.eventMedia.eventId,
@@ -226,6 +230,10 @@ export const databaseRelations = defineRelationsPart(
         from: r.workspacePerson.id,
         to: r.eventInvitation.personId,
       }),
+    },
+    eventShareLink: {
+      event: r.one.event({ from: r.eventShareLink.eventId, to: r.event.id }),
+      creator: r.one.user({ from: r.eventShareLink.createdByUserId, to: r.user.id }),
     },
     eventInvitation: {
       event: r.one.event({

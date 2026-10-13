@@ -32,7 +32,32 @@ test("App Review fixture creates a populated iOS workspace snapshot", () => {
   assert.equal(decoded.members.at(-1)?.userID, users[4].id)
   assert.equal(decoded.members.at(-1)?.planningPermission, "manage")
   assert.ok(decoded.timeline.length >= 3)
-  assert.ok(decoded.ideas.length >= 3)
+  assert.deepEqual(
+    new Set(decoded.ideas.map((idea) => idea.category)),
+    new Set([
+      "event",
+      "registry",
+      "link",
+      "venue",
+      "attire",
+      "flowers",
+      "food",
+      "photography",
+      "music",
+      "decor",
+      "invitations",
+      "honeymoon",
+      "other",
+    ]),
+  )
+  assert.ok(
+    decoded.ideas.every((idea) =>
+      ["new", "maybe", "shortlisted", "chosen", "passed", "archived"].includes(
+        idea.status,
+      ),
+    ),
+    "fixture idea statuses must use iOS IdeaStatus raw values",
+  )
   assert.ok(decoded.eventExpenses.length >= 1)
   assert.ok(decoded.registry.length >= 1)
   assert.equal(decoded.mainEventLocation.locationName, "Willow & Stone Estate")

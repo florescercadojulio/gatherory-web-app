@@ -356,7 +356,7 @@ export function SignIn({
         <div className="auth-signin-secondary-actions mt-4 flex w-full flex-col items-center gap-3">
           {emailAndPassword?.enabled && emailAndPassword?.forgotPassword && (
             <Link
-              href={`${basePaths.auth}/${viewPaths.auth.forgotPassword}`}
+              href={getAuthLinkURL(`${basePaths.auth}/${viewPaths.auth.forgotPassword}`, redirectTo)}
               className="self-center text-sm underline-offset-4 hover:underline"
             >
               {localization.auth.forgotPasswordLink}
@@ -367,7 +367,7 @@ export function SignIn({
             <FieldDescription className="text-center">
               {localization.auth.needToCreateAnAccount}{" "}
               <Link
-                href={`${basePaths.auth}/${viewPaths.auth.signUp}`}
+                href={getAuthLinkURL(`${basePaths.auth}/${viewPaths.auth.signUp}`, redirectTo)}
                 className="underline underline-offset-4"
               >
                 {localization.auth.signUp}

@@ -25,7 +25,7 @@ import {
   getEventMediaAccessContext,
   getEventMediaActorContext,
   getNativeMediaAccessContext,
-  getWorkspaceMediaActorContext,
+  getNativeMediaActorContext,
   markEventMediaFailed,
   markEventMediaReady,
   markNativeMediaReady,
@@ -56,6 +56,23 @@ function requireCapabilities(input: {
 
 function externalOperation<A>(operation: () => Promise<A>) {
   return Effect.tryPromise({ try: operation, catch: (error) => error })
+}
+
+function logUploadMismatch(
+  expected: { mediaAssetId: string; contentType: string; byteSize: number },
+  stored: Awaited<ReturnType<typeof inspectMediaObject>>,
+) {
+  // Keep the correlation annotations, but never log credentials or signed URLs.
+  return Effect.logWarning("Media upload verification mismatch").pipe(
+    Effect.annotateLogs({
+      mediaAssetId: expected.mediaAssetId,
+      assetMetadataMatches: stored.mediaAssetId === expected.mediaAssetId,
+      expectedContentType: expected.contentType,
+      storedContentType: stored.contentType,
+      expectedByteSize: expected.byteSize,
+      storedByteSize: stored.byteSize,
+    }),
+  )
 }
 
 export function prepareEventMediaUploadWorkflow(input: {
@@ -105,7 +122,7 @@ export function prepareEventMediaUploadWorkflow(input: {
       mediaAssetId,
       uploadUrl: signedUpload.uploadUrl,
       method: "PUT" as const,
-      requiredHeaders: { "Content-Type": input.media.contentType },
+      requiredHeaders: signedUpload.requiredHeaders,
       expiresAt: new Date(
         Date.now() + signedUpload.expiresInSeconds * 1_000,
       ).toISOString(),
@@ -156,6 +173,7 @@ export function finalizeEventMediaUploadWorkflow(input: {
       storedObject.byteSize === context.byteSize
 
     if (!matchesPendingAsset) {
+      yield* logUploadMismatch(context, storedObject)
       yield* markEventMediaFailed(context.mediaAssetId)
       yield* externalOperation(() =>
         deleteMediaObject({
@@ -217,8 +235,8 @@ export function prepareNativeMediaUploadWorkflow(input: {
   media: PrepareNativeMediaUploadInput
 }) {
   return Effect.gen(function* () {
-    const actor = yield* getWorkspaceMediaActorContext({
-      organizationId: input.media.scopeId,
+    const actor = yield* getNativeMediaActorContext({
+      scopeId: input.media.scopeId,
       userId: input.userId,
     })
     if (!actor) return yield* Effect.fail(new Error("MEDIA_FORBIDDEN"))
@@ -249,7 +267,7 @@ export function prepareNativeMediaUploadWorkflow(input: {
       mediaAssetId: input.media.mediaAssetId,
       uploadUrl: signedUpload.uploadUrl,
       method: "PUT" as const,
-      requiredHeaders: { "Content-Type": input.media.contentType },
+      requiredHeaders: signedUpload.requiredHeaders,
       expiresAt: new Date(
         Date.now() + signedUpload.expiresInSeconds * 1_000,
       ).toISOString(),
@@ -289,6 +307,7 @@ export function finalizeNativeMediaUploadWorkflow(input: {
       storedObject.byteSize === context.byteSize
 
     if (!matchesPendingAsset) {
+      yield* logUploadMismatch(context, storedObject)
       yield* markEventMediaFailed(context.mediaAssetId)
       yield* externalOperation(() =>
         deleteMediaObject({ bucket: context.bucket, key: context.storageKey }).catch(

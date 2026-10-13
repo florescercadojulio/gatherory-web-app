@@ -2,6 +2,7 @@ import { and, asc, eq, gt, inArray, or } from "drizzle-orm"
 
 import { db } from "@/db"
 import { user } from "@/db/schema/auth.schema"
+import { event, eventParticipant, workspacePerson } from "@/db/schema/event.schema"
 import {
   nativeSyncChange,
   nativeSyncEntity,
@@ -38,6 +39,11 @@ async function scopeRole(
   transaction: Parameters<Parameters<typeof db.transaction>[0]>[0],
   input: { scopeId: string; userId: string; legacyOwnerUserId?: string },
 ): Promise<NativeScopeRole | null> {
+  const [participant] = await transaction.select({ role: eventParticipant.role, permission: eventParticipant.planningPermission })
+    .from(eventParticipant).innerJoin(workspacePerson, eq(workspacePerson.id, eventParticipant.personId))
+    .where(and(eq(eventParticipant.eventId, input.scopeId), eq(workspacePerson.userId, input.userId))).limit(1)
+  // A stale/legacy scope grant must never expose private planning to a guest.
+  if (!participant || participant.role === "guest") return null
   const [membership] = await transaction
     .select({ role: nativeSyncScopeMember.role })
     .from(nativeSyncScopeMember)
@@ -49,7 +55,8 @@ async function scopeRole(
     )
     .limit(1)
 
-  if (membership) return membership.role
+  if (membership) return participant.permission === "view_only" ? "viewer"
+    : membership.role === "owner" && participant.role !== "host" ? "editor" : membership.role
   if (input.legacyOwnerUserId !== input.userId) return null
 
   await transaction
@@ -424,13 +431,19 @@ export async function listNativeWorkspaceSnapshots(userId: string) {
         inArray(nativeWorkspaceSnapshot.scopeId, memberScopeIds),
       )
     : eq(nativeWorkspaceSnapshot.ownerUserId, userId)
-  const rows = await db
+  const candidateRows = await db
     .select()
     .from(nativeWorkspaceSnapshot)
     .where(
       and(accessibleScope, eq(nativeWorkspaceSnapshot.isDeleted, false)),
     )
     .orderBy(asc(nativeWorkspaceSnapshot.createdAt))
+  const planningScopes = await db.select({ id: event.id }).from(event)
+    .innerJoin(eventParticipant, eq(eventParticipant.eventId, event.id))
+    .innerJoin(workspacePerson, eq(workspacePerson.id, eventParticipant.personId))
+    .where(and(eq(workspacePerson.userId, userId), inArray(eventParticipant.role, ["host", "collaborator"])))
+  const allowedScopes = new Set(planningScopes.map((item) => item.id))
+  const rows = candidateRows.filter((snapshot) => allowedScopes.has(snapshot.scopeId))
 
   // Backfill pre-membership snapshots without requiring a destructive migration.
   const legacyOwnedScopes = rows

@@ -76,9 +76,14 @@ Never send the R2 access key to a browser or the iOS app. Do not proxy normal
 phone-image uploads through a TanStack server function. Both web and iOS use
 the same prepare/upload/finalize contract.
 
-The client must send the `Content-Type` returned in `requiredHeaders` with the
-signed `PUT`. A pending upload is not displayable until finalization succeeds.
-Finalization is idempotent for an already-ready asset.
+The client must send **every** header returned in `requiredHeaders` with the
+signed `PUT`: `Content-Type`, `Cache-Control`, and `x-amz-meta-mediaassetid`.
+The asset ID must remain an actual signed header, not a query parameter: R2
+does not persist hoisted metadata from a presigned URL. A pending upload is not
+displayable until finalization succeeds. Finalization is idempotent for an
+already-ready asset. Native failed transfers can prepare again with the same
+asset UUID, uploader, organization, bucket, and key; ready/deleted assets cannot
+be reopened. There is no need to reset the app's local photos or transfer queue.
 
 ## Authorization
 
@@ -135,7 +140,8 @@ domain.
 The private bucket must allow direct uploads only from known web origins. A
 development policy should allow `http://localhost:3003`; production should
 allow only the Gatherory application origins. Permit `PUT`, `GET`, and `HEAD`
-with the `Content-Type` header. Native iOS requests do not rely on browser CORS,
+with the `Content-Type`, `Cache-Control`, and `x-amz-meta-mediaassetid` headers.
+Native iOS requests do not rely on browser CORS,
 but they use the same signed URL and required headers.
 
 The checked-in policies are in `infra/cloudflare/r2-cors.dev.json` and
@@ -151,6 +157,16 @@ npx wrangler r2 bucket cors set gatherory-private-prod \
 The public bucket does not need browser `PUT` CORS until Gatherory supports an
 explicit direct-to-public publishing flow. Public derivatives should initially
 be written by a trusted server-side worker.
+
+## Local native upload regression
+
+With the existing local API running on port 3003, run `pnpm test:media:r2`.
+This opt-in test requires a local database and exactly `gatherory-private-dev`.
+It uses a tiny PNG and temporary local accounts to test signed headers, R2 HEAD
+metadata, native finalize, download bytes, failed-upload retry, invalid-size
+rejection, and authorization. It deletes only its exact temporary R2 keys and
+fixture rows. It never logs credentials or signed URLs and does not use the
+production or public bucket.
 
 ## Preflight before deployment
 

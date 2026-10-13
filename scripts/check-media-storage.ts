@@ -7,9 +7,8 @@ import {
   PutObjectCommand,
   S3Client,
 } from "@aws-sdk/client-s3"
-import { getSignedUrl } from "@aws-sdk/s3-request-presigner"
-
 import { env } from "../src/env"
+import { createMediaUploadUrl } from "../src/server/media/connectors/media-storage.con"
 
 type BucketTarget = {
   label: "private" | "public"
@@ -50,30 +49,29 @@ function summarize(error: unknown) {
 }
 
 async function checkCors(input: { bucket: string; key: string }) {
-  const uploadUrl = await getSignedUrl(
-    client,
-    new PutObjectCommand({
-      Bucket: input.bucket,
-      Key: input.key,
-      ContentType: "text/plain",
-    }),
-    { expiresIn: 60 },
-  )
+  const { bucket, uploadUrl, requiredHeaders } = await createMediaUploadUrl({
+    key: input.key, contentType: "text/plain", mediaAssetId: randomUUID(), expiresInSeconds: 60,
+  })
+  if (bucket !== input.bucket) throw new Error("CORS bucket does not match the upload bucket")
+  const requestedHeaders = Object.keys(requiredHeaders).map((header) => header.toLowerCase())
   const response = await fetch(uploadUrl, {
     method: "OPTIONS",
     headers: {
       Origin: origin,
       "Access-Control-Request-Method": "PUT",
-      "Access-Control-Request-Headers": "content-type",
+      "Access-Control-Request-Headers": requestedHeaders.join(","),
     },
   })
   const allowedOrigin = response.headers.get("access-control-allow-origin")
   const allowedMethods = response.headers.get("access-control-allow-methods") ?? ""
+  const allowedHeaders = (response.headers.get("access-control-allow-headers") ?? "")
+    .toLowerCase().split(",").map((header) => header.trim())
 
   if (
     !response.ok ||
     (allowedOrigin !== origin && allowedOrigin !== "*") ||
-    !allowedMethods.toUpperCase().includes("PUT")
+    !allowedMethods.toUpperCase().includes("PUT") ||
+    !requestedHeaders.every((header) => allowedHeaders.includes("*") || allowedHeaders.includes(header))
   ) {
     throw new Error(`CORS does not allow PUT requests from ${origin}`)
   }

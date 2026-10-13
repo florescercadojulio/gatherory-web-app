@@ -6,6 +6,7 @@ import { CheckIcon } from "lucide-react"
 import { Auth } from "@/components/auth/auth"
 import { ServerErrorToast } from "@/components/route-feedback"
 import { getSession } from "@/lib/auth.functions"
+import { safeAuthContinuation } from "@/lib/event-invitation-links"
 
 const passwordlessAuthPaths = [
   "email-otp",
@@ -23,7 +24,14 @@ const signedOutOnlyPaths = new Set<string>([
 ])
 
 export const Route = createFileRoute("/auth/$path/")({
-  beforeLoad: async ({ params: { path } }) => {
+  validateSearch: (search: Record<string, unknown>): { redirectTo?: string } => ({ redirectTo: safeAuthContinuation(search.redirectTo) ?? undefined }),
+  beforeLoad: async ({ params: { path }, search, location }) => {
+    // Better Auth UI reads the browser's raw query string. Remove unsafe
+    // continuations from the URL itself, not just the router's parsed search.
+    const rawContinuation = new URLSearchParams(location.searchStr).get("redirectTo")
+    if (rawContinuation !== null && !safeAuthContinuation(rawContinuation)) {
+      throw redirect({ to: "/auth/$path", params: { path }, search: {}, replace: true })
+    }
     if (!validAuthPaths.has(path)) {
       throw redirect({
         to: "/auth/$path",
@@ -33,7 +41,7 @@ export const Route = createFileRoute("/auth/$path/")({
 
     if (signedOutOnlyPaths.has(path)) {
       const session = await getSession()
-      if (session.ok && session.data) throw redirect({ to: "/" })
+      if (session.ok && session.data) throw redirect({ href: search.redirectTo ?? "/" })
       return { sessionError: session.ok ? null : session.error }
     }
 

@@ -11,10 +11,16 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProtectedRouteRouteImport } from './routes/_protected/route'
+import { Route as DotwellKnownAppleAppSiteAssociationRouteImport } from './routes/[.]well-known/apple-app-site-association'
+import { Route as ApiInvitationsRouteImport } from './routes/api/invitations'
+import { Route as JoinTokenRouteImport } from './routes/join/$token'
 import { Route as ProtectedAccountIndexRouteImport } from './routes/_protected/account/index'
 import { Route as ProtectedWorkspacesIndexRouteImport } from './routes/_protected/workspaces/index'
 import { Route as ProtectedWorkspacesWorkspaceSlugRouteRouteImport } from './routes/_protected/workspaces/$workspaceSlug/route'
 import { Route as ApiAuthSplatRouteRouteImport } from './routes/api/auth/$/route'
+import { Route as ApiEventsInvitationsRouteImport } from './routes/api/events/invitations'
+import { Route as ApiInvitationsAcceptRouteImport } from './routes/api/invitations/accept'
+import { Route as ApiInvitationsPreviewRouteImport } from './routes/api/invitations/preview'
 import { Route as ApiSyncBootstrapRouteImport } from './routes/api/sync/bootstrap'
 import { Route as ApiSyncPullRouteImport } from './routes/api/sync/pull'
 import { Route as ApiSyncPushRouteImport } from './routes/api/sync/push'
@@ -31,6 +37,22 @@ const IndexRoute = IndexRouteImport.update({
 } as any)
 const ProtectedRouteRoute = ProtectedRouteRouteImport.update({
   id: '/_protected',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DotwellKnownAppleAppSiteAssociationRoute =
+  DotwellKnownAppleAppSiteAssociationRouteImport.update({
+    id: '/.well-known/apple-app-site-association',
+    path: '/.well-known/apple-app-site-association',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiInvitationsRoute = ApiInvitationsRouteImport.update({
+  id: '/api/invitations',
+  path: '/api/invitations',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const JoinTokenRoute = JoinTokenRouteImport.update({
+  id: '/join/$token',
+  path: '/join/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProtectedAccountIndexRoute = ProtectedAccountIndexRouteImport.update({
@@ -54,6 +76,21 @@ const ApiAuthSplatRouteRoute = ApiAuthSplatRouteRouteImport.update({
   id: '/api/auth/$',
   path: '/api/auth/$',
   getParentRoute: () => rootRouteImport,
+} as any)
+const ApiEventsInvitationsRoute = ApiEventsInvitationsRouteImport.update({
+  id: '/api/events/invitations',
+  path: '/api/events/invitations',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiInvitationsAcceptRoute = ApiInvitationsAcceptRouteImport.update({
+  id: '/accept',
+  path: '/accept',
+  getParentRoute: () => ApiInvitationsRoute,
+} as any)
+const ApiInvitationsPreviewRoute = ApiInvitationsPreviewRouteImport.update({
+  id: '/preview',
+  path: '/preview',
+  getParentRoute: () => ApiInvitationsRoute,
 } as any)
 const ApiSyncBootstrapRoute = ApiSyncBootstrapRouteImport.update({
   id: '/api/sync/bootstrap',
@@ -99,8 +136,14 @@ const ApiMediaNativeUrlRoute = ApiMediaNativeUrlRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/.well-known/apple-app-site-association': typeof DotwellKnownAppleAppSiteAssociationRoute
+  '/api/invitations': typeof ApiInvitationsRouteWithChildren
+  '/join/$token': typeof JoinTokenRoute
   '/workspaces/$workspaceSlug': typeof ProtectedWorkspacesWorkspaceSlugRouteRouteWithChildren
   '/api/auth/$': typeof ApiAuthSplatRouteRoute
+  '/api/events/invitations': typeof ApiEventsInvitationsRoute
+  '/api/invitations/accept': typeof ApiInvitationsAcceptRoute
+  '/api/invitations/preview': typeof ApiInvitationsPreviewRoute
   '/api/sync/bootstrap': typeof ApiSyncBootstrapRoute
   '/api/sync/pull': typeof ApiSyncPullRoute
   '/api/sync/push': typeof ApiSyncPushRoute
@@ -114,7 +157,13 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/.well-known/apple-app-site-association': typeof DotwellKnownAppleAppSiteAssociationRoute
+  '/api/invitations': typeof ApiInvitationsRouteWithChildren
+  '/join/$token': typeof JoinTokenRoute
   '/api/auth/$': typeof ApiAuthSplatRouteRoute
+  '/api/events/invitations': typeof ApiEventsInvitationsRoute
+  '/api/invitations/accept': typeof ApiInvitationsAcceptRoute
+  '/api/invitations/preview': typeof ApiInvitationsPreviewRoute
   '/api/sync/bootstrap': typeof ApiSyncBootstrapRoute
   '/api/sync/pull': typeof ApiSyncPullRoute
   '/api/sync/push': typeof ApiSyncPushRoute
@@ -130,8 +179,14 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_protected': typeof ProtectedRouteRouteWithChildren
+  '/.well-known/apple-app-site-association': typeof DotwellKnownAppleAppSiteAssociationRoute
+  '/api/invitations': typeof ApiInvitationsRouteWithChildren
+  '/join/$token': typeof JoinTokenRoute
   '/_protected/workspaces/$workspaceSlug': typeof ProtectedWorkspacesWorkspaceSlugRouteRouteWithChildren
   '/api/auth/$': typeof ApiAuthSplatRouteRoute
+  '/api/events/invitations': typeof ApiEventsInvitationsRoute
+  '/api/invitations/accept': typeof ApiInvitationsAcceptRoute
+  '/api/invitations/preview': typeof ApiInvitationsPreviewRoute
   '/api/sync/bootstrap': typeof ApiSyncBootstrapRoute
   '/api/sync/pull': typeof ApiSyncPullRoute
   '/api/sync/push': typeof ApiSyncPushRoute
@@ -147,8 +202,14 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/.well-known/apple-app-site-association'
+    | '/api/invitations'
+    | '/join/$token'
     | '/workspaces/$workspaceSlug'
     | '/api/auth/$'
+    | '/api/events/invitations'
+    | '/api/invitations/accept'
+    | '/api/invitations/preview'
     | '/api/sync/bootstrap'
     | '/api/sync/pull'
     | '/api/sync/push'
@@ -162,7 +223,13 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/.well-known/apple-app-site-association'
+    | '/api/invitations'
+    | '/join/$token'
     | '/api/auth/$'
+    | '/api/events/invitations'
+    | '/api/invitations/accept'
+    | '/api/invitations/preview'
     | '/api/sync/bootstrap'
     | '/api/sync/pull'
     | '/api/sync/push'
@@ -177,8 +244,14 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/_protected'
+    | '/.well-known/apple-app-site-association'
+    | '/api/invitations'
+    | '/join/$token'
     | '/_protected/workspaces/$workspaceSlug'
     | '/api/auth/$'
+    | '/api/events/invitations'
+    | '/api/invitations/accept'
+    | '/api/invitations/preview'
     | '/api/sync/bootstrap'
     | '/api/sync/pull'
     | '/api/sync/push'
@@ -194,7 +267,11 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ProtectedRouteRoute: typeof ProtectedRouteRouteWithChildren
+  DotwellKnownAppleAppSiteAssociationRoute: typeof DotwellKnownAppleAppSiteAssociationRoute
+  ApiInvitationsRoute: typeof ApiInvitationsRouteWithChildren
+  JoinTokenRoute: typeof JoinTokenRoute
   ApiAuthSplatRouteRoute: typeof ApiAuthSplatRouteRoute
+  ApiEventsInvitationsRoute: typeof ApiEventsInvitationsRoute
   ApiSyncBootstrapRoute: typeof ApiSyncBootstrapRoute
   ApiSyncPullRoute: typeof ApiSyncPullRoute
   ApiSyncPushRoute: typeof ApiSyncPushRoute
@@ -218,6 +295,27 @@ declare module '@tanstack/react-router' {
       path: ''
       fullPath: '/'
       preLoaderRoute: typeof ProtectedRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/.well-known/apple-app-site-association': {
+      id: '/.well-known/apple-app-site-association'
+      path: '/.well-known/apple-app-site-association'
+      fullPath: '/.well-known/apple-app-site-association'
+      preLoaderRoute: typeof DotwellKnownAppleAppSiteAssociationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/invitations': {
+      id: '/api/invitations'
+      path: '/api/invitations'
+      fullPath: '/api/invitations'
+      preLoaderRoute: typeof ApiInvitationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/join/$token': {
+      id: '/join/$token'
+      path: '/join/$token'
+      fullPath: '/join/$token'
+      preLoaderRoute: typeof JoinTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_protected/account/': {
@@ -247,6 +345,27 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/auth/$'
       preLoaderRoute: typeof ApiAuthSplatRouteRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/api/events/invitations': {
+      id: '/api/events/invitations'
+      path: '/api/events/invitations'
+      fullPath: '/api/events/invitations'
+      preLoaderRoute: typeof ApiEventsInvitationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/invitations/accept': {
+      id: '/api/invitations/accept'
+      path: '/accept'
+      fullPath: '/api/invitations/accept'
+      preLoaderRoute: typeof ApiInvitationsAcceptRouteImport
+      parentRoute: typeof ApiInvitationsRoute
+    }
+    '/api/invitations/preview': {
+      id: '/api/invitations/preview'
+      path: '/preview'
+      fullPath: '/api/invitations/preview'
+      preLoaderRoute: typeof ApiInvitationsPreviewRouteImport
+      parentRoute: typeof ApiInvitationsRoute
     }
     '/api/sync/bootstrap': {
       id: '/api/sync/bootstrap'
@@ -339,10 +458,29 @@ const ProtectedRouteRouteWithChildren = ProtectedRouteRoute._addFileChildren(
   ProtectedRouteRouteChildren,
 )
 
+interface ApiInvitationsRouteChildren {
+  ApiInvitationsAcceptRoute: typeof ApiInvitationsAcceptRoute
+  ApiInvitationsPreviewRoute: typeof ApiInvitationsPreviewRoute
+}
+
+const ApiInvitationsRouteChildren: ApiInvitationsRouteChildren = {
+  ApiInvitationsAcceptRoute: ApiInvitationsAcceptRoute,
+  ApiInvitationsPreviewRoute: ApiInvitationsPreviewRoute,
+}
+
+const ApiInvitationsRouteWithChildren = ApiInvitationsRoute._addFileChildren(
+  ApiInvitationsRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ProtectedRouteRoute: ProtectedRouteRouteWithChildren,
+  DotwellKnownAppleAppSiteAssociationRoute:
+    DotwellKnownAppleAppSiteAssociationRoute,
+  ApiInvitationsRoute: ApiInvitationsRouteWithChildren,
+  JoinTokenRoute: JoinTokenRoute,
   ApiAuthSplatRouteRoute: ApiAuthSplatRouteRoute,
+  ApiEventsInvitationsRoute: ApiEventsInvitationsRoute,
   ApiSyncBootstrapRoute: ApiSyncBootstrapRoute,
   ApiSyncPullRoute: ApiSyncPullRoute,
   ApiSyncPushRoute: ApiSyncPushRoute,

@@ -76,10 +76,15 @@ export const ListEventsInputSchema = z.object({
 export const InviteEventParticipantInputSchema = z.object({
   eventId: z.uuid(),
   name: z.string().trim().min(1).max(120).optional(),
-  email: z.email().trim().toLowerCase(),
+  email: z.string().trim().toLowerCase().pipe(z.email()),
   role: z.enum(["host", "collaborator", "guest"]),
   planningPermission: z.enum(["manage", "contribute", "viewOnly"]),
-})
+}).refine(
+  ({ role, planningPermission }) =>
+    role === "collaborator" ||
+    (role === "host" ? planningPermission === "manage" : planningPermission === "viewOnly"),
+  { message: "The access level does not match this role.", path: ["planningPermission"] },
+)
 
 export type InviteEventParticipantInput = z.infer<
   typeof InviteEventParticipantInputSchema
@@ -137,3 +142,7 @@ export type EventWorkspaceSummary = {
   participants: EventParticipantSummary[]
   childEvents: ChildEventSummary[]
 }
+export const ShareLinkInput = z.object({
+  eventId: z.uuid(),
+  role: z.enum(["guest", "collaborator"]).default("guest"),
+})

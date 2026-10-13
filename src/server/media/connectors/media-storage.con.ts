@@ -87,22 +87,31 @@ export async function createMediaUploadUrl(input: {
   const visibility = input.visibility ?? "private"
   const bucket = bucketFor(configuration, visibility)
   const expiresInSeconds = input.expiresInSeconds ?? 15 * 60
+  const requiredHeaders = {
+    "Content-Type": input.contentType,
+    "Cache-Control": visibility === "public"
+      ? "public, max-age=31536000, immutable"
+      : "private, no-store",
+    "x-amz-meta-mediaassetid": input.mediaAssetId,
+  }
   const uploadUrl = await getSignedUrl(
     client(configuration),
     new PutObjectCommand({
       Bucket: bucket,
       Key: input.key,
       ContentType: input.contentType,
-      CacheControl:
-        visibility === "public"
-          ? "public, max-age=31536000, immutable"
-          : "private, no-store",
-      Metadata: { mediaAssetId: input.mediaAssetId },
+      CacheControl: requiredHeaders["Cache-Control"],
+      Metadata: { mediaassetid: input.mediaAssetId },
     }),
-    { expiresIn: expiresInSeconds },
+    {
+      expiresIn: expiresInSeconds,
+      // R2 stores custom metadata from PUT headers, not hoisted query params.
+      unhoistableHeaders: new Set(["x-amz-meta-mediaassetid"]),
+      signableHeaders: new Set(["content-type", "cache-control"]),
+    },
   )
 
-  return { bucket, uploadUrl, expiresInSeconds }
+  return { bucket, uploadUrl, expiresInSeconds, requiredHeaders }
 }
 
 export async function inspectMediaObject(input: {

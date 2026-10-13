@@ -1,4 +1,4 @@
-import { Link, useNavigate } from "@tanstack/react-router"
+import { Link, useNavigate, useRouterState } from "@tanstack/react-router"
 import { ThemeProvider, useTheme } from "next-themes"
 import { useEffect, type ReactNode } from "react"
 
@@ -8,9 +8,12 @@ import { authClient } from "@/lib/auth-client"
 import { emailOtpPlugin } from "@/lib/auth/email-otp-plugin"
 import { magicLinkPlugin } from "@/lib/auth/magic-link-plugin"
 import { themePlugin } from "@/lib/auth/theme-plugin"
+import { safeAuthContinuation } from "@/lib/event-invitation-links"
 
 export function Providers({ children }: { children: ReactNode }) {
   const navigate = useNavigate()
+  const search = useRouterState({ select: (state) => state.location.search })
+  const redirectTo = safeAuthContinuation((search as Record<string, unknown>).redirectTo) ?? "/"
   const socialProviders = [
     ...(import.meta.env.VITE_APPLE_AUTH_ENABLED ? (["apple"] as const) : []),
     ...(import.meta.env.VITE_GOOGLE_AUTH_ENABLED ? (["google"] as const) : []),
@@ -26,7 +29,7 @@ export function Providers({ children }: { children: ReactNode }) {
       <BrowserChromeTheme />
       <AuthProvider
         authClient={authClient}
-        redirectTo="/"
+        redirectTo={redirectTo}
         socialProviders={socialProviders}
         emailAndPassword={{
           enabled: true,

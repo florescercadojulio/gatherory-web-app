@@ -16,6 +16,18 @@ import {
 
 import { organization, user } from "./auth.schema"
 
+/** One revocable bearer invitation per event, never an organization invite. */
+export const eventShareLink = pgTable("event_share_link", {
+  eventId: uuid("event_id").primaryKey().references(() => event.id, { onDelete: "cascade" }),
+  token: uuid("token").defaultRandom().notNull().unique(),
+  role: text("role").notNull().default("guest"),
+  createdByUserId: text("created_by_user_id").notNull().references(() => user.id, { onDelete: "cascade" }),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  revokedAt: timestamp("revoked_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+}, (table) => [check("event_share_link_role_check", sql`${table.role} in ('guest', 'collaborator')`)])
+
 export const eventStatus = pgEnum("event_status", [
   "draft",
   "ongoing",

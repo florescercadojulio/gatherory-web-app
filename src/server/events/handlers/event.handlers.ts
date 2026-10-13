@@ -1,10 +1,12 @@
 import { createServerFn } from "@tanstack/react-start"
 import type { PgClient } from "@effect/sql-pg/PgClient"
 import { Effect } from "effect"
+import { and, eq } from "drizzle-orm"
 
 import { requireSessionMiddleware } from "@/lib/auth.middleware"
-import { PgClientLive } from "@/db"
-import { InvalidInputError, runServerEffect } from "@/server/effect"
+import { DB, PgClientLive } from "@/db"
+import { event, eventInvitation } from "@/db/schema/event.schema"
+import { EntityNotFoundError, ForbiddenError, InvalidInputError, runServerEffect } from "@/server/effect"
 import type { ServerResult } from "@/server/result"
 
 import {
@@ -24,6 +26,23 @@ import { EventRepoLive } from "../repos/event.repo.live"
 import { EventAuthorizationLive } from "../services/event-authorization.service"
 import { EventService } from "../services/event.service"
 import { EventServiceLive } from "../services/event.service.live"
+import { acceptEventShareLink, previewEventShareLink } from "../repos/event-share-link.repo"
+
+export const getSharedEventInvitation = createServerFn({ method: "GET" })
+  .validator(AcceptEventInvitationInputSchema)
+  .handler(({ data }) => runServerEffect(previewEventShareLink(data.token).pipe(Effect.provide(PgClientLive))))
+
+export const getJoinedSharedInvitation = createServerFn({ method: "GET" })
+  .middleware([requireSessionMiddleware])
+  .validator(AcceptEventInvitationInputSchema)
+  .handler(({ data, context }) => runServerEffect(previewEventShareLink(data.token, context.user.id).pipe(Effect.provide(PgClientLive))))
+
+export const acceptSharedEventInvitation = createServerFn({ method: "POST" })
+  .middleware([requireSessionMiddleware])
+  .validator(AcceptEventInvitationInputSchema)
+  .handler(({ data, context }) => runServerEffect(
+    acceptEventShareLink(context.user.id, data.token).pipe(Effect.provide(PgClientLive)),
+  ))
 
 const provideEventLayers = <A, E>(
   program: Effect.Effect<A, E, EventService | PgClient>,
@@ -102,6 +121,12 @@ export const acceptEventInvitation = createServerFn({ method: "POST" })
   .validator(AcceptEventInvitationInputSchema)
   .handler(({ data, context }) =>
     runServerEffect(
+      !context.user.emailVerified
+        ? Effect.fail(new ForbiddenError({
+            category: "authorization", code: "INVITATION_EMAIL_UNVERIFIED",
+            userMessage: "Verify your email address before accepting this invitation.",
+          }))
+        :
       provideEventLayers(
         acceptEventInvitationWorkflow({
           userId: context.user.id,
@@ -111,3 +136,28 @@ export const acceptEventInvitation = createServerFn({ method: "POST" })
       ),
     ),
   )
+
+/** Invitation details are private to the addressed account, even with a token. */
+export const getEventInvitation = createServerFn({ method: "GET" })
+  .middleware([requireSessionMiddleware])
+  .validator(AcceptEventInvitationInputSchema)
+  .handler(({ data, context }) => runServerEffect(
+    Effect.gen(function* () {
+      const db = yield* DB
+      const [invitation] = yield* db.select({
+        title: event.title, role: eventInvitation.role,
+        status: eventInvitation.status, expiresAt: eventInvitation.expiresAt,
+      }).from(eventInvitation)
+        .innerJoin(event, eq(event.id, eventInvitation.eventId))
+        .where(and(eq(eventInvitation.token, data.token),
+          eq(eventInvitation.email, context.user.email.trim().toLowerCase())))
+        .limit(1)
+      if (!invitation || !["pending", "accepted"].includes(invitation.status)) {
+        return yield* Effect.fail(new EntityNotFoundError({
+          category: "not_found", code: "INVITATION_UNAVAILABLE",
+          userMessage: "This invitation is unavailable. Use the email address that was invited, or ask the host for a new link.",
+        }))
+      }
+      return { ...invitation, expiresAt: invitation.expiresAt.toISOString() }
+    }).pipe(Effect.provide(PgClientLive)),
+  ))

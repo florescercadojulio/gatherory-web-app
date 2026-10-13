@@ -15,6 +15,8 @@ import {
 import {
   nativeSyncScopeMember,
   nativeWorkspaceSnapshot,
+  nativeSyncEntity,
+  nativeSyncChange,
 } from "@/db/schema/sync.schema";
 
 import type {
@@ -273,6 +275,7 @@ export function listVisibleMainEvents(input: {
         and(
           eq(event.organizationId, input.organizationId),
           isNull(event.parentEventId),
+          inArray(eventParticipant.role, ["host", "collaborator"]),
         ),
       )
       .orderBy(asc(event.startsAt), asc(event.createdAt));
@@ -457,6 +460,8 @@ export function createEventInvitation(input: {
             targetWhere: sql`${eventInvitation.status} = 'pending'`,
             set: {
               personId: person.id,
+              // Reissuing an invitation revokes the previously shared token.
+              token: crypto.randomUUID(),
               role: input.invitation.role,
               planningPermission:
                 planningPermissionToDatabase[
@@ -502,23 +507,32 @@ export function acceptEventInvitation(input: {
             planningPermission: eventInvitation.planningPermission,
             expiresAt: eventInvitation.expiresAt,
             organizationId: event.organizationId,
+            status: eventInvitation.status,
+            acceptedByUserId: eventInvitation.acceptedByUserId,
           })
           .from(eventInvitation)
           .innerJoin(event, eq(event.id, eventInvitation.eventId))
           .where(
-            and(
-              eq(eventInvitation.token, input.invitation.token),
-              eq(eventInvitation.status, "pending"),
-            ),
+            eq(eventInvitation.token, input.invitation.token),
           )
-          .limit(1);
+          .limit(1).for("update", { of: eventInvitation });
 
         if (!pendingInvitation)
           return yield* persistenceFailure("EVENT_INVITATION_NOT_FOUND");
-        if (pendingInvitation.expiresAt <= new Date())
-          return yield* persistenceFailure("EVENT_INVITATION_EXPIRED");
         if (pendingInvitation.email !== input.userEmail.trim().toLowerCase())
           return yield* persistenceFailure("EVENT_INVITATION_EMAIL_MISMATCH");
+        if (pendingInvitation.status === "accepted" && pendingInvitation.acceptedByUserId === input.userId) {
+          const existing = yield* getEventParticipant({ eventId: pendingInvitation.eventId, userId: input.userId });
+          if (!existing) return yield* persistenceFailure("EVENT_INVITATION_NOT_FOUND");
+          return {
+            eventId: pendingInvitation.eventId,
+            ...existing,
+          };
+        }
+        if (pendingInvitation.status !== "pending")
+          return yield* persistenceFailure("EVENT_INVITATION_NOT_FOUND");
+        if (pendingInvitation.expiresAt <= new Date())
+          return yield* persistenceFailure("EVENT_INVITATION_EXPIRED");
 
         const [account] = yield* transaction
           .select({ name: user.name, email: user.email, image: user.image })
@@ -575,15 +589,8 @@ export function acceptEventInvitation(input: {
               )
               .limit(1);
             if (existingParticipation) {
-              yield* transaction
-                .update(eventParticipant)
-                .set({
-                  role: oldParticipation.role,
-                  planningPermission: oldParticipation.planningPermission,
-                  attendanceStatus: oldParticipation.attendanceStatus,
-                  updatedAt: new Date(),
-                })
-                .where(eq(eventParticipant.id, existingParticipation.id));
+              // Account-linked participation is authoritative; merging a contact
+              // must not silently change an existing role or attendance.
               yield* transaction
                 .delete(eventParticipant)
                 .where(eq(eventParticipant.id, oldParticipation.id));
@@ -634,6 +641,11 @@ export function acceptEventInvitation(input: {
             target: [eventParticipant.eventId, eventParticipant.personId],
           });
 
+        const [participation] = yield* transaction.select().from(eventParticipant)
+          .where(and(eq(eventParticipant.eventId, pendingInvitation.eventId), eq(eventParticipant.personId, acceptedPersonId)))
+          .limit(1);
+        if (!participation) return yield* persistenceFailure("EVENT_PARTICIPATION_MISSING");
+
         // Native workspaces use the root event UUID as their sync scope today.
         // Only a planning role on the main event implies workspace-wide access.
         // Guests and child-event participants must stay event-scoped.
@@ -645,7 +657,7 @@ export function acceptEventInvitation(input: {
         const nativeScopeId =
           acceptedEvent &&
           acceptedEvent.parentEventId === null &&
-          pendingInvitation.role !== "guest"
+          participation.role !== "guest"
             ? acceptedEvent.id
             : null;
         if (nativeScopeId) {
@@ -661,7 +673,7 @@ export function acceptEventInvitation(input: {
                 scopeId: nativeScope.id,
                 userId: input.userId,
                 role:
-                  pendingInvitation.planningPermission === "view_only"
+                  participation.planningPermission === "view_only"
                     ? "viewer"
                     : "editor",
               })
@@ -672,19 +684,76 @@ export function acceptEventInvitation(input: {
                 ],
                 set: {
                   role:
-                    pendingInvitation.planningPermission === "view_only"
-                      ? "viewer"
-                      : "editor",
+                    sql`case when ${nativeSyncScopeMember.role} = 'owner' then 'owner'::native_sync_scope_role else ${participation.planningPermission === "view_only" ? "viewer" : "editor"}::native_sync_scope_role end`,
                   updatedAt: new Date(),
                 },
               });
           }
         }
 
+        // Account linking must also reach native replicas. Otherwise the new
+        // collaborator can download the archive but has no identity in it.
+        const rootId = acceptedEvent?.parentEventId ?? acceptedEvent?.id;
+        if (rootId) {
+          const [snapshot] = yield* transaction.select().from(nativeWorkspaceSnapshot)
+            .where(eq(nativeWorkspaceSnapshot.scopeId, rootId)).limit(1).for("update");
+          if (snapshot) {
+            const permission = participation.planningPermission === "view_only" ? "viewOnly" : participation.planningPermission;
+            const personPayload = {
+              id: acceptedPersonId, userID: input.userId, name: account.name,
+              email: account.email, profileImageURL: account.image,
+              initials: account.name.trim().split(/\s+/).slice(0, 2).map((part) => part[0]).join("").toUpperCase(),
+              participantRole: participation.role, planningPermission: permission,
+              attendance: "invited", invitationStatus: "active",
+            };
+            const foundationDate = (date: Date) => (date.getTime() - Date.UTC(2001, 0, 1)) / 1000;
+            const participationPayload = {
+              id: participation.id, eventID: participation.eventId, memberID: acceptedPersonId,
+              role: participation.role, planningPermission: permission,
+              attendance: ({ pending: "invited", going: "going", not_sure: "maybe", not_going: "declined" } as const)[participation.attendanceStatus],
+              invitationStatus: "active", createdAt: foundationDate(participation.createdAt), updatedAt: foundationDate(new Date()),
+            };
+            const records = [
+              { type: "participant", id: acceptedPersonId, value: personPayload },
+              { type: "event_participation", id: participation.id, value: participationPayload },
+            ];
+            for (const record of records) {
+              const payload = Buffer.from(JSON.stringify(record.value)).toString("base64");
+              const [entity] = yield* transaction.insert(nativeSyncEntity).values({
+                scopeId: rootId, entityType: record.type, entityId: record.id,
+                ownerUserId: snapshot.ownerUserId, payload,
+              }).onConflictDoUpdate({
+                target: [nativeSyncEntity.scopeId, nativeSyncEntity.entityType, nativeSyncEntity.entityId],
+                set: { payload, isDeleted: false, serverVersion: sql`${nativeSyncEntity.serverVersion} + 1`, updatedAt: new Date() },
+              }).returning({ serverVersion: nativeSyncEntity.serverVersion });
+              yield* transaction.insert(nativeSyncChange).values({
+                scopeId: rootId, ownerUserId: snapshot.ownerUserId, entityType: record.type,
+                entityId: record.id, operation: "upsert", payload, serverVersion: entity.serverVersion,
+              });
+            }
+            const archive = JSON.parse(Buffer.from(snapshot.payload, "base64").toString("utf8"));
+            const merge = (items: Array<{ id: string }> | undefined, value: { id: string }) =>
+              [...(items ?? []).filter((item) => item.id.toLowerCase() !== value.id.toLowerCase()), value];
+            archive.members = merge(archive.members, personPayload);
+            archive.eventParticipations = merge(archive.eventParticipations, participationPayload);
+            if (rootId === participation.eventId) {
+              archive.mainEventParticipantIDs = [...new Set([...(archive.mainEventParticipantIDs ?? []), acceptedPersonId].map((id: string) => id.toLowerCase()))];
+            }
+            const payload = Buffer.from(JSON.stringify(archive)).toString("base64");
+            const [updatedSnapshot] = yield* transaction.update(nativeWorkspaceSnapshot).set({
+              payload, serverVersion: sql`${nativeWorkspaceSnapshot.serverVersion} + 1`, updatedAt: new Date(),
+            }).where(eq(nativeWorkspaceSnapshot.scopeId, rootId)).returning({ serverVersion: nativeWorkspaceSnapshot.serverVersion });
+            yield* transaction.insert(nativeSyncChange).values({
+              scopeId: rootId, ownerUserId: snapshot.ownerUserId, entityType: "workspace", entityId: rootId,
+              operation: "upsert", payload, serverVersion: updatedSnapshot.serverVersion,
+            });
+          }
+        }
+
         return {
           eventId: pendingInvitation.eventId,
-          role: pendingInvitation.role,
-          planningPermission: pendingInvitation.planningPermission,
+          role: participation.role,
+          planningPermission: participation.planningPermission,
         };
       }),
     );

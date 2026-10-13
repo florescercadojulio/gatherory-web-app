@@ -1,4 +1,4 @@
-import { and, asc, eq, ne } from "drizzle-orm"
+import { and, asc, eq, ne, isNull, inArray } from "drizzle-orm"
 import { Effect } from "effect"
 
 import { DB } from "@/db"
@@ -12,19 +12,27 @@ import { eventMedia, mediaAsset } from "@/db/schema/media.schema"
 import type { PrepareEventMediaUploadInput } from "../contracts/media.contracts"
 import type { PrepareNativeMediaUploadInput } from "../contracts/media.contracts"
 
-export function getWorkspaceMediaActorContext(input: {
-  organizationId: string
+/** Native scope IDs identify main events, never Better Auth organizations.
+ * Resolve storage ownership from the event after checking its participant. */
+export function getNativeMediaActorContext(input: {
+  scopeId: string
   userId: string
 }) {
   return Effect.gen(function* () {
     const db = yield* DB
     const [context] = yield* db
-      .select({ organizationId: workspacePerson.organizationId })
+      .select({ organizationId: event.organizationId })
       .from(workspacePerson)
+      .innerJoin(eventParticipant, eq(eventParticipant.personId, workspacePerson.id))
+      .innerJoin(event, eq(event.id, eventParticipant.eventId))
       .where(
         and(
-          eq(workspacePerson.organizationId, input.organizationId),
+          eq(event.id, input.scopeId),
           eq(workspacePerson.userId, input.userId),
+          isNull(event.parentEventId),
+          eq(event.organizationId, workspacePerson.organizationId),
+          inArray(eventParticipant.role, ["host", "collaborator"]),
+          ne(eventParticipant.planningPermission, "view_only"),
         ),
       )
       .limit(1)
@@ -74,6 +82,8 @@ export function upsertPendingNativeMedia(input: {
         organizationId: mediaAsset.organizationId,
         uploadedByUserId: mediaAsset.uploadedByUserId,
         status: mediaAsset.status,
+        bucket: mediaAsset.bucket,
+        storageKey: mediaAsset.storageKey,
       })
       .from(mediaAsset)
       .where(eq(mediaAsset.id, input.media.mediaAssetId))
@@ -82,14 +92,20 @@ export function upsertPendingNativeMedia(input: {
       !existing ||
       existing.organizationId !== input.organizationId ||
       existing.uploadedByUserId !== input.uploadedByUserId ||
-      existing.status !== "pending"
+      existing.bucket !== input.bucket ||
+      existing.storageKey !== input.storageKey ||
+      (existing.status !== "pending" && existing.status !== "failed")
     ) {
       return yield* Effect.fail(new Error("MEDIA_INVALID_STATE"))
     }
 
-    yield* db
+    // Reuse the durable native transfer ID after a failed PUT/finalize. Never
+    // reopen ready/deleted assets or move ownership or storage on a retry.
+    const [retried] = yield* db
       .update(mediaAsset)
       .set({
+        status: "pending",
+        checksum: null,
         originalFilename: input.media.originalFilename,
         contentType: input.media.contentType,
         byteSize: input.media.byteSize,
@@ -100,10 +116,19 @@ export function upsertPendingNativeMedia(input: {
           eq(mediaAsset.id, input.media.mediaAssetId),
           eq(mediaAsset.organizationId, input.organizationId),
           eq(mediaAsset.uploadedByUserId, input.uploadedByUserId),
-          eq(mediaAsset.status, "pending"),
+          eq(mediaAsset.bucket, input.bucket),
+          eq(mediaAsset.storageKey, input.storageKey),
+          inArray(mediaAsset.status, ["pending", "failed"]),
         ),
       )
-    return existing
+      .returning({
+        id: mediaAsset.id,
+        organizationId: mediaAsset.organizationId,
+        uploadedByUserId: mediaAsset.uploadedByUserId,
+        status: mediaAsset.status,
+      })
+    if (!retried) return yield* Effect.fail(new Error("MEDIA_INVALID_STATE"))
+    return retried
   })
 }
 
@@ -132,7 +157,11 @@ export function getNativeMediaAccessContext(input: {
           eq(workspacePerson.userId, input.userId),
         ),
       )
-      .where(eq(mediaAsset.id, input.mediaAssetId))
+      .innerJoin(eventParticipant, eq(eventParticipant.personId, workspacePerson.id))
+      .innerJoin(event, eq(event.id, eventParticipant.eventId))
+      .where(and(eq(mediaAsset.id, input.mediaAssetId), isNull(event.parentEventId),
+        eq(event.organizationId, workspacePerson.organizationId),
+        inArray(eventParticipant.role, ["host", "collaborator"])))
       .limit(1)
 
     return context ?? null
