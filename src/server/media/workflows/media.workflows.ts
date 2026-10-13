@@ -20,6 +20,10 @@ import {
   inspectMediaObject,
 } from "../connectors/media-storage.con"
 import { MediaKeys } from "../media.keys"
+import { canReadMedia } from "@/server/moderation/media-visibility"
+import { EntityNotFoundError } from "@/server/effect"
+
+const unavailableMedia = () => new EntityNotFoundError({ category: "not_found", code: "MEDIA_NOT_FOUND", userMessage: "This image is no longer available." })
 import {
   createPendingEventMedia,
   getEventMediaAccessContext,
@@ -150,6 +154,7 @@ export function finalizeEventMediaUploadWorkflow(input: {
     })
 
     if (context.status === "ready") {
+      if (!(yield* canReadMedia(input.userId, context.mediaAssetId))) return yield* Effect.fail(unavailableMedia())
       const url = yield* externalOperation(() =>
         createMediaReadUrl({
           bucket: context.bucket,
@@ -211,8 +216,8 @@ export function getEventMediaUrlWorkflow(input: {
       mediaAssetId: input.mediaAssetId,
       userId: input.userId,
     })
-    if (!context || context.status !== "ready")
-      return yield* Effect.fail(new Error("MEDIA_NOT_FOUND"))
+    if (!context || context.status !== "ready" || !(yield* canReadMedia(input.userId, input.mediaAssetId)))
+      return yield* Effect.fail(unavailableMedia())
 
     yield* requireCapabilities({
       role: context.participantRole,
@@ -289,6 +294,7 @@ export function finalizeNativeMediaUploadWorkflow(input: {
     }
 
     if (context.status === "ready") {
+      if (!(yield* canReadMedia(input.userId, context.mediaAssetId))) return yield* Effect.fail(unavailableMedia())
       const url = yield* externalOperation(() =>
         createMediaReadUrl({ bucket: context.bucket, key: context.storageKey }),
       )
@@ -334,8 +340,8 @@ export function getNativeMediaUrlWorkflow(input: {
 }) {
   return Effect.gen(function* () {
     const context = yield* getNativeMediaAccessContext(input)
-    if (!context || context.status !== "ready") {
-      return yield* Effect.fail(new Error("MEDIA_NOT_FOUND"))
+    if (!context || context.status !== "ready" || !(yield* canReadMedia(input.userId, input.mediaAssetId))) {
+      return yield* Effect.fail(unavailableMedia())
     }
     const url = yield* externalOperation(() =>
       createMediaReadUrl({ bucket: context.bucket, key: context.storageKey }),

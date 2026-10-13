@@ -12,15 +12,21 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProtectedRouteRouteImport } from './routes/_protected/route'
 import { Route as DotwellKnownAppleAppSiteAssociationRouteImport } from './routes/[.]well-known/apple-app-site-association'
+import { Route as AdminReportsRouteImport } from './routes/admin/reports'
 import { Route as ApiInvitationsRouteImport } from './routes/api/invitations'
 import { Route as JoinTokenRouteImport } from './routes/join/$token'
 import { Route as ProtectedAccountIndexRouteImport } from './routes/_protected/account/index'
 import { Route as ProtectedWorkspacesIndexRouteImport } from './routes/_protected/workspaces/index'
 import { Route as ProtectedWorkspacesWorkspaceSlugRouteRouteImport } from './routes/_protected/workspaces/$workspaceSlug/route'
+import { Route as ApiAdminReportImageRouteImport } from './routes/api/admin/report-image'
+import { Route as ApiAdminReportsRouteImport } from './routes/api/admin/reports'
 import { Route as ApiAuthSplatRouteRouteImport } from './routes/api/auth/$/route'
 import { Route as ApiEventsInvitationsRouteImport } from './routes/api/events/invitations'
 import { Route as ApiInvitationsAcceptRouteImport } from './routes/api/invitations/accept'
 import { Route as ApiInvitationsPreviewRouteImport } from './routes/api/invitations/preview'
+import { Route as ApiModerationBlocksRouteImport } from './routes/api/moderation/blocks'
+import { Route as ApiModerationHideRouteImport } from './routes/api/moderation/hide'
+import { Route as ApiModerationReportsRouteImport } from './routes/api/moderation/reports'
 import { Route as ApiSyncBootstrapRouteImport } from './routes/api/sync/bootstrap'
 import { Route as ApiSyncPullRouteImport } from './routes/api/sync/pull'
 import { Route as ApiSyncPushRouteImport } from './routes/api/sync/push'
@@ -45,6 +51,11 @@ const DotwellKnownAppleAppSiteAssociationRoute =
     path: '/.well-known/apple-app-site-association',
     getParentRoute: () => rootRouteImport,
   } as any)
+const AdminReportsRoute = AdminReportsRouteImport.update({
+  id: '/admin/reports',
+  path: '/admin/reports',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiInvitationsRoute = ApiInvitationsRouteImport.update({
   id: '/api/invitations',
   path: '/api/invitations',
@@ -72,6 +83,16 @@ const ProtectedWorkspacesWorkspaceSlugRouteRoute =
     path: '/workspaces/$workspaceSlug',
     getParentRoute: () => ProtectedRouteRoute,
   } as any)
+const ApiAdminReportImageRoute = ApiAdminReportImageRouteImport.update({
+  id: '/api/admin/report-image',
+  path: '/api/admin/report-image',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAdminReportsRoute = ApiAdminReportsRouteImport.update({
+  id: '/api/admin/reports',
+  path: '/api/admin/reports',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiAuthSplatRouteRoute = ApiAuthSplatRouteRouteImport.update({
   id: '/api/auth/$',
   path: '/api/auth/$',
@@ -91,6 +112,21 @@ const ApiInvitationsPreviewRoute = ApiInvitationsPreviewRouteImport.update({
   id: '/preview',
   path: '/preview',
   getParentRoute: () => ApiInvitationsRoute,
+} as any)
+const ApiModerationBlocksRoute = ApiModerationBlocksRouteImport.update({
+  id: '/api/moderation/blocks',
+  path: '/api/moderation/blocks',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiModerationHideRoute = ApiModerationHideRouteImport.update({
+  id: '/api/moderation/hide',
+  path: '/api/moderation/hide',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiModerationReportsRoute = ApiModerationReportsRouteImport.update({
+  id: '/api/moderation/reports',
+  path: '/api/moderation/reports',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const ApiSyncBootstrapRoute = ApiSyncBootstrapRouteImport.update({
   id: '/api/sync/bootstrap',
@@ -137,13 +173,19 @@ const ApiMediaNativeUrlRoute = ApiMediaNativeUrlRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/.well-known/apple-app-site-association': typeof DotwellKnownAppleAppSiteAssociationRoute
+  '/admin/reports': typeof AdminReportsRoute
   '/api/invitations': typeof ApiInvitationsRouteWithChildren
   '/join/$token': typeof JoinTokenRoute
   '/workspaces/$workspaceSlug': typeof ProtectedWorkspacesWorkspaceSlugRouteRouteWithChildren
   '/api/auth/$': typeof ApiAuthSplatRouteRoute
+  '/api/admin/report-image': typeof ApiAdminReportImageRoute
+  '/api/admin/reports': typeof ApiAdminReportsRoute
   '/api/events/invitations': typeof ApiEventsInvitationsRoute
   '/api/invitations/accept': typeof ApiInvitationsAcceptRoute
   '/api/invitations/preview': typeof ApiInvitationsPreviewRoute
+  '/api/moderation/blocks': typeof ApiModerationBlocksRoute
+  '/api/moderation/hide': typeof ApiModerationHideRoute
+  '/api/moderation/reports': typeof ApiModerationReportsRoute
   '/api/sync/bootstrap': typeof ApiSyncBootstrapRoute
   '/api/sync/pull': typeof ApiSyncPullRoute
   '/api/sync/push': typeof ApiSyncPushRoute
@@ -158,12 +200,18 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/.well-known/apple-app-site-association': typeof DotwellKnownAppleAppSiteAssociationRoute
+  '/admin/reports': typeof AdminReportsRoute
   '/api/invitations': typeof ApiInvitationsRouteWithChildren
   '/join/$token': typeof JoinTokenRoute
   '/api/auth/$': typeof ApiAuthSplatRouteRoute
+  '/api/admin/report-image': typeof ApiAdminReportImageRoute
+  '/api/admin/reports': typeof ApiAdminReportsRoute
   '/api/events/invitations': typeof ApiEventsInvitationsRoute
   '/api/invitations/accept': typeof ApiInvitationsAcceptRoute
   '/api/invitations/preview': typeof ApiInvitationsPreviewRoute
+  '/api/moderation/blocks': typeof ApiModerationBlocksRoute
+  '/api/moderation/hide': typeof ApiModerationHideRoute
+  '/api/moderation/reports': typeof ApiModerationReportsRoute
   '/api/sync/bootstrap': typeof ApiSyncBootstrapRoute
   '/api/sync/pull': typeof ApiSyncPullRoute
   '/api/sync/push': typeof ApiSyncPushRoute
@@ -180,13 +228,19 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_protected': typeof ProtectedRouteRouteWithChildren
   '/.well-known/apple-app-site-association': typeof DotwellKnownAppleAppSiteAssociationRoute
+  '/admin/reports': typeof AdminReportsRoute
   '/api/invitations': typeof ApiInvitationsRouteWithChildren
   '/join/$token': typeof JoinTokenRoute
   '/_protected/workspaces/$workspaceSlug': typeof ProtectedWorkspacesWorkspaceSlugRouteRouteWithChildren
   '/api/auth/$': typeof ApiAuthSplatRouteRoute
+  '/api/admin/report-image': typeof ApiAdminReportImageRoute
+  '/api/admin/reports': typeof ApiAdminReportsRoute
   '/api/events/invitations': typeof ApiEventsInvitationsRoute
   '/api/invitations/accept': typeof ApiInvitationsAcceptRoute
   '/api/invitations/preview': typeof ApiInvitationsPreviewRoute
+  '/api/moderation/blocks': typeof ApiModerationBlocksRoute
+  '/api/moderation/hide': typeof ApiModerationHideRoute
+  '/api/moderation/reports': typeof ApiModerationReportsRoute
   '/api/sync/bootstrap': typeof ApiSyncBootstrapRoute
   '/api/sync/pull': typeof ApiSyncPullRoute
   '/api/sync/push': typeof ApiSyncPushRoute
@@ -203,13 +257,19 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/.well-known/apple-app-site-association'
+    | '/admin/reports'
     | '/api/invitations'
     | '/join/$token'
     | '/workspaces/$workspaceSlug'
     | '/api/auth/$'
+    | '/api/admin/report-image'
+    | '/api/admin/reports'
     | '/api/events/invitations'
     | '/api/invitations/accept'
     | '/api/invitations/preview'
+    | '/api/moderation/blocks'
+    | '/api/moderation/hide'
+    | '/api/moderation/reports'
     | '/api/sync/bootstrap'
     | '/api/sync/pull'
     | '/api/sync/push'
@@ -224,12 +284,18 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/.well-known/apple-app-site-association'
+    | '/admin/reports'
     | '/api/invitations'
     | '/join/$token'
     | '/api/auth/$'
+    | '/api/admin/report-image'
+    | '/api/admin/reports'
     | '/api/events/invitations'
     | '/api/invitations/accept'
     | '/api/invitations/preview'
+    | '/api/moderation/blocks'
+    | '/api/moderation/hide'
+    | '/api/moderation/reports'
     | '/api/sync/bootstrap'
     | '/api/sync/pull'
     | '/api/sync/push'
@@ -245,13 +311,19 @@ export interface FileRouteTypes {
     | '/'
     | '/_protected'
     | '/.well-known/apple-app-site-association'
+    | '/admin/reports'
     | '/api/invitations'
     | '/join/$token'
     | '/_protected/workspaces/$workspaceSlug'
     | '/api/auth/$'
+    | '/api/admin/report-image'
+    | '/api/admin/reports'
     | '/api/events/invitations'
     | '/api/invitations/accept'
     | '/api/invitations/preview'
+    | '/api/moderation/blocks'
+    | '/api/moderation/hide'
+    | '/api/moderation/reports'
     | '/api/sync/bootstrap'
     | '/api/sync/pull'
     | '/api/sync/push'
@@ -268,10 +340,16 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ProtectedRouteRoute: typeof ProtectedRouteRouteWithChildren
   DotwellKnownAppleAppSiteAssociationRoute: typeof DotwellKnownAppleAppSiteAssociationRoute
+  AdminReportsRoute: typeof AdminReportsRoute
   ApiInvitationsRoute: typeof ApiInvitationsRouteWithChildren
   JoinTokenRoute: typeof JoinTokenRoute
   ApiAuthSplatRouteRoute: typeof ApiAuthSplatRouteRoute
+  ApiAdminReportImageRoute: typeof ApiAdminReportImageRoute
+  ApiAdminReportsRoute: typeof ApiAdminReportsRoute
   ApiEventsInvitationsRoute: typeof ApiEventsInvitationsRoute
+  ApiModerationBlocksRoute: typeof ApiModerationBlocksRoute
+  ApiModerationHideRoute: typeof ApiModerationHideRoute
+  ApiModerationReportsRoute: typeof ApiModerationReportsRoute
   ApiSyncBootstrapRoute: typeof ApiSyncBootstrapRoute
   ApiSyncPullRoute: typeof ApiSyncPullRoute
   ApiSyncPushRoute: typeof ApiSyncPushRoute
@@ -302,6 +380,13 @@ declare module '@tanstack/react-router' {
       path: '/.well-known/apple-app-site-association'
       fullPath: '/.well-known/apple-app-site-association'
       preLoaderRoute: typeof DotwellKnownAppleAppSiteAssociationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/reports': {
+      id: '/admin/reports'
+      path: '/admin/reports'
+      fullPath: '/admin/reports'
+      preLoaderRoute: typeof AdminReportsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/invitations': {
@@ -339,6 +424,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProtectedWorkspacesWorkspaceSlugRouteRouteImport
       parentRoute: typeof ProtectedRouteRoute
     }
+    '/api/admin/report-image': {
+      id: '/api/admin/report-image'
+      path: '/api/admin/report-image'
+      fullPath: '/api/admin/report-image'
+      preLoaderRoute: typeof ApiAdminReportImageRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/reports': {
+      id: '/api/admin/reports'
+      path: '/api/admin/reports'
+      fullPath: '/api/admin/reports'
+      preLoaderRoute: typeof ApiAdminReportsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/auth/$': {
       id: '/api/auth/$'
       path: '/api/auth/$'
@@ -366,6 +465,27 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/invitations/preview'
       preLoaderRoute: typeof ApiInvitationsPreviewRouteImport
       parentRoute: typeof ApiInvitationsRoute
+    }
+    '/api/moderation/blocks': {
+      id: '/api/moderation/blocks'
+      path: '/api/moderation/blocks'
+      fullPath: '/api/moderation/blocks'
+      preLoaderRoute: typeof ApiModerationBlocksRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/moderation/hide': {
+      id: '/api/moderation/hide'
+      path: '/api/moderation/hide'
+      fullPath: '/api/moderation/hide'
+      preLoaderRoute: typeof ApiModerationHideRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/moderation/reports': {
+      id: '/api/moderation/reports'
+      path: '/api/moderation/reports'
+      fullPath: '/api/moderation/reports'
+      preLoaderRoute: typeof ApiModerationReportsRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/api/sync/bootstrap': {
       id: '/api/sync/bootstrap'
@@ -477,10 +597,16 @@ const rootRouteChildren: RootRouteChildren = {
   ProtectedRouteRoute: ProtectedRouteRouteWithChildren,
   DotwellKnownAppleAppSiteAssociationRoute:
     DotwellKnownAppleAppSiteAssociationRoute,
+  AdminReportsRoute: AdminReportsRoute,
   ApiInvitationsRoute: ApiInvitationsRouteWithChildren,
   JoinTokenRoute: JoinTokenRoute,
   ApiAuthSplatRouteRoute: ApiAuthSplatRouteRoute,
+  ApiAdminReportImageRoute: ApiAdminReportImageRoute,
+  ApiAdminReportsRoute: ApiAdminReportsRoute,
   ApiEventsInvitationsRoute: ApiEventsInvitationsRoute,
+  ApiModerationBlocksRoute: ApiModerationBlocksRoute,
+  ApiModerationHideRoute: ApiModerationHideRoute,
+  ApiModerationReportsRoute: ApiModerationReportsRoute,
   ApiSyncBootstrapRoute: ApiSyncBootstrapRoute,
   ApiSyncPullRoute: ApiSyncPullRoute,
   ApiSyncPushRoute: ApiSyncPushRoute,

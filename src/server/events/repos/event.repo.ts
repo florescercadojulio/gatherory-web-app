@@ -8,6 +8,7 @@ import { DB } from "@/db";
 import { member, organization, user } from "@/db/schema/auth.schema";
 import {
   event,
+  eventDeparture,
   eventInvitation,
   eventParticipant,
   workspacePerson,
@@ -24,7 +25,10 @@ import type {
   CreateEventInput,
   InviteEventParticipantInput,
 } from "../contracts/event.contracts";
-import { PersistenceError } from "@/server/effect";
+import { PersistenceError, type ConflictError, type EntityNotFoundError, type ForbiddenError } from "@/server/effect";
+import { requireUnblockedInvitation } from "@/server/moderation/user-block.repo";
+import { requireJoinableEvent } from "./event-lifecycle.repo";
+import { retainedEventAccess } from "./event-departure.repo";
 
 const planningPermissionToDatabase = {
   manage: "manage",
@@ -38,7 +42,7 @@ type InheritedParticipant = Pick<
 >;
 
 type EventPersistenceError =
-  EffectDrizzleQueryError | SqlError | PersistenceError;
+  EffectDrizzleQueryError | SqlError | PersistenceError | ConflictError | EntityNotFoundError | ForbiddenError;
 
 function persistenceFailure(code: string) {
   return Effect.fail(
@@ -96,6 +100,7 @@ export function getEventParticipant(input: {
         and(
           eq(event.id, input.eventId),
           eq(workspacePerson.userId, input.userId),
+          retainedEventAccess(input.userId, event.id),
         ),
       )
       .limit(1);
@@ -410,6 +415,7 @@ export function createEventInvitation(input: {
 
     const invitation = yield* db.transaction((transaction) =>
       Effect.gen(function* () {
+        yield* requireJoinableEvent(input.invitation.eventId);
         const [targetEvent] = yield* transaction
           .select({ organizationId: event.organizationId })
           .from(event)
@@ -418,6 +424,8 @@ export function createEventInvitation(input: {
         if (!targetEvent) return yield* persistenceFailure("EVENT_NOT_FOUND");
 
         const email = input.invitation.email.trim().toLowerCase();
+        const [inviteeAccount] = yield* transaction.select({ id: user.id }).from(user).where(eq(user.email, email)).limit(1);
+        yield* requireUnblockedInvitation(input.actorUserId, inviteeAccount?.id ?? null);
         const [existingPerson] = yield* transaction
           .select({ id: workspacePerson.id })
           .from(workspacePerson)
@@ -509,6 +517,7 @@ export function acceptEventInvitation(input: {
             organizationId: event.organizationId,
             status: eventInvitation.status,
             acceptedByUserId: eventInvitation.acceptedByUserId,
+            invitedByUserId: eventInvitation.invitedByUserId,
           })
           .from(eventInvitation)
           .innerJoin(event, eq(event.id, eventInvitation.eventId))
@@ -521,6 +530,7 @@ export function acceptEventInvitation(input: {
           return yield* persistenceFailure("EVENT_INVITATION_NOT_FOUND");
         if (pendingInvitation.email !== input.userEmail.trim().toLowerCase())
           return yield* persistenceFailure("EVENT_INVITATION_EMAIL_MISMATCH");
+        yield* requireUnblockedInvitation(input.userId, pendingInvitation.invitedByUserId);
         if (pendingInvitation.status === "accepted" && pendingInvitation.acceptedByUserId === input.userId) {
           const existing = yield* getEventParticipant({ eventId: pendingInvitation.eventId, userId: input.userId });
           if (!existing) return yield* persistenceFailure("EVENT_INVITATION_NOT_FOUND");
@@ -533,6 +543,7 @@ export function acceptEventInvitation(input: {
           return yield* persistenceFailure("EVENT_INVITATION_NOT_FOUND");
         if (pendingInvitation.expiresAt <= new Date())
           return yield* persistenceFailure("EVENT_INVITATION_EXPIRED");
+        yield* requireJoinableEvent(pendingInvitation.eventId);
 
         const [account] = yield* transaction
           .select({ name: user.name, email: user.email, image: user.image })
@@ -628,6 +639,8 @@ export function acceptEventInvitation(input: {
 
         if (!accepted[0])
           return yield* persistenceFailure("EVENT_INVITATION_ALREADY_USED");
+
+        yield* transaction.delete(eventDeparture).where(and(eq(eventDeparture.eventId, pendingInvitation.eventId), eq(eventDeparture.userId, input.userId)));
 
         yield* transaction
           .insert(eventParticipant)

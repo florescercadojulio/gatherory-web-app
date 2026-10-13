@@ -4,6 +4,7 @@ import { db } from "@/db"
 import { member, organization, user } from "@/db/schema/auth.schema"
 import {
   event,
+  eventDeparture,
   eventInvitation,
   eventParticipant,
   workspacePerson,
@@ -226,6 +227,7 @@ async function materializeWorkspace(
     draft: "draft",
     ongoing: "ongoing",
     finished: "finished",
+    cancelled: "cancelled",
   } as const, "draft")
 
   await transaction
@@ -450,6 +452,11 @@ async function materializeParticipation(
   )
   await assertScopedEvent(transaction, input.organizationId, eventId)
   await requireScopedPerson(transaction, input.organizationId, personId)
+
+  const [departed] = await transaction.select({ id: eventDeparture.eventId }).from(eventDeparture)
+    .innerJoin(workspacePerson, eq(workspacePerson.userId, eventDeparture.userId))
+    .where(and(eq(eventDeparture.eventId, eventId), eq(workspacePerson.id, personId))).limit(1)
+  if (departed) return // A stale phone must not undo a guest's personal departure.
 
   const role = mapRole(input.payload.role)
   const planningPermission = mapPlanningPermission(
@@ -1423,6 +1430,7 @@ function mapEventPlanningStatus(value: unknown) {
     not_sure: "not_sure",
     rejected: "rejected",
     archived: "archived",
+    cancelled: "cancelled",
   } as const, "draft")
 }
 

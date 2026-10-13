@@ -1,4 +1,17 @@
 const en = {
+  moderation: {
+    title: "Abuse reports", description: "Review reported images. Normal uploads do not need host approval.",
+    signIn: "Sign in with a moderator account", loadFailed: "Could not load reports. Try again.",
+    statusFilter: "Filter by report status", empty: "No reports in this queue.",
+    status: { open: "Open", in_review: "In review", resolved: "Resolved", dismissed: "Dismissed" },
+    reason: { inappropriate: "Inappropriate image", harassment: "Harassment", privacy: "Privacy concern", other: "Other concern" },
+    reportId: "Report {{id}}", contact: "Support and abuse contact:", saved: "Review saved.",
+    imageHidden: "This image is hidden for everyone. Previously issued links expire within five minutes.",
+    evidenceAlt: "Reported image for moderation review", revealEvidence: "Reveal reported image (may be sensitive)",
+    concealEvidence: "Hide preview", previewExpired: "The preview expired or could not be loaded. Reveal it again to retry.",
+    deletedImage: "The original image was deleted.", reviewNote: "Review note (at least 5 characters)",
+    startReview: "Start review", hideEveryone: "Hide image for everyone", dismiss: "Dismiss report",
+  },
   common: {
     account: "Account",
     allEvents: "All events",

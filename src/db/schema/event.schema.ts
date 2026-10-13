@@ -8,6 +8,7 @@ import {
   numeric,
   pgEnum,
   pgTable,
+  primaryKey,
   text,
   timestamp,
   uniqueIndex,
@@ -15,6 +16,14 @@ import {
 } from "drizzle-orm/pg-core"
 
 import { organization, user } from "./auth.schema"
+
+/** A personal departure cannot be undone by a stale planning snapshot.
+ * Clear only while accepting a fresh, valid invitation. */
+export const eventDeparture = pgTable("event_departure", {
+  eventId: uuid("event_id").notNull().references(() => event.id, { onDelete: "cascade" }),
+  userId: text("user_id").notNull().references(() => user.id, { onDelete: "cascade" }),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+}, table => [primaryKey({ columns: [table.eventId, table.userId] })])
 
 /** One revocable bearer invitation per event, never an organization invite. */
 export const eventShareLink = pgTable("event_share_link", {
@@ -32,6 +41,7 @@ export const eventStatus = pgEnum("event_status", [
   "draft",
   "ongoing",
   "finished",
+  "cancelled",
 ])
 
 export const eventPurpose = pgEnum("event_purpose", [
@@ -45,6 +55,7 @@ export const eventPlanningStatus = pgEnum("event_planning_status", [
   "not_sure",
   "rejected",
   "archived",
+  "cancelled",
 ])
 
 export const eventCompletionStatus = pgEnum("event_completion_status", [

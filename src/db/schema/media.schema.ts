@@ -58,6 +58,8 @@ export const mediaAsset = pgTable(
     kind: mediaKind("kind").notNull(),
     status: mediaStatus("status").default("pending").notNull(),
     visibility: mediaVisibility("visibility").default("private").notNull(),
+    // Independent of upload status: finalize/retry cannot undo moderation.
+    moderationHiddenAt: timestamp("moderation_hidden_at", { withTimezone: true }),
     storageProvider: text("storage_provider").default("r2").notNull(),
     bucket: text("bucket").notNull(),
     storageKey: text("storage_key").notNull(),

@@ -9,6 +9,7 @@
     "test": "pnpm contracts:check && tsx --test tests/*.test.ts",
     "test:invitations:local": "dotenv run -f .env.local -- sh -c 'RUN_INVITATION_DB_TESTS=1 RUN_INVITATION_HTTP_TESTS=1 tsx --test tests/event-invitations.database.test.ts tests/event-invitations.test.ts tests/guest-invitation-content.test.ts tests/invitation-http.database.test.ts'",
     "typecheck": "tsc --noEmit",
+    "moderation:grant": "dotenv run -f .env.local -- tsx scripts/grant-moderator.ts",
     "test:media:r2": "dotenv run -f .env.local -- sh -c 'RUN_R2_MEDIA_TESTS=1 tsx --test tests/native-media-r2.test.ts'",
     "contracts:generate": "tsx scripts/generate-contract-schemas.ts",
     "contracts:check": "tsx scripts/generate-contract-schemas.ts --check",

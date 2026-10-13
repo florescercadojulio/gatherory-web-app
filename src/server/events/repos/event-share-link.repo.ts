@@ -8,6 +8,8 @@ import { hasEventPermission, planningPermissionFromDatabase } from "@/lib/permis
 import { EntityNotFoundError, ForbiddenError } from "@/server/effect"
 import { acceptEventInvitation, createEventInvitation, getEventParticipant } from "./event.repo"
 import { ShareLinkInput } from "../contracts/event.contracts"
+import { requireJoinableEvent } from "./event-lifecycle.repo"
+import { requireUnblockedInvitation } from "@/server/moderation/user-block.repo"
 
 const unavailable = () => new EntityNotFoundError({
   category: "not_found", code: "SHARE_LINK_UNAVAILABLE",
@@ -34,6 +36,7 @@ export function createEventShareLink(actorUserId: string, input: z.infer<typeof 
     return yield* sql.withTransaction(Effect.gen(function* () {
       const db = yield* DB
       yield* requireManager(input.eventId, actorUserId)
+      yield* requireJoinableEvent(input.eventId)
       // Serialize create/revoke with the event row, including first-time creation.
       yield* db.select({ id: event.id }).from(event).where(eq(event.id, input.eventId)).for("update")
       const [existing] = yield* db.select().from(eventShareLink).where(eq(eventShareLink.eventId, input.eventId))
@@ -96,6 +99,7 @@ export function acceptEventShareLink(userId: string, token: string) {
       const db = yield* DB
       const [link] = yield* db.select().from(eventShareLink).where(eq(eventShareLink.token, token)).limit(1).for("update")
       if (!link) return yield* Effect.fail(unavailable())
+      yield* requireUnblockedInvitation(userId, link.createdByUserId)
       const [account] = yield* db.select({ email: user.email, name: user.name, verified: user.emailVerified }).from(user).where(eq(user.id, userId)).limit(1)
       if (!account?.verified) return yield* Effect.fail(new ForbiddenError({
         category: "authorization", code: "INVITATION_EMAIL_UNVERIFIED",
@@ -104,6 +108,7 @@ export function acceptEventShareLink(userId: string, token: string) {
       // Joining is idempotent and never changes an existing participant's access.
       const existing = yield* getEventParticipant({ eventId: link.eventId, userId })
       if (existing) return { eventId: link.eventId, ...existing }
+      yield* requireJoinableEvent(link.eventId)
       if (link.revokedAt || link.expiresAt <= new Date()) return yield* Effect.fail(unavailable())
       yield* requireManager(link.eventId, link.createdByUserId)
       // Reuse the canonical acceptance + native identity publication transaction.

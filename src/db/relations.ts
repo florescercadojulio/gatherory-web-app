@@ -3,6 +3,7 @@ import { defineRelationsPart } from "drizzle-orm"
 import * as authSchema from "@/db/schema/auth.schema"
 import * as eventSchema from "@/db/schema/event.schema"
 import * as mediaSchema from "@/db/schema/media.schema"
+import * as moderationSchema from "@/db/schema/moderation.schema"
 import * as planningSchema from "@/db/schema/planning.schema"
 import * as syncSchema from "@/db/schema/sync.schema"
 
@@ -11,6 +12,7 @@ export const databaseRelations = defineRelationsPart(
     ...authSchema,
     ...eventSchema,
     ...mediaSchema,
+    ...moderationSchema,
     ...planningSchema,
     ...syncSchema,
   },

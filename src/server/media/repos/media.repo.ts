@@ -11,6 +11,8 @@ import { eventMedia, mediaAsset } from "@/db/schema/media.schema"
 
 import type { PrepareEventMediaUploadInput } from "../contracts/media.contracts"
 import type { PrepareNativeMediaUploadInput } from "../contracts/media.contracts"
+import { visibleMediaPredicate } from "@/server/moderation/media-visibility"
+import { retainedEventAccess } from "@/server/events/repos/event-departure.repo"
 
 /** Native scope IDs identify main events, never Better Auth organizations.
  * Resolve storage ownership from the event after checking its participant. */
@@ -161,6 +163,7 @@ export function getNativeMediaAccessContext(input: {
       .innerJoin(event, eq(event.id, eventParticipant.eventId))
       .where(and(eq(mediaAsset.id, input.mediaAssetId), isNull(event.parentEventId),
         eq(event.organizationId, workspacePerson.organizationId),
+        retainedEventAccess(input.userId, event.id),
         inArray(eventParticipant.role, ["host", "collaborator"])))
       .limit(1)
 
@@ -297,7 +300,7 @@ export function getEventMediaAccessContext(input: {
           eq(workspacePerson.userId, input.userId),
         ),
       )
-      .where(eq(mediaAsset.id, input.mediaAssetId))
+      .where(and(eq(mediaAsset.id, input.mediaAssetId), retainedEventAccess(input.userId, event.id)))
       .limit(1)
 
     return context ?? null
@@ -367,7 +370,7 @@ export function listReadyEventMedia(eventId: string) {
       .from(eventMedia)
       .innerJoin(mediaAsset, eq(mediaAsset.id, eventMedia.mediaAssetId))
       .where(
-        and(eq(eventMedia.eventId, eventId), eq(mediaAsset.status, "ready")),
+        and(eq(eventMedia.eventId, eventId), visibleMediaPredicate()),
       )
       .orderBy(asc(eventMedia.sortOrder), asc(eventMedia.createdAt))
   })

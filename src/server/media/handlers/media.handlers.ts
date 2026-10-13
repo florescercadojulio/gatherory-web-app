@@ -5,6 +5,7 @@ import { PgClientLive } from "@/db"
 import { requireSessionMiddleware } from "@/lib/auth.middleware"
 import {
   ConflictError,
+  EntityNotFoundError,
   ExternalServiceError,
   ForbiddenError,
   InvalidInputError,
@@ -24,6 +25,7 @@ import {
 } from "../workflows/media.workflows"
 
 export function mediaError(error: unknown) {
+  if (error instanceof EntityNotFoundError) return error
   if (error instanceof Error) {
     if (error.message === "MEDIA_STORAGE_NOT_CONFIGURED") {
       return new ExternalServiceError({

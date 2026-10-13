@@ -42,6 +42,83 @@ This repository currently includes:
 Media storage behavior, authorization, and R2 configuration are documented in
 [`docs/media-system.md`](./docs/media-system.md).
 
+## Image safety and moderation
+
+`/admin/reports` is a platform-only abuse review queue. Event hosts and
+organization owners do **not** automatically have access. An account must be
+verified and have a non-revoked row in `moderation_staff`. No account is seeded,
+auto-granted, or allowed to grant itself this permission. Provision moderator
+membership explicitly after confirming the operator's signed-in account; the
+support mailbox `info@gatherory.com` is not a moderator identity by default.
+
+After applying the migrations and registering/verifying the operator's account,
+grant local permission explicitly with:
+
+```sh
+pnpm moderation:grant --email verified-account@example.com
+```
+
+This command refuses remote databases and missing/unverified accounts. It never
+creates an account or grants organization/event roles.
+
+The additive moderation migrations must be applied before enabling this flow.
+Reports follow `open → in_review → resolved/dismissed` (direct resolution is
+also supported). Each decision requires a note, checks the expected status,
+and appends an audit row atomically with its image-visibility change. Evidence
+previews are opt-in because images may be sensitive. The queue shows the oldest
+100 reports in each status; review active reports to advance the queue.
+
+`POST /api/moderation/hide` hides an accessible image for the signed-in user.
+`POST /api/moderation/reports` hides it personally and submits an idempotent
+report. `GET /api/moderation/hide` returns personal and accessible moderated
+image IDs so iOS can suppress cached artwork. Normal uploads require no host
+approval. Moderator hiding is independent of upload state and stops new image
+URLs, including guest projections; previously issued R2 read URLs may remain
+valid for up to five minutes. It does not delete the R2 object.
+
+`GET/POST/DELETE /api/moderation/blocks` manages personal user blocks. Blocks
+hide that author's content and prevent new invitations in either direction;
+they do not remove shared membership. Unblock is available in iOS Account.
+Offline blocks hide locally immediately and retry when the app refreshes.
+
+Support and abuse reports can also reach `info@gatherory.com`; privacy/legal
+inquiries use `legal@gatherory.com`. A staffed response process and a
+content-filtering strategy still need release verification. This report
+queue alone is **not** a claim of App Store moderation compliance.
+
+Verification without a web build:
+
+```sh
+pnpm typecheck
+pnpm test
+pnpm exec dotenv run -f .env.local -- sh -c 'RUN_MODERATION_DB_TESTS=1 RUN_EVENT_LIFECYCLE_DB_TESTS=1 tsx --test tests/moderation.database.test.ts tests/event-lifecycle.database.test.ts tests/event-departure-materialization.database.test.ts'
+```
+
+The database test accepts localhost only and rolls back fixture data, moderator
+grants, and any temporary moderation DDL. It does not reset the database, write
+to R2, or apply production migrations.
+
+## Event lifecycle and native release checks
+
+Cancellation keeps event records but closes new invitations and attendance
+responses. Cancelling a parent closes its children too; cancelling a child
+does not close other events. Archive is separate, reversible history—not a
+cancellation. The iOS event-detail menu owns these controls, not the Home cards.
+
+`DELETE /api/events/invitations` with `{ "eventId": "<uuid>" } lets an
+authenticated guest leave exactly that invitation. It does not change other
+event access, organization membership, or the shared event. The departure
+marker prevents old planning snapshots from restoring the guest, and a fresh,
+valid invitation acceptance explicitly clears it. Previously issued media
+URLs can remain valid until their five-minute expiry.
+
+iOS provides native Add to Calendar as a one-time copy, not two-way sync. Save
+status is scoped to the workspace's durable outbox and media transfers. Draft
+editors explain that Save is still needed to keep unsaved form changes.
+
+Remaining release audit items are tracked in
+[`docs/v1-release-safeguards.md`](./docs/v1-release-safeguards.md).
+
 The first release is scoped to user-created event workspaces, events, and the
 people invited to plan or attend them. Professional workspaces, published
 templates, discovery, and marketplace capabilities are planned later. Their

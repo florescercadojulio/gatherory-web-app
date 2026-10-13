@@ -3,4 +3,5 @@ import { invitationConsumptionResponse } from "@/server/events/invitation-consum
 export const Route = createFileRoute("/api/events/invitations")({ server: { handlers: {
   GET: ({ request }) => invitationConsumptionResponse(request, "events"),
   POST: ({ request }) => invitationConsumptionResponse(request, "respond"),
+  DELETE: ({ request }) => invitationConsumptionResponse(request, "leave"),
 } } })

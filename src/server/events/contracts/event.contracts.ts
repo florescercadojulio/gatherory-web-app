@@ -45,7 +45,7 @@ export const CreateEventInputSchema = z
         ])
         .default("other"),
       planningStatus: z
-        .enum(["draft", "approved", "not_sure", "rejected", "archived"])
+        .enum(["draft", "approved", "not_sure", "rejected", "archived", "cancelled"])
         .default("approved"),
     }),
   ])
@@ -117,7 +117,7 @@ export type ChildEventSummary = {
   id: string
   title: string
   purpose: "planning_scouting" | "part_of_event"
-  status: "draft" | "approved" | "not_sure" | "rejected" | "archived"
+  status: "draft" | "approved" | "not_sure" | "rejected" | "archived" | "cancelled"
   startsAt: string | null
   endsAt: string | null
   timeZone: string
@@ -132,7 +132,7 @@ export type EventWorkspaceSummary = {
   workspaceName: string
   description: string | null
   imageUrl: string | null
-  status: "draft" | "ongoing" | "finished"
+  status: "draft" | "ongoing" | "finished" | "cancelled"
   startsAt: string | null
   endsAt: string | null
   timeZone: string
