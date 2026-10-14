@@ -44,6 +44,9 @@ Read the product and data models first, then the relevant implementation guide.
 
 ## Development
 
+- [Server implementation guide](development/server-implementation-guide.md):
+  practical code references, Effect layer composition, authorization choices,
+  test organization, and handoff checks for contributors and future chats.
 - [Page creation standard](development/page-creation.md): routes, forms, shared
   controls, and accessibility conventions.
 - [Localization inventory](development/i18n-string-inventory.md): string

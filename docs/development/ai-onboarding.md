@@ -13,11 +13,11 @@ read-only companion. Public guides and marketing belong to the landing site.
 
 The repositories are separate Git checkouts under the same Gatherory directory:
 
-| Project | Location relative to the web-app root | Responsibility |
-| --- | --- | --- |
-| Web app and server | `.` | TanStack Start/React, Better Auth, Effect workflows, PostgreSQL/Drizzle, native APIs, private R2 media, moderation, and portable contracts. Production: `https://app.gatherory.com`. |
-| iOS app | `../ios-apps/gatherory` | SwiftUI UI, SwiftData persistence, offline mutations, account/session lifecycle, native permissions, image preparation, and API transport. |
-| Landing site | `../gatherory-landing` | Astro/Svelte marketing, guides, public resources, privacy policy, terms, and support content. Public site: `https://gatherory.com`. |
+| Project            | Location relative to the web-app root | Responsibility                                                                                                                                                                       |
+| ------------------ | ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Web app and server | `.`                                   | TanStack Start/React, Better Auth, Effect workflows, PostgreSQL/Drizzle, native APIs, private R2 media, moderation, and portable contracts. Production: `https://app.gatherory.com`. |
+| iOS app            | `../ios-apps/gatherory`               | SwiftUI UI, SwiftData persistence, offline mutations, account/session lifecycle, native permissions, image preparation, and API transport.                                           |
+| Landing site       | `../gatherory-landing`                | Astro/Svelte marketing, guides, public resources, privacy policy, terms, and support content. Public site: `https://gatherory.com`.                                                  |
 
 On the current machine these live below `/Users/nexus/Documents/gatherory/`.
 Prefer the relative locations above when transferring this guide to another
@@ -46,22 +46,33 @@ instructions; do not automatically download a replacement.
 
 ## Where to read for a task
 
-| Task | Read first |
-| --- | --- |
-| Backend behavior and authorization | [Server architecture](../architecture/server-architecture.md), [data model](../architecture/data-model.md), then the relevant contracts, handlers, workflows, and repositories under `src/server/`. |
+| Task                                     | Read first                                                                                                                                                                                                            |
+| ---------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Backend behavior and authorization       | [Server implementation guide](server-implementation-guide.md), [server architecture](../architecture/server-architecture.md), [data model](../architecture/data-model.md), then the owning code under `src/server/`.  |
 | Invitations, account switching, or RSVPs | iOS [authentication contract](../../../ios-apps/gatherory/docs/auth-integration.md), `Gatherory/App/AuthenticationSession.swift`, `Gatherory/Features/Events/`, and web `src/server/events/` plus `src/server/auth/`. |
-| Offline sync and data isolation | iOS [sync guide](../../../ios-apps/gatherory/docs/offline-sync.md), `Gatherory/OfflineSync/`, `Gatherory/Data/Persistence/`, and web `src/server/sync/`. |
-| Missing images or uploads | [Media system](../architecture/media-system.md), web `src/server/media/`, iOS `Gatherory/OfflineSync/R2MediaTransport.swift` and `UploadImagePreparation.swift`. |
-| iOS UI and localization | iOS `Gatherory/Features/`, `Gatherory/DesignSystem/`, `Gatherory/Localization/AppCopy.swift`, `Gatherory/Localizable.xcstrings`, and `Gatherory/InfoPlist.xcstrings`. |
-| Web UI | [Page creation](page-creation.md), [web localization inventory](i18n-string-inventory.md), and the relevant routes and shared components. |
-| Marketing, guides, or legal copy | Landing [README](../../../gatherory-landing/README.md), `AGENTS.md`, `src/pages/`, `src/lib/components/landing/`, `src/i18n/`, and `src/lib/legal-details.ts`. |
-| Templates and expansion | [Experience architecture](../architecture/experience-blueprints.md), [blueprint roadmap](../roadmaps/blueprints-roadmap/README.md), `src/contracts/`, and `contracts/`. |
-| Release preparation | [v1 safeguards](../release/v1-release-safeguards.md), iOS [release guide](../../../ios-apps/gatherory/docs/app-store-release.md), and `Config/Release.xcconfig`. |
+| Offline sync and data isolation          | iOS [sync guide](../../../ios-apps/gatherory/docs/offline-sync.md), `Gatherory/OfflineSync/`, `Gatherory/Data/Persistence/`, and web `src/server/sync/`.                                                              |
+| Missing images or uploads                | [Media system](../architecture/media-system.md), web `src/server/media/`, iOS `Gatherory/OfflineSync/R2MediaTransport.swift` and `UploadImagePreparation.swift`.                                                      |
+| iOS UI and localization                  | iOS `Gatherory/Features/`, `Gatherory/DesignSystem/`, `Gatherory/Localization/AppCopy.swift`, `Gatherory/Localizable.xcstrings`, and `Gatherory/InfoPlist.xcstrings`.                                                 |
+| Web UI                                   | [Page creation](page-creation.md), [web localization inventory](i18n-string-inventory.md), and the relevant routes and shared components.                                                                             |
+| Marketing, guides, or legal copy         | Landing [README](../../../gatherory-landing/README.md), `AGENTS.md`, `src/pages/`, `src/lib/components/landing/`, `src/i18n/`, and `src/lib/legal-details.ts`.                                                        |
+| Templates and expansion                  | [Experience architecture](../architecture/experience-blueprints.md), [blueprint roadmap](../roadmaps/blueprints-roadmap/README.md), `src/contracts/`, and `contracts/`.                                               |
+| Release preparation                      | [v1 safeguards](../release/v1-release-safeguards.md), iOS [release guide](../../../ios-apps/gatherory/docs/app-store-release.md), and `Config/Release.xcconfig`.                                                      |
 
 Paths in inline code are relative to their owning repository.
 
 ## Decisions to preserve
 
+- Server code uses pure injectable workflows plus production `*.workflows.live.ts`
+  bindings. Compose dependency graphs once with `Layer.provide`; database-backed
+  transports supply only `PgClientLive`. Service tags/contracts must not initialize
+  production dependencies. Follow the [implementation guide](server-implementation-guide.md)
+  for examples, import aliases, and test boundaries.
+- Native sync/materialization and account deletion still retain Promise-based
+  persistence engines behind Effect ports. Their migration was deferred, not
+  implemented. Preserve transaction/side-effect ordering during structural work;
+  do not silently resume that migration from an earlier chat request.
+- There is no ambient Effect execution-context service. Explicit actor/scope
+  inputs and reusable authorization middleware are the current design.
 - Keep the iOS experience offline-first. Local data drives rendering; background
   refreshes must not pause navigation or tab changes. Save mutations durably and
   deliver them with stable idempotency keys.

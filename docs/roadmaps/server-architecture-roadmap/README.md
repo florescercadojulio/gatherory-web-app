@@ -4,6 +4,19 @@ Status: Architecture and file-structure cleanup complete; existing transaction e
 Owner: `src/server/` and native API transport boundaries
 Started: October 14, 2026
 
+## Current stopping point
+
+As of October 14, 2026, the structural cleanup and Effect v4 layer composition
+are implemented. The subsequent request to migrate Promise-based sync and
+account-deletion persistence was redirected to documentation before code edits
+or agent work began. That migration is **deferred, not implemented or active**.
+Do not resume it without a fresh request.
+
+The [server implementation guide](../../development/server-implementation-guide.md)
+captures the patterns for future contributors and chats. This documentation
+follow-up changes no runtime code, schema, or transaction behavior. Historical
+test results below belong to the implementation run, not a new release audit.
+
 ## Purpose
 
 Bring existing backend domains back to the [server architecture](../../architecture/server-architecture.md),
@@ -137,7 +150,7 @@ caller-owned client and ambient scope. The moderator-access workflow has a
 separate production binding to avoid pulling session infrastructure into ordinary
 moderation callers.
 
-### Local verification
+### Local verification from the implementation run (October 14, 2026)
 
 - `pnpm typecheck`: passed.
 - `pnpm test`: passed, 163 tests across 37 files; 9 opt-in integration tests skipped.

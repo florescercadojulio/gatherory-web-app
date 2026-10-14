@@ -6,6 +6,11 @@ workspaces as ownership, collaboration, and template-publishing scopes, without
 carrying over Humphrey Hub's application or platform-host abstractions. The
 agreed domain hierarchy is defined in [Product model](product-model.md).
 
+For a practical walkthrough, canonical source links, and validation checklist,
+use the [server implementation guide](../development/server-implementation-guide.md).
+These conventions are self-contained; the external reference project is not
+required to work in this repository.
+
 ## Product boundary
 
 The TanStack Start project owns the authenticated web product on the `app`
@@ -14,7 +19,7 @@ the application domain. The public Astro landing page is a separate project
 and must not acquire authentication or database responsibilities.
 
 Normal request/response work belongs in TanStack Start server functions. Public
-or cross-origin endpoints, such as future mobile API routes and webhooks, use
+or cross-origin endpoints, such as the native API routes and future webhooks, use
 server routes. Durable notifications, media processing, and scheduled weather
 checks must not be hidden inside request handlers. Media upload authorization
 and finalization are request workflows; rendition generation remains durable
@@ -31,17 +36,21 @@ src/server/events/
   workflows/
   services/
   repos/
+  connectors/
+  event.layers.live.ts
 
-src/server/ideas/
-src/server/participants/
-src/server/registry/
 src/server/media/
 src/server/workspaces/
-src/server/templates/
+src/server/moderation/
+src/server/sync/
+src/server/auth/
+src/server/email/
 ```
 
-There is no `src/server/apps/<app>` level. Events, ideas, participants, and
-registry entries are domains within the same Gatherory product.
+There is no `src/server/apps/<app>` level. This is the current top-level domain
+layout, not a mandate to create every folder for every use case. Ideas,
+participants, and registry entries are product concepts, but do not yet have
+standalone server domain directories; existing native persistence handles them.
 
 Use these suffixes consistently:
 
@@ -52,7 +61,8 @@ Use these suffixes consistently:
 - `*.layers.live.ts` — reusable dependency graphs; leave `PgClient` unresolved.
 - `*.service.ts` / `*.service.live.ts` — domain API and implementation.
 - `*.repo.ts` / `*.repo.live.ts` — persistence API and implementation.
-- `*.con.ts` — an external provider connector.
+- `*.con.ts` / `*.con.live.ts` — an external provider port and implementation;
+  retain existing `*.connector.ts` names where already established.
 - `*.adapter.ts` — a runtime bridge for framework callbacks, scripts, or legacy
   callers; use composed workflows rather than rebuilding their dependency graphs.
 - `*.persistence.ts` — a concrete persistence implementation behind an injected
@@ -241,9 +251,10 @@ workflow and back it with the strongest practical database constraints.
 A handler is the only server-function edge. It must:
 
 1. declare the HTTP method;
-2. apply session middleware;
-3. declare event permissions in middleware for single-event inputs, retaining
-   the domain service's authorization checks;
+2. apply session middleware when the use case requires identity; public token
+   previews retain their explicit token-based access path;
+3. declare event permissions in middleware for participant-gated single-event
+   inputs, retaining the domain service's authorization checks;
 4. validate all caller input;
 5. call exactly one workflow; and
 6. return a safe serializable result.
@@ -433,7 +444,8 @@ transaction. The repository adapter lifts the whole operation, rather than
 running a separate Effect runtime inside its transaction. Original callback
 failures remain observable to Better Auth. A future native-Effect rewrite of
 these engines is a separate behavior-sensitive migration, not unfinished file
-organization.
+organization. Its current status is recorded in the
+[roadmap stopping point](../roadmaps/server-architecture-roadmap/README.md#current-stopping-point).
 
 ## Services, repositories, and connectors
 
@@ -454,9 +466,9 @@ in those public projections.
 
 Retained root modules and plural `*.handlers.ts`/`*.workflows.ts` files are
 compatibility exports, not alternative implementations. Production
-`*.workflows.live.ts` files are bindings, not compatibility barrels. Application routes and domain modules
-use canonical contracts, handlers, and injected ports. Compatibility adapters
-provide dependencies without creating a second PostgreSQL client inside an
+`*.workflows.live.ts` files are bindings, not compatibility barrels. Application
+routes and domain modules use canonical contracts, handlers, and injected ports.
+Compatibility adapters provide dependencies without creating a second PostgreSQL client inside an
 existing transaction.
 
 Expected failures use tagged domain errors and cross one safe handler boundary.
@@ -465,16 +477,16 @@ objects to the client. Client errors contain safe copy and a trace ID.
 
 ## Drizzle schema split
 
-Keep schema files aligned to durable domains:
+Keep schema files aligned to durable domains. The current schema modules are:
 
 ```text
 src/db/schema/
   auth.schema.ts
   event.schema.ts
   media.schema.ts
-  idea.schema.ts
-  registry.schema.ts
-  shared.ts
+  planning.schema.ts
+  moderation.schema.ts
+  sync.schema.ts
   index.ts
 src/db/relations.ts
 src/db/index.ts
@@ -515,25 +527,16 @@ Vitest does not typecheck assertions by default. Composition tests exercise real
 repository adapters and service graphs with substituted persistence, verifying
 shared client identity, ambient context, scope cleanup, and authorization.
 
-## Current backend slice
+## Implementation status and examples
 
-The foundation now includes the auth UI shell, sidebar-07 protected shell,
-PostgreSQL client, Drizzle configuration and migrations, Better Auth
-organizations with teams, automatic personal-workspace provisioning,
-additional event-workspace creation, an account-level workspace directory,
-session middleware, permission vocabulary, reusable entity components, the
-first Events persistence slice, and the private R2 media-upload foundation.
-
-The Events slice currently provides main/child event persistence, the two-level
-tree invariant, participant snapshots for new child events, event-scoped invite
-records and acceptance, Effect repository/service layers, tagged domain errors,
-safe handlers, and Better Auth-style repository-backed authorization checks.
-Email delivery, event mutation, and participant administration are the next
-backend workflows. Media currently provides reusable asset metadata,
-event placement records, signed direct uploads, finalization checks, and
-authorized reads; durable image rendition processing remains deferred. Template
-and professional-workspace tables remain deferred; the ownership model above
-reserves room for them without putting them in the first-release path.
+Use the [implementation guide](../development/server-implementation-guide.md)
+for source-level examples and the
+[architecture roadmap](../roadmaps/server-architecture-roadmap/README.md)
+for completed work, intentional exceptions, and dated verification evidence.
+Authentication email workflows, event invitations/sharing, guest operations,
+media operations, workspace services, moderation, and sync boundaries already
+exist; do not treat them as unimplemented foundation work. Future product scope
+belongs in the relevant product roadmap rather than this conventions document.
 
 ## New use-case checklist
 
@@ -541,9 +544,9 @@ reserves room for them without putting them in the first-release path.
 2. Declare authentication at the handler and event permissions in the domain
    service operation.
 3. Add event-scoped repository operations with narrow projections.
-4. Add service behavior and one workflow.
-5. Put multi-write atomicity in the workflow.
-6. Cross the safe result boundary once in the handler.
+4. Add service behavior and one pure workflow; compose its production graph and binding.
+5. Define multi-write atomicity for new work; preserve established transaction boundaries.
+6. Supply remaining infrastructure and cross the safe result boundary once in the handler.
 7. Consume only the handler from routes/components.
 8. Cover unauthorized access, cross-event isolation, state conflicts, and safe
-   error results in tests.
+   error results in tests; verify dependency types and import safety too.

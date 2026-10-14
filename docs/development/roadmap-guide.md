@@ -10,6 +10,7 @@ order, deliberate deferrals, and how to continue safely.
 Roadmaps complement, rather than replace, the implementation standards:
 
 - [Server Architecture](../architecture/server-architecture.md)
+- [Server Implementation Guide](server-implementation-guide.md)
 - [Page Creation Standard](page-creation.md)
 
 The roadmap defines feature sequencing and product decisions. It must not
