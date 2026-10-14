@@ -1,5 +1,8 @@
 # Gatherory documentation
 
+Starting a new AI context? Read the [cross-project onboarding guide](development/ai-onboarding.md)
+for repository ownership, established decisions, verification, and release context.
+
 This repository owns the authenticated web companion and the server used by
 native clients. The public landing site and iOS app are separate projects.
 See the [repository README](../README.md) for setup, commands, authentication,

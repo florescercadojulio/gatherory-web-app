@@ -9,3 +9,9 @@ Before editing files for a substantial task:
 - Monorepos: when working across packages, run the skill check from the workspace root and prefer the local skill for the package being changed.
 - Multiple matches: prefer the most specific local skill for the package or concern you are changing; load additional skills only when the task spans multiple packages or concerns.
 <!-- intent-skills:end -->
+
+## Gatherory project context
+
+Read `docs/development/ai-onboarding.md` when starting a fresh context. It maps
+the web/server, iOS, and landing repositories and records shared product
+decisions. Check current code and Git state before relying on dated status notes.
