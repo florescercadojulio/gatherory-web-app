@@ -58,6 +58,11 @@ type WorkspaceDisposition =
 /**
  * Prepare Gatherory-owned data for Better Auth's hard user deletion.
  *
+ * Legacy persistence boundary: this deliberately remains Promise/Drizzle based
+ * because its row locks, ownership transfer, tombstones, and payload scrubbing
+ * form one critical transaction algorithm. Keep it intact until that complete
+ * transaction has an Effect-native persistence design and equivalent coverage.
+ *
  * A private workspace is deleted with its final owner. A collaborative
  * workspace remains available: ownership moves to an existing planner,
  * native storage ownership is reassigned before the user cascade, and media the

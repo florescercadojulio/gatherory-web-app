@@ -51,7 +51,7 @@ test('native media routes authenticate and use the shared Effect boundary', () =
     )
     expect(source).toMatch(/requestUser\(request\)/)
     expect(source).toMatch(/runServerResponse\(/)
-    expect(source).toMatch(/Effect\.provide\(PgClientLive\)/)
+    expect(source).toMatch(/provideMediaLayers\(/)
   }
   const authentication = readFileSync(join(process.cwd(), 'src/server/http-errors.ts'), 'utf8')
   expect(authentication).toMatch(/nativeSyncUser\(request\)/)
@@ -60,7 +60,10 @@ test('native media routes authenticate and use the shared Effect boundary', () =
 })
 
 test('native materialization projects every image-bearing domain onto typed media joins', () => {
-  const source = readFileSync(join(process.cwd(), 'src/server/sync/native-materializer.ts'), 'utf8')
+  const source = readFileSync(
+    join(process.cwd(), 'src/server/sync/repos/native-materializer.persistence.ts'),
+    'utf8'
+  )
   expect(source).toMatch(/mainEventMediaAssetID/)
   expect(source).toMatch(/materializeEventCover/)
   expect(source).toMatch(/materializeIdeaCover/)

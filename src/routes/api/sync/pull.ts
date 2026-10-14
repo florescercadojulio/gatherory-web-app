@@ -1,9 +1,10 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { Effect } from 'effect'
 import { z } from 'zod'
-import { EntityNotFoundError, runServerResponse, tryServerOperation } from '@/server/effect-utils'
+import { EntityNotFoundError, runServerResponse } from '@/server/effect-utils'
 import { requestUser, validateInput } from '@/server/http-errors'
-import { pullNativeChanges } from '@/server/sync/native-sync'
+import { NativeSyncRepoLive } from '@/server/sync/repos/native-sync.repo.live'
+import { pullNativeSync } from '@/server/sync/workflows/native-sync-pull.workflow'
 
 const querySchema = z.object({
   scopeID: z.uuid(),
@@ -22,15 +23,11 @@ export const Route = createFileRoute('/api/sync/pull')({
               scopeID: url.searchParams.get('scopeID'),
               after: url.searchParams.get('after') ?? 0,
             })
-            const page = yield* tryServerOperation(
-              {
-                category: 'system',
-                code: 'SYNC_PULL_FAILED',
-                userMessageKey: 'serverErrors.SYNC_PULL_FAILED',
-              },
-              () =>
-                pullNativeChanges({ userId: user.id, scopeId: input.scopeID, after: input.after })
-            )
+            const page = yield* pullNativeSync({
+              userId: user.id,
+              scopeId: input.scopeID,
+              after: input.after,
+            }).pipe(Effect.provide(NativeSyncRepoLive))
             if (!page)
               return yield* Effect.fail(
                 new EntityNotFoundError({

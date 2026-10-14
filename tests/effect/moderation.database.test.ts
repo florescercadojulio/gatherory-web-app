@@ -3,7 +3,7 @@ import { expect, it } from '@effect/vitest'
 import { Cause, Data, Effect, Exit } from 'effect'
 import { eq } from 'drizzle-orm'
 
-it.effect(
+it.live(
   'local moderation authorization, atomic reviews, personal hiding, and read denial',
   () =>
     Effect.gen(function* () {
@@ -13,6 +13,7 @@ it.effect(
         'Only local PostgreSQL is allowed'
       ).toBeTruthy()
       const { DB, PgClientLive } = yield* Effect.promise(() => import('@/db'))
+      const { MediaDomainLive } = yield* Effect.promise(() => import('@/server/media/media.layers'))
       const { PgClient } = yield* Effect.promise(() => import('@effect/sql-pg/PgClient'))
       const {
         user,
@@ -371,7 +372,7 @@ it.effect(
             return yield* Effect.fail(new Rollback())
           })
         )
-      }).pipe(Effect.provide(PgClientLive))
+      }).pipe(Effect.provide(MediaDomainLive), Effect.provide(PgClientLive))
       const result = yield* Effect.exit(verification)
       expect(
         Exit.isFailure(result) &&

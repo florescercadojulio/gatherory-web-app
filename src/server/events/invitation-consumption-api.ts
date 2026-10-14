@@ -1,28 +1,26 @@
-import { and, eq } from 'drizzle-orm'
 import { Effect } from 'effect'
 import { z } from 'zod'
-import { DB, PgClientLive } from '@/db'
-import { event, eventInvitation, eventShareLink } from '@/db/schema'
+import { PgClientLive } from '@/db'
 import {
-  EntityNotFoundError,
   ForbiddenError,
   InvalidInputError,
   runServerResponse,
   tryServerOperation,
 } from '@/server/effect'
 import { nativeSyncUser } from '@/server/sync/native-sync-auth'
-import { acceptEventShareLink, previewEventShareLink } from './repos/event-share-link.repo'
-import {
-  guestEventInvitations,
-  invitationCoverURL,
-  respondToEvent,
-} from './repos/guest-invitation.repo'
-import { leaveGuestEvent } from './repos/event-departure.repo'
+import { EventSharingRepoLive } from './repos/event-sharing.repo.live'
+import { EventGuestRepoLive } from './repos/event-guest.repo.live'
+import { EventSharingServiceLive } from './services/event-sharing.service.live'
+import { EventGuestServiceLive } from './services/event-guest.service.live'
 import { isTrustedModerationMutation } from '@/server/moderation/contracts'
-import { EventService } from './services/event.service'
 import { EventServiceLive } from './services/event.service.live'
 import { EventRepoLive } from './repos/event.repo.live'
 import { EventAuthorizationLive } from './services/event-authorization.service'
+import { acceptEventInvitationTokenWorkflow } from './workflows/accept-event-invitation-token.workflow'
+import { previewEventInvitationWorkflow } from './workflows/preview-event-invitation.workflow'
+import { listGuestEventInvitationsWorkflow } from './workflows/list-guest-event-invitations.workflow'
+import { respondToEventWorkflow } from './workflows/respond-to-event.workflow'
+import { leaveGuestEventWorkflow } from './workflows/leave-guest-event.workflow'
 
 const tokenInput = z.object({ token: z.uuid().transform((value) => value.toLowerCase()) })
 const responseInput = z.object({
@@ -54,7 +52,8 @@ export async function invitationConsumptionResponse(
           })
         )
       }
-      if (operation === 'events') return { events: yield* guestEventInvitations(account!.id) }
+      if (operation === 'events')
+        return { events: yield* listGuestEventInvitationsWorkflow(account!.id) }
       if (
         operation !== 'preview' &&
         !isTrustedModerationMutation(request, process.env.BETTER_AUTH_URL)
@@ -91,7 +90,11 @@ export async function invitationConsumptionResponse(
             })
           )
         }
-        return yield* respondToEvent(account!.id, parsed.data.eventId, parsed.data.attendance)
+        return yield* respondToEventWorkflow(
+          account!.id,
+          parsed.data.eventId,
+          parsed.data.attendance
+        )
       }
       if (operation === 'leave') {
         const parsed = z
@@ -106,7 +109,7 @@ export async function invitationConsumptionResponse(
               userMessageKey: 'serverErrors.INVALID_EVENT',
             })
           )
-        return yield* leaveGuestEvent(account!.id, parsed.data.eventId)
+        return yield* leaveGuestEventWorkflow(account!.id, parsed.data.eventId)
       }
       const parsed = tokenInput.safeParse(body)
       if (!parsed.success) {
@@ -119,96 +122,25 @@ export async function invitationConsumptionResponse(
         )
       }
       const token = parsed.data.token
-      const db = yield* DB
-      const [shared] = yield* db
-        .select({ id: eventShareLink.eventId })
-        .from(eventShareLink)
-        .where(eq(eventShareLink.token, token))
-        .limit(1)
       if (operation === 'preview') {
-        if (shared) {
-          const preview = yield* previewEventShareLink(token, account?.id)
-          if (!preview)
-            return yield* Effect.fail(
-              new EntityNotFoundError({
-                category: 'not_found',
-                code: 'INVITATION_UNAVAILABLE',
-                userMessageKey: 'serverErrors.INVITATION_UNAVAILABLE',
-              })
-            )
-          return {
-            ...preview,
-            coverURL: yield* invitationCoverURL(shared.id, account?.id),
-            requiresSignIn: false,
-          }
-        }
-        if (!account) return { requiresSignIn: true }
-        const [invitation] = yield* db
-          .select({
-            eventId: event.id,
-            title: event.title,
-            role: eventInvitation.role,
-            status: eventInvitation.status,
-            expiresAt: eventInvitation.expiresAt,
-            startsAt: event.startsAt,
-            locationName: event.locationName,
-          })
-          .from(eventInvitation)
-          .innerJoin(event, eq(event.id, eventInvitation.eventId))
-          .where(
-            and(
-              eq(eventInvitation.token, token),
-              eq(eventInvitation.email, account.email.trim().toLowerCase())
-            )
-          )
-          .limit(1)
-        if (
-          !invitation ||
-          !['pending', 'accepted'].includes(invitation.status) ||
-          (invitation.status !== 'accepted' && invitation.expiresAt <= new Date())
-        ) {
-          return yield* Effect.fail(
-            new EntityNotFoundError({
-              category: 'not_found',
-              code: 'INVITATION_UNAVAILABLE',
-              userMessageKey: 'serverErrors.INVITATION_UNAVAILABLE',
-            })
-          )
-        }
-        const { eventId, ...details } = invitation
-        return {
-          ...details,
-          coverURL: yield* invitationCoverURL(eventId, account.id),
-          expiresAt: invitation.expiresAt.toISOString(),
-          startsAt: invitation.startsAt?.toISOString() ?? null,
-          requiresSignIn: false,
-        }
+        return yield* previewEventInvitationWorkflow({
+          token,
+          user: account ? { id: account.id, email: account.email } : undefined,
+        })
       }
-      const service = yield* EventService
-      const accepted = shared
-        ? yield* acceptEventShareLink(account!.id, token)
-        : yield* service.acceptInvitation({
-            userId: account!.id,
-            userEmail: account!.email,
-            invitation: { token },
-          })
-      const [target] = yield* db
-        .select({ parent: event.parentEventId })
-        .from(event)
-        .where(eq(event.id, accepted.eventId))
-        .limit(1)
-      const awaitingApproval = 'status' in accepted && accepted.status === 'awaiting_approval'
-      return {
-        ...accepted,
-        planningScopeId:
-          !awaitingApproval && target?.parent === null && accepted.role !== 'guest'
-            ? accepted.eventId
-            : null,
-      }
+      return yield* acceptEventInvitationTokenWorkflow({
+        userId: account!.id,
+        userEmail: account!.email,
+        token,
+      })
     }).pipe(
       Effect.provide(EventServiceLive),
       Effect.provide(EventRepoLive),
       Effect.provide(EventAuthorizationLive),
+      Effect.provide(EventSharingServiceLive),
+      Effect.provide(EventSharingRepoLive),
+      Effect.provide(EventGuestServiceLive),
+      Effect.provide(EventGuestRepoLive),
       Effect.provide(PgClientLive)
     ),
     { headers: request.headers, operation: `invitation.${operation}` }

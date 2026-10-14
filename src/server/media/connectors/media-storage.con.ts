@@ -10,7 +10,20 @@ import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
 import { env } from '@/env'
 import { ExternalServiceError } from '@/lib/domain-errors'
 
-export type MediaVisibility = 'private' | 'public'
+import type { MediaVisibility } from './media-storage.con.contract'
+export { MediaStorage } from './media-storage.con.contract'
+export type { MediaVisibility } from './media-storage.con.contract'
+
+export function mediaStorageFailure(cause: unknown) {
+  return cause instanceof ExternalServiceError
+    ? cause
+    : new ExternalServiceError({
+        category: 'external',
+        code: 'MEDIA_STORAGE_OPERATION_FAILED',
+        userMessageKey: 'serverErrors.MEDIA_OPERATION_FAILED',
+        cause,
+      })
+}
 
 type R2Configuration = {
   accountId: string

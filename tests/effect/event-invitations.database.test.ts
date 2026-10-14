@@ -48,7 +48,7 @@ const verification = Effect.gen(function* () {
   )
   const { mediaAsset } = yield* Effect.promise(() => import('@/db/schema/media.schema'))
   const { getNativeMediaAccessContext, getNativeMediaActorContext, upsertPendingNativeMedia } =
-    yield* Effect.promise(() => import('@/server/media/repos/media.repo'))
+    yield* Effect.promise(() => import('@/server/media/repos/media.repo.compat'))
   class RollbackVerification extends Data.TaggedError('RollbackVerification')<{}> {}
 
   const program = Effect.gen(function* () {
@@ -719,7 +719,7 @@ const verification = Effect.gen(function* () {
 })
 
 /** Run explicitly against local Postgres. All fixture writes roll back. */
-it.effect(
+it.live(
   'real invitation queries rotate, accept, retry, project native identity, and isolate guests',
   () => verification,
   {

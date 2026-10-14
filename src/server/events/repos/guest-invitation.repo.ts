@@ -18,7 +18,7 @@ import {
 import { guestIdeaContent } from '@/lib/guest-invitation-content'
 import { ConflictError, ForbiddenError } from '@/server/effect'
 import { visibleMediaPredicate } from '@/server/moderation/media-visibility'
-import { blockedAuthorPredicate } from '@/server/moderation/user-block.repo'
+import { blockedAuthorPredicate } from '@/server/moderation/repos/user-block.repo.live'
 import { retainedEventAccess } from './event-departure.repo'
 
 const iso = (date: Date | null) => date?.toISOString().replace(/\.\d{3}Z$/, 'Z') ?? null

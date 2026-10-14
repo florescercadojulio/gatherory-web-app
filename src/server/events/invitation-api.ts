@@ -14,12 +14,12 @@ import { EventRepoLive } from './repos/event.repo.live'
 import { EventAuthorizationLive } from './services/event-authorization.service'
 import { EventService } from './services/event.service'
 import { EventServiceLive } from './services/event.service.live'
-import {
-  createEventShareLink,
-  revokeEventShareLink,
-  listEventJoinRequests,
-  reviewEventJoinRequest,
-} from './repos/event-share-link.repo'
+import { EventSharingServiceLive } from './services/event-sharing.service.live'
+import { EventSharingRepoLive } from './repos/event-sharing.repo.live'
+import { createEventShareLinkWorkflow } from './workflows/create-event-share-link.workflow'
+import { revokeEventShareLinkWorkflow } from './workflows/revoke-event-share-link.workflow'
+import { listEventJoinRequestsWorkflow } from './workflows/list-event-join-requests.workflow'
+import { reviewEventJoinRequestWorkflow } from './workflows/review-event-join-request.workflow'
 import { isTrustedModerationMutation } from '@/server/moderation/contracts'
 
 function verifiedUser(request: Request) {
@@ -46,7 +46,7 @@ export function eventJoinRequestsResponse(request: Request) {
         const input = yield* validateInput(z.object({ eventId: z.uuid() }), {
           eventId: new URL(request.url).searchParams.get('eventId'),
         })
-        return yield* listEventJoinRequests(user.id, input.eventId)
+        return yield* listEventJoinRequestsWorkflow(user.id, input.eventId)
       }
       if (!isTrustedModerationMutation(request, process.env.BETTER_AUTH_URL))
         return yield* Effect.fail(
@@ -64,8 +64,17 @@ export function eventJoinRequestsResponse(request: Request) {
         }),
         yield* requestJson(request)
       )
-      return yield* reviewEventJoinRequest(user.id, input.eventId, input.requestId, input.action)
-    }).pipe(Effect.provide(PgClientLive)),
+      return yield* reviewEventJoinRequestWorkflow(
+        user.id,
+        input.eventId,
+        input.requestId,
+        input.action
+      )
+    }).pipe(
+      Effect.provide(EventSharingServiceLive),
+      Effect.provide(EventSharingRepoLive),
+      Effect.provide(PgClientLive)
+    ),
     { headers: request.headers, operation: 'invitation.join_requests' }
   )
 }
@@ -101,7 +110,7 @@ export function createInvitationResponse(request: Request) {
       })
       if (isShareLink) {
         const input = yield* validateInput(ShareLinkInput, body)
-        const link = yield* createEventShareLink(user.id, input)
+        const link = yield* createEventShareLinkWorkflow(user.id, input)
         return {
           eventId: link.eventId,
           email: null,
@@ -122,6 +131,8 @@ export function createInvitationResponse(request: Request) {
       Effect.provide(EventServiceLive),
       Effect.provide(EventRepoLive),
       Effect.provide(EventAuthorizationLive),
+      Effect.provide(EventSharingServiceLive),
+      Effect.provide(EventSharingRepoLive),
       Effect.provide(PgClientLive)
     ),
     { headers: request.headers }
@@ -136,8 +147,12 @@ export function revokeInvitationResponse(request: Request) {
         z.object({ eventId: z.uuid() }),
         yield* requestJson(request)
       )
-      return yield* revokeEventShareLink(user.id, input.eventId)
-    }).pipe(Effect.provide(PgClientLive)),
+      return yield* revokeEventShareLinkWorkflow(user.id, input.eventId)
+    }).pipe(
+      Effect.provide(EventSharingServiceLive),
+      Effect.provide(EventSharingRepoLive),
+      Effect.provide(PgClientLive)
+    ),
     { headers: request.headers }
   )
 }

@@ -68,8 +68,8 @@ it('application repositories use Effect Drizzle instead of Promise wrappers', ()
   expect(databaseSource).toMatch(/export const DB = PgDrizzle\.make/)
 
   const repositoryFiles = [
-    'src/server/events/repos/event.repo.ts',
-    'src/server/media/repos/media.repo.ts',
+    'src/server/events/repos/event.repo.persistence.ts',
+    'src/server/media/repos/media.repo.drizzle.ts',
   ]
 
   for (const displayPath of repositoryFiles) {
@@ -85,11 +85,11 @@ it('application repositories use Effect Drizzle instead of Promise wrappers', ()
   }
 })
 
-it('database-backed handlers provide the PostgreSQL Effect layer', () => {
+it('database-backed transport composition provides the PostgreSQL Effect layer', () => {
   const handlerFiles = [
-    'src/server/events/handlers/event.handlers.ts',
-    'src/server/media/handlers/media.handlers.ts',
-    'src/server/sync/native-insights.ts',
+    'src/server/events/handlers/event-handler.layers.ts',
+    'src/server/media/media.layers.ts',
+    'src/server/sync/handlers/native-workspace-insights.handler.ts',
   ]
 
   for (const displayPath of handlerFiles) {

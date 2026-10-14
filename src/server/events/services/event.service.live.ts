@@ -1,8 +1,8 @@
 import { Effect, Layer } from 'effect'
 import { planningPermissionFromDatabase } from '@/lib/permissions'
-import { ForbiddenError } from '@/server/effect'
+import { EntityNotFoundError, ForbiddenError } from '@/server/effect'
 
-import { EventRepo } from '../repos/event.repo'
+import { EventRepo } from '../repos/event.repo.contract'
 import { EventAuthorization } from './event-authorization.service'
 import { EventService } from './event.service'
 
@@ -13,6 +13,46 @@ export const EventServiceLive = Layer.effect(
     const authorization = yield* EventAuthorization
 
     return {
+      getInvitationDetails: (input) =>
+        Effect.gen(function* () {
+          const invitation = yield* repo.getInvitationDetails(input)
+          if (!invitation || !['pending', 'accepted'].includes(invitation.status)) {
+            return yield* Effect.fail(
+              new EntityNotFoundError({
+                category: 'not_found',
+                code: 'INVITATION_UNAVAILABLE',
+                userMessageKey: 'serverErrors.INVITATION_UNAVAILABLE',
+              })
+            )
+          }
+          return { ...invitation, expiresAt: invitation.expiresAt.toISOString() }
+        }),
+
+      previewEmailInvitation: (input) =>
+        Effect.gen(function* () {
+          const invitation = yield* repo.getInvitationPreviewDetails(input)
+          if (
+            !invitation ||
+            !['pending', 'accepted'].includes(invitation.status) ||
+            (invitation.status !== 'accepted' && invitation.expiresAt <= new Date())
+          ) {
+            return yield* Effect.fail(
+              new EntityNotFoundError({
+                category: 'not_found',
+                code: 'INVITATION_UNAVAILABLE',
+                userMessageKey: 'serverErrors.INVITATION_UNAVAILABLE',
+              })
+            )
+          }
+          return {
+            ...invitation,
+            expiresAt: invitation.expiresAt.toISOString(),
+            startsAt: invitation.startsAt?.toISOString() ?? null,
+          }
+        }),
+
+      getParentEventId: (eventId) => repo.getEventParentId(eventId),
+
       create: (actor, event) =>
         Effect.gen(function* () {
           if (event.parentEventId) {

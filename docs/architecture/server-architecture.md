@@ -52,8 +52,10 @@ Use these suffixes consistently:
 - `*.repo.ts` / `*.repo.live.ts` — persistence API and implementation.
 - `*.con.ts` — an external provider connector.
 
-Routes and client components call handlers. They never import Drizzle,
-repositories, workflows, or provider SDKs.
+UI routes and client components call handlers. They never import Drizzle,
+repositories, workflows, or provider SDKs. HTTP API routes are transport
+boundaries too: they may compose live layers and execute workflows through
+`runServerResponse`, or delegate to a dedicated request handler.
 
 TanStack Start emits a client RPC stub for every imported server function.
 Handler modules must therefore keep their client-transformed import graph clean:
@@ -75,6 +77,21 @@ route or component
 
 Dependencies point only down that chain. Keep a layer only when it owns a real
 responsibility; do not add empty wrappers for ceremony.
+
+Put each use case in its own `*.handler.ts` and `*.workflow.ts` file, following
+the Humphrey Hub project-request reference. A plural handler/workflow module
+may re-export those entry points for existing callers. Contract modules must
+be safe to import without database credentials or provider configuration.
+Use `import type` for persistence projections needed by a service contract;
+never initialize a production dependency when importing a service tag.
+
+Resolve repository and connector tags once in `Layer.effect` when building
+a service. Live repositories can capture `PgClient` at layer construction and
+bind it to their operations, so their contracts do not force injected unit
+tests to provide a dummy database. Keep the client's ambient transaction
+service intact; never build a second PostgreSQL layer inside a repository or
+service method. `Layer.mergeAll` combines independent layers but does not feed
+one layer's outputs into another; use `Layer.provide` to wire dependencies.
 
 ### Effect runtime
 
@@ -200,21 +217,21 @@ assignment against the declared resource/action statement. Route guards and
 client visibility checks improve navigation, but do not authorize data access.
 
 ```ts
-export const updateEvent = createServerFn({ method: "POST" })
+export const updateEvent = createServerFn({ method: 'POST' })
   .middleware([requireSessionMiddleware])
   .validator(transportInput(UpdateEventSchema))
   .handler(({ data, context }) =>
     runServerEffect(
       validateInput(UpdateEventSchema, data).pipe(
-        Effect.flatMap(input =>
+        Effect.flatMap((input) =>
           updateEventWorkflow(input, { userId: context.user.id }).pipe(
             Effect.provide(EventServiceLive),
             Effect.provide(EventRepoLive),
-            Effect.provide(EventAuthorizationLive),
-          ),
-        ),
-      ),
-    ),
+            Effect.provide(EventAuthorizationLive)
+          )
+        )
+      )
+    )
   )
 ```
 
@@ -229,10 +246,18 @@ Permissions use Better Auth's resource/action statement model, not dotted
 strings or screen names. Examples include:
 
 ```ts
-{ event: ["update", "manage_participants"] }
-{ idea: ["create", "decide"] }
-{ registry: ["commit"] }
-{ media: ["upload"] }
+{
+  event: ['update', 'manage_participants']
+}
+{
+  idea: ['create', 'decide']
+}
+{
+  registry: ['commit']
+}
+{
+  media: ['upload']
+}
 ```
 
 `src/lib/permissions.ts` owns the statement, roles, and participant-to-role
@@ -257,8 +282,8 @@ List endpoints used by `EntityTablePage`, `EntityPicker`, and
 `MultiEntityPicker` use the shared shape:
 
 ```ts
-type PageInput = { limit: number; offset: number; query: string };
-type Page<T> = { data: T[]; hasNextPage: boolean };
+type PageInput = { limit: number; offset: number; query: string }
+type Page<T> = { data: T[]; hasNextPage: boolean }
 ```
 
 Repositories own filtering, stable ordering, and pagination. Fetch `limit + 1`
@@ -320,6 +345,25 @@ is exposed through injected Effect repository services. A repository may lift
 the ordinary Drizzle promise while its domain is being migrated; callers still
 depend only on its service contract, making a native Effect/Drizzle
 implementation an isolated change.
+
+## Testing injected domains
+
+Use Vitest for all tests and `@effect/vitest` for Effect programs. A domain test
+should provide the real service implementation with substitute repository and
+connector layers, so it exercises authorization, decisions, and failure behavior
+without opening production resources. Use `it.effect` with `Effect.gen` and
+assert expected typed failures with `Effect.exit`. Use `it.layer` for shared
+immutable fixtures; create mutable fixtures separately for each test.
+
+Use `it.live` for explicit database/provider integrations that need real clock
+behavior. Both runners manage a test scope. Keep local-host checks, environment
+opt-ins, and rollback or resource cleanup in integration tests. Workflows do
+not call `Effect.runPromise` to make tests easier; the test runner owns execution.
+
+Architecture checks additionally guard use-case handlers against direct SQL
+and SDK imports, and guard workflows against runtime execution, Promise
+adapters, and imports of live implementations. These checks complement behavior
+tests and do not replace database integration verification.
 
 ## Current backend slice
 

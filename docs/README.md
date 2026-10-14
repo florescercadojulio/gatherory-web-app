@@ -34,12 +34,12 @@ for the longer-term design.
 
 Read the product and data models first, then the relevant implementation guide.
 
-| Document | Scope |
-| --- | --- |
-| [Product model](architecture/product-model.md) | Workspaces, events, participation, and release boundaries. |
-| [Data model](architecture/data-model.md) | Schema ownership, native mapping, replication, and invariants. |
-| [Server architecture](architecture/server-architecture.md) | Effect boundaries, authorization, contracts, workflows, and repositories. |
-| [Media system](architecture/media-system.md) | Uploads, signed URLs, access checks, storage, and cleanup. |
+| Document                                                         | Scope                                                                          |
+| ---------------------------------------------------------------- | ------------------------------------------------------------------------------ |
+| [Product model](architecture/product-model.md)                   | Workspaces, events, participation, and release boundaries.                     |
+| [Data model](architecture/data-model.md)                         | Schema ownership, native mapping, replication, and invariants.                 |
+| [Server architecture](architecture/server-architecture.md)       | Effect boundaries, authorization, contracts, workflows, and repositories.      |
+| [Media system](architecture/media-system.md)                     | Uploads, signed URLs, access checks, storage, and cleanup.                     |
 | [Experience architecture](architecture/experience-blueprints.md) | Cross-platform design for reusable experiences, including future capabilities. |
 
 ## Development
@@ -53,6 +53,8 @@ Read the product and data models first, then the relevant implementation guide.
 
 ## Release and future work
 
+- [Server architecture roadmap](roadmaps/server-architecture-roadmap/README.md):
+  Effect domain refactoring, compatibility boundaries, and persistence migration.
 - [v1 safeguards](release/v1-release-safeguards.md): implemented safety behavior
   and environment-specific verification checks. Historical results are not a
   live production audit.

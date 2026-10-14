@@ -16,15 +16,18 @@ import {
   isTrustedModerationMutation,
   reportStatuses,
 } from './contracts'
-import { blockPerson, listBlockedPeople, unblockPerson } from './user-block.repo'
 import {
-  hiddenImageIDs,
-  hideImage,
-  listAbuseReports,
-  reportImage,
-  reportImagePreview,
-  reviewAbuseReport,
-} from './moderation.repo'
+  blockPersonWorkflow,
+  hiddenImageIDsWorkflow,
+  hideImageWorkflow,
+  listAbuseReportsWorkflow,
+  listBlockedPeopleWorkflow,
+  reportImagePreviewWorkflow,
+  reportImageWorkflow,
+  reviewAbuseReportWorkflow,
+  unblockPersonWorkflow,
+} from './workflows/moderation.workflow'
+import { ModerationServerLive } from './moderation.layers.live'
 
 type Operation =
   'report' | 'hide' | 'hidden' | 'list' | 'review' | 'preview' | 'blocks' | 'block' | 'unblock'
@@ -48,8 +51,8 @@ export async function moderationResponse(request: Request, operation: Operation)
         })
       )
     }
-    if (operation === 'hidden') return yield* hiddenImageIDs(actor.id)
-    if (operation === 'blocks') return yield* listBlockedPeople(actor.id)
+    if (operation === 'hidden') return yield* hiddenImageIDsWorkflow(actor.id)
+    if (operation === 'blocks') return yield* listBlockedPeopleWorkflow(actor.id)
     if (operation === 'list') {
       const input = z
         .enum(reportStatuses)
@@ -62,7 +65,7 @@ export async function moderationResponse(request: Request, operation: Operation)
             userMessageKey: 'serverErrors.INVALID_REPORT_STATUS',
           })
         )
-      return yield* listAbuseReports(actor.id, input.data)
+      return yield* listAbuseReportsWorkflow(actor.id, input.data)
     }
     if (operation === 'preview') {
       const input = z.uuid().safeParse(new URL(request.url).searchParams.get('reportId'))
@@ -74,7 +77,7 @@ export async function moderationResponse(request: Request, operation: Operation)
             userMessageKey: 'serverErrors.INVALID_REPORT_ID',
           })
         )
-      return yield* reportImagePreview(actor.id, input.data)
+      return yield* reportImagePreviewWorkflow(actor.id, input.data)
     }
     if (!isTrustedModerationMutation(request, process.env.BETTER_AUTH_URL))
       return yield* Effect.fail(
@@ -98,17 +101,17 @@ export async function moderationResponse(request: Request, operation: Operation)
       const input = BlockPersonInput.safeParse(body)
       if (input.success)
         return yield* operation === 'block'
-          ? blockPerson(actor.id, input.data.blockedUserId)
-          : unblockPerson(actor.id, input.data.blockedUserId)
+          ? blockPersonWorkflow(actor.id, input.data.blockedUserId)
+          : unblockPersonWorkflow(actor.id, input.data.blockedUserId)
     } else if (operation === 'report') {
       const input = ReportImageInput.safeParse(body)
-      if (input.success) return yield* reportImage(actor.id, input.data)
+      if (input.success) return yield* reportImageWorkflow(actor.id, input.data)
     } else if (operation === 'hide') {
       const input = HideImageInput.safeParse(body)
-      if (input.success) return yield* hideImage(actor.id, input.data.mediaAssetId)
+      if (input.success) return yield* hideImageWorkflow(actor.id, input.data.mediaAssetId)
     } else {
       const input = ReviewReportInput.safeParse(body)
-      if (input.success) return yield* reviewAbuseReport(actor.id, input.data)
+      if (input.success) return yield* reviewAbuseReportWorkflow(actor.id, input.data)
     }
     return yield* Effect.fail(
       new InvalidInputError({
@@ -117,6 +120,6 @@ export async function moderationResponse(request: Request, operation: Operation)
         userMessageKey: 'serverErrors.INVALID_REPORT_INPUT',
       })
     )
-  }).pipe(Effect.provide(PgClientLive))
+  }).pipe(Effect.provide(ModerationServerLive), Effect.provide(PgClientLive))
   return runServerResponse(program, { headers: request.headers })
 }

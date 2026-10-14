@@ -1,0 +1,11 @@
+/** Compatibility barrel for the original workflow module path. */
+export { requireModeratorWorkflow } from './require-moderator.workflow'
+export { hideImageWorkflow } from './hide-image.workflow'
+export { hiddenImageIDsWorkflow } from './list-hidden-images.workflow'
+export { reportImageWorkflow } from './report-image.workflow'
+export { listAbuseReportsWorkflow } from './list-abuse-reports.workflow'
+export { reviewAbuseReportWorkflow } from './review-abuse-report.workflow'
+export { reportImagePreviewWorkflow } from './report-image-preview.workflow'
+export { listBlockedPeopleWorkflow } from './list-blocked-people.workflow'
+export { blockPersonWorkflow } from './block-person.workflow'
+export { unblockPersonWorkflow } from './unblock-person.workflow'

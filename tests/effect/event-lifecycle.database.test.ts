@@ -1,7 +1,7 @@
 import { expect, it } from '@effect/vitest'
 import { Cause, Data, Effect, Exit } from 'effect'
 
-it.effect(
+it.live(
   'closed event lifecycle blocks new admissions without deleting history',
   () =>
     Effect.gen(function* () {
