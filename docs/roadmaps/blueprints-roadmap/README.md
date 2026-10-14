@@ -3,7 +3,7 @@
 **Status:** Planned — implementation has not started.
 **Priority:** P1, explicitly requested on 2026-10-13.
 **Owner area:** `src/server/blueprints/`, protected `/blueprints` pages, and native new-event setup.
-**Intended implementer:** GPT-6.1 sol in a later implementation session.
+**Last reviewed:** 2026-10-14, against web/server `f9f322c` and iOS `39a0df5`.
 
 ## Outcome
 
@@ -24,9 +24,11 @@ booking system, or marketplace in this iteration.
 
 ## Current position and stopping point
 
-Completed behavior: planning only. Existing portable contracts, generated JSON
-Schemas, example documents, and Swift decoding were inspected. They do not yet
-provide blueprint storage, authoring, publication, or installation.
+Completed blueprint behavior: portable contracts, generated JSON Schemas,
+example documents and generic Swift decoding only. No executable blueprint
+storage, authoring, publication or installation exists. The October 14 review
+also inspected the current Effect server architecture and extracted iOS
+archive/outbox/remote-merge/media boundaries.
 
 Decisions made: private authoring plus three curated starters; immutable
 publication; server-owned installation with review and idempotency; instructions
@@ -36,31 +38,53 @@ Files changed by this planning session: only this roadmap folder.
 Validation: documentation consistency and local-link checks; no builds, tests,
 database commands, or runtime changes are needed for this planning handoff.
 
-**Immediate next slice:** read `00`, then implement `01`. Do not describe the
-feature as shipped until `04` is complete. Update this README and each active
-slice with actual behavior, validation performed, and remaining work.
+**Immediate next slice, when implementation is requested:** read `00` and `00a`,
+finalize typed modules/plan DTOs and the compatibility test matrix, then implement
+`01`. Prove one starter's transactional installation and native import (`03` plus
+the model/transport part of `04`) before completing the full authoring UI. Do not
+describe the feature as shipped until all slices are complete. This session is
+docs-only; no implementation slice was started.
+
+## Evaluation summary
+
+The engine should validate and expand immutable configuration into ordinary
+independent event records, not become a second state-management system. The
+existing architecture is suitable, but four prerequisites are still substantial:
+
+- Transaction-aware canonical **and** native projection writes; the legacy sync
+  engine does not share an Effect transaction just because it has an Effect port.
+- Recoverable Better Auth provisioning with a durable installation receipt.
+- Mixed-version native support for new configuration/instructions, including
+  preventing old-client content loss and silent cursor advancement.
+- Fixed blueprint workspace permissions and separate planner/guest guide delivery.
+
+See [00a — Engine readiness and delivery plan](00a-implementation-readiness.md)
+for source evidence, relative effort, open decisions, and the recommended gates.
+No broader custom-RBAC product or whole-server sync migration is a prerequisite.
 
 ## Implementation order
 
 1. [00 — Current state and target architecture](00-current-state-and-target-architecture.md)
-2. [01 — Contracts, storage, and starter catalog](01-contracts-storage-and-starter-catalog.md)
-3. [02 — Private authoring, preview, and publishing](02-private-authoring-and-publishing.md)
-4. [03 — Installation and native delivery](03-installation-and-native-delivery.md)
-5. [04 — Native setup and release acceptance](04-native-setup-and-release-acceptance.md)
+2. [00a — Engine readiness and delivery plan](00a-implementation-readiness.md)
+3. [01 — Contracts, storage, and starter catalog](01-contracts-storage-and-starter-catalog.md)
+4. [02 — Private authoring, preview, and publishing](02-private-authoring-and-publishing.md)
+5. [03 — Installation and native delivery](03-installation-and-native-delivery.md)
+6. [04 — Native setup and release acceptance](04-native-setup-and-release-acceptance.md)
 
 Each numbered slice is a usable boundary. Contract/storage completion is not
 authoring completion; authoring completion is not installation completion.
+The numbers group responsibilities. The delivery sequence in `00a` pulls the
+highest-risk install/native proof forward rather than waiting for all of `02`.
 
 ## Constraints and concurrent work
 
-- Another AI is working on a separate feature in this checkout. Inspect current
-  diffs and applicable `AGENTS.md` files before implementation. Keep unrelated
-  edits intact; prefer isolated feature files and small integration patches.
-- At planning time, active changes include event lifecycle/departure,
-  moderation, media, invitations, native materialization, schema exports,
-  relations, generated routes, and migration directories. These are overlap
-  areas, not blueprint implementation. Re-read their final contracts before
-  changing them; do not copy this session's schema assumptions over newer work.
+- Both reviewed checkouts were clean at the October 14 assessment start. The
+  previous planning session's concurrent-change list is historical, not current
+  work ownership. Inspect diffs and applicable `AGENTS.md` files again before
+  implementation and preserve any newer edits.
+- Event lifecycle, moderation, media, invitations, native materialization,
+  schema exports/relations and migrations remain integration areas. Re-read
+  their current contracts rather than restoring earlier schema assumptions.
 - Coordinate schema export/relations changes, migration generation, route
   generation, and native sync integration after the other changes settle.
   Regenerate against the then-current schema; never overwrite generated files
@@ -71,13 +95,17 @@ authoring completion; authoring completion is not installation completion.
 - Use Effect domain workflows, Better Auth resource/action authorization,
   Drizzle domain schemas, TanStack Form, folder routes, shadcn controls, and the
   existing English localization catalogs.
+- Follow pure workflows plus production layer bindings; transports supply only
+  `PgClientLive` for new Effect SQL work. Keep the existing Promise sync engine's
+  exception explicit. See the [server guide](../../development/server-implementation-guide.md).
 - Main event → direct child events remains the only supported tree depth.
 - Blueprint author ownership grants no access to a created consumer event.
 - Blank event creation remains available. The web app gains template authoring;
   a full web event editor is not required for this iteration.
 
-This request promotes the bounded blueprint work below from the previous
-post-release deferral. Business profiles, public discovery, commerce, packages,
+The original roadmap selected this bounded work from the previous post-release
+deferral; this assessment does not mark it implemented. Business profiles,
+public discovery, commerce, packages,
 and professional engagements remain deferred. During implementation, update
 the broad architecture docs to reflect what actually ships, not anticipated
 completion.
@@ -96,7 +124,7 @@ completion.
 - Native repository: `../ios-apps/gatherory` relative to the web-app root.
   Use the current registered project path, not an old `isaidyes` checkout.
 
-Open implementation risks are explicit in `00` and `03`: native bootstrap needs
+Open implementation risks are explicit in `00`, `00a` and `03`: native bootstrap needs
 server-created records; generic module JSON needs semantic validation; Better
 Auth workspace creation does not share the product transaction; and the current
 Swift timeline requires a date. These are delivery requirements, not reasons to

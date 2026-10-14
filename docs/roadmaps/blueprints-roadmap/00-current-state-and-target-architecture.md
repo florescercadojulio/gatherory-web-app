@@ -2,20 +2,23 @@
 
 ## Current implementation
 
-Observed on 2026-10-13; recheck before implementation because another feature is
-actively changing shared event, media, and sync code.
+Rechecked on 2026-10-14 against web/server `f9f322c` and iOS `39a0df5`.
+See [engine readiness](00a-implementation-readiness.md) for evidence and the
+recommended proving slice; recheck Git state before implementation.
 
-| Area | Existing behavior | Gap for this iteration |
-| --- | --- | --- |
-| `src/contracts/experience.contracts.ts` | Schema-v1 envelope, roles, module metadata, generic `config`, duplicate-key checks | No executable, typed configuration for events, ideas, or instructions; no capability enforcement |
-| `contracts/examples/` and `tests/contracts/experience-contracts.test.ts` | Destination wedding, cabin stay, and package fixtures | No Wedding/Birthday/Thanksgiving catalog or installation behavior |
-| `scripts/generate-contract-schemas.ts` | Generates JSON Schema from Zod sources | New supported module shapes need generator and fixture coverage |
-| `src/db/schema/` | Auth, events/participants, planning, media, sync | No blueprint, published revision, installation, or reusable instruction records |
-| `src/server/workspaces/handlers/workspace.handlers.ts` | Creates/provisions workspaces and a main event | No template selection; creation mixes Better Auth calls and product writes |
-| `src/server/events/` | Effect services/repos, event creation and authorization | Existing repo-owned transactions cannot simply be nested inside an atomic installation |
-| `src/server/sync/` | Native mutation ingestion, canonical materialization, snapshots/change log; web insights read canonical tables | A canonical blueprint installation is not automatically a native bootstrap/sync result |
-| Swift `Models/ExperienceContracts.swift` | Decodes generic blueprint documents; checks envelope version | No per-module capability check or creation integration |
-| Swift `App/WorkspaceLibrary.swift` and `Features/Workspaces/WorkspaceBrowserView.swift` | Creates a local blank planning workspace with an owner and no ideas/events | No server-owned template creation flow; timeline items require `scheduledAt` |
+| Area                                                                                    | Existing behavior                                                                                                     | Gap for this iteration                                                                                             |
+| --------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| `src/contracts/experience.contracts.ts`                                                 | Schema-v1 envelope, roles, module metadata, generic `config`, duplicate-key checks                                    | No executable, typed configuration for events, ideas, or instructions; no capability enforcement                   |
+| `contracts/examples/` and `tests/contracts/experience-contracts.test.ts`                | Destination wedding, cabin stay, and package fixtures                                                                 | No Wedding/Birthday/Thanksgiving catalog or installation behavior                                                  |
+| `scripts/generate-contract-schemas.ts`                                                  | Generates JSON Schema from Zod sources                                                                                | New supported module shapes need generator and fixture coverage                                                    |
+| `src/db/schema/`                                                                        | Auth, events/participants, planning, media, sync                                                                      | No blueprint, published revision, installation, or reusable instruction records                                    |
+| `src/server/workspaces/{handlers,workflows,services,repos,connectors}/`                 | Layered workspace provisioning and ordinary main-event creation                                                       | No durable blueprint receipt; auth/session side effects need a purpose-built installation flow                     |
+| `src/server/events/`                                                                    | Effect services/repos, event creation and authorization                                                               | Existing repo-owned transactions cannot simply be nested inside an atomic installation                             |
+| `src/server/sync/`                                                                      | Effect ports around Promise-based ingestion/materialization, snapshots/change log; web insights read canonical tables | Canonical writes alone do not create native delivery; legacy persistence does not share the Effect SQL transaction |
+| `src/lib/org-permissions.ts`, `src/lib/auth.ts`                                         | Built-in organization administration statements                                                                       | No registered blueprint resource; add a fixed policy without assuming arbitrary custom RBAC exists                 |
+| Swift `Models/ExperienceContracts.swift`                                                | Decodes generic blueprint documents; checks envelope version                                                          | No per-module capability check or creation integration                                                             |
+| Swift `Data/Persistence/`                                                               | Extracted archive/codec, outbox writer, remote merger and media bookkeeper; controller owns saves                     | No live guide/configuration fields, mappings, compatibility guard or install intent recovery                       |
+| Swift `App/WorkspaceLibrary.swift` and `Features/Workspaces/WorkspaceBrowserView.swift` | Creates a local blank planning workspace with an owner and no ideas/events                                            | No server-owned template creation flow; timeline items require `scheduledAt`                                       |
 
 The old example documents are architecture fixtures, not a usable catalog.
 In particular, `suggestedChildren` is currently an array of strings in the
@@ -50,7 +53,8 @@ participants, ideas, and instructions are canonical PostgreSQL records.
 Published revisions never act as a live event's mutable data source.
 
 Blueprint access uses workspace membership and explicit workspace resource
-permissions. Event participation alone does not authorize template authoring.
+permissions. This is target policy, not an already registered resource.
+Event participation alone does not authorize template authoring.
 Installation checks both source-read access and destination-create access.
 Installed events use ordinary event participant permissions. The initial host
 is the authenticated installer; child participant assignments are independent
@@ -68,13 +72,13 @@ Place blueprint tables in `src/db/schema/blueprint.schema.ts`; event-owned
 configuration/instructions can have their own `event-guide.schema.ts`. Exact
 Drizzle names follow repository conventions; preserve these responsibilities:
 
-| Record | Responsibility and constraints |
-| --- | --- |
-| `experience_blueprint` | Stable UUID, optional stable system catalog key, source, owning organization for private entries, draft document, optimistic `draftVersion`, lifecycle, audit fields. Source/owner check constraint; scoped indexes. |
-| `experience_blueprint_revision` | Blueprint ID + unique positive revision, canonical validated document, content hash, publication metadata. Content cannot be updated after publication; enforce through narrow repos and a DB update guard. |
+| Record                              | Responsibility and constraints                                                                                                                                                                                               |
+| ----------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `experience_blueprint`              | Stable UUID, optional stable system catalog key, source, owning organization for private entries, draft document, optimistic `draftVersion`, lifecycle, audit fields. Source/owner check constraint; scoped indexes.         |
+| `experience_blueprint_revision`     | Blueprint ID + unique positive revision, canonical validated document, content hash, publication metadata. Content cannot be updated after publication; enforce through narrow repos and a DB update guard.                  |
 | `experience_blueprint_installation` | Actor + unique request UUID, request hash, exact source revision snapshot, provisioning status, optional destination IDs while pending, completed item-key-to-record-ID manifest. Completed content/provenance is immutable. |
-| `event_experience_configuration` | One scoped row per main event: experience type, selected capability configuration/category order, optional installation reference. This is the independent live configuration. |
-| `event_guide_section` | Scoped event ID, stable section key, title, bounded plain-text body, order, visibility, attribution/audit metadata. Ordinary event content after installation. |
+| `event_experience_configuration`    | One scoped row per main event: experience type, selected capability configuration/category order, optional installation reference. This is the independent live configuration.                                               |
+| `event_guide_section`               | Scoped event ID, stable section key, title, bounded plain-text body, order, visibility, attribution/audit metadata. Ordinary event content after installation.                                                               |
 
 Use same-workspace foreign keys for event-owned rows. Installation provenance
 retains the sanitized revision snapshot and creator attribution when an origin
@@ -140,6 +144,13 @@ Use `src/server/blueprints/{contracts,handlers,workflows,services,repos}` and th
 standard Effect boundary. Shared blueprint contracts stay client-safe in
 `src/contracts/`. Web forms and Swift views consume contracts; neither writes
 template-shaped JSON into native replication as a source of live truth.
+
+Use a pure keyed expansion planner shared by preview and install, not
+experience-name branches. Compose the production graph in a domain layer and
+`*.workflows.live.ts`; transports provide only `PgClientLive` for the new SQL
+work. Do not introduce an ambient actor context or a general module/plugin
+runtime. The [readiness assessment](00a-implementation-readiness.md) separates
+parsing, expansion, installation and native projection responsibilities.
 
 Publish and install workflows own their transactions. Split transaction-aware
 event/idea repository operations where necessary; do not call a transaction-

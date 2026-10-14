@@ -2,7 +2,8 @@
 
 **Status:** Planned
 **Priority:** P1
-**Depends on:** 02 and 03; confirm the other AI's event/sync changes are integrated.
+**Depends on:** 02 and 03 for full delivery. Bring model/transport/import proof
+forward alongside 03, before completing authoring UI, as described in `00a`.
 
 ## What this is / why it exists
 
@@ -35,6 +36,14 @@ same installation. Resolve local cover upload through the existing new-event
 media flow after canonical scope authorization; upload failure does not rerun
 installation.
 
+Persist setup recovery as an account-bound pending installation intent, not a
+workspace mutation: request UUID, exact revision/hash, reviewed selections,
+confirmed inputs, and the last known installation ID/status. Account changes
+cancel in-flight work and prevent an old result entering the new library. After
+restart, resolve status before starting another install; clear the intent only
+after the canonical scope is durably imported or the user explicitly abandons
+an attempt with a known outcome. Never store credentials in this intent.
+
 Use copied live configuration to suggest/order the relevant idea categories;
 leave **Other** available and do not remove existing capabilities from old
 events. Show and edit copied instructions in the shared event detail experience
@@ -48,11 +57,19 @@ Native files to inspect before editing:
 
 - `Gatherory/Models/ExperienceContracts.swift`
 - `Gatherory/Models/PlanningModels.swift`
+- `Gatherory/Data/Persistence/WorkspaceArchiveV1.swift`
+- `Gatherory/Data/Persistence/WorkspaceArchiveV1+Sync.swift`
+- `Gatherory/Data/Persistence/WorkspaceArchiveCodec.swift`
+- `Gatherory/Data/Persistence/WorkspacePersistence.swift`
+- `Gatherory/Data/Persistence/WorkspaceRemoteMerger.swift`
+- `Gatherory/Data/Persistence/WorkspaceOutboxWriter.swift`
+- `Gatherory/Data/Persistence/WorkspaceMediaBookkeeper.swift`
 - `Gatherory/App/PlanningWorkspace.swift`
 - `Gatherory/App/WorkspaceLibrary.swift`
 - `Gatherory/Features/Onboarding/OnboardingView.swift`
 - `Gatherory/Features/Workspaces/WorkspaceBrowserView.swift`
 - `Gatherory/Features/Events/` shared detail/editor views
+- `Gatherory/Features/Events/GuestInvitationStore.swift`
 - `Gatherory/OfflineSync/` transport, bootstrap, store, and coordinator
 - `Gatherory/Localization/AppCopy.swift`
 
@@ -61,6 +78,25 @@ conventions. Keep contract decoding, capability checks, request identity, and
 UI state separate. Shared fixtures should cover the executable module versions
 and canonical/native mappings. Decode unknown optional modules safely and fail
 required incompatible ones with useful copy before submission.
+
+The recent extraction is implemented, not a prerequisite to repeat. Follow the
+native [workspace boundaries](../../../../ios-apps/gatherory/docs/workspace-boundaries.md):
+
+| Responsibility                                        | Integration point                                                                                                         |
+| ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| Copied live configuration and guide state             | Typed observable/domain fields, independent of the source revision                                                        |
+| Local restart compatibility                           | Archive fields/defaults and an explicit migration/version decision; preserve the existing codec's reference-date encoding |
+| Planner edits and remote updates                      | Entity projection/application in `WorkspaceArchiveV1+Sync`, then existing outbox/remote-merger staging                    |
+| Atomic record/outbox or record/receipt/cursor commits | `WorkspacePersistenceController`, not the setup model or extracted helpers                                                |
+| Account-bound install recovery                        | Focused setup/client persistence, distinct from ordinary sync mutation identities                                         |
+| Guest guide reads                                     | Authorized invitation/guide DTO and guest cache; never the planner library/outbox                                         |
+| Cover transfer after install                          | Existing media coordinator/bookkeeper after importing the canonical scope                                                 |
+
+Do not enlarge `PlanningWorkspace` into a template interpreter or put HTTP,
+installation, or save logic in the codec/merger. New guide/configuration edits
+must survive offline save, relaunch and sync without erasure by older snapshots.
+Retain budget rules and ordinary media behavior; installing suggestions must not
+implicitly reserve money or create expenses.
 
 Web collection/details should reflect the newly created canonical records via
 existing views. Do not expand the web companion into full event editing just
@@ -81,6 +117,11 @@ consumer; future web creation can reuse the same workflow.
   preserves input and provides a useful retry path.
 - Hosts and guests see the correct instruction audience in both UI and payloads.
 - Start-from-scratch, existing plans, and ordinary event editing still work.
+- An old client's read/edit/retry cannot silently consume required guide changes
+  or erase configuration. A later upgraded bootstrap recovers all supported data.
+- Losing the install response, killing the app before import, switching accounts
+  during the request, and retrying after relaunch each retain one canonical event
+  and never publish another account's result.
 - Keyboard/VoiceOver labels, Dynamic Type, light/dark contrast, loading/error
   states, and date/time-zone wording use existing native design/localization
   conventions. Verify the actual screen on an available device/simulator when
@@ -88,12 +129,14 @@ consumer; future web creation can reuse the same workflow.
 
 ## Validation and handoff
 
-Use scoped contract and workflow checks plus the minimal native validation
-needed for changed model/transport/UI code. The user has asked to avoid repeated
-heavy builds/tests: do not repeatedly invoke `xcodebuild`, run all suites, or
-start simulator tooling automatically. Record checks actually run and any
-untested device behavior. A build/device run can be scheduled explicitly when
-the implementation is ready to review.
+This assessment is docs-only: no runtime tests or UI tests were run. During a
+separately authorized implementation, use Vitest/`@effect/vitest`, disposable
+database transaction tests, shared fixtures, and native Swift Testing. Reuse
+the current archive, outbox, remote-merge, media and sync regression suites;
+past green counts do not validate blueprint behavior. Avoid routine web
+production builds. Scope simulator/test runs to the implementation request and
+record actual checks and untested device behavior. UI validation requires a
+later implementation/release check; it is not implied by this documentation work.
 
 Before marking the iteration implemented, record the actual routes, handlers,
 schema/migration, seed command, native entry points, failure/retry behavior, and

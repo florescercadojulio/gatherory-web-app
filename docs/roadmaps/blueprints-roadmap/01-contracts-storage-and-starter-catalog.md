@@ -2,7 +2,7 @@
 
 **Status:** Planned
 **Priority:** P1
-**Depends on:** `00`; reconcile concurrent schema work before generating migrations.
+**Depends on:** `00` and `00a`; inspect the current schema before generating migrations.
 
 ## What this is / why it exists
 
@@ -40,16 +40,23 @@ existing envelope examples and tests; add compatibility assertions for the new
 module versions. A structural schema pass does not replace semantic validation
 of targets, capabilities, schedules, or authorization.
 
+Define a pure expanded-plan DTO alongside the modules: stable source keys,
+confirmed event specifications, idea/guide targets, configuration, omissions and
+errors, with no allocated database IDs or native enum encoding. Preview and
+installation must use the same planner. Define canonical hashing/default rules
+and pin the planner semantics used by an in-progress installation. Keep blueprint
+envelope/module versions distinct from sync payload and local archive versions.
+
 ## Starter content
 
 Store reviewed definitions under a dedicated server-side catalog directory,
 with no runtime dependence on development mock users. Initial content:
 
-| Key / title | Optional activity suggestions | Starter ideas | Instruction themes |
-| --- | --- | --- | --- |
-| `wedding` / Wedding | Venue visit (planning/scouting), rehearsal, ceremony, reception | Venue, attire, food, flowers, photography, music | Planning priorities; ceremony/reception guidance |
-| `birthday_party` / Birthday Party | Preparation (planning/scouting), celebration, optional meal | Theme/decor, food/cake, music, activities (`other`) | Arrival and celebration details; food/preferences checklist |
-| `thanksgiving` / Thanksgiving | Meal preparation (planning/scouting), shared meal, optional gathering/activity | Menu (`food`), table setting (`decor`), activities (`other`) | What to bring; dietary considerations; arrival/meal guidance |
+| Key / title                       | Optional activity suggestions                                                  | Starter ideas                                                | Instruction themes                                           |
+| --------------------------------- | ------------------------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
+| `wedding` / Wedding               | Venue visit (planning/scouting), rehearsal, ceremony, reception                | Venue, attire, food, flowers, photography, music             | Planning priorities; ceremony/reception guidance             |
+| `birthday_party` / Birthday Party | Preparation (planning/scouting), celebration, optional meal                    | Theme/decor, food/cake, music, activities (`other`)          | Arrival and celebration details; food/preferences checklist  |
+| `thanksgiving` / Thanksgiving     | Meal preparation (planning/scouting), shared meal, optional gathering/activity | Menu (`food`), table setting (`decor`), activities (`other`) | What to bring; dietary considerations; arrival/meal guidance |
 
 Use existing child categories when accurate; use `other` with the actual title
 for birthdays/meals/activities. Do not expand wedding-specific DB enums merely
@@ -83,6 +90,12 @@ the seed automatically on requests, or apply it to a remote database implicitly.
   read/create/update/publish/retire. Owner/admin can author; workspace members
   can read/use published private entries; event-only participants cannot.
   System catalog writes have no customer-facing privileged switch.
+
+The custom resource is new work: `src/lib/org-permissions.ts` currently exposes
+only built-in organization statements and `src/lib/auth.ts` does not register a
+blueprint policy. Wire fixed owner/admin/member permissions consistently at
+server/client declaration boundaries, and test direct domain calls as well as
+middleware. This does not require a user-defined roles/permissions editor.
 
 ## Acceptance criteria
 

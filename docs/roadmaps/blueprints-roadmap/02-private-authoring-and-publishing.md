@@ -4,6 +4,10 @@
 **Priority:** P1
 **Depends on:** 01
 
+**Delivery gate:** share the pure planner from `01` and prove the internal
+install-to-native path in `03`/`04` before completing this UI. See `00a`; preview
+and forms are not evidence that installation or native delivery works.
+
 ## What this is / why it exists
 
 A host configures a reusable template through ordinary controls. Saving a draft
@@ -33,6 +37,11 @@ owner selection; revalidate that selection server-side. Do not derive ownership
 from an arbitrary active guest event or require an unrelated event to be created
 just to author a template. Authoring context reads must not silently switch the
 active event or organization.
+
+The existing `WorkspaceService.provisionPersonal` does change active organization
+and team. Reuse its connector/repository operations selectively; do not invoke it
+as an authoring-context read. Treat creation of a missing authoring workspace as
+an explicit, recoverable action.
 
 The editor uses TanStack Form, shadcn controls, and these sections:
 

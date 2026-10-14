@@ -4,6 +4,11 @@
 **Priority:** P1
 **Depends on:** 01; share preview semantics with 02.
 
+**Recommended first proof:** implement one system-starter installation and its
+native import tests before completing `02`'s forms. This internal slice must
+exercise real transaction and compatibility boundaries; it is not a shipped
+replacement for the full first iteration. See [00a](00a-implementation-readiness.md).
+
 ## What this is / why it exists
 
 Create a new event from a published version and deliver the resulting records
@@ -23,6 +28,12 @@ omitted dependency list, missing required input, capability warnings, and conten
 hash. Install revalidates everything; a successful preview is not authorization
 and does not freeze membership. Use the revision/hash to prevent review of one
 version followed by installation of another.
+
+Pin the pure expansion semantics for a claimed request as well as its immutable
+revision. Persist the reviewed normalized plan or equivalent versioned inputs;
+a deployment during retry must not change the selected content. Allocate IDs
+only inside installation and persist the source-key manifest. Return the same
+manifest on a successful replay, not a newly expanded tree with new IDs.
 
 Result identifies the new organization, main event/native scope, installation,
 and bootstrap/sync position through typed transport DTOs. The created main event
@@ -71,6 +82,22 @@ returning the event. A concurrent retirement/revocation should have defined
 serialization: reject new installs once retired; replay may return an existing
 authorized result without reinstalling it.
 
+### Current SQL boundary: do not bridge it by assumption
+
+The existing sync repo is an Effect port over `native-sync-legacy.persistence.ts`;
+its transactions and incoming materializer use the Promise `db` from
+`src/db/index.ts`. They do not enlist in the Effect `DB` transaction when a
+caller provides `PgClientLive`. New installation/projection writers must share
+the actual connection/transaction, not just the same database URL.
+
+Prefer a narrow Effect-native canonical-to-native projection writer for this
+creation path. Do not synthesize native client mutations and feed them into push
+to create the event. A whole sync-engine migration remains separately deferred.
+Prove shared rollback with an injected failure after projection writes but before
+receipt completion, plus concurrent request/provisioning recovery tests. If this
+cannot be achieved, the transactional delivery-outbox alternative in step 5 needs
+an explicitly owned worker and readiness protocol; it is not a free shortcut.
+
 ## Mapping and sync requirements
 
 Use portable idea content at the blueprint boundary. Current canonical idea
@@ -85,12 +112,26 @@ the version/capability handshake and native payload transport as needed, with
 explicit rejection for clients that would lose required instruction/configuration
 content. Existing clients must not erase new content through an older snapshot.
 
+This requires delivery and push compatibility beyond the installation endpoint.
+Swift accepts unknown entity-type strings but currently ignores unhandled types
+while still allowing receipts/cursors to advance. The server's incoming entity
+schema is a fixed list and payload version is currently 1. Define missing-client-
+capability behavior, scope read/write gating, and an upgraded-client bootstrap
+recovery path before adding new guide/configuration entities. Do not equate
+blueprint module versions with replication or local archive versions.
+
 Instruction read/update checks reuse event authorization, with writes requiring
 event-manage permission. `planning_only` guidance is returned only to hosts and
 authorized planning collaborators; `event_participants` guidance is visible to
 assigned participants of that specific event. Filter guest HTTP projections and
 sync/bootstrap consistently. If a shared snapshot currently cannot support that
 filtering, this slice must correct the projection before enabling guide delivery.
+
+Current planner bootstrap/pull excludes guests; iOS guest content lives in
+`GuestInvitationStore`, not `WorkspaceLibrary` or its outbox. Extend the separate
+guest event DTO/cache for participant-visible guidance rather than granting a
+guest planner-scope membership. Preserve per-event assignment, account isolation
+and revocation cleanup in both server responses and native caches.
 
 Blueprint ownership grants no installation access. Source template deletion or
 editing cannot alter created events. Future instances get fresh participants,
@@ -115,6 +156,11 @@ Refactor only the touched event creation/repo operations to accept the shared
 workflow transaction. Reuse domain rules for participant snapshots and scope
 checks, never handler-to-handler calls. Follow `src/server/effect.ts` for tagged
 errors and safe transport responses.
+
+Use pure workflows with production `*.workflows.live.ts` composition; the new
+SQL workflow's edge supplies `PgClientLive`. Keep authorization actor/scope
+explicit, fixed blueprint organization policy separate from event capabilities,
+and source/template editing separate from installed-event editing.
 
 ## Acceptance criteria
 
