@@ -90,6 +90,13 @@ Paths in inline code are relative to their owning repository.
   "fix" child access by adding root participation or organization membership.
 - Who's Coming displays each person's RSVP for that specific event and refreshes
   on pull-down. A planning role does not imply an attendance response.
+- iOS planning tabs are Home, Ideas, Decide, and Manage. Manage owns event-scoped
+  Budget, a combined Guests/Collaborators card (including quick join-request approval),
+  and Notes (latest preview and history). Home's note shortcut is compose-only;
+  sending uses the existing offline note flow. Keep
+  approval controls out of guest-facing invitation content. Manage selection is
+  view-local; pushed tools retain an explicit event reference. Workspace budget
+  rollups are labeled separately and unavailable to child-only projections.
 - Decide records each planner's preference. Team input includes unanswered
   planners and updates as participation changes. Preference and approval remain
   separate operations.
