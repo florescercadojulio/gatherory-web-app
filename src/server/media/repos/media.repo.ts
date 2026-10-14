@@ -1,26 +1,19 @@
-import { and, asc, eq, ne, isNull, inArray } from "drizzle-orm"
-import { Effect } from "effect"
+import { and, asc, eq, ne, isNull, inArray } from 'drizzle-orm'
+import { Effect } from 'effect'
 
-import { DB } from "@/db"
-import { mediaFailure } from "../errors"
-import {
-  event,
-  eventParticipant,
-  workspacePerson,
-} from "@/db/schema/event.schema"
-import { eventMedia, mediaAsset } from "@/db/schema/media.schema"
+import { DB } from '@/db'
+import { mediaFailure } from '../errors'
+import { event, eventParticipant, workspacePerson } from '@/db/schema/event.schema'
+import { eventMedia, mediaAsset } from '@/db/schema/media.schema'
 
-import type { PrepareEventMediaUploadInput } from "../contracts/media.contracts"
-import type { PrepareNativeMediaUploadInput } from "../contracts/media.contracts"
-import { visibleMediaPredicate } from "@/server/moderation/media-visibility"
-import { retainedEventAccess } from "@/server/events/repos/event-departure.repo"
+import type { PrepareEventMediaUploadInput } from '../contracts/media.contracts'
+import type { PrepareNativeMediaUploadInput } from '../contracts/media.contracts'
+import { visibleMediaPredicate } from '@/server/moderation/media-visibility'
+import { retainedEventAccess } from '@/server/events/repos/event-departure.repo'
 
 /** Native scope IDs identify main events, never Better Auth organizations.
  * Resolve storage ownership from the event after checking its participant. */
-export function getNativeMediaActorContext(input: {
-  scopeId: string
-  userId: string
-}) {
+export function getNativeMediaActorContext(input: { scopeId: string; userId: string }) {
   return Effect.gen(function* () {
     const db = yield* DB
     const [context] = yield* db
@@ -34,9 +27,9 @@ export function getNativeMediaActorContext(input: {
           eq(workspacePerson.userId, input.userId),
           isNull(event.parentEventId),
           eq(event.organizationId, workspacePerson.organizationId),
-          inArray(eventParticipant.role, ["host", "collaborator"]),
-          ne(eventParticipant.planningPermission, "view_only"),
-        ),
+          inArray(eventParticipant.role, ['host', 'collaborator']),
+          ne(eventParticipant.planningPermission, 'view_only')
+        )
       )
       .limit(1)
 
@@ -59,10 +52,10 @@ export function upsertPendingNativeMedia(input: {
         id: input.media.mediaAssetId,
         organizationId: input.organizationId,
         uploadedByUserId: input.uploadedByUserId,
-        kind: "image",
-        status: "pending",
-        visibility: "private",
-        storageProvider: "r2",
+        kind: 'image',
+        status: 'pending',
+        visibility: 'private',
+        storageProvider: 'r2',
         bucket: input.bucket,
         storageKey: input.storageKey,
         originalFilename: input.media.originalFilename,
@@ -97,9 +90,9 @@ export function upsertPendingNativeMedia(input: {
       existing.uploadedByUserId !== input.uploadedByUserId ||
       existing.bucket !== input.bucket ||
       existing.storageKey !== input.storageKey ||
-      (existing.status !== "pending" && existing.status !== "failed")
+      (existing.status !== 'pending' && existing.status !== 'failed')
     ) {
-      return yield* Effect.fail(mediaFailure("MEDIA_INVALID_STATE"))
+      return yield* Effect.fail(mediaFailure('MEDIA_INVALID_STATE'))
     }
 
     // Reuse the durable native transfer ID after a failed PUT/finalize. Never
@@ -107,7 +100,7 @@ export function upsertPendingNativeMedia(input: {
     const [retried] = yield* db
       .update(mediaAsset)
       .set({
-        status: "pending",
+        status: 'pending',
         checksum: null,
         originalFilename: input.media.originalFilename,
         contentType: input.media.contentType,
@@ -121,8 +114,8 @@ export function upsertPendingNativeMedia(input: {
           eq(mediaAsset.uploadedByUserId, input.uploadedByUserId),
           eq(mediaAsset.bucket, input.bucket),
           eq(mediaAsset.storageKey, input.storageKey),
-          inArray(mediaAsset.status, ["pending", "failed"]),
-        ),
+          inArray(mediaAsset.status, ['pending', 'failed'])
+        )
       )
       .returning({
         id: mediaAsset.id,
@@ -130,15 +123,12 @@ export function upsertPendingNativeMedia(input: {
         uploadedByUserId: mediaAsset.uploadedByUserId,
         status: mediaAsset.status,
       })
-    if (!retried) return yield* Effect.fail(mediaFailure("MEDIA_INVALID_STATE"))
+    if (!retried) return yield* Effect.fail(mediaFailure('MEDIA_INVALID_STATE'))
     return retried
   })
 }
 
-export function getNativeMediaAccessContext(input: {
-  mediaAssetId: string
-  userId: string
-}) {
+export function getNativeMediaAccessContext(input: { mediaAssetId: string; userId: string }) {
   return Effect.gen(function* () {
     const db = yield* DB
     const [context] = yield* db
@@ -157,38 +147,37 @@ export function getNativeMediaAccessContext(input: {
         workspacePerson,
         and(
           eq(workspacePerson.organizationId, mediaAsset.organizationId),
-          eq(workspacePerson.userId, input.userId),
-        ),
+          eq(workspacePerson.userId, input.userId)
+        )
       )
       .innerJoin(eventParticipant, eq(eventParticipant.personId, workspacePerson.id))
       .innerJoin(event, eq(event.id, eventParticipant.eventId))
-      .where(and(eq(mediaAsset.id, input.mediaAssetId), isNull(event.parentEventId),
-        eq(event.organizationId, workspacePerson.organizationId),
-        retainedEventAccess(input.userId, event.id),
-        inArray(eventParticipant.role, ["host", "collaborator"])))
+      .where(
+        and(
+          eq(mediaAsset.id, input.mediaAssetId),
+          isNull(event.parentEventId),
+          eq(event.organizationId, workspacePerson.organizationId),
+          retainedEventAccess(input.userId, event.id),
+          inArray(eventParticipant.role, ['host', 'collaborator'])
+        )
+      )
       .limit(1)
 
     return context ?? null
   })
 }
 
-export function markNativeMediaReady(input: {
-  mediaAssetId: string
-  checksum: string | null
-}) {
+export function markNativeMediaReady(input: { mediaAssetId: string; checksum: string | null }) {
   return Effect.gen(function* () {
     const db = yield* DB
     yield* db
       .update(mediaAsset)
-      .set({ status: "ready", checksum: input.checksum, updatedAt: new Date() })
+      .set({ status: 'ready', checksum: input.checksum, updatedAt: new Date() })
       .where(eq(mediaAsset.id, input.mediaAssetId))
   })
 }
 
-export function getEventMediaActorContext(input: {
-  eventId: string
-  userId: string
-}) {
+export function getEventMediaActorContext(input: { eventId: string; userId: string }) {
   return Effect.gen(function* () {
     const db = yield* DB
     const [context] = yield* db
@@ -204,8 +193,8 @@ export function getEventMediaActorContext(input: {
         and(
           eq(workspacePerson.id, eventParticipant.personId),
           eq(workspacePerson.organizationId, event.organizationId),
-          eq(workspacePerson.userId, input.userId),
-        ),
+          eq(workspacePerson.userId, input.userId)
+        )
       )
       .where(eq(event.id, input.eventId))
       .limit(1)
@@ -232,10 +221,10 @@ export function createPendingEventMedia(input: {
             id: input.id,
             organizationId: input.organizationId,
             uploadedByUserId: input.uploadedByUserId,
-            kind: "image",
-            status: "pending",
-            visibility: "private",
-            storageProvider: "r2",
+            kind: 'image',
+            status: 'pending',
+            visibility: 'private',
+            storageProvider: 'r2',
             bucket: input.bucket,
             storageKey: input.storageKey,
             originalFilename: input.media.originalFilename,
@@ -245,7 +234,7 @@ export function createPendingEventMedia(input: {
           })
           .returning({ id: mediaAsset.id })
 
-        if (!asset) return yield* Effect.fail(mediaFailure("MEDIA_CREATE_FAILED"))
+        if (!asset) return yield* Effect.fail(mediaFailure('MEDIA_CREATE_FAILED'))
 
         yield* transaction.insert(eventMedia).values({
           organizationId: input.organizationId,
@@ -255,15 +244,12 @@ export function createPendingEventMedia(input: {
         })
 
         return asset
-      }),
+      })
     )
   })
 }
 
-export function getEventMediaAccessContext(input: {
-  mediaAssetId: string
-  userId: string
-}) {
+export function getEventMediaAccessContext(input: { mediaAssetId: string; userId: string }) {
   return Effect.gen(function* () {
     const db = yield* DB
     const [context] = yield* db
@@ -289,8 +275,8 @@ export function getEventMediaAccessContext(input: {
         and(
           eq(event.id, eventMedia.eventId),
           eq(event.organizationId, eventMedia.organizationId),
-          eq(event.organizationId, mediaAsset.organizationId),
-        ),
+          eq(event.organizationId, mediaAsset.organizationId)
+        )
       )
       .innerJoin(eventParticipant, eq(eventParticipant.eventId, event.id))
       .innerJoin(
@@ -298,10 +284,12 @@ export function getEventMediaAccessContext(input: {
         and(
           eq(workspacePerson.id, eventParticipant.personId),
           eq(workspacePerson.organizationId, event.organizationId),
-          eq(workspacePerson.userId, input.userId),
-        ),
+          eq(workspacePerson.userId, input.userId)
+        )
       )
-      .where(and(eq(mediaAsset.id, input.mediaAssetId), retainedEventAccess(input.userId, event.id)))
+      .where(
+        and(eq(mediaAsset.id, input.mediaAssetId), retainedEventAccess(input.userId, event.id))
+      )
       .limit(1)
 
     return context ?? null
@@ -312,34 +300,34 @@ export function markEventMediaReady(input: {
   mediaAssetId: string
   eventMediaId: string
   eventId: string
-  role: "cover" | "background" | "gallery"
+  role: 'cover' | 'background' | 'gallery'
   checksum: string | null
 }) {
   return Effect.gen(function* () {
     const db = yield* DB
     yield* db.transaction((transaction) =>
       Effect.gen(function* () {
-        if (input.role !== "gallery") {
+        if (input.role !== 'gallery') {
           yield* transaction
             .delete(eventMedia)
             .where(
               and(
                 eq(eventMedia.eventId, input.eventId),
                 eq(eventMedia.role, input.role),
-                ne(eventMedia.id, input.eventMediaId),
-              ),
+                ne(eventMedia.id, input.eventMediaId)
+              )
             )
         }
 
         yield* transaction
           .update(mediaAsset)
           .set({
-            status: "ready",
+            status: 'ready',
             checksum: input.checksum,
             updatedAt: new Date(),
           })
           .where(eq(mediaAsset.id, input.mediaAssetId))
-      }),
+      })
     )
   })
 }
@@ -349,7 +337,7 @@ export function markEventMediaFailed(mediaAssetId: string) {
     const db = yield* DB
     yield* db
       .update(mediaAsset)
-      .set({ status: "failed", updatedAt: new Date() })
+      .set({ status: 'failed', updatedAt: new Date() })
       .where(eq(mediaAsset.id, mediaAssetId))
   })
 }
@@ -370,9 +358,7 @@ export function listReadyEventMedia(eventId: string) {
       })
       .from(eventMedia)
       .innerJoin(mediaAsset, eq(mediaAsset.id, eventMedia.mediaAssetId))
-      .where(
-        and(eq(eventMedia.eventId, eventId), visibleMediaPredicate()),
-      )
+      .where(and(eq(eventMedia.eventId, eventId), visibleMediaPredicate()))
       .orderBy(asc(eventMedia.sortOrder), asc(eventMedia.createdAt))
   })
 }

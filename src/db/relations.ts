@@ -1,11 +1,11 @@
-import { defineRelationsPart } from "drizzle-orm"
+import { defineRelationsPart } from 'drizzle-orm'
 
-import * as authSchema from "@/db/schema/auth.schema"
-import * as eventSchema from "@/db/schema/event.schema"
-import * as mediaSchema from "@/db/schema/media.schema"
-import * as moderationSchema from "@/db/schema/moderation.schema"
-import * as planningSchema from "@/db/schema/planning.schema"
-import * as syncSchema from "@/db/schema/sync.schema"
+import * as authSchema from '@/db/schema/auth.schema'
+import * as eventSchema from '@/db/schema/event.schema'
+import * as mediaSchema from '@/db/schema/media.schema'
+import * as moderationSchema from '@/db/schema/moderation.schema'
+import * as planningSchema from '@/db/schema/planning.schema'
+import * as syncSchema from '@/db/schema/sync.schema'
 
 export const databaseRelations = defineRelationsPart(
   {
@@ -165,12 +165,12 @@ export const databaseRelations = defineRelationsPart(
       parent: r.one.event({
         from: r.event.parentEventId,
         to: r.event.id,
-        alias: "event_parent",
+        alias: 'event_parent',
       }),
       children: r.many.event({
         from: r.event.id,
         to: r.event.parentEventId,
-        alias: "event_children",
+        alias: 'event_children',
       }),
       participants: r.many.eventParticipant({
         from: r.event.id,
@@ -245,12 +245,12 @@ export const databaseRelations = defineRelationsPart(
       inviter: r.one.user({
         from: r.eventInvitation.invitedByUserId,
         to: r.user.id,
-        alias: "event_invitation_inviter",
+        alias: 'event_invitation_inviter',
       }),
       acceptedBy: r.one.user({
         from: r.eventInvitation.acceptedByUserId,
         to: r.user.id,
-        alias: "event_invitation_acceptor",
+        alias: 'event_invitation_acceptor',
       }),
       person: r.one.workspacePerson({
         from: r.eventInvitation.personId,
@@ -449,5 +449,5 @@ export const databaseRelations = defineRelationsPart(
         to: r.nativeWorkspaceSnapshot.scopeId,
       }),
     },
-  }),
+  })
 )

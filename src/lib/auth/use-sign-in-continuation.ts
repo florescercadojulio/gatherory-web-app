@@ -1,10 +1,10 @@
-import { useAuth } from "@better-auth-ui/react"
-import { useCallback } from "react"
+import { useAuth } from '@better-auth-ui/react'
+import { useCallback } from 'react'
 import {
   isTwoFactorRedirect,
   storeTwoFactorMethods,
-  TWO_FACTOR_PLUGIN_ID
-} from "./two-factor-methods"
+  TWO_FACTOR_PLUGIN_ID,
+} from './two-factor-methods'
 
 /**
  * Resolve what happens after a sign-in request succeeds.
@@ -28,9 +28,8 @@ import {
 export function useSignInContinuation() {
   const { basePaths, navigate, plugins, redirectTo } = useAuth()
 
-  const twoFactorPath = plugins.find(
-    (plugin) => plugin.id === TWO_FACTOR_PLUGIN_ID
-  )?.viewPaths?.auth?.twoFactor
+  const twoFactorPath = plugins.find((plugin) => plugin.id === TWO_FACTOR_PLUGIN_ID)?.viewPaths
+    ?.auth?.twoFactor
 
   return useCallback(
     (data: unknown) => {
@@ -38,7 +37,7 @@ export function useSignInContinuation() {
         storeTwoFactorMethods(data.twoFactorMethods)
 
         navigate({
-          to: `${basePaths.auth}/${twoFactorPath}?redirectTo=${encodeURIComponent(redirectTo)}`
+          to: `${basePaths.auth}/${twoFactorPath}?redirectTo=${encodeURIComponent(redirectTo)}`,
         })
         return
       }

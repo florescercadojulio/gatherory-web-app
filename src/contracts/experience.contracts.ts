@@ -1,4 +1,4 @@
-import { z } from "zod"
+import { z } from 'zod'
 
 const stableKeySchema = z
   .string()
@@ -27,7 +27,7 @@ export const ExperienceModuleSchema = z.object({
 export const ExperienceBlueprintSchema = z
   .object({
     $schema: z.url(),
-    kind: z.literal("experience_blueprint"),
+    kind: z.literal('experience_blueprint'),
     schemaVersion: z.literal(1),
     blueprint: z.object({
       id: z.string().trim().min(1).max(160),
@@ -43,7 +43,7 @@ export const ExperienceBlueprintSchema = z
         z.object({
           key: stableKeySchema,
           permissions: z.array(permissionSchema).max(100),
-        }),
+        })
       )
       .max(50),
     modules: z.array(ExperienceModuleSchema).max(100),
@@ -58,36 +58,36 @@ export const ExperienceBlueprintSchema = z
   .superRefine((blueprint, context) => {
     reportDuplicateKeys(
       blueprint.roles.map((role) => role.key),
-      "roles",
-      context,
+      'roles',
+      context
     )
     reportDuplicateKeys(
       blueprint.modules.map((module) => module.key),
-      "modules",
-      context,
+      'modules',
+      context
     )
 
     const moduleKeys = new Set(blueprint.modules.map((module) => module.key))
     blueprint.presentation?.moduleOrder?.forEach((key, index) => {
       if (moduleKeys.has(key)) return
       context.addIssue({
-        code: "custom",
+        code: 'custom',
         message: `Unknown module key: ${key}`,
-        path: ["presentation", "moduleOrder", index],
+        path: ['presentation', 'moduleOrder', index],
       })
     })
   })
 
-export const ContributionVisibilitySchema = z.discriminatedUnion("scope", [
-  z.object({ scope: z.literal("author_only") }),
+export const ContributionVisibilitySchema = z.discriminatedUnion('scope', [
+  z.object({ scope: z.literal('author_only') }),
   z.object({
-    scope: z.literal("participant_group"),
+    scope: z.literal('participant_group'),
     groupId: z.string().trim().min(1).max(160),
   }),
-  z.object({ scope: z.literal("experience_participants") }),
-  z.object({ scope: z.literal("experience_managers") }),
-  z.object({ scope: z.literal("resource_community") }),
-  z.object({ scope: z.literal("external_public") }),
+  z.object({ scope: z.literal('experience_participants') }),
+  z.object({ scope: z.literal('experience_managers') }),
+  z.object({ scope: z.literal('resource_community') }),
+  z.object({ scope: z.literal('external_public') }),
 ])
 
 const moneySchema = z.object({
@@ -98,7 +98,7 @@ const moneySchema = z.object({
 export const ServicePackageSchema = z
   .object({
     $schema: z.url(),
-    kind: z.literal("service_package"),
+    kind: z.literal('service_package'),
     schemaVersion: z.literal(1),
     id: z.string().trim().min(1).max(160),
     revision: z.number().int().positive(),
@@ -125,12 +125,7 @@ export const ServicePackageSchema = z
       .optional(),
     pricing: z.object({
       starting: moneySchema,
-      model: z.enum([
-        "fixed",
-        "starting_at",
-        "base_plus_guest",
-        "custom_quote",
-      ]),
+      model: z.enum(['fixed', 'starting_at', 'base_plus_guest', 'custom_quote']),
       additionalGuest: moneySchema.optional(),
     }),
     includedServices: z.array(
@@ -139,13 +134,13 @@ export const ServicePackageSchema = z
         quantity: z.number().positive(),
         unit: z.string().trim().min(1).max(60).optional(),
         required: z.boolean(),
-      }),
+      })
     ),
     addOns: z.array(
       z.object({
         serviceId: z.string().trim().min(1).max(160),
         starting: moneySchema.optional(),
-      }),
+      })
     ),
   })
   .superRefine((servicePackage, context) => {
@@ -156,55 +151,49 @@ export const ServicePackageSchema = z
       capacity.minimumGuests > capacity.maximumGuests
     ) {
       context.addIssue({
-        code: "custom",
-        message: "Minimum guest capacity cannot exceed the maximum.",
-        path: ["capacity", "minimumGuests"],
+        code: 'custom',
+        message: 'Minimum guest capacity cannot exceed the maximum.',
+        path: ['capacity', 'minimumGuests'],
       })
     }
     if (
       capacity?.includedGuests != null &&
-      ((capacity.minimumGuests != null &&
-        capacity.includedGuests < capacity.minimumGuests) ||
-        (capacity.maximumGuests != null &&
-          capacity.includedGuests > capacity.maximumGuests))
+      ((capacity.minimumGuests != null && capacity.includedGuests < capacity.minimumGuests) ||
+        (capacity.maximumGuests != null && capacity.includedGuests > capacity.maximumGuests))
     ) {
       context.addIssue({
-        code: "custom",
-        message: "Included guests must fit within the package capacity.",
-        path: ["capacity", "includedGuests"],
+        code: 'custom',
+        message: 'Included guests must fit within the package capacity.',
+        path: ['capacity', 'includedGuests'],
       })
     }
 
     const perGuest = servicePackage.pricing.additionalGuest
-    if (servicePackage.pricing.model === "base_plus_guest" && !perGuest) {
+    if (servicePackage.pricing.model === 'base_plus_guest' && !perGuest) {
       context.addIssue({
-        code: "custom",
-        message: "Base-plus-guest pricing requires an additional guest price.",
-        path: ["pricing", "additionalGuest"],
+        code: 'custom',
+        message: 'Base-plus-guest pricing requires an additional guest price.',
+        path: ['pricing', 'additionalGuest'],
       })
     }
-    if (perGuest?.currency !== undefined &&
-        perGuest.currency !== servicePackage.pricing.starting.currency) {
+    if (
+      perGuest?.currency !== undefined &&
+      perGuest.currency !== servicePackage.pricing.starting.currency
+    ) {
       context.addIssue({
-        code: "custom",
-        message: "Package prices must use one currency.",
-        path: ["pricing", "additionalGuest", "currency"],
+        code: 'custom',
+        message: 'Package prices must use one currency.',
+        path: ['pricing', 'additionalGuest', 'currency'],
       })
     }
   })
 
 export type ExperienceBlueprint = z.infer<typeof ExperienceBlueprintSchema>
 export type ExperienceModule = z.infer<typeof ExperienceModuleSchema>
-export type ContributionVisibility = z.infer<
-  typeof ContributionVisibilitySchema
->
+export type ContributionVisibility = z.infer<typeof ContributionVisibilitySchema>
 export type ServicePackage = z.infer<typeof ServicePackageSchema>
 
-function reportDuplicateKeys(
-  keys: string[],
-  path: "roles" | "modules",
-  context: z.RefinementCtx,
-) {
+function reportDuplicateKeys(keys: string[], path: 'roles' | 'modules', context: z.RefinementCtx) {
   const seen = new Set<string>()
   keys.forEach((key, index) => {
     if (!seen.has(key)) {
@@ -212,9 +201,9 @@ function reportDuplicateKeys(
       return
     }
     context.addIssue({
-      code: "custom",
+      code: 'custom',
       message: `Duplicate ${path} key: ${key}`,
-      path: [path, index, "key"],
+      path: [path, index, 'key'],
     })
   })
 }

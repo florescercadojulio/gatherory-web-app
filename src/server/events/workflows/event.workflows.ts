@@ -1,11 +1,11 @@
-import { Effect } from "effect"
+import { Effect } from 'effect'
 
 import type {
   AcceptEventInvitationInput,
   CreateEventInput,
   InviteEventParticipantInput,
-} from "../contracts/event.contracts"
-import { EventService } from "../services/event.service"
+} from '../contracts/event.contracts'
+import { EventService } from '../services/event.service'
 
 export const acceptEventInvitationWorkflow = (input: {
   userId: string
@@ -26,14 +26,11 @@ export const createEventWorkflow = (input: {
     const events = yield* EventService
     return yield* events.create(
       { organizationId: input.organizationId, userId: input.userId },
-      input.event,
+      input.event
     )
   })
 
-export const listEventsWorkflow = (input: {
-  organizationId: string
-  userId: string
-}) =>
+export const listEventsWorkflow = (input: { organizationId: string; userId: string }) =>
   Effect.gen(function* () {
     const events = yield* EventService
     const items = yield* events.list(input)

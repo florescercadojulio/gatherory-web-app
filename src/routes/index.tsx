@@ -1,21 +1,21 @@
-import { createFileRoute, redirect } from "@tanstack/react-router"
+import { createFileRoute, redirect } from '@tanstack/react-router'
 
-import { getSession } from "@/lib/auth.functions"
+import { getSession } from '@/lib/auth.functions'
 
-export const Route = createFileRoute("/")({
+export const Route = createFileRoute('/')({
   beforeLoad: async () => {
     const session = await getSession()
 
     if (!session.ok || !session.data) {
       throw redirect({
-        to: "/auth/$path",
-        params: { path: "sign-in" },
+        to: '/auth/$path',
+        params: { path: 'sign-in' },
         replace: true,
       })
     }
 
     throw redirect({
-      to: "/workspaces",
+      to: '/workspaces',
       replace: true,
     })
   },

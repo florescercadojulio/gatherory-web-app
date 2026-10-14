@@ -1,4 +1,4 @@
-import type { MessageParams, UserMessageKey } from "@/lib/domain-errors"
+import type { MessageParams, UserMessageKey } from '@/lib/domain-errors'
 
 export type ClientError = {
   userMessage: string
@@ -9,9 +9,7 @@ export type ClientError = {
   messageParams?: MessageParams
 }
 
-export type ServerResult<T> =
-  | { ok: true; data: T }
-  | { ok: false; error: ClientError }
+export type ServerResult<T> = { ok: true; data: T } | { ok: false; error: ClientError }
 
 export type Page<T> = {
   data: T[]

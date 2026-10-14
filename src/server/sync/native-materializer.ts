@@ -1,22 +1,17 @@
-import { and, eq, sql } from "drizzle-orm"
-import { Data } from "effect"
-import type { DomainErrorShape } from "@/lib/domain-errors"
+import { and, eq, sql } from 'drizzle-orm'
+import { Data } from 'effect'
+import type { DomainErrorShape } from '@/lib/domain-errors'
 
-import { db } from "@/db"
-import { member, organization, user } from "@/db/schema/auth.schema"
+import { db } from '@/db'
+import { member, organization, user } from '@/db/schema/auth.schema'
 import {
   event,
   eventDeparture,
   eventInvitation,
   eventParticipant,
   workspacePerson,
-} from "@/db/schema/event.schema"
-import {
-  eventMedia,
-  ideaMedia,
-  mediaAsset,
-  registryItemMedia,
-} from "@/db/schema/media.schema"
+} from '@/db/schema/event.schema'
+import { eventMedia, ideaMedia, mediaAsset, registryItemMedia } from '@/db/schema/media.schema'
 import {
   eventExpense,
   eventNote,
@@ -24,22 +19,30 @@ import {
   ideaDecision,
   registryItem,
   workspacePlanningSettings,
-} from "@/db/schema/planning.schema"
-import { nativeSyncEntity } from "@/db/schema/sync.schema"
+} from '@/db/schema/planning.schema'
+import { nativeSyncEntity } from '@/db/schema/sync.schema'
 
-import type { NativeMutation } from "./native-sync-contracts"
-import { ideaResponseID } from "./idea-response"
+import type { NativeMutation } from './native-sync-contracts'
+import { ideaResponseID } from './idea-response'
 
 type NativeTransaction = Parameters<Parameters<typeof db.transaction>[0]>[0]
 
 const appleReferenceDateOffsetSeconds = 978_307_200
 
-export class NativeMaterializationError extends Data.TaggedError("NativeMaterializationError")<DomainErrorShape & { code: string }> {}
+export class NativeMaterializationError extends Data.TaggedError('NativeMaterializationError')<
+  DomainErrorShape & { code: string }
+> {}
 
 function nativeMaterializationFailure(code: string) {
   return new NativeMaterializationError({
-    category: /SCOPE_MISMATCH/.test(code) ? "authorization" : code === "EVENT_DEPTH_EXCEEDED" ? "conflict" : "validation",
-    code, userMessageKey: "serverErrors.INVALID_NATIVE_PAYLOAD", debugMessage: code,
+    category: /SCOPE_MISMATCH/.test(code)
+      ? 'authorization'
+      : code === 'EVENT_DEPTH_EXCEEDED'
+        ? 'conflict'
+        : 'validation',
+    code,
+    userMessageKey: 'serverErrors.INVALID_NATIVE_PAYLOAD',
+    debugMessage: code,
   })
 }
 
@@ -49,16 +52,14 @@ export async function materializeNativeMutation(
     userId: string
     mutation: NativeMutation
     organizationId?: string
-  },
+  }
 ) {
   const { mutation } = input
 
-  if (mutation.entityType === "workspace") {
-    if (mutation.operation === "delete") {
+  if (mutation.entityType === 'workspace') {
+    if (mutation.operation === 'delete') {
       const organizationId = input.organizationId ?? mutation.scopeID
-      await transaction
-        .delete(event)
-        .where(eq(event.organizationId, organizationId))
+      await transaction.delete(event).where(eq(event.organizationId, organizationId))
       await transaction
         .delete(workspacePerson)
         .where(eq(workspacePerson.organizationId, organizationId))
@@ -77,15 +78,13 @@ export async function materializeNativeMutation(
     })
   }
 
-  const organizationId = requiredString(
-    input.organizationId,
-    "SYNC_SCOPE_ORGANIZATION_MISSING",
-  )
+  const organizationId = requiredString(input.organizationId, 'SYNC_SCOPE_ORGANIZATION_MISSING')
 
-  if (mutation.operation === "delete") {
+  if (mutation.operation === 'delete') {
     // A response is retracted by an authenticated update with a nil choice.
     // Reject bare ID deletes, which do not carry the idea/account ownership key.
-    if (mutation.entityType === "idea_response") throw nativeMaterializationFailure("IDEA_RESPONSE_DELETE_FORBIDDEN")
+    if (mutation.entityType === 'idea_response')
+      throw nativeMaterializationFailure('IDEA_RESPONSE_DELETE_FORBIDDEN')
     await deleteCanonicalEntity(transaction, {
       organizationId,
       entityType: mutation.entityType,
@@ -96,37 +95,65 @@ export async function materializeNativeMutation(
 
   const payload = asRecord(decodeNativePayload(mutation.payload))
   switch (mutation.entityType) {
-    case "idea_response": {
+    case 'idea_response': {
       assertPayloadId(mutation.entityID, payload.id)
-      const ideaId = requiredUUID(payload.ideaID, "IDEA_RESPONSE_IDEA_MISSING")
-      if (payload.userID !== input.userId || mutation.entityID !== ideaResponseID(ideaId, input.userId)) {
-        throw nativeMaterializationFailure("IDEA_RESPONSE_OWNER_MISMATCH")
+      const ideaId = requiredUUID(payload.ideaID, 'IDEA_RESPONSE_IDEA_MISSING')
+      if (
+        payload.userID !== input.userId ||
+        mutation.entityID !== ideaResponseID(ideaId, input.userId)
+      ) {
+        throw nativeMaterializationFailure('IDEA_RESPONSE_OWNER_MISMATCH')
       }
-      const [target] = await transaction.select({ eventId: idea.eventId, status: idea.status })
-        .from(idea).where(and(eq(idea.id, ideaId), eq(idea.organizationId, organizationId))).limit(1)
-      if (!target) throw nativeMaterializationFailure("IDEA_RESPONSE_SCOPE_MISMATCH")
-      const [context] = await transaction.select().from(event).where(eq(event.id, target.eventId)).limit(1)
-      const [root] = await transaction.select().from(event).where(eq(event.id, mutation.scopeID)).limit(1)
-      if (!context || (context.id !== mutation.scopeID && context.parentEventId !== mutation.scopeID)) {
-        throw nativeMaterializationFailure("IDEA_RESPONSE_SCOPE_MISMATCH")
+      const [target] = await transaction
+        .select({ eventId: idea.eventId, status: idea.status })
+        .from(idea)
+        .where(and(eq(idea.id, ideaId), eq(idea.organizationId, organizationId)))
+        .limit(1)
+      if (!target) throw nativeMaterializationFailure('IDEA_RESPONSE_SCOPE_MISMATCH')
+      const [context] = await transaction
+        .select()
+        .from(event)
+        .where(eq(event.id, target.eventId))
+        .limit(1)
+      const [root] = await transaction
+        .select()
+        .from(event)
+        .where(eq(event.id, mutation.scopeID))
+        .limit(1)
+      if (
+        !context ||
+        (context.id !== mutation.scopeID && context.parentEventId !== mutation.scopeID)
+      ) {
+        throw nativeMaterializationFailure('IDEA_RESPONSE_SCOPE_MISMATCH')
       }
-      if (!root || ["finished", "cancelled"].includes(root.status ?? "")
-          || ["archived", "cancelled"].includes(context.planningStatus ?? "")
-          || context.completionStatus === "complete"
-          || ["approved", "passed", "archived"].includes(target.status)) {
-        throw nativeMaterializationFailure("IDEA_RESPONSE_CLOSED")
+      if (
+        !root ||
+        ['finished', 'cancelled'].includes(root.status ?? '') ||
+        ['archived', 'cancelled'].includes(context.planningStatus ?? '') ||
+        context.completionStatus === 'complete' ||
+        ['approved', 'passed', 'archived'].includes(target.status)
+      ) {
+        throw nativeMaterializationFailure('IDEA_RESPONSE_CLOSED')
       }
       const choice = payload.choice
       if (choice == null) {
-        await transaction.delete(ideaDecision).where(and(eq(ideaDecision.ideaId, ideaId), eq(ideaDecision.userId, input.userId)))
+        await transaction
+          .delete(ideaDecision)
+          .where(and(eq(ideaDecision.ideaId, ideaId), eq(ideaDecision.userId, input.userId)))
       } else {
-        if (choice !== "love" && choice !== "maybe" && choice !== "pass") throw nativeMaterializationFailure("IDEA_RESPONSE_INVALID")
-        await transaction.insert(ideaDecision).values({ ideaId, userId: input.userId, choice })
-          .onConflictDoUpdate({ target: [ideaDecision.ideaId, ideaDecision.userId], set: { choice, updatedAt: new Date() } })
+        if (choice !== 'love' && choice !== 'maybe' && choice !== 'pass')
+          throw nativeMaterializationFailure('IDEA_RESPONSE_INVALID')
+        await transaction
+          .insert(ideaDecision)
+          .values({ ideaId, userId: input.userId, choice })
+          .onConflictDoUpdate({
+            target: [ideaDecision.ideaId, ideaDecision.userId],
+            set: { choice, updatedAt: new Date() },
+          })
       }
       break
     }
-    case "participant":
+    case 'participant':
       await materializePerson(transaction, {
         organizationId,
         actorUserId: input.userId,
@@ -134,7 +161,7 @@ export async function materializeNativeMutation(
         payload,
       })
       break
-    case "event_participation":
+    case 'event_participation':
       await materializeParticipation(transaction, {
         organizationId,
         actorUserId: input.userId,
@@ -142,7 +169,7 @@ export async function materializeNativeMutation(
         payload,
       })
       break
-    case "event":
+    case 'event':
       await materializeChildEvent(transaction, {
         organizationId,
         actorUserId: input.userId,
@@ -151,7 +178,7 @@ export async function materializeNativeMutation(
         payload,
       })
       break
-    case "idea":
+    case 'idea':
       await materializeIdea(transaction, {
         organizationId,
         actorUserId: input.userId,
@@ -160,7 +187,7 @@ export async function materializeNativeMutation(
         payload,
       })
       break
-    case "expense":
+    case 'expense':
       await materializeExpense(transaction, {
         organizationId,
         actorUserId: input.userId,
@@ -168,7 +195,7 @@ export async function materializeNativeMutation(
         payload,
       })
       break
-    case "registry_item":
+    case 'registry_item':
       await materializeRegistryItem(transaction, {
         organizationId,
         actorUserId: input.userId,
@@ -177,7 +204,7 @@ export async function materializeNativeMutation(
         payload,
       })
       break
-    case "note":
+    case 'note':
       await materializeNote(transaction, {
         organizationId,
         actorUserId: input.userId,
@@ -186,7 +213,7 @@ export async function materializeNativeMutation(
         payload,
       })
       break
-    case "moment":
+    case 'moment':
       await materializeMoment(transaction, {
         organizationId,
         scopeId: mutation.scopeID,
@@ -194,7 +221,7 @@ export async function materializeNativeMutation(
         payload,
       })
       break
-    case "attendance":
+    case 'attendance':
       // Current clients include attendance in EventParticipation. This type is
       // reserved for a future smaller RSVP mutation and intentionally does not
       // create a second canonical representation.
@@ -212,36 +239,58 @@ async function materializeWorkspace(
     entityId: string
     payload: unknown
     organizationId?: string
-  },
+  }
 ) {
   const payload = asRecord(input.payload)
-  const mainEventId = requiredUUID(payload.mainEventID, "WORKSPACE_ID_MISSING")
+  const mainEventId = requiredUUID(payload.mainEventID, 'WORKSPACE_ID_MISSING')
   if (mainEventId !== input.scopeId || input.entityId !== input.scopeId) {
-    throw nativeMaterializationFailure("WORKSPACE_SCOPE_MISMATCH")
+    throw nativeMaterializationFailure('WORKSPACE_SCOPE_MISMATCH')
   }
 
-  const title = requiredTrimmed(payload.title, "WORKSPACE_TITLE_MISSING")
+  const title = requiredTrimmed(payload.title, 'WORKSPACE_TITLE_MISSING')
   // Existing workspaces, including seeded review fixtures, can have a Better
   // Auth organization ID distinct from their native root-event scope. New
   // iOS-created workspaces retain the legacy scope-as-organization behavior.
   const organizationId = input.organizationId ?? input.scopeId
   const slug = `${slugify(title)}-${input.scopeId.slice(0, 8)}`
   const now = new Date()
-  const [existingEvent] = await transaction.select({ id: event.id })
-    .from(event).where(eq(event.id, mainEventId)).limit(1)
+  const [existingEvent] = await transaction
+    .select({ id: event.id })
+    .from(event)
+    .where(eq(event.id, mainEventId))
+    .limit(1)
 
   if (existingEvent) {
-    const [settings] = await transaction.select().from(workspacePlanningSettings)
-      .where(eq(workspacePlanningSettings.organizationId, organizationId)).limit(1)
-    const changesSharing = (settings?.collaboratorLinkEnabled ?? true) !== (payload.isCollaboratorLinkEnabled !== false)
-      || (settings?.requiresCollaboratorApproval ?? true) !== (payload.requiresCollaboratorApproval !== false)
-      || (settings?.defaultCollaboratorPermission ?? "contribute") !== mapPlanningPermission(payload.defaultCollaboratorPermission)
+    const [settings] = await transaction
+      .select()
+      .from(workspacePlanningSettings)
+      .where(eq(workspacePlanningSettings.organizationId, organizationId))
+      .limit(1)
+    const changesSharing =
+      (settings?.collaboratorLinkEnabled ?? true) !==
+        (payload.isCollaboratorLinkEnabled !== false) ||
+      (settings?.requiresCollaboratorApproval ?? true) !==
+        (payload.requiresCollaboratorApproval !== false) ||
+      (settings?.defaultCollaboratorPermission ?? 'contribute') !==
+        mapPlanningPermission(payload.defaultCollaboratorPermission)
     if (changesSharing) {
-      const [actor] = await transaction.select({ role: eventParticipant.role, permission: eventParticipant.planningPermission })
-        .from(eventParticipant).innerJoin(workspacePerson, eq(workspacePerson.id, eventParticipant.personId))
-        .where(and(eq(eventParticipant.eventId, mainEventId), eq(workspacePerson.userId, input.userId))).limit(1)
-      if (!actor || (actor.role !== "host" && !(actor.role === "collaborator" && actor.permission === "manage"))) {
-        throw new NativeMaterializationError({ category: "authorization", code: "EVENT_PERMISSION_REQUIRED", userMessageKey: "serverErrors.EVENT_PERMISSION_REQUIRED" })
+      const [actor] = await transaction
+        .select({ role: eventParticipant.role, permission: eventParticipant.planningPermission })
+        .from(eventParticipant)
+        .innerJoin(workspacePerson, eq(workspacePerson.id, eventParticipant.personId))
+        .where(
+          and(eq(eventParticipant.eventId, mainEventId), eq(workspacePerson.userId, input.userId))
+        )
+        .limit(1)
+      if (
+        !actor ||
+        (actor.role !== 'host' && !(actor.role === 'collaborator' && actor.permission === 'manage'))
+      ) {
+        throw new NativeMaterializationError({
+          category: 'authorization',
+          code: 'EVENT_PERMISSION_REQUIRED',
+          userMessageKey: 'serverErrors.EVENT_PERMISSION_REQUIRED',
+        })
       }
     }
   }
@@ -253,40 +302,49 @@ async function materializeWorkspace(
       name: title,
       slug,
       createdAt: now,
-      workspaceType: "event",
+      workspaceType: 'event',
     })
     .onConflictDoUpdate({
       target: organization.id,
       set: { name: title },
     })
 
-  if (!existingEvent) await transaction
-    .insert(member)
-    .values({
-      id: crypto.randomUUID(),
-      organizationId,
-      userId: input.userId,
-      role: "owner",
-      createdAt: now,
-    })
-    .onConflictDoNothing({ target: [member.organizationId, member.userId] })
+  if (!existingEvent)
+    await transaction
+      .insert(member)
+      .values({
+        id: crypto.randomUUID(),
+        organizationId,
+        userId: input.userId,
+        role: 'owner',
+        createdAt: now,
+      })
+      .onConflictDoNothing({ target: [member.organizationId, member.userId] })
 
   const location = optionalRecord(payload.mainEventLocation)
-  const start = nativeDate(payload.mainEventStartsAt, "WORKSPACE_START_MISSING")
+  const start = nativeDate(payload.mainEventStartsAt, 'WORKSPACE_START_MISSING')
   const end = optionalNativeDate(payload.mainEventEndsAt)
-  const timeZone = optionalTrimmed(payload.mainEventTimeZoneIdentifier) ?? "UTC"
-  const planningMode = mapValue(payload.planningMode, {
-    openToIdeas: "open_to_ideas",
-    helpMeDecide: "help_me_decide",
-    quietPlanning: "quiet_planning",
-    decisionMade: "decision_made",
-  } as const, "open_to_ideas")
-  const status = mapValue(payload.mainEventStatus, {
-    draft: "draft",
-    ongoing: "ongoing",
-    finished: "finished",
-    cancelled: "cancelled",
-  } as const, "draft")
+  const timeZone = optionalTrimmed(payload.mainEventTimeZoneIdentifier) ?? 'UTC'
+  const planningMode = mapValue(
+    payload.planningMode,
+    {
+      openToIdeas: 'open_to_ideas',
+      helpMeDecide: 'help_me_decide',
+      quietPlanning: 'quiet_planning',
+      decisionMade: 'decision_made',
+    } as const,
+    'open_to_ideas'
+  )
+  const status = mapValue(
+    payload.mainEventStatus,
+    {
+      draft: 'draft',
+      ongoing: 'ongoing',
+      finished: 'finished',
+      cancelled: 'cancelled',
+    } as const,
+    'draft'
+  )
 
   await transaction
     .insert(event)
@@ -299,8 +357,8 @@ async function materializeWorkspace(
       dressCode: optionalTrimmed(payload.dressCode),
       status,
       planningStatus: null,
-      completionStatus: status === "finished" ? "complete" : "upcoming",
-      schedulingState: "scheduled",
+      completionStatus: status === 'finished' ? 'complete' : 'upcoming',
+      schedulingState: 'scheduled',
       category: null,
       purpose: null,
       planningMode,
@@ -319,7 +377,7 @@ async function materializeWorkspace(
         description: optionalTrimmed(payload.eventMessage),
         dressCode: optionalTrimmed(payload.dressCode),
         status,
-        completionStatus: status === "finished" ? "complete" : "upcoming",
+        completionStatus: status === 'finished' ? 'complete' : 'upcoming',
         planningMode,
         startsAt: start,
         endsAt: end,
@@ -336,30 +394,22 @@ async function materializeWorkspace(
     .values({
       organizationId,
       budgetCap: optionalDecimal(payload.workspaceBudgetCap),
-      currencyCode:
-        optionalTrimmed(payload.currencyCode)?.toUpperCase() ?? "USD",
+      currencyCode: optionalTrimmed(payload.currencyCode)?.toUpperCase() ?? 'USD',
       registryShared: payload.isRegistryShared === true,
       collaboratorLinkEnabled: payload.isCollaboratorLinkEnabled !== false,
-      requiresCollaboratorApproval:
-        payload.requiresCollaboratorApproval !== false,
-      defaultCollaboratorPermission: mapPlanningPermission(
-        payload.defaultCollaboratorPermission,
-      ),
+      requiresCollaboratorApproval: payload.requiresCollaboratorApproval !== false,
+      defaultCollaboratorPermission: mapPlanningPermission(payload.defaultCollaboratorPermission),
     })
 
     .onConflictDoUpdate({
       target: workspacePlanningSettings.organizationId,
       set: {
         budgetCap: optionalDecimal(payload.workspaceBudgetCap),
-        currencyCode:
-          optionalTrimmed(payload.currencyCode)?.toUpperCase() ?? "USD",
+        currencyCode: optionalTrimmed(payload.currencyCode)?.toUpperCase() ?? 'USD',
         registryShared: payload.isRegistryShared === true,
         collaboratorLinkEnabled: payload.isCollaboratorLinkEnabled !== false,
-        requiresCollaboratorApproval:
-          payload.requiresCollaboratorApproval !== false,
-        defaultCollaboratorPermission: mapPlanningPermission(
-          payload.defaultCollaboratorPermission,
-        ),
+        requiresCollaboratorApproval: payload.requiresCollaboratorApproval !== false,
+        defaultCollaboratorPermission: mapPlanningPermission(payload.defaultCollaboratorPermission),
         updatedAt: now,
       },
     })
@@ -374,22 +424,20 @@ async function materializeWorkspace(
   // access. Participants/RSVPs have their own independently versioned records.
   if (existingEvent) return { organizationId }
 
-  const people = Array.isArray(payload.members)
-    ? payload.members.map(asRecord)
-    : []
+  const people = Array.isArray(payload.members) ? payload.members.map(asRecord) : []
   const ownerPayload =
     people.find((person) => person.userID === input.userId) ??
-    people.find((person) => person.participantRole === "host") ??
+    people.find((person) => person.participantRole === 'host') ??
     people[0]
 
   if (ownerPayload) {
-    const personId = requiredUUID(ownerPayload.id, "OWNER_PERSON_ID_MISSING")
+    const personId = requiredUUID(ownerPayload.id, 'OWNER_PERSON_ID_MISSING')
     const [account] = await transaction
       .select({ name: user.name, email: user.email, image: user.image })
       .from(user)
       .where(eq(user.id, input.userId))
       .limit(1)
-    if (!account) throw nativeMaterializationFailure("OWNER_ACCOUNT_MISSING")
+    if (!account) throw nativeMaterializationFailure('OWNER_ACCOUNT_MISSING')
 
     await transaction
       .insert(workspacePerson)
@@ -397,20 +445,16 @@ async function materializeWorkspace(
         id: personId,
         organizationId,
         userId: input.userId,
-        displayName:
-          optionalTrimmed(ownerPayload.name) ?? account.name ?? "Host",
-        email:
-          optionalTrimmed(ownerPayload.email)?.toLowerCase() ?? account.email,
+        displayName: optionalTrimmed(ownerPayload.name) ?? account.name ?? 'Host',
+        email: optionalTrimmed(ownerPayload.email)?.toLowerCase() ?? account.email,
         avatarUrl: account.image,
       })
       .onConflictDoUpdate({
         target: workspacePerson.id,
         set: {
           userId: input.userId,
-          displayName:
-            optionalTrimmed(ownerPayload.name) ?? account.name ?? "Host",
-          email:
-            optionalTrimmed(ownerPayload.email)?.toLowerCase() ?? account.email,
+          displayName: optionalTrimmed(ownerPayload.name) ?? account.name ?? 'Host',
+          email: optionalTrimmed(ownerPayload.email)?.toLowerCase() ?? account.email,
           avatarUrl: account.image,
           updatedAt: now,
         },
@@ -422,10 +466,10 @@ async function materializeWorkspace(
     const ownerParticipation = participations.find(
       (participation) =>
         optionalUUID(participation.eventID) === mainEventId &&
-        optionalUUID(participation.memberID) === personId,
+        optionalUUID(participation.memberID) === personId
     )
     const participationId = ownerParticipation
-      ? requiredUUID(ownerParticipation.id, "OWNER_PARTICIPATION_ID_MISSING")
+      ? requiredUUID(ownerParticipation.id, 'OWNER_PARTICIPATION_ID_MISSING')
       : personId
 
     await transaction
@@ -434,19 +478,19 @@ async function materializeWorkspace(
         id: participationId,
         eventId: mainEventId,
         personId,
-        role: "host",
-        planningPermission: "manage",
+        role: 'host',
+        planningPermission: 'manage',
         attendanceStatus: mapAttendance(
-          ownerParticipation?.attendance ?? payload.mainEventResponse,
+          ownerParticipation?.attendance ?? payload.mainEventResponse
         ),
       })
       .onConflictDoUpdate({
         target: [eventParticipant.eventId, eventParticipant.personId],
         set: {
-          role: "host",
-          planningPermission: "manage",
+          role: 'host',
+          planningPermission: 'manage',
           attendanceStatus: mapAttendance(
-            ownerParticipation?.attendance ?? payload.mainEventResponse,
+            ownerParticipation?.attendance ?? payload.mainEventResponse
           ),
           updatedAt: now,
         },
@@ -463,7 +507,7 @@ async function materializePerson(
     actorUserId: string
     entityId: string
     payload: Record<string, unknown>
-  },
+  }
 ) {
   assertPayloadId(input.entityId, input.payload.id)
   await assertScopedPerson(transaction, input.organizationId, input.entityId)
@@ -471,9 +515,7 @@ async function materializePerson(
   const requestedUserId = optionalTrimmed(input.payload.userID)
   const userId = requestedUserId === input.actorUserId ? requestedUserId : null
   const displayName =
-    optionalTrimmed(input.payload.name) ??
-    optionalTrimmed(input.payload.initials) ??
-    "Guest"
+    optionalTrimmed(input.payload.name) ?? optionalTrimmed(input.payload.initials) ?? 'Guest'
 
   await transaction
     .insert(workspacePerson)
@@ -504,27 +546,24 @@ async function materializeParticipation(
     actorUserId: string
     entityId: string
     payload: Record<string, unknown>
-  },
+  }
 ) {
   assertPayloadId(input.entityId, input.payload.id)
-  const eventId = requiredUUID(input.payload.eventID, "PARTICIPATION_EVENT_MISSING")
-  const personId = requiredUUID(
-    input.payload.memberID,
-    "PARTICIPATION_PERSON_MISSING",
-  )
+  const eventId = requiredUUID(input.payload.eventID, 'PARTICIPATION_EVENT_MISSING')
+  const personId = requiredUUID(input.payload.memberID, 'PARTICIPATION_PERSON_MISSING')
   await assertScopedEvent(transaction, input.organizationId, eventId)
   await requireScopedPerson(transaction, input.organizationId, personId)
 
-  const [departed] = await transaction.select({ id: eventDeparture.eventId }).from(eventDeparture)
+  const [departed] = await transaction
+    .select({ id: eventDeparture.eventId })
+    .from(eventDeparture)
     .innerJoin(workspacePerson, eq(workspacePerson.userId, eventDeparture.userId))
-    .where(and(eq(eventDeparture.eventId, eventId), eq(workspacePerson.id, personId))).limit(1)
+    .where(and(eq(eventDeparture.eventId, eventId), eq(workspacePerson.id, personId)))
+    .limit(1)
   if (departed) return // A stale phone must not undo a guest's personal departure.
 
   const role = mapRole(input.payload.role)
-  const planningPermission = mapPlanningPermission(
-    input.payload.planningPermission,
-    role,
-  )
+  const planningPermission = mapPlanningPermission(input.payload.planningPermission, role)
   await transaction
     .insert(eventParticipant)
     .values({
@@ -548,7 +587,7 @@ async function materializeParticipation(
       },
     })
 
-  if (input.payload.invitationStatus === "invited") {
+  if (input.payload.invitationStatus === 'invited') {
     const [person] = await transaction
       .select({ email: workspacePerson.email })
       .from(workspacePerson)
@@ -581,25 +620,22 @@ async function materializeChildEvent(
     scopeId: string
     entityId: string
     payload: Record<string, unknown>
-  },
+  }
 ) {
   assertPayloadId(input.entityId, input.payload.id)
   await assertScopedEvent(transaction, input.organizationId, input.entityId)
 
-  const parentEventId =
-    optionalUUID(input.payload.parentEventID) ?? input.scopeId
+  const parentEventId = optionalUUID(input.payload.parentEventID) ?? input.scopeId
   if (parentEventId !== input.scopeId) {
-    throw nativeMaterializationFailure("EVENT_DEPTH_EXCEEDED")
+    throw nativeMaterializationFailure('EVENT_DEPTH_EXCEEDED')
   }
   await requireScopedEvent(transaction, input.organizationId, parentEventId)
 
   const schedulingState =
-    input.payload.schedulingState === "unscheduled"
-      ? "unscheduled"
-      : "scheduled"
+    input.payload.schedulingState === 'unscheduled' ? 'unscheduled' : 'scheduled'
   const startsAt =
-    schedulingState === "scheduled"
-      ? nativeDate(input.payload.scheduledAt, "EVENT_START_MISSING")
+    schedulingState === 'scheduled'
+      ? nativeDate(input.payload.scheduledAt, 'EVENT_START_MISSING')
       : null
   const location = optionalRecord(input.payload.eventLocation)
   const category = mapEventCategory(input.payload.category)
@@ -611,27 +647,19 @@ async function materializeChildEvent(
       id: input.entityId,
       organizationId: input.organizationId,
       parentEventId,
-      title: requiredTrimmed(input.payload.title, "EVENT_TITLE_MISSING"),
+      title: requiredTrimmed(input.payload.title, 'EVENT_TITLE_MISSING'),
       description: optionalTrimmed(input.payload.eventDescription),
       dressCode: optionalTrimmed(input.payload.dressCode),
       status: null,
       planningStatus,
-      completionStatus:
-        input.payload.completionStatus === "complete" ? "complete" : "upcoming",
+      completionStatus: input.payload.completionStatus === 'complete' ? 'complete' : 'upcoming',
       schedulingState,
       category,
-      purpose:
-        input.payload.purpose === "eventExperience"
-          ? "part_of_event"
-          : "planning_scouting",
+      purpose: input.payload.purpose === 'eventExperience' ? 'part_of_event' : 'planning_scouting',
       startsAt,
-      endsAt:
-        schedulingState === "scheduled"
-          ? optionalNativeDate(input.payload.endsAt)
-          : null,
+      endsAt: schedulingState === 'scheduled' ? optionalNativeDate(input.payload.endsAt) : null,
       isAllDay: input.payload.isAllDay === true,
-      timeZone:
-        optionalTrimmed(input.payload.timeZoneIdentifier) ?? "UTC",
+      timeZone: optionalTrimmed(input.payload.timeZoneIdentifier) ?? 'UTC',
       ...locationColumns(location),
       budgetCap: optionalDecimal(input.payload.budgetCap),
       createdByUserId: input.actorUserId,
@@ -639,28 +667,19 @@ async function materializeChildEvent(
     .onConflictDoUpdate({
       target: event.id,
       set: {
-        title: requiredTrimmed(input.payload.title, "EVENT_TITLE_MISSING"),
+        title: requiredTrimmed(input.payload.title, 'EVENT_TITLE_MISSING'),
         description: optionalTrimmed(input.payload.eventDescription),
         dressCode: optionalTrimmed(input.payload.dressCode),
         planningStatus,
-        completionStatus:
-          input.payload.completionStatus === "complete"
-            ? "complete"
-            : "upcoming",
+        completionStatus: input.payload.completionStatus === 'complete' ? 'complete' : 'upcoming',
         schedulingState,
         category,
         purpose:
-          input.payload.purpose === "eventExperience"
-            ? "part_of_event"
-            : "planning_scouting",
+          input.payload.purpose === 'eventExperience' ? 'part_of_event' : 'planning_scouting',
         startsAt,
-        endsAt:
-          schedulingState === "scheduled"
-            ? optionalNativeDate(input.payload.endsAt)
-            : null,
+        endsAt: schedulingState === 'scheduled' ? optionalNativeDate(input.payload.endsAt) : null,
         isAllDay: input.payload.isAllDay === true,
-        timeZone:
-          optionalTrimmed(input.payload.timeZoneIdentifier) ?? "UTC",
+        timeZone: optionalTrimmed(input.payload.timeZoneIdentifier) ?? 'UTC',
         ...locationColumns(location),
         budgetCap: optionalDecimal(input.payload.budgetCap),
         updatedAt: new Date(),
@@ -672,12 +691,7 @@ async function materializeChildEvent(
     await transaction
       .update(idea)
       .set({ materializedEventId: input.entityId, updatedAt: new Date() })
-      .where(
-        and(
-          eq(idea.id, sourceIdeaId),
-          eq(idea.organizationId, input.organizationId),
-        ),
-      )
+      .where(and(eq(idea.id, sourceIdeaId), eq(idea.organizationId, input.organizationId)))
   }
 
   await materializeEventCover(transaction, {
@@ -695,7 +709,7 @@ async function materializeIdea(
     scopeId: string
     entityId: string
     payload: Record<string, unknown>
-  },
+  }
 ) {
   assertPayloadId(input.entityId, input.payload.id)
   const eventId = optionalUUID(input.payload.eventID) ?? input.scopeId
@@ -704,10 +718,10 @@ async function materializeIdea(
   await assertScopedIdea(transaction, input.organizationId, input.entityId)
   const nativeConfiguration = input.payload.configuration ?? { standard: {} }
   const guestVisibility =
-    input.payload.invitationVisibility === "shownToGuests" ||
-    (input.payload.invitationVisibility == null && category === "attire")
-      ? "shown_to_guests"
-      : "planning_only"
+    input.payload.invitationVisibility === 'shownToGuests' ||
+    (input.payload.invitationVisibility == null && category === 'attire')
+      ? 'shown_to_guests'
+      : 'planning_only'
 
   await transaction
     .insert(idea)
@@ -749,9 +763,9 @@ async function materializeIdea(
     .where(
       and(
         eq(nativeSyncEntity.scopeId, input.scopeId),
-        eq(nativeSyncEntity.entityType, "event"),
-        eq(nativeSyncEntity.isDeleted, false),
-      ),
+        eq(nativeSyncEntity.entityType, 'event'),
+        eq(nativeSyncEntity.isDeleted, false)
+      )
     )
   for (const entity of eventEntities) {
     const eventPayload = asRecord(decodeNativePayload(entity.payload))
@@ -776,11 +790,11 @@ async function materializeExpense(
     actorUserId: string
     entityId: string
     payload: Record<string, unknown>
-  },
+  }
 ) {
   assertPayloadId(input.entityId, input.payload.id)
   await assertScopedExpense(transaction, input.organizationId, input.entityId)
-  const eventId = requiredUUID(input.payload.eventID, "EXPENSE_EVENT_MISSING")
+  const eventId = requiredUUID(input.payload.eventID, 'EXPENSE_EVENT_MISSING')
   await requireScopedEvent(transaction, input.organizationId, eventId)
 
   await transaction
@@ -790,13 +804,13 @@ async function materializeExpense(
       organizationId: input.organizationId,
       eventId,
       sourceIdeaId: optionalUUID(input.payload.sourceIdeaID),
-      title: requiredTrimmed(input.payload.title, "EXPENSE_TITLE_MISSING"),
-      amount: requiredDecimal(input.payload.amount, "EXPENSE_AMOUNT_MISSING"),
+      title: requiredTrimmed(input.payload.title, 'EXPENSE_TITLE_MISSING'),
+      amount: requiredDecimal(input.payload.amount, 'EXPENSE_AMOUNT_MISSING'),
       category: mapExpenseCategory(input.payload.category),
       status:
-        input.payload.status === "committed" || input.payload.status === "paid"
+        input.payload.status === 'committed' || input.payload.status === 'paid'
           ? input.payload.status
-          : "estimated",
+          : 'estimated',
       createdByUserId: input.actorUserId,
       createdAt: optionalNativeDate(input.payload.createdAt) ?? new Date(),
       updatedAt: optionalNativeDate(input.payload.updatedAt) ?? new Date(),
@@ -806,13 +820,13 @@ async function materializeExpense(
       set: {
         eventId,
         sourceIdeaId: optionalUUID(input.payload.sourceIdeaID),
-        title: requiredTrimmed(input.payload.title, "EXPENSE_TITLE_MISSING"),
-        amount: requiredDecimal(input.payload.amount, "EXPENSE_AMOUNT_MISSING"),
+        title: requiredTrimmed(input.payload.title, 'EXPENSE_TITLE_MISSING'),
+        amount: requiredDecimal(input.payload.amount, 'EXPENSE_AMOUNT_MISSING'),
         category: mapExpenseCategory(input.payload.category),
         status:
-          input.payload.status === "committed" || input.payload.status === "paid"
+          input.payload.status === 'committed' || input.payload.status === 'paid'
             ? input.payload.status
-            : "estimated",
+            : 'estimated',
         updatedAt: optionalNativeDate(input.payload.updatedAt) ?? new Date(),
       },
     })
@@ -826,14 +840,10 @@ async function materializeRegistryItem(
     scopeId: string
     entityId: string
     payload: Record<string, unknown>
-  },
+  }
 ) {
   assertPayloadId(input.entityId, input.payload.id)
-  await assertScopedRegistryItem(
-    transaction,
-    input.organizationId,
-    input.entityId,
-  )
+  await assertScopedRegistryItem(transaction, input.organizationId, input.entityId)
   const eventId = optionalUUID(input.payload.eventID) ?? input.scopeId
   await requireScopedEvent(transaction, input.organizationId, eventId)
 
@@ -844,7 +854,7 @@ async function materializeRegistryItem(
       organizationId: input.organizationId,
       eventId,
       sourceIdeaId: optionalUUID(input.payload.sourceIdeaID),
-      title: requiredTrimmed(input.payload.title, "REGISTRY_TITLE_MISSING"),
+      title: requiredTrimmed(input.payload.title, 'REGISTRY_TITLE_MISSING'),
       note: optionalTrimmed(input.payload.note),
       category: mapRegistryCategory(input.payload.category),
       price: optionalDecimal(input.payload.price),
@@ -856,7 +866,7 @@ async function materializeRegistryItem(
       set: {
         eventId,
         sourceIdeaId: optionalUUID(input.payload.sourceIdeaID),
-        title: requiredTrimmed(input.payload.title, "REGISTRY_TITLE_MISSING"),
+        title: requiredTrimmed(input.payload.title, 'REGISTRY_TITLE_MISSING'),
         note: optionalTrimmed(input.payload.note),
         category: mapRegistryCategory(input.payload.category),
         price: optionalDecimal(input.payload.price),
@@ -880,14 +890,14 @@ async function materializeNote(
     scopeId: string
     entityId: string
     payload: Record<string, unknown>
-  },
+  }
 ) {
   assertPayloadId(input.entityId, input.payload.id)
   await assertScopedNote(transaction, input.organizationId, input.entityId)
   const eventId = optionalUUID(input.payload.eventID) ?? input.scopeId
   await requireScopedEvent(transaction, input.organizationId, eventId)
-  const body = requiredTrimmed(input.payload.body, "NOTE_BODY_MISSING")
-  if (body.length > 750) throw nativeMaterializationFailure("NOTE_TOO_LONG")
+  const body = requiredTrimmed(input.payload.body, 'NOTE_BODY_MISSING')
+  if (body.length > 750) throw nativeMaterializationFailure('NOTE_TOO_LONG')
 
   await transaction
     .insert(eventNote)
@@ -912,7 +922,7 @@ async function materializeMoment(
     scopeId: string
     entityId: string
     payload: Record<string, unknown>
-  },
+  }
 ) {
   assertPayloadId(input.entityId, input.payload.id)
   await assertScopedEventMedia(transaction, input.organizationId, input.entityId)
@@ -928,10 +938,7 @@ async function materializeMoment(
     .select({ id: mediaAsset.id })
     .from(mediaAsset)
     .where(
-      and(
-        eq(mediaAsset.id, mediaAssetId),
-        eq(mediaAsset.organizationId, input.organizationId),
-      ),
+      and(eq(mediaAsset.id, mediaAssetId), eq(mediaAsset.organizationId, input.organizationId))
     )
     .limit(1)
   if (!storedAsset) return
@@ -943,7 +950,7 @@ async function materializeMoment(
       organizationId: input.organizationId,
       eventId,
       mediaAssetId,
-      role: "gallery",
+      role: 'gallery',
     })
     .onConflictDoUpdate({
       target: eventMedia.id,
@@ -954,7 +961,7 @@ async function materializeMoment(
 async function readyMediaAsset(
   transaction: NativeTransaction,
   organizationId: string,
-  mediaAssetId: string | null,
+  mediaAssetId: string | null
 ) {
   if (!mediaAssetId) return null
   const [asset] = await transaction
@@ -964,8 +971,8 @@ async function readyMediaAsset(
       and(
         eq(mediaAsset.id, mediaAssetId),
         eq(mediaAsset.organizationId, organizationId),
-        eq(mediaAsset.status, "ready"),
-      ),
+        eq(mediaAsset.status, 'ready')
+      )
     )
     .limit(1)
   return asset?.id ?? null
@@ -977,24 +984,18 @@ async function materializeEventCover(
     organizationId: string
     eventId: string
     mediaAssetId: string | null
-  },
+  }
 ) {
-  const assetId = await readyMediaAsset(
-    transaction,
-    input.organizationId,
-    input.mediaAssetId,
-  )
+  const assetId = await readyMediaAsset(transaction, input.organizationId, input.mediaAssetId)
   await transaction
     .delete(eventMedia)
-    .where(
-      and(eq(eventMedia.eventId, input.eventId), eq(eventMedia.role, "cover")),
-    )
+    .where(and(eq(eventMedia.eventId, input.eventId), eq(eventMedia.role, 'cover')))
   if (!assetId) return
   await transaction.insert(eventMedia).values({
     organizationId: input.organizationId,
     eventId: input.eventId,
     mediaAssetId: assetId,
-    role: "cover",
+    role: 'cover',
   })
 }
 
@@ -1004,22 +1005,18 @@ async function materializeIdeaCover(
     organizationId: string
     ideaId: string
     mediaAssetId: string | null
-  },
+  }
 ) {
-  const assetId = await readyMediaAsset(
-    transaction,
-    input.organizationId,
-    input.mediaAssetId,
-  )
+  const assetId = await readyMediaAsset(transaction, input.organizationId, input.mediaAssetId)
   await transaction
     .delete(ideaMedia)
-    .where(and(eq(ideaMedia.ideaId, input.ideaId), eq(ideaMedia.role, "cover")))
+    .where(and(eq(ideaMedia.ideaId, input.ideaId), eq(ideaMedia.role, 'cover')))
   if (!assetId) return
   await transaction.insert(ideaMedia).values({
     organizationId: input.organizationId,
     ideaId: input.ideaId,
     mediaAssetId: assetId,
-    role: "cover",
+    role: 'cover',
   })
 }
 
@@ -1029,113 +1026,90 @@ async function materializeRegistryCover(
     organizationId: string
     registryItemId: string
     mediaAssetId: string | null
-  },
+  }
 ) {
-  const assetId = await readyMediaAsset(
-    transaction,
-    input.organizationId,
-    input.mediaAssetId,
-  )
+  const assetId = await readyMediaAsset(transaction, input.organizationId, input.mediaAssetId)
   await transaction
     .delete(registryItemMedia)
     .where(
       and(
         eq(registryItemMedia.registryItemId, input.registryItemId),
-        eq(registryItemMedia.role, "cover"),
-      ),
+        eq(registryItemMedia.role, 'cover')
+      )
     )
   if (!assetId) return
   await transaction.insert(registryItemMedia).values({
     organizationId: input.organizationId,
     registryItemId: input.registryItemId,
     mediaAssetId: assetId,
-    role: "cover",
+    role: 'cover',
   })
 }
 
 async function deleteCanonicalEntity(
   transaction: NativeTransaction,
-  input: { organizationId: string; entityType: string; entityId: string },
+  input: { organizationId: string; entityType: string; entityId: string }
 ) {
   switch (input.entityType) {
-    case "participant":
+    case 'participant':
       await transaction
         .delete(workspacePerson)
         .where(
           and(
             eq(workspacePerson.id, input.entityId),
-            eq(workspacePerson.organizationId, input.organizationId),
-          ),
+            eq(workspacePerson.organizationId, input.organizationId)
+          )
         )
       break
-    case "event_participation":
-      await assertScopedParticipation(
-        transaction,
-        input.organizationId,
-        input.entityId,
-      )
-      await transaction
-        .delete(eventParticipant)
-        .where(eq(eventParticipant.id, input.entityId))
+    case 'event_participation':
+      await assertScopedParticipation(transaction, input.organizationId, input.entityId)
+      await transaction.delete(eventParticipant).where(eq(eventParticipant.id, input.entityId))
       break
-    case "event":
+    case 'event':
       await transaction
         .delete(event)
-        .where(
-          and(
-            eq(event.id, input.entityId),
-            eq(event.organizationId, input.organizationId),
-          ),
-        )
+        .where(and(eq(event.id, input.entityId), eq(event.organizationId, input.organizationId)))
       break
-    case "idea":
+    case 'idea':
       await transaction
         .delete(idea)
-        .where(
-          and(
-            eq(idea.id, input.entityId),
-            eq(idea.organizationId, input.organizationId),
-          ),
-        )
+        .where(and(eq(idea.id, input.entityId), eq(idea.organizationId, input.organizationId)))
       break
-    case "expense":
+    case 'expense':
       await transaction
         .delete(eventExpense)
         .where(
           and(
             eq(eventExpense.id, input.entityId),
-            eq(eventExpense.organizationId, input.organizationId),
-          ),
+            eq(eventExpense.organizationId, input.organizationId)
+          )
         )
       break
-    case "registry_item":
+    case 'registry_item':
       await transaction
         .delete(registryItem)
         .where(
           and(
             eq(registryItem.id, input.entityId),
-            eq(registryItem.organizationId, input.organizationId),
-          ),
+            eq(registryItem.organizationId, input.organizationId)
+          )
         )
       break
-    case "note":
+    case 'note':
       await transaction
         .delete(eventNote)
         .where(
-          and(
-            eq(eventNote.id, input.entityId),
-            eq(eventNote.organizationId, input.organizationId),
-          ),
+          and(eq(eventNote.id, input.entityId), eq(eventNote.organizationId, input.organizationId))
         )
       break
-    case "moment":
+    case 'moment':
       await transaction
         .delete(eventMedia)
         .where(
           and(
             eq(eventMedia.id, input.entityId),
-            eq(eventMedia.organizationId, input.organizationId),
-          ),
+            eq(eventMedia.organizationId, input.organizationId)
+          )
         )
       break
   }
@@ -1144,7 +1118,7 @@ async function deleteCanonicalEntity(
 async function assertScopedEvent(
   transaction: NativeTransaction,
   organizationId: string,
-  eventId: string,
+  eventId: string
 ) {
   const [existing] = await transaction
     .select({ organizationId: event.organizationId })
@@ -1152,29 +1126,27 @@ async function assertScopedEvent(
     .where(eq(event.id, eventId))
     .limit(1)
   if (existing && existing.organizationId !== organizationId) {
-    throw nativeMaterializationFailure("ENTITY_SCOPE_MISMATCH")
+    throw nativeMaterializationFailure('ENTITY_SCOPE_MISMATCH')
   }
 }
 
 async function requireScopedEvent(
   transaction: NativeTransaction,
   organizationId: string,
-  eventId: string,
+  eventId: string
 ) {
   const [existing] = await transaction
     .select({ id: event.id })
     .from(event)
-    .where(
-      and(eq(event.id, eventId), eq(event.organizationId, organizationId)),
-    )
+    .where(and(eq(event.id, eventId), eq(event.organizationId, organizationId)))
     .limit(1)
-  if (!existing) throw nativeMaterializationFailure("EVENT_NOT_MATERIALIZED")
+  if (!existing) throw nativeMaterializationFailure('EVENT_NOT_MATERIALIZED')
 }
 
 async function assertScopedPerson(
   transaction: NativeTransaction,
   organizationId: string,
-  personId: string,
+  personId: string
 ) {
   const [existing] = await transaction
     .select({ organizationId: workspacePerson.organizationId })
@@ -1182,32 +1154,29 @@ async function assertScopedPerson(
     .where(eq(workspacePerson.id, personId))
     .limit(1)
   if (existing && existing.organizationId !== organizationId) {
-    throw nativeMaterializationFailure("ENTITY_SCOPE_MISMATCH")
+    throw nativeMaterializationFailure('ENTITY_SCOPE_MISMATCH')
   }
 }
 
 async function requireScopedPerson(
   transaction: NativeTransaction,
   organizationId: string,
-  personId: string,
+  personId: string
 ) {
   const [existing] = await transaction
     .select({ id: workspacePerson.id })
     .from(workspacePerson)
     .where(
-      and(
-        eq(workspacePerson.id, personId),
-        eq(workspacePerson.organizationId, organizationId),
-      ),
+      and(eq(workspacePerson.id, personId), eq(workspacePerson.organizationId, organizationId))
     )
     .limit(1)
-  if (!existing) throw nativeMaterializationFailure("PERSON_NOT_MATERIALIZED")
+  if (!existing) throw nativeMaterializationFailure('PERSON_NOT_MATERIALIZED')
 }
 
 async function assertScopedIdea(
   transaction: NativeTransaction,
   organizationId: string,
-  id: string,
+  id: string
 ) {
   const [existing] = await transaction
     .select({ organizationId: idea.organizationId })
@@ -1220,7 +1189,7 @@ async function assertScopedIdea(
 async function assertScopedExpense(
   transaction: NativeTransaction,
   organizationId: string,
-  id: string,
+  id: string
 ) {
   const [existing] = await transaction
     .select({ organizationId: eventExpense.organizationId })
@@ -1233,7 +1202,7 @@ async function assertScopedExpense(
 async function assertScopedRegistryItem(
   transaction: NativeTransaction,
   organizationId: string,
-  id: string,
+  id: string
 ) {
   const [existing] = await transaction
     .select({ organizationId: registryItem.organizationId })
@@ -1246,7 +1215,7 @@ async function assertScopedRegistryItem(
 async function assertScopedNote(
   transaction: NativeTransaction,
   organizationId: string,
-  id: string,
+  id: string
 ) {
   const [existing] = await transaction
     .select({ organizationId: eventNote.organizationId })
@@ -1259,7 +1228,7 @@ async function assertScopedNote(
 async function assertScopedEventMedia(
   transaction: NativeTransaction,
   organizationId: string,
-  id: string,
+  id: string
 ) {
   const [existing] = await transaction
     .select({ organizationId: eventMedia.organizationId })
@@ -1272,7 +1241,7 @@ async function assertScopedEventMedia(
 async function assertScopedParticipation(
   transaction: NativeTransaction,
   organizationId: string,
-  id: string,
+  id: string
 ) {
   const [existing] = await transaction
     .select({ organizationId: event.organizationId })
@@ -1281,33 +1250,30 @@ async function assertScopedParticipation(
     .where(eq(eventParticipant.id, id))
     .limit(1)
   if (existing && existing.organizationId !== organizationId) {
-    throw nativeMaterializationFailure("ENTITY_SCOPE_MISMATCH")
+    throw nativeMaterializationFailure('ENTITY_SCOPE_MISMATCH')
   }
 }
 
 function assertOrganization(
   existingOrganizationId: string | undefined,
-  expectedOrganizationId: string,
+  expectedOrganizationId: string
 ) {
-  if (
-    existingOrganizationId &&
-    existingOrganizationId !== expectedOrganizationId
-  ) {
-    throw nativeMaterializationFailure("ENTITY_SCOPE_MISMATCH")
+  if (existingOrganizationId && existingOrganizationId !== expectedOrganizationId) {
+    throw nativeMaterializationFailure('ENTITY_SCOPE_MISMATCH')
   }
 }
 
 function decodeNativePayload(payload: string): unknown {
   try {
-    return JSON.parse(Buffer.from(payload, "base64").toString("utf8"))
+    return JSON.parse(Buffer.from(payload, 'base64').toString('utf8'))
   } catch {
-    throw nativeMaterializationFailure("INVALID_ENTITY_PAYLOAD")
+    throw nativeMaterializationFailure('INVALID_ENTITY_PAYLOAD')
   }
 }
 
 function asRecord(value: unknown): Record<string, unknown> {
-  if (typeof value !== "object" || value === null || Array.isArray(value)) {
-    throw nativeMaterializationFailure("INVALID_ENTITY_PAYLOAD")
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+    throw nativeMaterializationFailure('INVALID_ENTITY_PAYLOAD')
   }
   return value as Record<string, unknown>
 }
@@ -1318,14 +1284,14 @@ function optionalRecord(value: unknown) {
 }
 
 function requiredString(value: unknown, code: string) {
-  if (typeof value !== "string" || !value) {
+  if (typeof value !== 'string' || !value) {
     throw nativeMaterializationFailure(code)
   }
   return value
 }
 
 function optionalTrimmed(value: unknown) {
-  if (typeof value !== "string") return null
+  if (typeof value !== 'string') return null
   const trimmed = value.trim()
   return trimmed || null
 }
@@ -1344,10 +1310,8 @@ function requiredUUID(value: unknown, code: string) {
 
 function optionalUUID(value: unknown) {
   if (
-    typeof value !== "string" ||
-    !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
-      value,
-    )
+    typeof value !== 'string' ||
+    !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value)
   ) {
     return null
   }
@@ -1355,8 +1319,8 @@ function optionalUUID(value: unknown) {
 }
 
 function assertPayloadId(entityId: string, payloadId: unknown) {
-  if (requiredUUID(payloadId, "ENTITY_ID_MISSING") !== entityId) {
-    throw nativeMaterializationFailure("ENTITY_ID_MISMATCH")
+  if (requiredUUID(payloadId, 'ENTITY_ID_MISSING') !== entityId) {
+    throw nativeMaterializationFailure('ENTITY_ID_MISMATCH')
   }
 }
 
@@ -1367,10 +1331,10 @@ function nativeDate(value: unknown, code: string) {
 }
 
 function optionalNativeDate(value: unknown): Date | null {
-  if (typeof value === "number" && Number.isFinite(value)) {
+  if (typeof value === 'number' && Number.isFinite(value)) {
     return new Date((value + appleReferenceDateOffsetSeconds) * 1_000)
   }
-  if (typeof value === "string") {
+  if (typeof value === 'string') {
     const date = new Date(value)
     return Number.isNaN(date.valueOf()) ? null : date
   }
@@ -1378,8 +1342,8 @@ function optionalNativeDate(value: unknown): Date | null {
 }
 
 function optionalDecimal(value: unknown): string | null {
-  if (typeof value !== "number" && typeof value !== "string") return null
-  const normalized = String(value).replaceAll(",", "")
+  if (typeof value !== 'number' && typeof value !== 'string') return null
+  const normalized = String(value).replaceAll(',', '')
   if (!/^\d+(?:\.\d+)?$/.test(normalized)) return null
   return normalized
 }
@@ -1391,7 +1355,7 @@ function requiredDecimal(value: unknown, code: string) {
 }
 
 function integer(value: unknown, fallback: number) {
-  return typeof value === "number" && Number.isInteger(value) ? value : fallback
+  return typeof value === 'number' && Number.isInteger(value) ? value : fallback
 }
 
 function locationColumns(location: Record<string, unknown> | null) {
@@ -1405,10 +1369,8 @@ function locationColumns(location: Record<string, unknown> | null) {
       mapItemIdentifier: null,
     }
   }
-  const latitude =
-    typeof location.latitude === "number" ? location.latitude : null
-  const longitude =
-    typeof location.longitude === "number" ? location.longitude : null
+  const latitude = typeof location.latitude === 'number' ? location.latitude : null
+  const longitude = typeof location.longitude === 'number' ? location.longitude : null
   return {
     locationName:
       optionalTrimmed(location.locationName) ??
@@ -1416,10 +1378,8 @@ function locationColumns(location: Record<string, unknown> | null) {
       optionalTrimmed(location.shortAddress),
     locationAddress: optionalTrimmed(location.address),
     locationAddressLine2: optionalTrimmed(location.addressLine2),
-    locationLatitude:
-      latitude != null && longitude != null ? latitude : null,
-    locationLongitude:
-      latitude != null && longitude != null ? longitude : null,
+    locationLatitude: latitude != null && longitude != null ? latitude : null,
+    locationLongitude: latitude != null && longitude != null ? longitude : null,
     mapItemIdentifier: optionalTrimmed(location.mapItemIdentifier),
   }
 }
@@ -1427,139 +1387,167 @@ function locationColumns(location: Record<string, unknown> | null) {
 function mapValue<Output extends string>(
   value: unknown,
   mapping: Record<string, Output>,
-  fallback: Output,
+  fallback: Output
 ) {
-  return typeof value === "string" && value in mapping
-    ? mapping[value]!
-    : fallback
+  return typeof value === 'string' && value in mapping ? mapping[value]! : fallback
 }
 
 function mapRole(value: unknown) {
-  return value === "host" || value === "collaborator" || value === "guest"
-    ? value
-    : "guest"
+  return value === 'host' || value === 'collaborator' || value === 'guest' ? value : 'guest'
 }
 
 function mapPlanningPermission(value: unknown, role?: string) {
-  if (role === "host") return "manage" as const
-  if (role === "guest") return "view_only" as const
-  return mapValue(value, {
-    manage: "manage",
-    contribute: "contribute",
-    viewOnly: "view_only",
-    view_only: "view_only",
-  } as const, "contribute")
+  if (role === 'host') return 'manage' as const
+  if (role === 'guest') return 'view_only' as const
+  return mapValue(
+    value,
+    {
+      manage: 'manage',
+      contribute: 'contribute',
+      viewOnly: 'view_only',
+      view_only: 'view_only',
+    } as const,
+    'contribute'
+  )
 }
 
 function mapAttendance(value: unknown) {
-  return mapValue(value, {
-    invited: "pending",
-    pending: "pending",
-    going: "going",
-    maybe: "not_sure",
-    notSure: "not_sure",
-    not_sure: "not_sure",
-    declined: "not_going",
-    notGoing: "not_going",
-    not_going: "not_going",
-  } as const, "pending")
+  return mapValue(
+    value,
+    {
+      invited: 'pending',
+      pending: 'pending',
+      going: 'going',
+      maybe: 'not_sure',
+      notSure: 'not_sure',
+      not_sure: 'not_sure',
+      declined: 'not_going',
+      notGoing: 'not_going',
+      not_going: 'not_going',
+    } as const,
+    'pending'
+  )
 }
 
 function mapEventCategory(value: unknown) {
-  return mapValue(value, {
-    venue: "venue",
-    foodTasting: "food_tasting",
-    food_tasting: "food_tasting",
-    photography: "photography",
-    honeymoon: "honeymoon",
-    attireFitting: "attire_fitting",
-    attire_fitting: "attire_fitting",
-    weddingShower: "wedding_shower",
-    wedding_shower: "wedding_shower",
-    bachelorBachelorette: "bachelor_bachelorette",
-    bachelor_bachelorette: "bachelor_bachelorette",
-    rehearsal: "rehearsal",
-    ceremony: "ceremony",
-    reception: "reception",
-    other: "other",
-  } as const, "other")
+  return mapValue(
+    value,
+    {
+      venue: 'venue',
+      foodTasting: 'food_tasting',
+      food_tasting: 'food_tasting',
+      photography: 'photography',
+      honeymoon: 'honeymoon',
+      attireFitting: 'attire_fitting',
+      attire_fitting: 'attire_fitting',
+      weddingShower: 'wedding_shower',
+      wedding_shower: 'wedding_shower',
+      bachelorBachelorette: 'bachelor_bachelorette',
+      bachelor_bachelorette: 'bachelor_bachelorette',
+      rehearsal: 'rehearsal',
+      ceremony: 'ceremony',
+      reception: 'reception',
+      other: 'other',
+    } as const,
+    'other'
+  )
 }
 
 function mapEventPlanningStatus(value: unknown) {
-  return mapValue(value, {
-    draft: "draft",
-    approved: "approved",
-    notSure: "not_sure",
-    not_sure: "not_sure",
-    rejected: "rejected",
-    archived: "archived",
-    cancelled: "cancelled",
-  } as const, "draft")
+  return mapValue(
+    value,
+    {
+      draft: 'draft',
+      approved: 'approved',
+      notSure: 'not_sure',
+      not_sure: 'not_sure',
+      rejected: 'rejected',
+      archived: 'archived',
+      cancelled: 'cancelled',
+    } as const,
+    'draft'
+  )
 }
 
 function mapIdeaCategory(value: unknown) {
-  return mapValue(value, {
-    event: "event",
-    registry: "registry",
-    link: "link",
-    venue: "venue",
-    attire: "attire",
-    flowers: "flowers",
-    food: "food",
-    photography: "photography",
-    music: "music",
-    decor: "decor",
-    invitations: "invitations",
-    honeymoon: "honeymoon",
-    other: "other",
-  } as const, "other")
+  return mapValue(
+    value,
+    {
+      event: 'event',
+      registry: 'registry',
+      link: 'link',
+      venue: 'venue',
+      attire: 'attire',
+      flowers: 'flowers',
+      food: 'food',
+      photography: 'photography',
+      music: 'music',
+      decor: 'decor',
+      invitations: 'invitations',
+      honeymoon: 'honeymoon',
+      other: 'other',
+    } as const,
+    'other'
+  )
 }
 
 function mapIdeaStatus(value: unknown) {
-  return mapValue(value, {
-    new: "new",
-    maybe: "maybe",
-    shortlisted: "shortlisted",
-    chosen: "approved",
-    approved: "approved",
-    passed: "passed",
-    archived: "archived",
-  } as const, "new")
+  return mapValue(
+    value,
+    {
+      new: 'new',
+      maybe: 'maybe',
+      shortlisted: 'shortlisted',
+      chosen: 'approved',
+      approved: 'approved',
+      passed: 'passed',
+      archived: 'archived',
+    } as const,
+    'new'
+  )
 }
 
 function mapExpenseCategory(value: unknown) {
-  return mapValue(value, {
-    venue: "venue",
-    foodAndDrink: "food_and_drink",
-    food_and_drink: "food_and_drink",
-    attire: "attire",
-    decor: "decor",
-    entertainment: "entertainment",
-    photography: "photography",
-    stationery: "stationery",
-    travel: "travel",
-    gifts: "gifts",
-    other: "other",
-  } as const, "other")
+  return mapValue(
+    value,
+    {
+      venue: 'venue',
+      foodAndDrink: 'food_and_drink',
+      food_and_drink: 'food_and_drink',
+      attire: 'attire',
+      decor: 'decor',
+      entertainment: 'entertainment',
+      photography: 'photography',
+      stationery: 'stationery',
+      travel: 'travel',
+      gifts: 'gifts',
+      other: 'other',
+    } as const,
+    'other'
+  )
 }
 
 function mapRegistryCategory(value: unknown) {
-  return mapValue(value, {
-    home: "home",
-    kitchen: "kitchen",
-    travel: "travel",
-    experience: "experience",
-    cashFund: "cash_fund",
-    cash_fund: "cash_fund",
-  } as const, "home")
+  return mapValue(
+    value,
+    {
+      home: 'home',
+      kitchen: 'kitchen',
+      travel: 'travel',
+      experience: 'experience',
+      cashFund: 'cash_fund',
+      cash_fund: 'cash_fund',
+    } as const,
+    'home'
+  )
 }
 
 function slugify(value: string) {
   return (
     value
       .toLowerCase()
-      .replaceAll(/[^a-z0-9]+/g, "-")
-      .replaceAll(/^-|-$/g, "")
-      .slice(0, 64) || "workspace"
+      .replaceAll(/[^a-z0-9]+/g, '-')
+      .replaceAll(/^-|-$/g, '')
+      .slice(0, 64) || 'workspace'
   )
 }

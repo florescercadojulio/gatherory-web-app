@@ -1,60 +1,52 @@
-import * as React from "react"
-import { useTranslation } from "react-i18next"
-import { cn } from "cn"
+import * as React from 'react'
+import { useTranslation } from 'react-i18next'
+import { cn } from 'cn'
 
-import { Button } from "@/components/ui/button.tsx"
-import { ChevronLeftIcon, ChevronRightIcon, MoreHorizontalIcon } from "lucide-react"
+import { Button } from '@/components/ui/button.tsx'
+import { ChevronLeftIcon, ChevronRightIcon, MoreHorizontalIcon } from 'lucide-react'
 
-function Pagination({ className, ...props }: React.ComponentProps<"nav">) {
+function Pagination({ className, ...props }: React.ComponentProps<'nav'>) {
   const { t } = useTranslation()
   return (
     <nav
       role="navigation"
-      aria-label={t("ui.pagination")}
+      aria-label={t('ui.pagination')}
       data-slot="pagination"
-      className={cn("mx-auto flex w-full justify-center", className)}
+      className={cn('mx-auto flex w-full justify-center', className)}
       {...props}
     />
   )
 }
 
-function PaginationContent({
-  className,
-  ...props
-}: React.ComponentProps<"ul">) {
+function PaginationContent({ className, ...props }: React.ComponentProps<'ul'>) {
   return (
     <ul
       data-slot="pagination-content"
-      className={cn("flex items-center gap-0.5", className)}
+      className={cn('flex items-center gap-0.5', className)}
       {...props}
     />
   )
 }
 
-function PaginationItem({ ...props }: React.ComponentProps<"li">) {
+function PaginationItem({ ...props }: React.ComponentProps<'li'>) {
   return <li data-slot="pagination-item" {...props} />
 }
 
 type PaginationLinkProps = {
   isActive?: boolean
-} & Pick<React.ComponentProps<typeof Button>, "size"> &
-  React.ComponentProps<"a">
+} & Pick<React.ComponentProps<typeof Button>, 'size'> &
+  React.ComponentProps<'a'>
 
-function PaginationLink({
-  className,
-  isActive,
-  size = "icon",
-  ...props
-}: PaginationLinkProps) {
+function PaginationLink({ className, isActive, size = 'icon', ...props }: PaginationLinkProps) {
   return (
     <Button
-      variant={isActive ? "outline" : "ghost"}
+      variant={isActive ? 'outline' : 'ghost'}
       size={size}
       className={cn(className)}
       nativeButton={false}
       render={
         <a
-          aria-current={isActive ? "page" : undefined}
+          aria-current={isActive ? 'page' : undefined}
           data-slot="pagination-link"
           data-active={isActive}
           {...props}
@@ -72,13 +64,13 @@ function PaginationPrevious({
   const { t } = useTranslation()
   return (
     <PaginationLink
-      aria-label={t("ui.previousPage")}
+      aria-label={t('ui.previousPage')}
       size="default"
-      className={cn("pl-1.5!", className)}
+      className={cn('pl-1.5!', className)}
       {...props}
     >
       <ChevronLeftIcon data-icon="inline-start" />
-      <span className="hidden sm:block">{text ?? t("ui.previous")}</span>
+      <span className="hidden sm:block">{text ?? t('ui.previous')}</span>
     </PaginationLink>
   )
 }
@@ -91,21 +83,18 @@ function PaginationNext({
   const { t } = useTranslation()
   return (
     <PaginationLink
-      aria-label={t("ui.nextPage")}
+      aria-label={t('ui.nextPage')}
       size="default"
-      className={cn("pr-1.5!", className)}
+      className={cn('pr-1.5!', className)}
       {...props}
     >
-      <span className="hidden sm:block">{text ?? t("ui.next")}</span>
+      <span className="hidden sm:block">{text ?? t('ui.next')}</span>
       <ChevronRightIcon data-icon="inline-end" />
     </PaginationLink>
   )
 }
 
-function PaginationEllipsis({
-  className,
-  ...props
-}: React.ComponentProps<"span">) {
+function PaginationEllipsis({ className, ...props }: React.ComponentProps<'span'>) {
   const { t } = useTranslation()
   return (
     <span
@@ -117,9 +106,8 @@ function PaginationEllipsis({
       )}
       {...props}
     >
-      <MoreHorizontalIcon
-      />
-      <span className="sr-only">{t("ui.morePages")}</span>
+      <MoreHorizontalIcon />
+      <span className="sr-only">{t('ui.morePages')}</span>
     </span>
   )
 }

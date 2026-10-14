@@ -1,13 +1,13 @@
-import { Text } from "react-email"
+import { Text } from 'react-email'
 
-import { AuthEmailLayout } from "@/emails/_components/auth-email-layout"
+import { AuthEmailLayout } from '@/emails/_components/auth-email-layout'
 
 export type MagicLinkEmailProps = {
   magicLinkUrl: string
 }
 
 export default function MagicLinkEmail({
-  magicLinkUrl = "https://app.gatherory.com/api/auth/magic-link/verify?token=preview",
+  magicLinkUrl = 'https://app.gatherory.com/api/auth/magic-link/verify?token=preview',
 }: MagicLinkEmailProps) {
   return (
     <AuthEmailLayout
@@ -26,6 +26,5 @@ export default function MagicLinkEmail({
 }
 
 MagicLinkEmail.PreviewProps = {
-  magicLinkUrl:
-    "https://app.gatherory.com/api/auth/magic-link/verify?token=preview",
+  magicLinkUrl: 'https://app.gatherory.com/api/auth/magic-link/verify?token=preview',
 } satisfies MagicLinkEmailProps

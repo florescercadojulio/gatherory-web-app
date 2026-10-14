@@ -1,22 +1,19 @@
-import { useEffect, useRef, useState, type ReactNode } from "react"
-import type { RowData } from "@tanstack/react-table"
-import { CheckCircle2Icon, PencilIcon, SearchIcon } from "lucide-react"
-import { Popover as PopoverPrimitive } from "radix-ui"
-import { toast } from "sonner"
-import { useTranslation } from "react-i18next"
+import { useEffect, useRef, useState, type ReactNode } from 'react'
+import type { RowData } from '@tanstack/react-table'
+import { CheckCircle2Icon, PencilIcon, SearchIcon } from 'lucide-react'
+import { Popover as PopoverPrimitive } from 'radix-ui'
+import { toast } from 'sonner'
+import { useTranslation } from 'react-i18next'
 
-import type {
-  EntityTablePageRequest,
-  EntityTableServerFn,
-} from "@/components/entity-table-page"
-import { Button } from "@/components/ui/button"
+import type { EntityTablePageRequest, EntityTableServerFn } from '@/components/entity-table-page'
+import { Button } from '@/components/ui/button'
 import {
   InputGroup,
   InputGroupAddon,
   InputGroupButton,
   InputGroupInput,
-} from "@/components/ui/input-group"
-import { toastServerError } from "@/lib/toast-server-error"
+} from '@/components/ui/input-group'
+import { toastServerError } from '@/lib/toast-server-error'
 
 export interface EntityPickerProps<
   TData extends RowData,
@@ -43,10 +40,7 @@ export interface EntityPickerProps<
 
 const pageSize = 5
 
-export function EntityPicker<
-  TData extends RowData,
-  TInput extends object = Record<never, never>,
->({
+export function EntityPicker<TData extends RowData, TInput extends object = Record<never, never>>({
   serverFn,
   request,
   selectedItem,
@@ -68,7 +62,7 @@ export function EntityPicker<
   const { t } = useTranslation()
   const inputRef = useRef<HTMLInputElement>(null)
   const [open, setOpen] = useState(false)
-  const [localQuery, setLocalQuery] = useState("")
+  const [localQuery, setLocalQuery] = useState('')
   const query = controlledQuery ?? localQuery
   const [pageIndex, setPageIndex] = useState(0)
   const [items, setItems] = useState<TData[]>([])
@@ -114,7 +108,7 @@ export function EntityPicker<
           if (!cancelled) {
             setItems([])
             setHasNextPage(false)
-            toast.error(t("picker.loadFailed"))
+            toast.error(t('picker.loadFailed'))
           }
         })
         .finally(() => {
@@ -129,7 +123,7 @@ export function EntityPicker<
   }, [open, pageIndex, query, request, selectedItem, serverFn])
 
   const chooseAnother = () => {
-    const previousLabel = selectedItem ? getItemLabel(selectedItem) : ""
+    const previousLabel = selectedItem ? getItemLabel(selectedItem) : ''
     onClear()
     setQuery(previousLabel)
     setPageIndex(0)
@@ -182,8 +176,8 @@ export function EntityPicker<
             <InputGroupAddon align="inline-end">
               <InputGroupButton
                 size="icon-xs"
-                aria-label={t("picker.chooseAnother", { label: placeholder.toLowerCase() })}
-                title={t("picker.chooseAnother", { label: placeholder.toLowerCase() })}
+                aria-label={t('picker.chooseAnother', { label: placeholder.toLowerCase() })}
+                title={t('picker.chooseAnother', { label: placeholder.toLowerCase() })}
                 onPointerDown={(event) => event.preventDefault()}
                 onClick={chooseAnother}
               >
@@ -217,10 +211,10 @@ export function EntityPicker<
                 </button>
               ))
             ) : isLoading ? (
-              <p className="p-3 text-sm text-muted-foreground">{t("common.loading")}</p>
+              <p className="p-3 text-sm text-muted-foreground">{t('common.loading')}</p>
             ) : (
               <p className="p-3 text-sm text-muted-foreground">
-                {emptyMessage ?? t("picker.noChoices")}
+                {emptyMessage ?? t('picker.noChoices')}
               </p>
             )}
           </div>
@@ -233,15 +227,10 @@ export function EntityPicker<
               onClick={() => setPageIndex((index) => index - 1)}
               disabled={pageIndex === 0 || isLoading}
             >
-              {t("picker.previous")}
+              {t('picker.previous')}
             </Button>
-            <Button
-              type="button"
-              variant="ghost"
-              size="xs"
-              onClick={() => setOpen(false)}
-            >
-              {t("picker.cancel")}
+            <Button type="button" variant="ghost" size="xs" onClick={() => setOpen(false)}>
+              {t('picker.cancel')}
             </Button>
             <Button
               type="button"
@@ -251,7 +240,7 @@ export function EntityPicker<
               onClick={() => setPageIndex((index) => index + 1)}
               disabled={!hasNextPage || isLoading}
             >
-              {t("picker.next")}
+              {t('picker.next')}
             </Button>
           </div>
         </PopoverPrimitive.Content>

@@ -1,14 +1,14 @@
-import { useAuth, useSendVerificationEmail } from "@better-auth-ui/react"
-import { useEffect, useState } from "react"
-import { toast } from "sonner"
+import { useAuth, useSendVerificationEmail } from '@better-auth-ui/react'
+import { useEffect, useState } from 'react'
+import { toast } from 'sonner'
 
-import { Button } from "@/components/ui/button.tsx"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card.tsx"
-import { FieldDescription } from "@/components/ui/field.tsx"
-import { Spinner } from "@/components/ui/spinner.tsx"
-import { cn } from "cn"
-import { OpenEmailButton } from "./open-email-button"
-import { useIsHydrated } from "./use-is-hydrated"
+import { Button } from '@/components/ui/button.tsx'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card.tsx'
+import { FieldDescription } from '@/components/ui/field.tsx'
+import { Spinner } from '@/components/ui/spinner.tsx'
+import { cn } from 'cn'
+import { OpenEmailButton } from './open-email-button'
+import { useIsHydrated } from './use-is-hydrated'
 
 export type VerifyEmailProps = {
   className?: string
@@ -30,24 +30,16 @@ const RESEND_COOLDOWN_SECONDS = 60
  * @returns The verify-email card React element
  */
 export function VerifyEmail({ className }: VerifyEmailProps) {
-  const {
-    authClient,
-    basePaths,
-    baseURL,
-    localization,
-    redirectTo,
-    viewPaths,
-    Link
-  } = useAuth()
+  const { authClient, basePaths, baseURL, localization, redirectTo, viewPaths, Link } = useAuth()
 
   const isHydrated = useIsHydrated()
   const [email, setEmail] = useState(
-    (isHydrated && sessionStorage.getItem("better-auth-ui.verify-email")) || ""
+    (isHydrated && sessionStorage.getItem('better-auth-ui.verify-email')) || ''
   )
   const [cooldown, setCooldown] = useState(RESEND_COOLDOWN_SECONDS)
 
   useEffect(() => {
-    setEmail(sessionStorage.getItem("better-auth-ui.verify-email") ?? "")
+    setEmail(sessionStorage.getItem('better-auth-ui.verify-email') ?? '')
   }, [])
 
   useEffect(() => {
@@ -60,31 +52,24 @@ export function VerifyEmail({ className }: VerifyEmailProps) {
     return () => clearInterval(interval)
   }, [cooldown, email])
 
-  const { mutate: sendVerificationEmail, isPending } = useSendVerificationEmail(
-    authClient,
-    {
-      onSuccess: () => {
-        toast.success(localization.auth.verificationEmailSent)
-        setCooldown(RESEND_COOLDOWN_SECONDS)
-      }
-    }
-  )
+  const { mutate: sendVerificationEmail, isPending } = useSendVerificationEmail(authClient, {
+    onSuccess: () => {
+      toast.success(localization.auth.verificationEmailSent)
+      setCooldown(RESEND_COOLDOWN_SECONDS)
+    },
+  })
 
   const isCoolingDown = cooldown > 0
 
   return (
-    <Card className={cn("w-full max-w-sm", className)}>
+    <Card className={cn('w-full max-w-sm', className)}>
       <CardHeader>
-        <CardTitle className="text-xl font-semibold">
-          {localization.auth.verifyEmail}
-        </CardTitle>
+        <CardTitle className="text-xl font-semibold">{localization.auth.verifyEmail}</CardTitle>
       </CardHeader>
 
       <CardContent>
         <div className="flex flex-col gap-4">
-          <FieldDescription>
-            {localization.auth.checkYourEmail}
-          </FieldDescription>
+          <FieldDescription>{localization.auth.checkYourEmail}</FieldDescription>
 
           {email && (
             <div className="flex flex-col gap-3">
@@ -97,17 +82,14 @@ export function VerifyEmail({ className }: VerifyEmailProps) {
                 onClick={() =>
                   sendVerificationEmail({
                     email,
-                    callbackURL: `${baseURL}${redirectTo}`
+                    callbackURL: `${baseURL}${redirectTo}`,
                   })
                 }
               >
                 {isPending && <Spinner />}
 
                 {isCoolingDown
-                  ? localization.auth.resendIn.replace(
-                      "{{seconds}}",
-                      String(cooldown)
-                    )
+                  ? localization.auth.resendIn.replace('{{seconds}}', String(cooldown))
                   : localization.auth.resend}
               </Button>
             </div>
@@ -116,7 +98,7 @@ export function VerifyEmail({ className }: VerifyEmailProps) {
 
         <div className="flex flex-col gap-3 items-center w-full mt-4">
           <FieldDescription className="text-center">
-            {localization.auth.alreadyVerifiedYourEmail}{" "}
+            {localization.auth.alreadyVerifiedYourEmail}{' '}
             <Link
               href={`${basePaths.auth}/${viewPaths.auth.signIn}`}
               className="underline underline-offset-4"

@@ -1,18 +1,11 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useTranslation } from "react-i18next";
-import {
-  CalendarDays,
-  Clock3,
-  Compass,
-  MailPlus,
-  MapPin,
-  PartyPopper,
-} from "lucide-react";
+import { createFileRoute } from '@tanstack/react-router'
+import { useTranslation } from 'react-i18next'
+import { CalendarDays, Clock3, Compass, MailPlus, MapPin, PartyPopper } from 'lucide-react'
 
-import { ParticipantAvatars } from "@/components/participant-avatars";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ServerErrorToast } from "@/components/route-feedback";
-import { Badge } from "@/components/ui/badge";
+import { ParticipantAvatars } from '@/components/participant-avatars'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { ServerErrorToast } from '@/components/route-feedback'
+import { Badge } from '@/components/ui/badge'
 import {
   Card,
   CardAction,
@@ -20,58 +13,51 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
-import type { EventWorkspaceSummary } from "@/server/events/contracts/event.contracts";
-import { listEvents } from "@/server/events/handlers/event.handlers";
+} from '@/components/ui/card'
+import { Separator } from '@/components/ui/separator'
+import type { EventWorkspaceSummary } from '@/server/events/contracts/event.contracts'
+import { listEvents } from '@/server/events/handlers/event.handlers'
 
-export const Route = createFileRoute("/_protected/workspaces/$workspaceSlug/")({
+export const Route = createFileRoute('/_protected/workspaces/$workspaceSlug/')({
   loader: ({ context }) => {
     if (!context.workspaceContext) {
       return {
         ok: false as const,
         error: context.workspaceError ?? {
-          userMessage: "This workspace could not be loaded. Try again.",
+          userMessage: 'This workspace could not be loaded. Try again.',
           errorId: crypto.randomUUID(),
         },
-      };
+      }
     }
 
     return listEvents({
       data: {
         organizationId: context.workspaceContext.workspace.id,
       },
-    });
+    })
   },
   component: Home,
-});
+})
 
 function initials(name: string) {
   return name
-    .split(" ")
+    .split(' ')
     .slice(0, 2)
     .map((part) => part[0])
-    .join("")
-    .toUpperCase();
+    .join('')
+    .toUpperCase()
 }
 
-function EventWorkspace({
-  event,
-  shared,
-}: {
-  event: EventWorkspaceSummary;
-  shared: boolean;
-}) {
-  const { t, i18n } = useTranslation();
+function EventWorkspace({ event, shared }: { event: EventWorkspaceSummary; shared: boolean }) {
+  const { t, i18n } = useTranslation()
   const dateFormatter = new Intl.DateTimeFormat(i18n.language, {
-    month: "short", day: "numeric", year: "numeric", timeZone: "America/Detroit",
-  });
-  const planningEvents = event.childEvents.filter(
-    (child) => child.purpose === "planning_scouting",
-  );
-  const guestEvents = event.childEvents.filter(
-    (child) => child.purpose === "part_of_event",
-  );
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    timeZone: 'America/Detroit',
+  })
+  const planningEvents = event.childEvents.filter((child) => child.purpose === 'planning_scouting')
+  const guestEvents = event.childEvents.filter((child) => child.purpose === 'part_of_event')
 
   return (
     <section className="space-y-6" aria-labelledby={`event-${event.id}`}>
@@ -89,7 +75,7 @@ function EventWorkspace({
           </CardDescription>
           <CardAction>
             <div className="flex flex-wrap justify-end gap-2">
-              {shared ? <Badge variant="outline">{t("event.sharedWithYou")}</Badge> : null}
+              {shared ? <Badge variant="outline">{t('event.sharedWithYou')}</Badge> : null}
               <Badge variant="secondary" className="capitalize">
                 {t(`event.roles.${event.currentParticipant.role}`)}
               </Badge>
@@ -105,7 +91,7 @@ function EventWorkspace({
               <CalendarDays className="size-4 text-brand-ink" />
               {event.startsAt
                 ? dateFormatter.format(new Date(event.startsAt))
-                : t("event.dateNotSet")}
+                : t('event.dateNotSet')}
             </span>
             {event.locationName ? (
               <span className="inline-flex items-center gap-2">
@@ -122,24 +108,24 @@ function EventWorkspace({
         <section className="border-t pt-6">
           <header className="mb-6 flex items-start justify-between gap-4">
             <div>
-              <h2 className="app-section-heading">{t("event.schedule")}</h2>
-              <p className="mt-1 text-sm text-muted-foreground">
-                {t("event.scheduleDescription")}
-              </p>
+              <h2 className="app-section-heading">{t('event.schedule')}</h2>
+              <p className="mt-1 text-sm text-muted-foreground">{t('event.scheduleDescription')}</p>
             </div>
             <div>
-              <Badge variant="outline">{t("event.eventCount", { count: event.childEvents.length })}</Badge>
+              <Badge variant="outline">
+                {t('event.eventCount', { count: event.childEvents.length })}
+              </Badge>
             </div>
           </header>
           <div className="space-y-6">
             <EventGroup
-              title={t("event.purpose.planning_scouting")}
+              title={t('event.purpose.planning_scouting')}
               icon={Compass}
               events={planningEvents}
             />
             <Separator />
             <EventGroup
-              title={t("event.purpose.part_of_event")}
+              title={t('event.purpose.part_of_event')}
               icon={PartyPopper}
               events={guestEvents}
             />
@@ -149,39 +135,27 @@ function EventWorkspace({
         <section className="border-t pt-6">
           <header className="mb-6 flex items-start justify-between gap-4">
             <div>
-              <h2 className="app-section-heading">{t("common.people")}</h2>
-              <p className="mt-1 text-sm text-muted-foreground">
-                {t("event.peopleDescription")}
-              </p>
+              <h2 className="app-section-heading">{t('common.people')}</h2>
+              <p className="mt-1 text-sm text-muted-foreground">{t('event.peopleDescription')}</p>
             </div>
             {event.pendingInvitationCount ? (
               <div>
                 <Badge variant="outline" className="gap-1">
                   <MailPlus />
-                  {t("event.pending", { count: event.pendingInvitationCount })}
+                  {t('event.pending', { count: event.pendingInvitationCount })}
                 </Badge>
               </div>
             ) : null}
           </header>
           <div className="divide-y border-y">
             {event.participants.map((participant) => (
-              <div
-                key={participant.id}
-                className="flex items-center gap-3 py-3"
-              >
+              <div key={participant.id} className="flex items-center gap-3 py-3">
                 <Avatar className="size-9">
-                  <AvatarImage
-                    src={participant.image ?? undefined}
-                    alt={participant.name}
-                  />
-                  <AvatarFallback className="text-xs">
-                    {initials(participant.name)}
-                  </AvatarFallback>
+                  <AvatarImage src={participant.image ?? undefined} alt={participant.name} />
+                  <AvatarFallback className="text-xs">{initials(participant.name)}</AvatarFallback>
                 </Avatar>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium">
-                    {participant.name}
-                  </p>
+                  <p className="truncate text-sm font-medium">{participant.name}</p>
                   <p className="capitalize text-xs text-muted-foreground">
                     {t(`event.roles.${participant.role}`)}
                   </p>
@@ -195,7 +169,7 @@ function EventWorkspace({
         </section>
       </div>
     </section>
-  );
+  )
 }
 
 function EventGroup({
@@ -203,14 +177,18 @@ function EventGroup({
   icon: Icon,
   events,
 }: {
-  title: string;
-  icon: typeof Compass;
-  events: EventWorkspaceSummary["childEvents"];
+  title: string
+  icon: typeof Compass
+  events: EventWorkspaceSummary['childEvents']
 }) {
-  const { t, i18n } = useTranslation();
+  const { t, i18n } = useTranslation()
   const dateTimeFormatter = new Intl.DateTimeFormat(i18n.language, {
-    month: "short", day: "numeric", hour: "numeric", minute: "2-digit", timeZone: "America/Detroit",
-  });
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    timeZone: 'America/Detroit',
+  })
   return (
     <div className="space-y-3">
       <div className="flex items-center gap-2 text-sm font-medium">
@@ -219,10 +197,7 @@ function EventGroup({
       </div>
       <div className="divide-y border-y">
         {events.map((event) => (
-          <div
-            key={event.id}
-            className="flex items-center gap-4 py-4"
-          >
+          <div key={event.id} className="flex items-center gap-4 py-4">
             <div className="min-w-0 flex-1">
               <p className="truncate font-medium">{event.title}</p>
               <div className="mt-2 space-y-1 text-xs text-muted-foreground">
@@ -230,7 +205,7 @@ function EventGroup({
                   <Clock3 className="size-3.5" />
                   {event.startsAt
                     ? dateTimeFormatter.format(new Date(event.startsAt))
-                    : t("event.dateNotSet")}
+                    : t('event.dateNotSet')}
                 </p>
                 {event.locationName ? (
                   <p className="flex items-center gap-1.5">
@@ -251,37 +226,31 @@ function EventGroup({
         ))}
       </div>
     </div>
-  );
+  )
 }
 
 function Home() {
-  const { t } = useTranslation();
-  const result = Route.useLoaderData();
-  const { workspaceContext } = Route.useRouteContext();
+  const { t } = useTranslation()
+  const result = Route.useLoaderData()
+  const { workspaceContext } = Route.useRouteContext()
 
-  if (!workspaceContext) return null;
+  if (!workspaceContext) return null
 
   return (
     <div className="app-page-shell">
       <ServerErrorToast error={result.ok ? null : result.error} />
       <div className="space-y-1">
         <div className="flex items-center gap-2">
-          <h1 className="text-2xl font-medium tracking-[-0.015em]">
-            {t("event.overview")}
-          </h1>
+          <h1 className="text-2xl font-medium tracking-[-0.015em]">{t('event.overview')}</h1>
         </div>
-        <p className="text-sm text-muted-foreground">
-          {t("event.description")}
-        </p>
+        <p className="text-sm text-muted-foreground">{t('event.description')}</p>
       </div>
 
       {!result.ok ? (
         <Card className="max-w-2xl border-dashed bg-muted/30">
           <CardHeader>
-            <CardTitle>{t("event.detailsWillAppear")}</CardTitle>
-            <CardDescription>
-              {t("event.couldNotRefresh")}
-            </CardDescription>
+            <CardTitle>{t('event.detailsWillAppear')}</CardTitle>
+            <CardDescription>{t('event.couldNotRefresh')}</CardDescription>
           </CardHeader>
         </Card>
       ) : result.data.length === 0 ? (
@@ -290,10 +259,8 @@ function Home() {
             <div className="app-icon-tile mb-3">
               <CalendarDays className="size-5" />
             </div>
-            <CardTitle>{t("event.firstEvent")}</CardTitle>
-            <CardDescription>
-              {t("event.firstEventDescription")}
-            </CardDescription>
+            <CardTitle>{t('event.firstEvent')}</CardTitle>
+            <CardDescription>{t('event.firstEventDescription')}</CardDescription>
           </CardHeader>
         </Card>
       ) : (
@@ -301,10 +268,10 @@ function Home() {
           <EventWorkspace
             key={event.id}
             event={event}
-            shared={workspaceContext.workspace.access === "participant"}
+            shared={workspaceContext.workspace.access === 'participant'}
           />
         ))
       )}
     </div>
-  );
+  )
 }

@@ -1,4 +1,4 @@
-import { ConfigurationError } from "@/lib/domain-errors"
+import { ConfigurationError } from '@/lib/domain-errors'
 import { drizzleAdapter } from '@better-auth/drizzle-adapter/relations-v2'
 import { waitUntil } from '@vercel/functions'
 import { betterAuth } from 'better-auth'
@@ -24,7 +24,10 @@ import {
   scheduleVerificationEmail,
 } from '@/server/email/auth-email'
 import { prepareGatheroryAccountDeletion } from '@/server/auth/account-deletion'
-import { generateAppleClientSecret, revokeAppleAccountsBeforeDeletion } from '@/server/auth/apple-tokens'
+import {
+  generateAppleClientSecret,
+  revokeAppleAccountsBeforeDeletion,
+} from '@/server/auth/apple-tokens'
 import { mapAppleProfile } from '@/server/auth/apple-profile'
 
 const google =
@@ -46,7 +49,12 @@ const hasAnyAppleCredential = appleCredentialValues.some(Boolean)
 const hasAllAppleCredentials = appleCredentialValues.every(Boolean)
 
 if (hasAnyAppleCredential && !hasAllAppleCredentials) {
-  throw new ConfigurationError({ category: "system", code: "CONFIGURATION_INVALID", debugMessage: 'Apple authentication requires APPLE_CLIENT_ID, APPLE_TEAM_ID, APPLE_KEY_ID, and APPLE_PRIVATE_KEY.' })
+  throw new ConfigurationError({
+    category: 'system',
+    code: 'CONFIGURATION_INVALID',
+    debugMessage:
+      'Apple authentication requires APPLE_CLIENT_ID, APPLE_TEAM_ID, APPLE_KEY_ID, and APPLE_PRIVATE_KEY.',
+  })
 }
 
 const apple = hasAllAppleCredentials
@@ -56,17 +64,25 @@ const apple = hasAllAppleCredentials
       return {
         clientId,
         clientSecret: await generateAppleClientSecret(clientId),
-        mapProfileToUser: (profile: { sub: string; email?: string }) => mapAppleProfile(profile, async (subject) => {
-          const [saved] = await db.select({
-            email: authSchema.user.email,
-            emailVerified: authSchema.user.emailVerified,
-            name: authSchema.user.name,
-          }).from(authSchema.account)
-            .innerJoin(authSchema.user, eq(authSchema.account.userId, authSchema.user.id))
-            .where(and(eq(authSchema.account.providerId, 'apple'), eq(authSchema.account.accountId, subject)))
-            .limit(1)
-          return saved
-        }),
+        mapProfileToUser: (profile: { sub: string; email?: string }) =>
+          mapAppleProfile(profile, async (subject) => {
+            const [saved] = await db
+              .select({
+                email: authSchema.user.email,
+                emailVerified: authSchema.user.emailVerified,
+                name: authSchema.user.name,
+              })
+              .from(authSchema.account)
+              .innerJoin(authSchema.user, eq(authSchema.account.userId, authSchema.user.id))
+              .where(
+                and(
+                  eq(authSchema.account.providerId, 'apple'),
+                  eq(authSchema.account.accountId, subject)
+                )
+              )
+              .limit(1)
+            return saved
+          }),
         ...(env.APPLE_APP_BUNDLE_IDENTIFIER
           ? { appBundleIdentifier: env.APPLE_APP_BUNDLE_IDENTIFIER }
           : {}),
@@ -78,10 +94,7 @@ export const auth = betterAuth({
   appName: 'Gatherory',
   baseURL: env.BETTER_AUTH_URL,
   secret: env.BETTER_AUTH_SECRET,
-  trustedOrigins: [
-    new URL(env.BETTER_AUTH_URL).origin,
-    'https://appleid.apple.com',
-  ],
+  trustedOrigins: [new URL(env.BETTER_AUTH_URL).origin, 'https://appleid.apple.com'],
   database: drizzleAdapter(db, {
     provider: 'pg',
     schema: authSchema,

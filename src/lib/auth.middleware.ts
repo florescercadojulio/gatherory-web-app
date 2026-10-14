@@ -1,21 +1,21 @@
-import { redirect } from "@tanstack/react-router"
-import { createMiddleware } from "@tanstack/react-start"
-import { getRequestHeaders } from "@tanstack/react-start/server"
+import { redirect } from '@tanstack/react-router'
+import { createMiddleware } from '@tanstack/react-start'
+import { getRequestHeaders } from '@tanstack/react-start/server'
 
-import { auth } from "@/lib/auth"
+import { auth } from '@/lib/auth'
 
 /**
  * Establishes identity for a server function. Event membership and capability
  * checks belong to event-scoped authorization middleware, not this middleware.
  */
-export const requireSessionMiddleware = createMiddleware({ type: "function" })
-  .server(async ({ next }) => {
+export const requireSessionMiddleware = createMiddleware({ type: 'function' }).server(
+  async ({ next }) => {
     const session = await auth.api.getSession({ headers: getRequestHeaders() })
 
     if (!session) {
       throw redirect({
-        to: "/auth/$path",
-        params: { path: "sign-in" },
+        to: '/auth/$path',
+        params: { path: 'sign-in' },
       })
     }
 
@@ -25,4 +25,5 @@ export const requireSessionMiddleware = createMiddleware({ type: "function" })
         user: session.user,
       },
     })
-  })
+  }
+)

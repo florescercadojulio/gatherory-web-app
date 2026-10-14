@@ -1,59 +1,50 @@
-"use client"
+'use client'
 
 import {
   type AdditionalField as AdditionalFieldConfig,
   type AdditionalFieldFormValue,
   getFormFieldErrors,
-  resolveInputType
-} from "@better-auth-ui/core"
-import { useAuth, useCopyToClipboard } from "@better-auth-ui/react"
-import { format } from "date-fns"
-import { CalendarIcon, Check, ChevronDownIcon, Copy } from "lucide-react"
-import { type ComponentType, useRef, useState } from "react"
-import { useTranslation } from "react-i18next"
-import { toast } from "sonner"
+  resolveInputType,
+} from '@better-auth-ui/core'
+import { useAuth, useCopyToClipboard } from '@better-auth-ui/react'
+import { format } from 'date-fns'
+import { CalendarIcon, Check, ChevronDownIcon, Copy } from 'lucide-react'
+import { type ComponentType, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
+import { toast } from 'sonner'
 
-import { buttonVariants } from "@/components/ui/button.tsx"
-import { Calendar } from "@/components/ui/calendar.tsx"
-import { Checkbox } from "@/components/ui/checkbox.tsx"
+import { buttonVariants } from '@/components/ui/button.tsx'
+import { Calendar } from '@/components/ui/calendar.tsx'
+import { Checkbox } from '@/components/ui/checkbox.tsx'
 import {
   Combobox,
   ComboboxContent,
   ComboboxEmpty,
   ComboboxInput,
   ComboboxItem,
-  ComboboxList
-} from "@/components/ui/combobox.tsx"
-import {
-  Field,
-  FieldContent,
-  FieldError,
-  FieldLabel
-} from "@/components/ui/field.tsx"
-import { Input } from "@/components/ui/input.tsx"
+  ComboboxList,
+} from '@/components/ui/combobox.tsx'
+import { Field, FieldContent, FieldError, FieldLabel } from '@/components/ui/field.tsx'
+import { Input } from '@/components/ui/input.tsx'
 import {
   InputGroup,
   InputGroupAddon,
   InputGroupButton,
-  InputGroupInput
-} from "@/components/ui/input-group.tsx"
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger
-} from "@/components/ui/popover.tsx"
+  InputGroupInput,
+} from '@/components/ui/input-group.tsx'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover.tsx'
 import {
   Select,
   SelectContent,
   SelectGroup,
   SelectItem,
   SelectTrigger,
-  SelectValue
-} from "@/components/ui/select.tsx"
-import { Slider } from "@/components/ui/slider.tsx"
-import { Switch } from "@/components/ui/switch.tsx"
-import { Textarea } from "@/components/ui/textarea.tsx"
-import { cn } from "cn"
+  SelectValue,
+} from '@/components/ui/select.tsx'
+import { Slider } from '@/components/ui/slider.tsx'
+import { Switch } from '@/components/ui/switch.tsx'
+import { Textarea } from '@/components/ui/textarea.tsx'
+import { cn } from 'cn'
 
 export type AdditionalFieldProps = {
   name: string
@@ -69,14 +60,14 @@ export type AdditionalFieldProps = {
 }
 
 function valueToString(value: AdditionalFieldFormValue) {
-  if (value == null) return ""
+  if (value == null) return ''
   return value instanceof Date ? value.toISOString() : String(value)
 }
 
 /** Convert a `defaultValue` into a `Date` for the calendar. */
 function toDate(value: unknown): Date | undefined {
   if (value instanceof Date) return value
-  if (typeof value === "string") {
+  if (typeof value === 'string') {
     const parsed = new Date(value)
     return Number.isNaN(parsed.getTime()) ? undefined : parsed
   }
@@ -85,7 +76,7 @@ function toDate(value: unknown): Date | undefined {
 
 /** Format a Date as `HH:mm:ss` for an `<input type="time">`. */
 function formatTime(date: Date) {
-  const pad = (n: number) => n.toString().padStart(2, "0")
+  const pad = (n: number) => n.toString().padStart(2, '0')
   return `${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`
 }
 
@@ -96,7 +87,7 @@ function formatTime(date: Date) {
  */
 function CopyButton({
   getValue,
-  isDisabled
+  isDisabled,
 }: {
   getValue: () => string | undefined
   isDisabled?: boolean
@@ -104,9 +95,9 @@ function CopyButton({
   const { localization } = useAuth()
   const { copied, copy } = useCopyToClipboard({
     onError: (error) => {
-      console.error("[Better Auth UI] Copy failed", error)
+      console.error('[Better Auth UI] Copy failed', error)
       toast.error(localization.errors.copyFailed)
-    }
+    },
   })
 
   async function handleCopy() {
@@ -119,14 +110,10 @@ function CopyButton({
   return (
     <InputGroupButton
       aria-label={
-        copied
-          ? localization.settings.copiedToClipboard
-          : localization.settings.copyToClipboard
+        copied ? localization.settings.copiedToClipboard : localization.settings.copyToClipboard
       }
       title={
-        copied
-          ? localization.settings.copiedToClipboard
-          : localization.settings.copyToClipboard
+        copied ? localization.settings.copiedToClipboard : localization.settings.copyToClipboard
       }
       onClick={handleCopy}
       disabled={isDisabled}
@@ -146,7 +133,7 @@ export function AdditionalField({
   isInvalid,
   errors,
   isPending,
-  optionalLabel
+  optionalLabel,
 }: AdditionalFieldProps) {
   const { t } = useTranslation()
   const field =
@@ -158,7 +145,7 @@ export function AdditionalField({
               {configuredField.label}
               {optionalLabel}
             </>
-          )
+          ),
         }
       : configuredField
   const inputType = resolveInputType(field)
@@ -181,13 +168,11 @@ export function AdditionalField({
     )
   }
 
-  if (inputType === "hidden") {
-    return (
-      <input type="hidden" name={name} value={valueToString(value)} readOnly />
-    )
+  if (inputType === 'hidden') {
+    return <input type="hidden" name={name} value={valueToString(value)} readOnly />
   }
 
-  if (inputType === "textarea") {
+  if (inputType === 'textarea') {
     return (
       <Field data-invalid={isInvalid}>
         <FieldLabel htmlFor={name}>{field.label}</FieldLabel>
@@ -210,7 +195,7 @@ export function AdditionalField({
     )
   }
 
-  if (inputType === "number") {
+  if (inputType === 'number') {
     const maxFractionDigits = field.formatOptions?.maximumFractionDigits
 
     return (
@@ -221,19 +206,14 @@ export function AdditionalField({
           id={name}
           name={name}
           type="number"
-          inputMode={maxFractionDigits ? "decimal" : "numeric"}
+          inputMode={maxFractionDigits ? 'decimal' : 'numeric'}
           min={field.min}
           max={field.max}
-          step={
-            field.step ??
-            (maxFractionDigits ? 1 / 10 ** maxFractionDigits : undefined)
-          }
-          value={typeof value === "number" ? value : ""}
+          step={field.step ?? (maxFractionDigits ? 1 / 10 ** maxFractionDigits : undefined)}
+          value={typeof value === 'number' ? value : ''}
           onBlur={onBlur}
           onChange={(event) =>
-            onChange(
-              event.target.value === "" ? null : event.target.valueAsNumber
-            )
+            onChange(event.target.value === '' ? null : event.target.valueAsNumber)
           }
           placeholder={field.placeholder}
           required={field.required}
@@ -247,7 +227,7 @@ export function AdditionalField({
     )
   }
 
-  if (inputType === "slider") {
+  if (inputType === 'slider') {
     return (
       <SliderField
         name={name}
@@ -262,7 +242,7 @@ export function AdditionalField({
     )
   }
 
-  if (inputType === "switch") {
+  if (inputType === 'switch') {
     return (
       <Field data-invalid={isInvalid} orientation="horizontal">
         <Switch
@@ -283,7 +263,7 @@ export function AdditionalField({
     )
   }
 
-  if (inputType === "checkbox") {
+  if (inputType === 'checkbox') {
     return (
       <Field data-invalid={isInvalid} orientation="horizontal">
         <Checkbox
@@ -305,7 +285,7 @@ export function AdditionalField({
     )
   }
 
-  if (inputType === "select") {
+  if (inputType === 'select') {
     return (
       <Field data-invalid={isInvalid}>
         <FieldLabel htmlFor={name}>{field.label}</FieldLabel>
@@ -318,12 +298,7 @@ export function AdditionalField({
           required={field.required}
           disabled={isPending || field.readOnly}
         >
-          <SelectTrigger
-            id={name}
-            className="w-full"
-            onBlur={onBlur}
-            aria-invalid={isInvalid}
-          >
+          <SelectTrigger id={name} className="w-full" onBlur={onBlur} aria-invalid={isInvalid}>
             <SelectValue placeholder={field.placeholder} />
           </SelectTrigger>
 
@@ -343,10 +318,8 @@ export function AdditionalField({
     )
   }
 
-  if (inputType === "combobox") {
-    const selectedOption = field.options?.find(
-      (option) => option.value === valueToString(value)
-    )
+  if (inputType === 'combobox') {
+    const selectedOption = field.options?.find((option) => option.value === valueToString(value))
 
     return (
       <Field data-invalid={isInvalid}>
@@ -368,7 +341,7 @@ export function AdditionalField({
           />
 
           <ComboboxContent>
-            <ComboboxEmpty>{t("picker.noItemsFound")}</ComboboxEmpty>
+            <ComboboxEmpty>{t('picker.noItemsFound')}</ComboboxEmpty>
 
             <ComboboxList>
               {(option) => (
@@ -385,7 +358,7 @@ export function AdditionalField({
     )
   }
 
-  if (inputType === "date" || inputType === "datetime") {
+  if (inputType === 'date' || inputType === 'datetime') {
     return (
       <DateInput
         name={name}
@@ -422,7 +395,7 @@ function InputField({
   onChange,
   isInvalid,
   errors,
-  isPending
+  isPending,
 }: AdditionalFieldProps) {
   const inputRef = useRef<HTMLInputElement>(null)
   const fieldErrors = getFormFieldErrors(errors ?? [])
@@ -430,14 +403,10 @@ function InputField({
   const hasPrefix = field.prefix != null
   const hasSuffix = field.suffix != null || field.copyable
 
-  const isNumeric = field.type === "number"
+  const isNumeric = field.type === 'number'
   const maxFractionDigits = field.formatOptions?.maximumFractionDigits
-  const nativeInputType = isNumeric ? "number" : undefined
-  const nativeInputMode = isNumeric
-    ? maxFractionDigits
-      ? "decimal"
-      : "numeric"
-    : undefined
+  const nativeInputType = isNumeric ? 'number' : undefined
+  const nativeInputMode = isNumeric ? (maxFractionDigits ? 'decimal' : 'numeric') : undefined
   const nativeStep = maxFractionDigits ? 1 / 10 ** maxFractionDigits : undefined
 
   if (hasPrefix || hasSuffix) {
@@ -446,11 +415,7 @@ function InputField({
         <FieldLabel htmlFor={name}>{field.label}</FieldLabel>
 
         <InputGroup>
-          {hasPrefix && (
-            <InputGroupAddon align="inline-start">
-              {field.prefix}
-            </InputGroupAddon>
-          )}
+          {hasPrefix && <InputGroupAddon align="inline-start">{field.prefix}</InputGroupAddon>}
 
           <InputGroupInput
             ref={inputRef}
@@ -471,16 +436,11 @@ function InputField({
 
           {field.copyable ? (
             <InputGroupAddon align="inline-end">
-              <CopyButton
-                getValue={() => inputRef.current?.value}
-                isDisabled={isPending}
-              />
+              <CopyButton getValue={() => inputRef.current?.value} isDisabled={isPending} />
             </InputGroupAddon>
           ) : (
             field.suffix != null && (
-              <InputGroupAddon align="inline-end">
-                {field.suffix}
-              </InputGroupAddon>
+              <InputGroupAddon align="inline-end">{field.suffix}</InputGroupAddon>
             )
           )}
         </InputGroup>
@@ -528,14 +488,13 @@ function SliderField({
   onChange,
   isInvalid,
   errors,
-  isPending
+  isPending,
 }: AdditionalFieldProps) {
   const maxFractionDigits = field.formatOptions?.maximumFractionDigits
   const min = field.min ?? 0
   const max = field.max ?? 100
-  const step =
-    field.step ?? (maxFractionDigits ? 1 / 10 ** maxFractionDigits : 1)
-  const numericValue = typeof value === "number" ? value : min
+  const step = field.step ?? (maxFractionDigits ? 1 / 10 ** maxFractionDigits : 1)
+  const numericValue = typeof value === 'number' ? value : min
   const fieldErrors = getFormFieldErrors(errors ?? [])
 
   const formatter = new Intl.NumberFormat(undefined, field.formatOptions)
@@ -582,17 +541,15 @@ function DateInput({
   onChange,
   isInvalid,
   errors,
-  isPending
+  isPending,
 }: AdditionalFieldProps) {
   const { localization } = useAuth()
   const inputType = resolveInputType(field)
-  const isDateTime = inputType === "datetime"
+  const isDateTime = inputType === 'datetime'
   const fieldErrors = getFormFieldErrors(errors ?? [])
 
   const date = toDate(value)
-  const [time, setTime] = useState<string>(
-    isDateTime && date ? formatTime(date) : ""
-  )
+  const [time, setTime] = useState<string>(isDateTime && date ? formatTime(date) : '')
   const [open, setOpen] = useState(false)
 
   // Compose the hidden form value: ISO date for "date", ISO datetime for
@@ -612,12 +569,12 @@ function DateInput({
             onBlur={onBlur}
             disabled={isPending || field.readOnly}
             className={cn(
-              buttonVariants({ variant: "outline" }),
-              "flex-1 justify-between font-normal",
-              "data-[empty=true]:text-muted-foreground"
+              buttonVariants({ variant: 'outline' }),
+              'flex-1 justify-between font-normal',
+              'data-[empty=true]:text-muted-foreground'
             )}
           >
-            {date ? format(date, "PPP") : <span>{field.placeholder}</span>}
+            {date ? format(date, 'PPP') : <span>{field.placeholder}</span>}
 
             {isDateTime ? <ChevronDownIcon /> : <CalendarIcon />}
           </PopoverTrigger>
@@ -634,14 +591,8 @@ function DateInput({
                 } else {
                   const nextValue = new Date(value)
                   if (isDateTime && time.trim()) {
-                    const [hours = "0", minutes = "0", seconds = "0"] =
-                      time.split(":")
-                    nextValue.setHours(
-                      Number(hours),
-                      Number(minutes),
-                      Number(seconds),
-                      0
-                    )
+                    const [hours = '0', minutes = '0', seconds = '0'] = time.split(':')
+                    nextValue.setHours(Number(hours), Number(minutes), Number(seconds), 0)
                   } else {
                     nextValue.setHours(0, 0, 0, 0)
                   }
@@ -669,14 +620,8 @@ function DateInput({
                 setTime(nextTime)
                 if (!date) return
                 const nextValue = new Date(date)
-                const [hours = "0", minutes = "0", seconds = "0"] =
-                  nextTime.split(":")
-                nextValue.setHours(
-                  Number(hours),
-                  Number(minutes),
-                  Number(seconds),
-                  0
-                )
+                const [hours = '0', minutes = '0', seconds = '0'] = nextTime.split(':')
+                nextValue.setHours(Number(hours), Number(minutes), Number(seconds), 0)
                 onChange(nextValue)
               }}
               disabled={isPending || field.readOnly}

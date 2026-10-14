@@ -1,12 +1,12 @@
-import { createAuthPlugin } from "@better-auth-ui/core"
+import { createAuthPlugin } from '@better-auth-ui/core'
 import {
   magicLinkPlugin as coreMagicLinkPlugin,
-  type MagicLinkPluginOptions
-} from "@better-auth-ui/core/plugins/magic-link"
+  type MagicLinkPluginOptions,
+} from '@better-auth-ui/core/plugins/magic-link'
 
-import { MagicLinkButton } from "@/components/auth/magic-link-button"
-import { MagicLinkSent } from "@/components/auth/magic-link-sent"
-import { MagicLink } from "@/components/auth/magic-link"
+import { MagicLinkButton } from '@/components/auth/magic-link-button'
+import { MagicLinkSent } from '@/components/auth/magic-link-sent'
+import { MagicLink } from '@/components/auth/magic-link'
 
 export const magicLinkPlugin = createAuthPlugin(
   coreMagicLinkPlugin.id,
@@ -14,10 +14,10 @@ export const magicLinkPlugin = createAuthPlugin(
     ...coreMagicLinkPlugin(options),
     authButtons: [MagicLinkButton],
     views: {
-      auth: { magicLink: MagicLink, magicLinkSent: MagicLinkSent }
+      auth: { magicLink: MagicLink, magicLinkSent: MagicLinkSent },
     },
     fallbackViews: {
-      auth: { signIn: MagicLink }
-    }
+      auth: { signIn: MagicLink },
+    },
   })
 )

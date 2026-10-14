@@ -1,11 +1,17 @@
-import { cn } from "cn"
-import { useTranslation } from "react-i18next"
-import { Loader2Icon } from "lucide-react"
+import { cn } from 'cn'
+import { useTranslation } from 'react-i18next'
+import { Loader2Icon } from 'lucide-react'
 
-function Spinner({ className, ...props }: React.ComponentProps<"svg">) {
+function Spinner({ className, ...props }: React.ComponentProps<'svg'>) {
   const { t } = useTranslation()
   return (
-    <Loader2Icon data-slot="spinner" role="status" aria-label={t("common.loading")} className={cn("size-4 animate-spin", className)} {...props} />
+    <Loader2Icon
+      data-slot="spinner"
+      role="status"
+      aria-label={t('common.loading')}
+      className={cn('size-4 animate-spin', className)}
+      {...props}
+    />
   )
 }
 

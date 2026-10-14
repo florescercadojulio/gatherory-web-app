@@ -1,26 +1,15 @@
-import { useEffect, useRef, useState, type ReactNode } from "react"
-import type { RowData } from "@tanstack/react-table"
-import { CheckIcon, SearchIcon, XIcon } from "lucide-react"
-import { toast } from "sonner"
-import { useTranslation } from "react-i18next"
+import { useEffect, useRef, useState, type ReactNode } from 'react'
+import type { RowData } from '@tanstack/react-table'
+import { CheckIcon, SearchIcon, XIcon } from 'lucide-react'
+import { toast } from 'sonner'
+import { useTranslation } from 'react-i18next'
 
-import type {
-  EntityTablePageRequest,
-  EntityTableServerFn,
-} from "@/components/entity-table-page"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import {
-  InputGroup,
-  InputGroupAddon,
-  InputGroupInput,
-} from "@/components/ui/input-group"
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover"
-import { toastServerError } from "@/lib/toast-server-error"
+import type { EntityTablePageRequest, EntityTableServerFn } from '@/components/entity-table-page'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { toastServerError } from '@/lib/toast-server-error'
 
 export interface MultiEntityPickerProps<
   TData extends RowData,
@@ -60,7 +49,7 @@ export function MultiEntityPicker<
   const { t } = useTranslation()
   const inputRef = useRef<HTMLInputElement>(null)
   const [open, setOpen] = useState(false)
-  const [query, setQuery] = useState("")
+  const [query, setQuery] = useState('')
   const [pageIndex, setPageIndex] = useState(0)
   const [items, setItems] = useState<TData[]>([])
   const [hasNextPage, setHasNextPage] = useState(false)
@@ -93,7 +82,7 @@ export function MultiEntityPicker<
         if (!cancelled) {
           setItems([])
           setHasNextPage(false)
-          toast.error(t("picker.loadFailed"))
+          toast.error(t('picker.loadFailed'))
         }
       })
       .finally(() => {
@@ -156,8 +145,7 @@ export function MultiEntityPicker<
             {items.length ? (
               items.map((item) => {
                 const selected = isSelected(item)
-                const unavailable =
-                  selectedItems.length >= maxSelected && !selected
+                const unavailable = selectedItems.length >= maxSelected && !selected
                 return (
                   <button
                     key={getItemId(item)}
@@ -169,9 +157,7 @@ export function MultiEntityPicker<
                     onClick={() => {
                       toggle(item)
                       setOpen(true)
-                      window.requestAnimationFrame(() =>
-                        inputRef.current?.focus(),
-                      )
+                      window.requestAnimationFrame(() => inputRef.current?.focus())
                     }}
                   >
                     <span className="min-w-0 flex-1">
@@ -182,11 +168,9 @@ export function MultiEntityPicker<
                 )
               })
             ) : isLoading ? (
-              <p className="p-3 text-sm text-muted-foreground">{t("common.loading")}</p>
+              <p className="p-3 text-sm text-muted-foreground">{t('common.loading')}</p>
             ) : (
-              <p className="p-3 text-sm text-muted-foreground">
-                {t("picker.noChoices")}
-              </p>
+              <p className="p-3 text-sm text-muted-foreground">{t('picker.noChoices')}</p>
             )}
           </div>
           <div className="grid grid-cols-3 gap-1 border-t bg-muted/30 p-2">
@@ -198,15 +182,10 @@ export function MultiEntityPicker<
               onClick={() => setPageIndex((index) => index - 1)}
               disabled={pageIndex === 0 || isLoading}
             >
-              {t("picker.previous")}
+              {t('picker.previous')}
             </Button>
-            <Button
-              type="button"
-              variant="ghost"
-              size="xs"
-              onClick={() => setOpen(false)}
-            >
-              {t("picker.done")}
+            <Button type="button" variant="ghost" size="xs" onClick={() => setOpen(false)}>
+              {t('picker.done')}
             </Button>
             <Button
               type="button"
@@ -216,28 +195,24 @@ export function MultiEntityPicker<
               onClick={() => setPageIndex((index) => index + 1)}
               disabled={!hasNextPage || isLoading}
             >
-              {t("picker.next")}
+              {t('picker.next')}
             </Button>
           </div>
         </PopoverContent>
       </Popover>
 
       {selectedItems.length > 0 && (
-        <div className="flex flex-wrap gap-1" aria-label={t("common.selectedItems")}>
+        <div className="flex flex-wrap gap-1" aria-label={t('common.selectedItems')}>
           {selectedItems.map((item) => {
             const label = getItemLabel(item)
             return (
-              <Badge
-                key={getItemId(item)}
-                variant="secondary"
-                className="gap-1 whitespace-normal"
-              >
+              <Badge key={getItemId(item)} variant="secondary" className="gap-1 whitespace-normal">
                 {label}
                 <Button
                   type="button"
                   variant="ghost"
                   size="icon-xs"
-                  aria-label={t("picker.removeItem", { label })}
+                  aria-label={t('picker.removeItem', { label })}
                   onClick={() => toggle(item)}
                 >
                   <XIcon />
@@ -249,7 +224,7 @@ export function MultiEntityPicker<
       )}
       {selectedItems.length === maxSelected && (
         <p className="text-xs text-muted-foreground">
-          {t("picker.maximumSelected", { count: maxSelected })}
+          {t('picker.maximumSelected', { count: maxSelected })}
         </p>
       )}
     </div>

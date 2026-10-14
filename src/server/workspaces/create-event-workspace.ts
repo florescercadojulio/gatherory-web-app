@@ -1,9 +1,9 @@
-import { eq } from "drizzle-orm"
+import { eq } from 'drizzle-orm'
 
-import { db } from "@/db"
-import { organization } from "@/db/schema/auth.schema"
-import { auth } from "@/lib/auth"
-import { defaultOrganizationType } from "@/lib/organization-contract"
+import { db } from '@/db'
+import { organization } from '@/db/schema/auth.schema'
+import { auth } from '@/lib/auth'
+import { defaultOrganizationType } from '@/lib/organization-contract'
 
 type CreateEventWorkspaceInput = {
   name: string

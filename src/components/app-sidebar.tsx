@@ -1,25 +1,18 @@
-"use client"
+'use client'
 
-import {
-  CalendarDays,
-  LayoutDashboard,
-  Settings,
-} from "lucide-react"
-import { useTranslation } from "react-i18next"
+import { CalendarDays, LayoutDashboard, Settings } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 
-import { NavMain } from "@/components/nav-main.tsx"
-import { NavUser } from "@/components/nav-user.tsx"
-import {
-  WorkspaceSwitcher,
-  type WorkspaceSwitcherItem,
-} from "@/components/workspace-switcher"
+import { NavMain } from '@/components/nav-main.tsx'
+import { NavUser } from '@/components/nav-user.tsx'
+import { WorkspaceSwitcher, type WorkspaceSwitcherItem } from '@/components/workspace-switcher'
 import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
   SidebarHeader,
   SidebarRail,
-} from "@/components/ui/sidebar.tsx"
+} from '@/components/ui/sidebar.tsx'
 
 export function AppSidebar({
   workspace,
@@ -47,11 +40,11 @@ export function AppSidebar({
       </SidebarHeader>
       <SidebarContent>
         <NavMain
-          label={t("navigation.gatherory")}
+          label={t('navigation.gatherory')}
           items={[
-            { title: t("common.allEvents"), url: "/workspaces", icon: LayoutDashboard },
-            { title: t("navigation.eventDetails"), url: workspaceUrl, icon: CalendarDays },
-            { title: t("common.account"), url: "/account", icon: Settings },
+            { title: t('common.allEvents'), url: '/workspaces', icon: LayoutDashboard },
+            { title: t('navigation.eventDetails'), url: workspaceUrl, icon: CalendarDays },
+            { title: t('common.account'), url: '/account', icon: Settings },
           ]}
         />
       </SidebarContent>
@@ -60,7 +53,7 @@ export function AppSidebar({
           user={{
             name: user.name,
             email: user.email,
-            avatar: user.image ?? "",
+            avatar: user.image ?? '',
           }}
         />
       </SidebarFooter>

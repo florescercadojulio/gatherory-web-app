@@ -4,13 +4,13 @@ import {
   HeadObjectCommand,
   PutObjectCommand,
   S3Client,
-} from "@aws-sdk/client-s3"
-import { getSignedUrl } from "@aws-sdk/s3-request-presigner"
+} from '@aws-sdk/client-s3'
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
 
-import { env } from "@/env"
-import { ExternalServiceError } from "@/lib/domain-errors"
+import { env } from '@/env'
+import { ExternalServiceError } from '@/lib/domain-errors'
 
-export type MediaVisibility = "private" | "public"
+export type MediaVisibility = 'private' | 'public'
 
 type R2Configuration = {
   accountId: string
@@ -36,9 +36,9 @@ let storageClient: S3Client | undefined
 
 function client(configuration: R2Configuration) {
   storageClient ??= new S3Client({
-    region: "auto",
+    region: 'auto',
     endpoint: `https://${configuration.accountId}.r2.cloudflarestorage.com`,
-    requestChecksumCalculation: "WHEN_REQUIRED",
+    requestChecksumCalculation: 'WHEN_REQUIRED',
     credentials: {
       accessKeyId: configuration.accessKeyId,
       secretAccessKey: configuration.secretAccessKey,
@@ -48,32 +48,26 @@ function client(configuration: R2Configuration) {
   return storageClient
 }
 
-function bucketFor(
-  configuration: R2Configuration,
-  visibility: MediaVisibility,
-) {
-  const bucket = visibility === "public"
-    ? configuration.publicBucket
-    : configuration.privateBucket
+function bucketFor(configuration: R2Configuration, visibility: MediaVisibility) {
+  const bucket = visibility === 'public' ? configuration.publicBucket : configuration.privateBucket
 
   return bucket
 }
 
-function requireConfiguredBucket(
-  configuration: R2Configuration,
-  bucket: string,
-) {
-  if (
-    bucket !== configuration.privateBucket &&
-    bucket !== configuration.publicBucket
-  ) {
-    throw new ExternalServiceError({ category: "external", code: "MEDIA_STORAGE_BUCKET_INVALID", userMessageKey: "serverErrors.MEDIA_STORAGE_BUCKET_INVALID", debugMessage: "The asset bucket is not an allowed R2 bucket." })
+function requireConfiguredBucket(configuration: R2Configuration, bucket: string) {
+  if (bucket !== configuration.privateBucket && bucket !== configuration.publicBucket) {
+    throw new ExternalServiceError({
+      category: 'external',
+      code: 'MEDIA_STORAGE_BUCKET_INVALID',
+      userMessageKey: 'serverErrors.MEDIA_STORAGE_BUCKET_INVALID',
+      debugMessage: 'The asset bucket is not an allowed R2 bucket.',
+    })
   }
 
   return bucket
 }
 
-export function mediaBucket(visibility: MediaVisibility = "private") {
+export function mediaBucket(visibility: MediaVisibility = 'private') {
   return bucketFor(r2Configuration(), visibility)
 }
 
@@ -85,15 +79,14 @@ export async function createMediaUploadUrl(input: {
   expiresInSeconds?: number
 }) {
   const configuration = r2Configuration()
-  const visibility = input.visibility ?? "private"
+  const visibility = input.visibility ?? 'private'
   const bucket = bucketFor(configuration, visibility)
   const expiresInSeconds = input.expiresInSeconds ?? 15 * 60
   const requiredHeaders = {
-    "Content-Type": input.contentType,
-    "Cache-Control": visibility === "public"
-      ? "public, max-age=31536000, immutable"
-      : "private, no-store",
-    "x-amz-meta-mediaassetid": input.mediaAssetId,
+    'Content-Type': input.contentType,
+    'Cache-Control':
+      visibility === 'public' ? 'public, max-age=31536000, immutable' : 'private, no-store',
+    'x-amz-meta-mediaassetid': input.mediaAssetId,
   }
   const uploadUrl = await getSignedUrl(
     client(configuration),
@@ -101,34 +94,31 @@ export async function createMediaUploadUrl(input: {
       Bucket: bucket,
       Key: input.key,
       ContentType: input.contentType,
-      CacheControl: requiredHeaders["Cache-Control"],
+      CacheControl: requiredHeaders['Cache-Control'],
       Metadata: { mediaassetid: input.mediaAssetId },
     }),
     {
       expiresIn: expiresInSeconds,
       // R2 stores custom metadata from PUT headers, not hoisted query params.
-      unhoistableHeaders: new Set(["x-amz-meta-mediaassetid"]),
-      signableHeaders: new Set(["content-type", "cache-control"]),
-    },
+      unhoistableHeaders: new Set(['x-amz-meta-mediaassetid']),
+      signableHeaders: new Set(['content-type', 'cache-control']),
+    }
   )
 
   return { bucket, uploadUrl, expiresInSeconds, requiredHeaders }
 }
 
-export async function inspectMediaObject(input: {
-  bucket: string
-  key: string
-}) {
+export async function inspectMediaObject(input: { bucket: string; key: string }) {
   const configuration = r2Configuration()
   const bucket = requireConfiguredBucket(configuration, input.bucket)
   const result = await client(configuration).send(
-    new HeadObjectCommand({ Bucket: bucket, Key: input.key }),
+    new HeadObjectCommand({ Bucket: bucket, Key: input.key })
   )
 
   return {
     byteSize: result.ContentLength ?? null,
     contentType: result.ContentType ?? null,
-    checksum: result.ETag?.replaceAll('"', "") ?? null,
+    checksum: result.ETag?.replaceAll('"', '') ?? null,
     mediaAssetId: result.Metadata?.mediaassetid ?? null,
   }
 }
@@ -143,17 +133,12 @@ export async function createMediaReadUrl(input: {
   return getSignedUrl(
     client(configuration),
     new GetObjectCommand({ Bucket: bucket, Key: input.key }),
-    { expiresIn: input.expiresInSeconds ?? 5 * 60 },
+    { expiresIn: input.expiresInSeconds ?? 5 * 60 }
   )
 }
 
-export async function deleteMediaObject(input: {
-  bucket: string
-  key: string
-}) {
+export async function deleteMediaObject(input: { bucket: string; key: string }) {
   const configuration = r2Configuration()
   const bucket = requireConfiguredBucket(configuration, input.bucket)
-  await client(configuration).send(
-    new DeleteObjectCommand({ Bucket: bucket, Key: input.key }),
-  )
+  await client(configuration).send(new DeleteObjectCommand({ Bucket: bucket, Key: input.key }))
 }

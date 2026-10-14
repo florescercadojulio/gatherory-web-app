@@ -1,16 +1,11 @@
-import { Fragment, useRef, useState } from "react"
-import { useForm } from "@tanstack/react-form"
-import { PlusIcon, Trash2Icon } from "lucide-react"
+import { Fragment, useRef, useState } from 'react'
+import { useForm } from '@tanstack/react-form'
+import { PlusIcon, Trash2Icon } from 'lucide-react'
 
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip"
-import { authClient } from "@/lib/auth-client"
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
+import { authClient } from '@/lib/auth-client'
 
 import {
   developmentSeedAccounts,
@@ -18,10 +13,10 @@ import {
   newSavedAccount,
   saveAccounts,
   type SavedAccount,
-} from "./saved-accounts"
-import { switchDevelopmentAccount } from "./switch-account"
+} from './saved-accounts'
+import { switchDevelopmentAccount } from './switch-account'
 
-export function AccountSwitcher({ theme }: { theme: "light" | "dark" }) {
+export function AccountSwitcher({ theme }: { theme: 'light' | 'dark' }) {
   const { data: session } = authClient.useSession()
   const { data: activeWorkspace } = authClient.useActiveOrganization()
   const { data: activeMembership } = authClient.useActiveMember()
@@ -36,24 +31,21 @@ export function AccountSwitcher({ theme }: { theme: "light" | "dark" }) {
       ]
       return {
         accounts,
-        error: "",
+        error: '',
       }
     } catch {
       return {
         accounts: seedAccounts,
-        error:
-          "Browser storage is unavailable. Account changes cannot be remembered.",
+        error: 'Browser storage is unavailable. Account changes cannot be remembered.',
       }
     }
   })
   const [storageError, setStorageError] = useState(initial.error)
   const [busyId, setBusyId] = useState<string | null>(null)
   const switching = useRef(false)
-  const [error, setError] = useState<{ id: string; message: string } | null>(
-    null,
-  )
+  const [error, setError] = useState<{ id: string; message: string } | null>(null)
   const form = useForm({
-    formId: "devtools-saved-accounts",
+    formId: 'devtools-saved-accounts',
     defaultValues: { accounts: initial.accounts },
     listeners: {
       onChange: ({ formApi }) => persist(formApi.state.values.accounts),
@@ -63,11 +55,9 @@ export function AccountSwitcher({ theme }: { theme: "light" | "dark" }) {
   function persist(accounts: SavedAccount[]) {
     try {
       saveAccounts(window.localStorage, accounts)
-      setStorageError("")
+      setStorageError('')
     } catch {
-      setStorageError(
-        "Browser storage is unavailable. Account changes cannot be remembered.",
-      )
+      setStorageError('Browser storage is unavailable. Account changes cannot be remembered.')
     }
   }
 
@@ -75,7 +65,7 @@ export function AccountSwitcher({ theme }: { theme: "light" | "dark" }) {
     if (switching.current) return
 
     if (!account.email.trim() || !account.password) {
-      setError({ id: account.id, message: "Enter an email and password." })
+      setError({ id: account.id, message: 'Enter an email and password.' })
       return
     }
 
@@ -89,10 +79,7 @@ export function AccountSwitcher({ theme }: { theme: "light" | "dark" }) {
       const result = await switchDevelopmentAccount({
         email: account.email,
         password: account.password,
-        href:
-          window.location.pathname +
-          window.location.search +
-          window.location.hash,
+        href: window.location.pathname + window.location.search + window.location.hash,
       })
 
       if (!result.ok) {
@@ -117,17 +104,15 @@ export function AccountSwitcher({ theme }: { theme: "light" | "dark" }) {
         className="h-full overflow-auto p-3 text-sm"
         style={{
           colorScheme: theme,
-          backgroundColor: theme === "dark" ? "#171717" : "#ffffff",
-          color: theme === "dark" ? "#fafafa" : "#171717",
+          backgroundColor: theme === 'dark' ? '#171717' : '#ffffff',
+          color: theme === 'dark' ? '#fafafa' : '#171717',
         }}
       >
         <div className="mb-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
-          <span className="font-medium">
-            {session?.user.email ?? "Not signed in"}
-          </span>
+          <span className="font-medium">{session?.user.email ?? 'Not signed in'}</span>
           {activeWorkspace ? (
             <span className="opacity-70">
-              {activeWorkspace.name} · {activeMembership?.role ?? "member"}
+              {activeWorkspace.name} · {activeMembership?.role ?? 'member'}
             </span>
           ) : null}
           <span className="opacity-60">Development only</span>
@@ -144,9 +129,7 @@ export function AccountSwitcher({ theme }: { theme: "light" | "dark" }) {
             <>
               <div className="overflow-x-auto">
                 <table className="w-full min-w-130 max-w-4xl text-left">
-                  <caption className="sr-only">
-                    Saved development accounts
-                  </caption>
+                  <caption className="sr-only">Saved development accounts</caption>
                   <thead className="text-xs opacity-70">
                     <tr className="border-b border-current/15">
                       <th scope="col" className="px-1 py-2 font-medium">
@@ -163,17 +146,14 @@ export function AccountSwitcher({ theme }: { theme: "light" | "dark" }) {
                   <tbody>
                     {field.state.value.map((account, index) => {
                       const current =
-                        account.email.trim().toLowerCase() ===
-                        session?.user.email.toLowerCase()
+                        account.email.trim().toLowerCase() === session?.user.email.toLowerCase()
                       const update = (
-                        change: Partial<
-                          Pick<SavedAccount, "email" | "password">
-                        >,
+                        change: Partial<Pick<SavedAccount, 'email' | 'password'>>
                       ) => {
                         field.handleChange(
                           field.state.value.map((row) =>
-                            row.id === account.id ? { ...row, ...change } : row,
-                          ),
+                            row.id === account.id ? { ...row, ...change } : row
+                          )
                         )
                         if (error?.id === account.id) setError(null)
                       }
@@ -184,7 +164,7 @@ export function AccountSwitcher({ theme }: { theme: "light" | "dark" }) {
                             className="border-b border-current/10"
                             onKeyDown={(event) => {
                               if (
-                                event.key === "Enter" &&
+                                event.key === 'Enter' &&
                                 event.target instanceof HTMLInputElement
                               ) {
                                 event.preventDefault()
@@ -200,16 +180,12 @@ export function AccountSwitcher({ theme }: { theme: "light" | "dark" }) {
                                   autoComplete="off"
                                   value={account.email}
                                   disabled={busyId !== null}
-                                  onChange={(event) =>
-                                    update({ email: event.target.value })
-                                  }
+                                  onChange={(event) => update({ email: event.target.value })}
                                   placeholder="Email"
                                   className="h-8 bg-transparent text-inherit ring-1 ring-current/25"
                                 />
                                 {current ? (
-                                  <span className="text-xs opacity-70">
-                                    Current
-                                  </span>
+                                  <span className="text-xs opacity-70">Current</span>
                                 ) : null}
                               </div>
                             </td>
@@ -220,9 +196,7 @@ export function AccountSwitcher({ theme }: { theme: "light" | "dark" }) {
                                 autoComplete="off"
                                 value={account.password}
                                 disabled={busyId !== null}
-                                onChange={(event) =>
-                                  update({ password: event.target.value })
-                                }
+                                onChange={(event) => update({ password: event.target.value })}
                                 placeholder="Password"
                                 className="h-8 bg-transparent text-inherit ring-1 ring-current/25"
                               />
@@ -232,16 +206,12 @@ export function AccountSwitcher({ theme }: { theme: "light" | "dark" }) {
                                 <Button
                                   size="sm"
                                   disabled={
-                                    busyId !== null ||
-                                    !account.email.trim() ||
-                                    !account.password
+                                    busyId !== null || !account.email.trim() || !account.password
                                   }
                                   onClick={() => void switchAccount(account)}
                                   aria-label={`Switch to ${account.email || `account ${index + 1}`}`}
                                 >
-                                  {busyId === account.id
-                                    ? "Switching…"
-                                    : "Switch"}
+                                  {busyId === account.id ? 'Switching…' : 'Switch'}
                                 </Button>
                                 <Tooltip>
                                   <TooltipTrigger
@@ -253,9 +223,7 @@ export function AccountSwitcher({ theme }: { theme: "light" | "dark" }) {
                                         aria-label={`Remove account ${index + 1}`}
                                         onClick={() => {
                                           field.handleChange(
-                                            field.state.value.filter(
-                                              (row) => row.id !== account.id,
-                                            ),
+                                            field.state.value.filter((row) => row.id !== account.id)
                                           )
                                           if (error?.id === account.id) {
                                             setError(null)
@@ -276,11 +244,7 @@ export function AccountSwitcher({ theme }: { theme: "light" | "dark" }) {
                               <td colSpan={3} className="px-1 py-2">
                                 <p
                                   role="alert"
-                                  className={
-                                    theme === "dark"
-                                      ? "text-red-300"
-                                      : "text-red-700"
-                                  }
+                                  className={theme === 'dark' ? 'text-red-300' : 'text-red-700'}
                                 >
                                   {error.message}
                                 </p>
@@ -299,12 +263,7 @@ export function AccountSwitcher({ theme }: { theme: "light" | "dark" }) {
                 variant="ghost"
                 className="mt-2"
                 disabled={busyId !== null}
-                onClick={() =>
-                  field.handleChange([
-                    ...field.state.value,
-                    newSavedAccount(),
-                  ])
-                }
+                onClick={() => field.handleChange([...field.state.value, newSavedAccount()])}
               >
                 <PlusIcon />
                 Add account

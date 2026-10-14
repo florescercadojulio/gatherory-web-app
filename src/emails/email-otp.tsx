@@ -1,6 +1,6 @@
-import { Section, Text } from "react-email"
+import { Section, Text } from 'react-email'
 
-import { AuthEmailLayout } from "@/emails/_components/auth-email-layout"
+import { AuthEmailLayout } from '@/emails/_components/auth-email-layout'
 
 export type EmailOtpEmailProps = {
   code: string
@@ -8,8 +8,8 @@ export type EmailOtpEmailProps = {
 }
 
 export default function EmailOtpEmail({
-  code = "482913",
-  purpose = "sign in",
+  code = '482913',
+  purpose = 'sign in',
 }: EmailOtpEmailProps) {
   return (
     <AuthEmailLayout
@@ -31,6 +31,6 @@ export default function EmailOtpEmail({
 }
 
 EmailOtpEmail.PreviewProps = {
-  code: "482913",
-  purpose: "sign in",
+  code: '482913',
+  purpose: 'sign in',
 } satisfies EmailOtpEmailProps

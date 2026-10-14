@@ -1,15 +1,11 @@
-"use client"
+'use client'
 
-import { REGEXP_ONLY_DIGITS } from "input-otp"
-import { useId } from "react"
+import { REGEXP_ONLY_DIGITS } from 'input-otp'
+import { useId } from 'react'
 
-import { Field, FieldError, FieldLabel } from "@/components/ui/field"
-import {
-  InputOTP,
-  InputOTPGroup,
-  InputOTPSlot
-} from "@/components/ui/input-otp"
-import { cn } from "cn"
+import { Field, FieldError, FieldLabel } from '@/components/ui/field'
+import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp'
+import { cn } from 'cn'
 
 export type OtpFieldProps = {
   label: string
@@ -25,7 +21,7 @@ export type OtpFieldProps = {
 }
 
 function normalizeCode(value: string) {
-  return value.replace(/\D/g, "")
+  return value.replace(/\D/g, '')
 }
 
 export function OtpField({
@@ -38,7 +34,7 @@ export function OtpField({
   name,
   onChange,
   onComplete,
-  value
+  value,
 }: OtpFieldProps) {
   const inputId = useId()
 
@@ -61,16 +57,11 @@ export function OtpField({
         pattern={REGEXP_ONLY_DIGITS}
         value={value}
         onChange={(next) => onChange(normalizeCode(next))}
-        onComplete={(completedCode) =>
-          onComplete?.(normalizeCode(completedCode))
-        }
+        onComplete={(completedCode) => onComplete?.(normalizeCode(completedCode))}
       >
         <InputOTPGroup>
           {Array.from({ length }, (_, slotIndex) => (
-            <InputOTPSlot
-              index={slotIndex}
-              key={`otp-slot-${String(slotIndex + 1)}`}
-            />
+            <InputOTPSlot index={slotIndex} key={`otp-slot-${String(slotIndex + 1)}`} />
           ))}
         </InputOTPGroup>
       </InputOTP>

@@ -1,10 +1,10 @@
-"use client"
+'use client'
 
-import { getAuthRedirectAction } from "@better-auth-ui/core"
-import { useAuth, useSession } from "@better-auth-ui/react"
-import { useEffect, useRef } from "react"
-import { Spinner } from "@/components/ui/spinner.tsx"
-import { cn } from "cn"
+import { getAuthRedirectAction } from '@better-auth-ui/core'
+import { useAuth, useSession } from '@better-auth-ui/react'
+import { useEffect, useRef } from 'react'
+import { Spinner } from '@/components/ui/spinner.tsx'
+import { cn } from 'cn'
 
 export type AuthRedirectProps = {
   className?: string
@@ -38,5 +38,5 @@ export function AuthRedirect({ className }: AuthRedirectProps) {
     window.location.replace(action.to)
   }, [basePaths.auth, isPending, session, viewPaths.auth.signIn])
 
-  return <Spinner className={cn("mx-auto my-auto", className)} />
+  return <Spinner className={cn('mx-auto my-auto', className)} />
 }

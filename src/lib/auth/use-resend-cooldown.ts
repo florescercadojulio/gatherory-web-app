@@ -1,6 +1,6 @@
-"use client"
+'use client'
 
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from 'react'
 
 export const RESEND_COOLDOWN_SECONDS = 60
 
@@ -17,14 +17,11 @@ export function useResendCooldown(initialSeconds = 0) {
     return () => clearInterval(interval)
   }, [cooldown])
 
-  const startCooldown = useCallback(
-    (seconds = RESEND_COOLDOWN_SECONDS) => setCooldown(seconds),
-    []
-  )
+  const startCooldown = useCallback((seconds = RESEND_COOLDOWN_SECONDS) => setCooldown(seconds), [])
 
   return {
     cooldown,
     isCoolingDown: cooldown > 0,
-    startCooldown
+    startCooldown,
   }
 }

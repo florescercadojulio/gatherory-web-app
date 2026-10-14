@@ -1,33 +1,28 @@
-import { Link, useNavigate, useRouterState } from "@tanstack/react-router"
-import { ThemeProvider, useTheme } from "next-themes"
-import { I18nextProvider } from "react-i18next"
-import { useEffect, type ReactNode } from "react"
+import { Link, useNavigate, useRouterState } from '@tanstack/react-router'
+import { ThemeProvider, useTheme } from 'next-themes'
+import { I18nextProvider } from 'react-i18next'
+import { useEffect, type ReactNode } from 'react'
 
-import { AuthProvider } from "@/components/auth/auth-provider"
-import { Toaster } from "@/components/ui/sonner"
-import { authClient } from "@/lib/auth-client"
-import { emailOtpPlugin } from "@/lib/auth/email-otp-plugin"
-import { magicLinkPlugin } from "@/lib/auth/magic-link-plugin"
-import { themePlugin } from "@/lib/auth/theme-plugin"
-import { safeAuthContinuation } from "@/lib/event-invitation-links"
-import i18n from "@/i18n"
+import { AuthProvider } from '@/components/auth/auth-provider'
+import { Toaster } from '@/components/ui/sonner'
+import { authClient } from '@/lib/auth-client'
+import { emailOtpPlugin } from '@/lib/auth/email-otp-plugin'
+import { magicLinkPlugin } from '@/lib/auth/magic-link-plugin'
+import { themePlugin } from '@/lib/auth/theme-plugin'
+import { safeAuthContinuation } from '@/lib/event-invitation-links'
+import i18n from '@/i18n'
 
 export function Providers({ children }: { children: ReactNode }) {
   const navigate = useNavigate()
   const search = useRouterState({ select: (state) => state.location.search })
-  const redirectTo = safeAuthContinuation((search as Record<string, unknown>).redirectTo) ?? "/"
+  const redirectTo = safeAuthContinuation((search as Record<string, unknown>).redirectTo) ?? '/'
   const socialProviders = [
-    ...(import.meta.env.VITE_APPLE_AUTH_ENABLED ? (["apple"] as const) : []),
-    ...(import.meta.env.VITE_GOOGLE_AUTH_ENABLED ? (["google"] as const) : []),
+    ...(import.meta.env.VITE_APPLE_AUTH_ENABLED ? (['apple'] as const) : []),
+    ...(import.meta.env.VITE_GOOGLE_AUTH_ENABLED ? (['google'] as const) : []),
   ]
 
   return (
-    <ThemeProvider
-      attribute="class"
-      defaultTheme="system"
-      enableSystem
-      disableTransitionOnChange
-    >
+    <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
       <BrowserChromeTheme />
       <I18nextProvider i18n={i18n}>
         <AuthProvider
@@ -43,19 +38,19 @@ export function Providers({ children }: { children: ReactNode }) {
             themePlugin({
               useTheme,
               localization: {
-                appearance: i18n.t("appearance.title"),
-                theme: i18n.t("appearance.theme"),
-                system: i18n.t("appearance.system"),
-                light: i18n.t("appearance.light"),
-                dark: i18n.t("appearance.dark"),
+                appearance: i18n.t('appearance.title'),
+                theme: i18n.t('appearance.theme'),
+                system: i18n.t('appearance.system'),
+                light: i18n.t('appearance.light'),
+                dark: i18n.t('appearance.dark'),
               },
             }),
             magicLinkPlugin({
               localization: {
-                magicLink: i18n.t("authPlugin.magicLink"),
-                sendMagicLink: i18n.t("authPlugin.sendMagicLink"),
-                magicLinkSent: i18n.t("authPlugin.magicLinkSent"),
-                magicLinkSentTo: i18n.t("authPlugin.magicLinkSentTo"),
+                magicLink: i18n.t('authPlugin.magicLink'),
+                sendMagicLink: i18n.t('authPlugin.sendMagicLink'),
+                magicLinkSent: i18n.t('authPlugin.magicLinkSent'),
+                magicLinkSentTo: i18n.t('authPlugin.magicLinkSentTo'),
               },
             }),
             emailOtpPlugin({
@@ -63,18 +58,18 @@ export function Providers({ children }: { children: ReactNode }) {
               otpLength: 6,
               signIn: true,
               localization: {
-                emailOtp: i18n.t("authPlugin.emailOtp"),
-                sendCode: i18n.t("authPlugin.sendCode"),
-                code: i18n.t("authPlugin.code"),
-                verifyCode: i18n.t("authPlugin.verifyCode"),
-                codeSentTo: i18n.t("authPlugin.codeSentTo"),
-                codeLengthMismatch: i18n.t("authPlugin.codeLengthMismatch"),
-                useDifferentEmail: i18n.t("authPlugin.useDifferentEmail"),
-                codeSent: i18n.t("authPlugin.codeSent"),
-                emailVerified: i18n.t("authPlugin.emailVerified"),
-                confirmCurrentEmail: i18n.t("authPlugin.confirmCurrentEmail"),
-                confirmNewEmail: i18n.t("authPlugin.confirmNewEmail"),
-                confirmEmailDescription: i18n.t("authPlugin.confirmEmailDescription"),
+                emailOtp: i18n.t('authPlugin.emailOtp'),
+                sendCode: i18n.t('authPlugin.sendCode'),
+                code: i18n.t('authPlugin.code'),
+                verifyCode: i18n.t('authPlugin.verifyCode'),
+                codeSentTo: i18n.t('authPlugin.codeSentTo'),
+                codeLengthMismatch: i18n.t('authPlugin.codeLengthMismatch'),
+                useDifferentEmail: i18n.t('authPlugin.useDifferentEmail'),
+                codeSent: i18n.t('authPlugin.codeSent'),
+                emailVerified: i18n.t('authPlugin.emailVerified'),
+                confirmCurrentEmail: i18n.t('authPlugin.confirmCurrentEmail'),
+                confirmNewEmail: i18n.t('authPlugin.confirmNewEmail'),
+                confirmEmailDescription: i18n.t('authPlugin.confirmEmailDescription'),
               },
             }),
           ]}
@@ -97,15 +92,15 @@ function BrowserChromeTheme() {
   useEffect(() => {
     if (!resolvedTheme) return
     let meta = document.querySelector<HTMLMetaElement>(
-      'meta[name="theme-color"][data-gatherory-theme]',
+      'meta[name="theme-color"][data-gatherory-theme]'
     )
     if (!meta) {
-      meta = document.createElement("meta")
-      meta.name = "theme-color"
-      meta.dataset.gatheroryTheme = "true"
+      meta = document.createElement('meta')
+      meta.name = 'theme-color'
+      meta.dataset.gatheroryTheme = 'true'
       document.head.append(meta)
     }
-    meta.content = resolvedTheme === "dark" ? "#07080a" : "#f7f7f8"
+    meta.content = resolvedTheme === 'dark' ? '#07080a' : '#f7f7f8'
   }, [resolvedTheme])
 
   return null

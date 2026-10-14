@@ -1,14 +1,8 @@
-"use client";
+'use client'
 
-import { Link } from "@tanstack/react-router";
-import { useTranslation } from "react-i18next";
-import {
-  CalendarDays,
-  Check,
-  ChevronsUpDown,
-  LayoutGrid,
-  Users,
-} from "lucide-react";
+import { Link } from '@tanstack/react-router'
+import { useTranslation } from 'react-i18next'
+import { CalendarDays, Check, ChevronsUpDown, LayoutGrid, Users } from 'lucide-react'
 
 import {
   DropdownMenu,
@@ -18,33 +12,33 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+} from '@/components/ui/dropdown-menu'
 import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
-} from "@/components/ui/sidebar";
+} from '@/components/ui/sidebar'
 
 export type WorkspaceSwitcherItem = {
-  id: string;
-  name: string;
-  slug: string;
-  type: string;
-  access: "member" | "participant";
-};
+  id: string
+  name: string
+  slug: string
+  type: string
+  access: 'member' | 'participant'
+}
 
 export function WorkspaceSwitcher({
   workspace,
   workspaces,
   planningTeamName,
 }: {
-  workspace: WorkspaceSwitcherItem | null;
-  workspaces: WorkspaceSwitcherItem[];
-  planningTeamName: string | null;
+  workspace: WorkspaceSwitcherItem | null
+  workspaces: WorkspaceSwitcherItem[]
+  planningTeamName: string | null
 }) {
-  const { t } = useTranslation();
-  const { isMobile } = useSidebar();
+  const { t } = useTranslation()
+  const { isMobile } = useSidebar()
 
   return (
     <SidebarMenu>
@@ -59,22 +53,18 @@ export function WorkspaceSwitcher({
             }
           >
             <div className="flex aspect-square size-8 items-center justify-center overflow-hidden rounded-md border border-sidebar-border bg-sidebar-primary text-sidebar-primary-foreground">
-              <img
-                src="/gatherory-icon.png"
-                alt=""
-                className="size-full object-cover"
-              />
+              <img src="/gatherory-icon.png" alt="" className="size-full object-cover" />
             </div>
             <div className="grid flex-1 text-left text-sm leading-tight">
               <span className="truncate font-medium">
-                {workspace?.name ?? t("common.allEvents")}
+                {workspace?.name ?? t('common.allEvents')}
               </span>
               <span className="truncate text-xs text-muted-foreground">
                 {!workspace
-                  ? t("common.events", { count: workspaces.length })
-                  : workspace.access === "member"
-                    ? t("switcher.planningTeam", { team: planningTeamName ?? t("navigation.plan") })
-                    : t("common.sharedWithYou")}
+                  ? t('common.events', { count: workspaces.length })
+                  : workspace.access === 'member'
+                    ? t('switcher.planningTeam', { team: planningTeamName ?? t('navigation.plan') })
+                    : t('common.sharedWithYou')}
               </span>
             </div>
             <ChevronsUpDown className="ml-auto size-4" />
@@ -82,25 +72,22 @@ export function WorkspaceSwitcher({
           <DropdownMenuContent
             className="w-(--radix-dropdown-menu-trigger-width) min-w-64 rounded-lg"
             align="start"
-            side={isMobile ? "bottom" : "right"}
+            side={isMobile ? 'bottom' : 'right'}
             sideOffset={4}
           >
             <DropdownMenuGroup>
-              <DropdownMenuItem
-                className="gap-2 p-2"
-                render={<Link to="/workspaces" />}
-              >
+              <DropdownMenuItem className="gap-2 p-2" render={<Link to="/workspaces" />}>
                 <div className="flex size-7 items-center justify-center rounded-md border">
                   <LayoutGrid className="size-4" />
                 </div>
-                <span className="flex-1">{t("common.allEvents")}</span>
+                <span className="flex-1">{t('common.allEvents')}</span>
                 {!workspace ? <Check className="ml-auto size-4" /> : null}
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
               <DropdownMenuLabel className="text-xs text-muted-foreground">
-                {t("navigation.yourEvents")}
+                {t('navigation.yourEvents')}
               </DropdownMenuLabel>
               {workspaces.map((candidate) => (
                 <DropdownMenuItem
@@ -114,7 +101,7 @@ export function WorkspaceSwitcher({
                   }
                 >
                   <div className="flex size-7 items-center justify-center rounded-md border">
-                    {candidate.access === "member" ? (
+                    {candidate.access === 'member' ? (
                       <CalendarDays className="size-4" />
                     ) : (
                       <Users className="size-4" />
@@ -123,14 +110,12 @@ export function WorkspaceSwitcher({
                   <div className="grid min-w-0 flex-1 gap-0.5">
                     <span className="truncate">{candidate.name}</span>
                     <span className="truncate text-xs text-muted-foreground">
-                      {candidate.access === "member"
-                        ? t("common.yourEvent")
-                        : t("common.sharedWithYou")}
+                      {candidate.access === 'member'
+                        ? t('common.yourEvent')
+                        : t('common.sharedWithYou')}
                     </span>
                   </div>
-                  {candidate.id === workspace?.id ? (
-                    <Check className="ml-auto size-4" />
-                  ) : null}
+                  {candidate.id === workspace?.id ? <Check className="ml-auto size-4" /> : null}
                 </DropdownMenuItem>
               ))}
             </DropdownMenuGroup>
@@ -138,5 +123,5 @@ export function WorkspaceSwitcher({
         </DropdownMenu>
       </SidebarMenuItem>
     </SidebarMenu>
-  );
+  )
 }

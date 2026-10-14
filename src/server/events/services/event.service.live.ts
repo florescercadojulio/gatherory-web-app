@@ -1,10 +1,10 @@
-import { Effect, Layer } from "effect"
-import { planningPermissionFromDatabase } from "@/lib/permissions"
-import { ForbiddenError } from "@/server/effect"
+import { Effect, Layer } from 'effect'
+import { planningPermissionFromDatabase } from '@/lib/permissions'
+import { ForbiddenError } from '@/server/effect'
 
-import { EventRepo } from "../repos/event.repo"
-import { EventAuthorization } from "./event-authorization.service"
-import { EventService } from "./event.service"
+import { EventRepo } from '../repos/event.repo'
+import { EventAuthorization } from './event-authorization.service'
+import { EventService } from './event.service'
 
 export const EventServiceLive = Layer.effect(
   EventService,
@@ -23,31 +23,29 @@ export const EventServiceLive = Layer.effect(
             if (!participant) {
               return yield* Effect.fail(
                 new ForbiddenError({
-                  category: "authorization",
-                  code: "PARENT_EVENT_PARTICIPANT_REQUIRED",
-                  userMessageKey: "serverErrors.PARENT_EVENT_PARTICIPANT_REQUIRED",
-                }),
+                  category: 'authorization',
+                  code: 'PARENT_EVENT_PARTICIPANT_REQUIRED',
+                  userMessageKey: 'serverErrors.PARENT_EVENT_PARTICIPANT_REQUIRED',
+                })
               )
             }
 
             yield* authorization.require(
               {
                 role: participant.role,
-                planningPermission: planningPermissionFromDatabase(
-                  participant.planningPermission,
-                ),
+                planningPermission: planningPermissionFromDatabase(participant.planningPermission),
               },
-              { event: ["create_child"] },
+              { event: ['create_child'] }
             )
           } else {
             const isMember = yield* repo.hasWorkspaceMembership(actor)
             if (!isMember) {
               return yield* Effect.fail(
                 new ForbiddenError({
-                  category: "authorization",
-                  code: "WORKSPACE_MEMBERSHIP_REQUIRED",
-                  userMessageKey: "serverErrors.WORKSPACE_MEMBERSHIP_REQUIRED",
-                }),
+                  category: 'authorization',
+                  code: 'WORKSPACE_MEMBERSHIP_REQUIRED',
+                  userMessageKey: 'serverErrors.WORKSPACE_MEMBERSHIP_REQUIRED',
+                })
               )
             }
           }
@@ -66,21 +64,19 @@ export const EventServiceLive = Layer.effect(
           if (!participant) {
             return yield* Effect.fail(
               new ForbiddenError({
-                category: "authorization",
-                code: "EVENT_PARTICIPANT_REQUIRED",
-                userMessageKey: "serverErrors.EVENT_PARTICIPANT_REQUIRED",
-              }),
+                category: 'authorization',
+                code: 'EVENT_PARTICIPANT_REQUIRED',
+                userMessageKey: 'serverErrors.EVENT_PARTICIPANT_REQUIRED',
+              })
             )
           }
 
           yield* authorization.require(
             {
               role: participant.role,
-              planningPermission: planningPermissionFromDatabase(
-                participant.planningPermission,
-              ),
+              planningPermission: planningPermissionFromDatabase(participant.planningPermission),
             },
-            { event: ["manage_participants"] },
+            { event: ['manage_participants'] }
           )
 
           return yield* repo.createEventInvitation({
@@ -91,5 +87,5 @@ export const EventServiceLive = Layer.effect(
 
       acceptInvitation: (input) => repo.acceptEventInvitation(input),
     }
-  }),
+  })
 )

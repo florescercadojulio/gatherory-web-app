@@ -1,15 +1,15 @@
-import { getAuthLinkURL } from "@better-auth-ui/core"
-import { useAuth } from "@better-auth-ui/react"
-import { useEffect, useState } from "react"
+import { getAuthLinkURL } from '@better-auth-ui/core'
+import { useAuth } from '@better-auth-ui/react'
+import { useEffect, useState } from 'react'
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card.tsx"
-import { FieldDescription } from "@/components/ui/field.tsx"
-import { cn } from "cn"
-import { OpenEmailButton } from "./open-email-button"
-import { useIsHydrated } from "./use-is-hydrated"
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card.tsx'
+import { FieldDescription } from '@/components/ui/field.tsx'
+import { cn } from 'cn'
+import { OpenEmailButton } from './open-email-button'
+import { useIsHydrated } from './use-is-hydrated'
 
 /** `sessionStorage` key the forgot-password form stores the submitted email under. */
-export const RESET_LINK_SENT_STORAGE_KEY = "better-auth-ui.reset-link-sent"
+export const RESET_LINK_SENT_STORAGE_KEY = 'better-auth-ui.reset-link-sent'
 
 export type ResetLinkSentProps = {
   className?: string
@@ -31,15 +31,15 @@ export function ResetLinkSent({ className }: ResetLinkSentProps) {
 
   const isHydrated = useIsHydrated()
   const [email, setEmail] = useState(
-    (isHydrated && sessionStorage.getItem(RESET_LINK_SENT_STORAGE_KEY)) || ""
+    (isHydrated && sessionStorage.getItem(RESET_LINK_SENT_STORAGE_KEY)) || ''
   )
 
   useEffect(() => {
-    setEmail(sessionStorage.getItem(RESET_LINK_SENT_STORAGE_KEY) ?? "")
+    setEmail(sessionStorage.getItem(RESET_LINK_SENT_STORAGE_KEY) ?? '')
   }, [])
 
   return (
-    <Card className={cn("w-full max-w-sm", className)}>
+    <Card className={cn('w-full max-w-sm', className)}>
       <CardHeader>
         <CardTitle className="text-xl font-semibold">
           {localization.auth.checkYourEmailTitle}
@@ -50,7 +50,7 @@ export function ResetLinkSent({ className }: ResetLinkSentProps) {
         <div className="flex flex-col gap-4">
           <FieldDescription>
             {email
-              ? localization.auth.resetLinkSentTo.replace("{{email}}", email)
+              ? localization.auth.resetLinkSentTo.replace('{{email}}', email)
               : localization.auth.passwordResetEmailSent}
           </FieldDescription>
 
@@ -59,12 +59,9 @@ export function ResetLinkSent({ className }: ResetLinkSentProps) {
 
         <div className="flex flex-col gap-3 items-center w-full mt-4">
           <FieldDescription className="text-center">
-            {localization.auth.rememberYourPassword}{" "}
+            {localization.auth.rememberYourPassword}{' '}
             <Link
-              href={getAuthLinkURL(
-                `${basePaths.auth}/${viewPaths.auth.signIn}`,
-                redirectTo
-              )}
+              href={getAuthLinkURL(`${basePaths.auth}/${viewPaths.auth.signIn}`, redirectTo)}
               className="underline underline-offset-4"
             >
               {localization.auth.signIn}

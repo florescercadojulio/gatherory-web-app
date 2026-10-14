@@ -1,6 +1,6 @@
-import { Link, useRouterState } from "@tanstack/react-router"
-import type { LucideIcon } from "lucide-react"
-import { useTranslation } from "react-i18next"
+import { Link, useRouterState } from '@tanstack/react-router'
+import type { LucideIcon } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 
 import {
   SidebarGroup,
@@ -8,11 +8,11 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from "@/components/ui/sidebar.tsx"
+} from '@/components/ui/sidebar.tsx'
 
 export function NavMain({
   items,
-  label = "Plan",
+  label = 'Plan',
 }: {
   items: {
     title: string
@@ -36,9 +36,7 @@ export function NavMain({
               {item.icon && <item.icon />}
               <span>{item.title}</span>
               {item.note && (
-                <span className="ml-auto text-[10px] text-muted-foreground">
-                  {item.note}
-                </span>
+                <span className="ml-auto text-[10px] text-muted-foreground">{item.note}</span>
               )}
             </>
           )
@@ -46,7 +44,7 @@ export function NavMain({
           return (
             <SidebarMenuItem key={item.title}>
               {item.disabled ? (
-                  <SidebarMenuButton disabled tooltip={`${item.title} — ${t("navigation.later")} `}>
+                <SidebarMenuButton disabled tooltip={`${item.title} — ${t('navigation.later')} `}>
                   {content}
                 </SidebarMenuButton>
               ) : (

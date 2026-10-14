@@ -1,21 +1,19 @@
-import { authClient } from "@/lib/auth-client"
+import { authClient } from '@/lib/auth-client'
 
-type SwitchAccountResult =
-  | { ok: false; message: string }
-  | { ok: true; destination: string }
+type SwitchAccountResult = { ok: false; message: string } | { ok: true; destination: string }
 
 function safeDestination(href: string) {
   try {
     const url = new URL(href, window.location.origin)
-    if (url.origin !== window.location.origin) return "/"
+    if (url.origin !== window.location.origin) return '/'
 
-    if (url.pathname === "/login" || url.pathname.startsWith("/auth/")) {
-      return "/"
+    if (url.pathname === '/login' || url.pathname.startsWith('/auth/')) {
+      return '/'
     }
 
     return `${url.pathname}${url.search}${url.hash}`
   } catch {
-    return "/"
+    return '/'
   }
 }
 
@@ -28,7 +26,7 @@ export async function switchDevelopmentAccount(input: {
   if (!import.meta.env.DEV) {
     return {
       ok: false,
-      message: "Account switching is only available in development.",
+      message: 'Account switching is only available in development.',
     }
   }
 
@@ -40,12 +38,12 @@ export async function switchDevelopmentAccount(input: {
     })
 
     if (error) {
-      return { ok: false, message: error.message ?? "Unable to sign in." }
+      return { ok: false, message: error.message ?? 'Unable to sign in.' }
     }
   } catch {
     return {
       ok: false,
-      message: "The account could not be reached. Try again.",
+      message: 'The account could not be reached. Try again.',
     }
   }
 

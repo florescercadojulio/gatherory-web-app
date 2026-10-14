@@ -1,12 +1,12 @@
-"use client"
+'use client'
 
-import { useAuthPlugin } from "@better-auth-ui/react"
-import { Monitor, Moon, PaletteIcon, Sun } from "lucide-react"
-import { useRef } from "react"
+import { useAuthPlugin } from '@better-auth-ui/react'
+import { Monitor, Moon, PaletteIcon, Sun } from 'lucide-react'
+import { useRef } from 'react'
 
-import { DropdownMenuItem } from "@/components/ui/dropdown-menu.tsx"
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs.tsx"
-import { themePlugin } from "@/lib/auth/theme-plugin.ts"
+import { DropdownMenuItem } from '@/components/ui/dropdown-menu.tsx'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs.tsx'
+import { themePlugin } from '@/lib/auth/theme-plugin.ts'
 
 /**
  * Theme toggle dropdown item used inside `UserButton`. Callers are responsible
@@ -23,34 +23,27 @@ export function ThemeToggleItem() {
   // inside, letting the user move between themes with Left/Right arrows
   // and activate one with Enter or Space.
   const focusActiveTab = () => {
-    const activeTab = tabsListRef.current?.querySelector<HTMLElement>(
-      '[role="tab"][data-active]'
-    )
+    const activeTab = tabsListRef.current?.querySelector<HTMLElement>('[role="tab"][data-active]')
     activeTab?.focus({ preventScroll: true })
   }
 
   // Up/Down on a TabsTrigger escapes back to the previous/next sibling
   // menu item so users can keep navigating the menu with the arrow keys.
   const handleTabsKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
-    if (event.key !== "ArrowUp" && event.key !== "ArrowDown") return
+    if (event.key !== 'ArrowUp' && event.key !== 'ArrowDown') return
 
     const target = event.target as HTMLElement
-    if (target.getAttribute("role") !== "tab") return
+    if (target.getAttribute('role') !== 'tab') return
 
     const wrapper = target.closest<HTMLElement>('[role="menuitem"]')
-    const content = wrapper?.closest<HTMLElement>(
-      '[data-slot="dropdown-menu-content"]'
-    )
+    const content = wrapper?.closest<HTMLElement>('[data-slot="dropdown-menu-content"]')
     if (!wrapper || !content) return
 
     const items = Array.from(
-      content.querySelectorAll<HTMLElement>(
-        '[role="menuitem"]:not([aria-disabled="true"])'
-      )
+      content.querySelectorAll<HTMLElement>('[role="menuitem"]:not([aria-disabled="true"])')
     )
     const currentIndex = items.indexOf(wrapper)
-    const nextIndex =
-      event.key === "ArrowDown" ? currentIndex + 1 : currentIndex - 1
+    const nextIndex = event.key === 'ArrowDown' ? currentIndex + 1 : currentIndex - 1
     const next = items[nextIndex]
     if (!next) return
 
@@ -78,30 +71,18 @@ export function ThemeToggleItem() {
         onKeyDown={handleTabsKeyDown}
       >
         <TabsList ref={tabsListRef} className="h-6!">
-          {themes.includes("system") && (
-            <TabsTrigger
-              value="system"
-              className="size-5 p-0"
-              aria-label={localization.system}
-            >
+          {themes.includes('system') && (
+            <TabsTrigger value="system" className="size-5 p-0" aria-label={localization.system}>
               <Monitor className="size-3" />
             </TabsTrigger>
           )}
-          {themes.includes("light") && (
-            <TabsTrigger
-              value="light"
-              className="size-5 p-0"
-              aria-label={localization.light}
-            >
+          {themes.includes('light') && (
+            <TabsTrigger value="light" className="size-5 p-0" aria-label={localization.light}>
               <Sun className="size-3" />
             </TabsTrigger>
           )}
-          {themes.includes("dark") && (
-            <TabsTrigger
-              value="dark"
-              className="size-5 p-0"
-              aria-label={localization.dark}
-            >
+          {themes.includes('dark') && (
+            <TabsTrigger value="dark" className="size-5 p-0" aria-label={localization.dark}>
               <Moon className="size-3" />
             </TabsTrigger>
           )}

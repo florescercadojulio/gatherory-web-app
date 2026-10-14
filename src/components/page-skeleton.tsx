@@ -1,16 +1,16 @@
-import { useTranslation } from "react-i18next";
-import { Skeleton } from "@/components/ui/skeleton";
+import { useTranslation } from 'react-i18next'
+import { Skeleton } from '@/components/ui/skeleton'
 
 export function PageSkeleton() {
-  const { t } = useTranslation();
+  const { t } = useTranslation()
   return (
     <div
       className="min-h-svh bg-background"
       role="status"
       aria-busy="true"
-      aria-label={t("ui.loadingPage")}
+      aria-label={t('ui.loadingPage')}
     >
-      <span className="sr-only">{t("common.loading")}</span>
+      <span className="sr-only">{t('common.loading')}</span>
       <header className="app-toolbar">
         <Skeleton className="size-8 rounded-md" />
         <Skeleton className="h-4 w-28" />
@@ -36,5 +36,5 @@ export function PageSkeleton() {
         </section>
       </main>
     </div>
-  );
+  )
 }

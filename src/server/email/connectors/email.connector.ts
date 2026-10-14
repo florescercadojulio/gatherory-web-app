@@ -1,7 +1,7 @@
-import type { ReactNode } from "react"
-import { Context, Effect } from "effect"
+import type { ReactNode } from 'react'
+import { Context, Effect } from 'effect'
 
-import type { ExternalServiceError } from "@/server/effect"
+import type { ExternalServiceError } from '@/server/effect'
 
 export type SendEmailInput = {
   readonly to: string
@@ -17,8 +17,6 @@ export type SendEmailReceipt = {
 export class EmailConnector extends Context.Service<
   EmailConnector,
   {
-    readonly send: (
-      input: SendEmailInput
-    ) => Effect.Effect<SendEmailReceipt, ExternalServiceError>
+    readonly send: (input: SendEmailInput) => Effect.Effect<SendEmailReceipt, ExternalServiceError>
   }
->()("EmailConnector") {}
+>()('EmailConnector') {}

@@ -1,5 +1,5 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useTranslation } from "react-i18next";
+import { createFileRoute } from '@tanstack/react-router'
+import { useTranslation } from 'react-i18next'
 import {
   CalendarDays,
   CheckCircle2,
@@ -9,42 +9,40 @@ import {
   Smartphone,
   Users,
   WalletCards,
-} from "lucide-react";
+} from 'lucide-react'
 
-import { AccountSidebar } from "@/components/account-sidebar";
-import { ParticipantAvatars } from "@/components/participant-avatars";
-import { ServerErrorToast } from "@/components/route-feedback";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
-import { Separator } from "@/components/ui/separator";
-import {
-  SidebarInset,
-  SidebarProvider,
-  SidebarTrigger,
-} from "@/components/ui/sidebar";
+import { AccountSidebar } from '@/components/account-sidebar'
+import { ParticipantAvatars } from '@/components/participant-avatars'
+import { ServerErrorToast } from '@/components/route-feedback'
+import { Badge } from '@/components/ui/badge'
+import { Progress } from '@/components/ui/progress'
+import { Separator } from '@/components/ui/separator'
+import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
 import {
   listNativeWorkspaceInsights,
   type NativeWorkspaceInsight,
-} from "@/server/sync/native-insights";
+} from '@/server/sync/native-insights'
 
-export const Route = createFileRoute("/_protected/workspaces/")({
+export const Route = createFileRoute('/_protected/workspaces/')({
   loader: () => listNativeWorkspaceInsights(),
   component: WorkspaceCompanion,
-});
+})
 
 function WorkspaceCompanion() {
-  const { t, i18n } = useTranslation();
+  const { t, i18n } = useTranslation()
   const currencyFormatter = new Intl.NumberFormat(i18n.language, {
-    style: "currency", currency: "USD", maximumFractionDigits: 0,
-  });
-  const { defaultWorkspaceContext } = Route.useRouteContext();
-  const insightResult = Route.useLoaderData();
-  if (!defaultWorkspaceContext) return null;
+    style: 'currency',
+    currency: 'USD',
+    maximumFractionDigits: 0,
+  })
+  const { defaultWorkspaceContext } = Route.useRouteContext()
+  const insightResult = Route.useLoaderData()
+  if (!defaultWorkspaceContext) return null
 
   const insight = insightResult.ok
     ? insightResult.data
-    : { workspaces: [], unavailableSnapshotCount: 0 };
-  const workspaces = insight.workspaces;
+    : { workspaces: [], unavailableSnapshotCount: 0 }
+  const workspaces = insight.workspaces
   const totals = workspaces.reduce(
     (result, workspace) => ({
       scheduledEvents: result.scheduledEvents + workspace.scheduledEventCount,
@@ -52,15 +50,15 @@ function WorkspaceCompanion() {
       trackedCost: result.trackedCost + workspace.trackedCost,
       participantCount: result.participantCount + workspace.participantCount,
     }),
-    { scheduledEvents: 0, openIdeas: 0, trackedCost: 0, participantCount: 0 },
-  );
+    { scheduledEvents: 0, openIdeas: 0, trackedCost: 0, participantCount: 0 }
+  )
 
   return (
     <SidebarProvider>
       <ServerErrorToast error={insightResult.ok ? null : insightResult.error} />
       <AccountSidebar
         user={defaultWorkspaceContext.user}
-        summaryLabel={t("common.events", { count: workspaces.length })}
+        summaryLabel={t('common.events', { count: workspaces.length })}
       />
       <SidebarInset>
         <header className="app-toolbar">
@@ -68,7 +66,7 @@ function WorkspaceCompanion() {
           <Separator orientation="vertical" className="mr-2 h-4" />
           <div className="flex min-w-0 items-center gap-2">
             <CalendarDays className="size-4 text-brand-ink" />
-            <span className="truncate text-sm font-medium">{t("overview.events")}</span>
+            <span className="truncate text-sm font-medium">{t('overview.events')}</span>
           </div>
         </header>
 
@@ -78,23 +76,19 @@ function WorkspaceCompanion() {
               <div className="max-w-3xl space-y-6">
                 <div className="flex items-center gap-3">
                   <div className="size-12 overflow-hidden rounded-lg border border-white/10 bg-[#121212]">
-                    <img
-                      src="/gatherory-icon.png"
-                      alt=""
-                      className="size-full object-cover"
-                    />
+                    <img src="/gatherory-icon.png" alt="" className="size-full object-cover" />
                   </div>
                   <span className="app-keycap">
                     <Smartphone className="mr-1.5 size-3.5" />
-                    {t("overview.eyebrow")}
+                    {t('overview.eyebrow')}
                   </span>
                 </div>
                 <div className="space-y-3">
                   <h1 className="text-3xl leading-tight font-semibold tracking-[-0.025em] text-balance sm:text-4xl">
-                    {t("overview.title")}
+                    {t('overview.title')}
                   </h1>
                   <p className="max-w-2xl text-sm leading-6 text-[#cdcdcd] sm:text-base">
-                    {t("overview.description")}
+                    {t('overview.description')}
                   </p>
                 </div>
               </div>
@@ -102,10 +96,8 @@ function WorkspaceCompanion() {
                 <div className="flex items-center gap-3 rounded-md bg-[#121212] px-3 py-2.5">
                   <span className="size-2 rounded-full bg-[#57c1ff]" />
                   <div className="min-w-0">
-                    <p className="text-sm font-medium text-white">{t("overview.upToDate")}</p>
-                    <p className="truncate text-xs text-[#9c9c9d]">
-                      {t("overview.latestPlans")}
-                    </p>
+                    <p className="text-sm font-medium text-white">{t('overview.upToDate')}</p>
+                    <p className="truncate text-xs text-[#9c9c9d]">{t('overview.latestPlans')}</p>
                   </div>
                 </div>
               </div>
@@ -114,31 +106,31 @@ function WorkspaceCompanion() {
 
           <section
             className="grid border-y sm:grid-cols-2 xl:grid-cols-4"
-            aria-label={t("ui.planningOverview")}
+            aria-label={t('ui.planningOverview')}
           >
             <Metric
               icon={CalendarDays}
-              label={t("overview.events")}
+              label={t('overview.events')}
               value={String(workspaces.length)}
-              detail={t("overview.plannedActivities", { count: totals.scheduledEvents })}
+              detail={t('overview.plannedActivities', { count: totals.scheduledEvents })}
             />
             <Metric
               icon={Lightbulb}
-              label={t("overview.ideasToDecide")}
+              label={t('overview.ideasToDecide')}
               value={String(totals.openIdeas)}
-              detail={t("overview.acrossEvents")}
+              detail={t('overview.acrossEvents')}
             />
             <Metric
               icon={WalletCards}
-              label={t("overview.plannedSpending")}
+              label={t('overview.plannedSpending')}
               value={currencyFormatter.format(totals.trackedCost)}
-              detail={t("overview.spendingSoFar")}
+              detail={t('overview.spendingSoFar')}
             />
             <Metric
               icon={Users}
-              label={t("common.people")}
+              label={t('common.people')}
               value={String(totals.participantCount)}
-              detail={t("overview.hostsHelpersGuests")}
+              detail={t('overview.hostsHelpersGuests')}
             />
           </section>
 
@@ -146,24 +138,17 @@ function WorkspaceCompanion() {
             <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
               <div>
                 <h2 id="your-events-heading" className="app-section-heading">
-                  {t("overview.yourEvents")}
+                  {t('overview.yourEvents')}
                 </h2>
-                <p className="text-sm text-muted-foreground">
-                  {t("overview.allTogether")}
-                </p>
+                <p className="text-sm text-muted-foreground">{t('overview.allTogether')}</p>
               </div>
-              <p className="text-xs text-muted-foreground">
-                {t("overview.useIPhoneToChange")}
-              </p>
+              <p className="text-xs text-muted-foreground">{t('overview.useIPhoneToChange')}</p>
             </div>
 
             {workspaces.length ? (
               <div className="divide-y border-y">
                 {workspaces.map((workspace) => (
-                  <WorkspaceInsightCard
-                    key={workspace.id}
-                    workspace={workspace}
-                  />
+                  <WorkspaceInsightCard key={workspace.id} workspace={workspace} />
                 ))}
               </div>
             ) : (
@@ -172,14 +157,14 @@ function WorkspaceCompanion() {
 
             {insight.unavailableSnapshotCount ? (
               <p className="text-xs text-muted-foreground">
-                {t("overview.olderEvents", { count: insight.unavailableSnapshotCount })}
+                {t('overview.olderEvents', { count: insight.unavailableSnapshotCount })}
               </p>
             ) : null}
           </section>
         </main>
       </SidebarInset>
     </SidebarProvider>
-  );
+  )
 }
 
 function Metric({
@@ -188,10 +173,10 @@ function Metric({
   value,
   detail,
 }: {
-  icon: typeof CalendarDays;
-  label: string;
-  value: string;
-  detail: string;
+  icon: typeof CalendarDays
+  label: string
+  value: string
+  detail: string
 }) {
   return (
     <div className="flex min-w-0 gap-3 py-5 sm:px-5 sm:first:pl-0 xl:border-r xl:last:border-r-0 xl:first:pl-0">
@@ -200,33 +185,34 @@ function Metric({
       </div>
       <div className="min-w-0">
         <p className="text-sm text-muted-foreground">{label}</p>
-        <p className="mt-0.5 truncate text-2xl leading-tight font-medium tabular-nums">
-          {value}
-        </p>
+        <p className="mt-0.5 truncate text-2xl leading-tight font-medium tabular-nums">{value}</p>
         <p className="mt-2 text-xs text-muted-foreground">{detail}</p>
       </div>
     </div>
-  );
+  )
 }
 
-function WorkspaceInsightCard({
-  workspace,
-}: {
-  workspace: NativeWorkspaceInsight;
-}) {
-  const { t, i18n } = useTranslation();
+function WorkspaceInsightCard({ workspace }: { workspace: NativeWorkspaceInsight }) {
+  const { t, i18n } = useTranslation()
   const dateTimeFormatter = new Intl.DateTimeFormat(i18n.language, {
-    month: "short", day: "numeric", hour: "numeric", minute: "2-digit",
-  });
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  })
   const dateFormatter = new Intl.DateTimeFormat(i18n.language, {
-    month: "short", day: "numeric", year: "numeric",
-  });
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  })
   const currencyFormatter = new Intl.NumberFormat(i18n.language, {
-    style: "currency", currency: "USD", maximumFractionDigits: 0,
-  });
+    style: 'currency',
+    currency: 'USD',
+    maximumFractionDigits: 0,
+  })
   const budgetUsed = workspace.budgetCap
     ? Math.min((workspace.trackedCost / workspace.budgetCap) * 100, 100)
-    : null;
+    : null
 
   return (
     <article className="grid gap-8 py-8 lg:grid-cols-[minmax(15rem,0.8fr)_minmax(0,1.2fr)]">
@@ -237,13 +223,13 @@ function WorkspaceInsightCard({
             {workspace.status}
           </Badge>
           <span className="text-xs text-muted-foreground">
-            {t("overview.updatedAt", { date: dateTimeFormatter.format(new Date(workspace.updatedAt)) })}
+            {t('overview.updatedAt', {
+              date: dateTimeFormatter.format(new Date(workspace.updatedAt)),
+            })}
           </span>
         </div>
         <div>
-          <h3 className="text-2xl font-medium tracking-[-0.02em]">
-            {workspace.title}
-          </h3>
+          <h3 className="text-2xl font-medium tracking-[-0.02em]">{workspace.title}</h3>
           <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground">
             <span className="inline-flex items-center gap-1.5">
               <CalendarDays className="size-3.5" />
@@ -263,10 +249,10 @@ function WorkspaceInsightCard({
           maxVisible={5}
         />
         <div className="grid grid-cols-4 divide-x border-y py-3">
-          <SmallStat label={t("common.people")} value={workspace.participantCount} />
-          <SmallStat label={t("event.schedule")} value={workspace.scheduledEventCount} />
-          <SmallStat label={t("overview.ideasToDecide")} value={workspace.openIdeaCount} />
-          <SmallStat label={t("event.approved")} value={workspace.approvedIdeaCount} />
+          <SmallStat label={t('common.people')} value={workspace.participantCount} />
+          <SmallStat label={t('event.schedule')} value={workspace.scheduledEventCount} />
+          <SmallStat label={t('overview.ideasToDecide')} value={workspace.openIdeaCount} />
+          <SmallStat label={t('event.approved')} value={workspace.approvedIdeaCount} />
         </div>
       </header>
 
@@ -275,13 +261,13 @@ function WorkspaceInsightCard({
           <div className="space-y-2">
             <div className="flex items-end justify-between gap-4">
               <div>
-                <p className="text-xs text-muted-foreground">{t("overview.budget")}</p>
+                <p className="text-xs text-muted-foreground">{t('overview.budget')}</p>
                 <p className="font-medium tabular-nums">
-                  {currencyFormatter.format(workspace.trackedCost)} {t("overview.planned")}
+                  {currencyFormatter.format(workspace.trackedCost)} {t('overview.planned')}
                 </p>
               </div>
               <p className="text-sm tabular-nums text-muted-foreground">
-                {t("overview.ofBudget", { amount: currencyFormatter.format(workspace.budgetCap) })}
+                {t('overview.ofBudget', { amount: currencyFormatter.format(workspace.budgetCap) })}
               </p>
             </div>
             <Progress value={budgetUsed ?? 0} className="h-2" />
@@ -290,9 +276,9 @@ function WorkspaceInsightCard({
 
         <div className="space-y-3">
           <div className="flex items-center justify-between gap-3">
-            <p className="text-sm font-medium">{t("overview.comingUp")}</p>
+            <p className="text-sm font-medium">{t('overview.comingUp')}</p>
             <span className="text-xs text-muted-foreground">
-              {t("overview.nextCount", { count: workspace.upcomingEvents.length || 0 })}
+              {t('overview.nextCount', { count: workspace.upcomingEvents.length || 0 })}
             </span>
           </div>
           {workspace.upcomingEvents.length ? (
@@ -303,9 +289,7 @@ function WorkspaceInsightCard({
                     <Clock3 className="size-4" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium">
-                      {event.title}
-                    </p>
+                    <p className="truncate text-sm font-medium">{event.title}</p>
                     <p className="text-xs text-muted-foreground">
                       {dateTimeFormatter.format(new Date(event.startsAt))}
                     </p>
@@ -317,24 +301,23 @@ function WorkspaceInsightCard({
                     size="sm"
                     showLabel={false}
                   />
-                  <Badge
-                    variant="outline"
-                    className="hidden capitalize sm:inline-flex"
-                  >
-                    {event.purpose === "planning" ? t("overview.planning") : t("overview.forGuests")}
+                  <Badge variant="outline" className="hidden capitalize sm:inline-flex">
+                    {event.purpose === 'planning'
+                      ? t('overview.planning')
+                      : t('overview.forGuests')}
                   </Badge>
                 </div>
               ))}
             </div>
           ) : (
             <p className="border-y py-5 text-sm text-muted-foreground">
-              {t("overview.noUpcoming")}
+              {t('overview.noUpcoming')}
             </p>
           )}
         </div>
       </div>
     </article>
-  );
+  )
 }
 
 function SmallStat({ label, value }: { label: string; value: number }) {
@@ -343,20 +326,20 @@ function SmallStat({ label, value }: { label: string; value: number }) {
       <p className="text-lg font-medium tabular-nums">{value}</p>
       <p className="truncate text-[11px] text-muted-foreground">{label}</p>
     </div>
-  );
+  )
 }
 
 function EmptyCompanion() {
-  const { t } = useTranslation();
+  const { t } = useTranslation()
   return (
     <div className="border-y py-14 text-center">
       <div className="app-icon-tile mx-auto mb-4 size-14">
         <Smartphone className="size-7" />
       </div>
-      <h3 className="text-base font-medium">{t("overview.firstEvent")}</h3>
+      <h3 className="text-base font-medium">{t('overview.firstEvent')}</h3>
       <p className="mx-auto mt-2 w-full max-w-lg text-balance text-sm leading-6 text-muted-foreground">
-        {t("overview.firstEventDescription")}
+        {t('overview.firstEventDescription')}
       </p>
     </div>
-  );
+  )
 }

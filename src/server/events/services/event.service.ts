@@ -1,46 +1,40 @@
-import { Context, Effect } from "effect"
-import type { PgClient } from "@effect/sql-pg/PgClient"
+import { Context, Effect } from 'effect'
+import type { PgClient } from '@effect/sql-pg/PgClient'
 
 import type {
   AcceptEventInvitationInput,
   CreateEventInput,
   InviteEventParticipantInput,
-} from "../contracts/event.contracts"
+} from '../contracts/event.contracts'
 import type {
   acceptEventInvitation,
   createEventInvitation,
   createEventWithParticipants,
   EventRepoError,
   listVisibleMainEvents,
-} from "../repos/event.repo"
-import type {
-  ConflictError,
-  EntityNotFoundError,
-  ForbiddenError,
-} from "@/server/effect"
+} from '../repos/event.repo'
+import type { ConflictError, EntityNotFoundError, ForbiddenError } from '@/server/effect'
 
-export type EventDomainError =
-  ConflictError | EntityNotFoundError | ForbiddenError | EventRepoError
+export type EventDomainError = ConflictError | EntityNotFoundError | ForbiddenError | EventRepoError
 
 export type EventActor = {
   userId: string
   organizationId: string
 }
 
-type EffectSuccess<T> =
-  T extends Effect.Effect<infer A, unknown, unknown> ? A : never
+type EffectSuccess<T> = T extends Effect.Effect<infer A, unknown, unknown> ? A : never
 
 type EventServiceShape = {
   readonly create: (
     actor: EventActor,
-    event: CreateEventInput,
+    event: CreateEventInput
   ) => Effect.Effect<
     EffectSuccess<ReturnType<typeof createEventWithParticipants>>,
     EventDomainError,
     PgClient
   >
   readonly list: (
-    actor: EventActor,
+    actor: EventActor
   ) => Effect.Effect<
     EffectSuccess<ReturnType<typeof listVisibleMainEvents>>,
     EventDomainError,
@@ -48,7 +42,7 @@ type EventServiceShape = {
   >
   readonly inviteParticipant: (
     userId: string,
-    invitation: InviteEventParticipantInput,
+    invitation: InviteEventParticipantInput
   ) => Effect.Effect<
     EffectSuccess<ReturnType<typeof createEventInvitation>>,
     EventDomainError,
@@ -65,7 +59,6 @@ type EventServiceShape = {
   >
 }
 
-export class EventService extends Context.Service<
-  EventService,
-  EventServiceShape
->()("EventService") {}
+export class EventService extends Context.Service<EventService, EventServiceShape>()(
+  'EventService'
+) {}

@@ -72,12 +72,11 @@ const ProtectedAccountIndexRoute = ProtectedAccountIndexRouteImport.update({
   path: '/account/',
   getParentRoute: () => ProtectedRouteRoute,
 } as any)
-const ProtectedWorkspacesIndexRoute =
-  ProtectedWorkspacesIndexRouteImport.update({
-    id: '/workspaces/',
-    path: '/workspaces/',
-    getParentRoute: () => ProtectedRouteRoute,
-  } as any)
+const ProtectedWorkspacesIndexRoute = ProtectedWorkspacesIndexRouteImport.update({
+  id: '/workspaces/',
+  path: '/workspaces/',
+  getParentRoute: () => ProtectedRouteRoute,
+} as any)
 const ProtectedWorkspacesWorkspaceSlugRouteRoute =
   ProtectedWorkspacesWorkspaceSlugRouteRouteImport.update({
     id: '/workspaces/$workspaceSlug',
@@ -572,13 +571,12 @@ interface ProtectedWorkspacesWorkspaceSlugRouteRouteChildren {
 
 const ProtectedWorkspacesWorkspaceSlugRouteRouteChildren: ProtectedWorkspacesWorkspaceSlugRouteRouteChildren =
   {
-    ProtectedWorkspacesWorkspaceSlugIndexRoute:
-      ProtectedWorkspacesWorkspaceSlugIndexRoute,
+    ProtectedWorkspacesWorkspaceSlugIndexRoute: ProtectedWorkspacesWorkspaceSlugIndexRoute,
   }
 
 const ProtectedWorkspacesWorkspaceSlugRouteRouteWithChildren =
   ProtectedWorkspacesWorkspaceSlugRouteRoute._addFileChildren(
-    ProtectedWorkspacesWorkspaceSlugRouteRouteChildren,
+    ProtectedWorkspacesWorkspaceSlugRouteRouteChildren
   )
 
 interface ProtectedRouteRouteChildren {
@@ -595,7 +593,7 @@ const ProtectedRouteRouteChildren: ProtectedRouteRouteChildren = {
 }
 
 const ProtectedRouteRouteWithChildren = ProtectedRouteRoute._addFileChildren(
-  ProtectedRouteRouteChildren,
+  ProtectedRouteRouteChildren
 )
 
 interface ApiInvitationsRouteChildren {
@@ -609,14 +607,13 @@ const ApiInvitationsRouteChildren: ApiInvitationsRouteChildren = {
 }
 
 const ApiInvitationsRouteWithChildren = ApiInvitationsRoute._addFileChildren(
-  ApiInvitationsRouteChildren,
+  ApiInvitationsRouteChildren
 )
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ProtectedRouteRoute: ProtectedRouteRouteWithChildren,
-  DotwellKnownAppleAppSiteAssociationRoute:
-    DotwellKnownAppleAppSiteAssociationRoute,
+  DotwellKnownAppleAppSiteAssociationRoute: DotwellKnownAppleAppSiteAssociationRoute,
   AdminReportsRoute: AdminReportsRoute,
   ApiInvitationsRoute: ApiInvitationsRouteWithChildren,
   JoinTokenRoute: JoinTokenRoute,

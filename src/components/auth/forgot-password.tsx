@@ -1,23 +1,14 @@
-"use client"
+'use client'
 
-import { getViewURL, validateEmailAddress } from "@better-auth-ui/core"
-import {
-  useAuth,
-  useFetchOptions,
-  useRequestPasswordReset
-} from "@better-auth-ui/react"
+import { getViewURL, validateEmailAddress } from '@better-auth-ui/core'
+import { useAuth, useFetchOptions, useRequestPasswordReset } from '@better-auth-ui/react'
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card.tsx"
-import {
-  Field,
-  FieldDescription,
-  FieldGroup,
-  FieldLabel
-} from "@/components/ui/field.tsx"
-import { Input } from "@/components/ui/input.tsx"
-import { cn } from "cn"
-import { isAuthFormFieldInvalid, useAuthForm } from "./auth-form"
-import { RESET_LINK_SENT_STORAGE_KEY } from "./reset-link-sent"
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card.tsx'
+import { Field, FieldDescription, FieldGroup, FieldLabel } from '@/components/ui/field.tsx'
+import { Input } from '@/components/ui/input.tsx'
+import { cn } from 'cn'
+import { isAuthFormFieldInvalid, useAuthForm } from './auth-form'
+import { RESET_LINK_SENT_STORAGE_KEY } from './reset-link-sent'
 
 export type ForgotPasswordProps = {
   className?: string
@@ -35,54 +26,37 @@ export type ForgotPasswordProps = {
  * @returns The forgot-password form UI as a JSX element
  */
 export function ForgotPassword({ className }: ForgotPasswordProps) {
-  const {
-    authClient,
-    baseURL,
-    basePaths,
-    localization,
-    navigate,
-    plugins,
-    viewPaths,
-    Link
-  } = useAuth()
+  const { authClient, baseURL, basePaths, localization, navigate, plugins, viewPaths, Link } =
+    useAuth()
 
   const { fetchOptions, resetFetchOptions } = useFetchOptions()
 
-  const { mutateAsync: requestPasswordReset, isPending } =
-    useRequestPasswordReset(authClient, {
-      onError: () => {
-        resetFetchOptions()
-      },
-      onSuccess: (_data, { email }) => {
-        sessionStorage.setItem(RESET_LINK_SENT_STORAGE_KEY, email)
-        navigate({ to: `${basePaths.auth}/${viewPaths.auth.resetLinkSent}` })
-      }
-    })
+  const { mutateAsync: requestPasswordReset, isPending } = useRequestPasswordReset(authClient, {
+    onError: () => {
+      resetFetchOptions()
+    },
+    onSuccess: (_data, { email }) => {
+      sessionStorage.setItem(RESET_LINK_SENT_STORAGE_KEY, email)
+      navigate({ to: `${basePaths.auth}/${viewPaths.auth.resetLinkSent}` })
+    },
+  })
 
   const form = useAuthForm({
-    defaultValues: { email: "" },
+    defaultValues: { email: '' },
     onSubmit: async ({ value }) =>
       await requestPasswordReset({
         email: value.email,
-        redirectTo: getViewURL(
-          baseURL,
-          basePaths.auth,
-          viewPaths.auth.resetPassword
-        ),
-        fetchOptions
-      })
+        redirectTo: getViewURL(baseURL, basePaths.auth, viewPaths.auth.resetPassword),
+        fetchOptions,
+      }),
   })
 
-  const Captcha = plugins.find(
-    (plugin) => plugin.captchaComponent
-  )?.captchaComponent
+  const Captcha = plugins.find((plugin) => plugin.captchaComponent)?.captchaComponent
 
   return (
-    <Card className={cn("w-full max-w-sm", className)}>
+    <Card className={cn('w-full max-w-sm', className)}>
       <CardHeader>
-        <CardTitle className="text-xl font-semibold">
-          {localization.auth.forgotPassword}
-        </CardTitle>
+        <CardTitle className="text-xl font-semibold">{localization.auth.forgotPassword}</CardTitle>
       </CardHeader>
 
       <CardContent>
@@ -95,17 +69,15 @@ export function ForgotPassword({ className }: ForgotPasswordProps) {
                   onChange: ({ value }) =>
                     validateEmailAddress(value, {
                       invalidMessage: localization.auth.invalidEmail,
-                      requiredMessage: localization.auth.fieldRequired
-                    })
+                      requiredMessage: localization.auth.fieldRequired,
+                    }),
                 }}
               >
                 {(field) => {
                   const isInvalid = isAuthFormFieldInvalid(field.state.meta)
                   return (
                     <Field data-invalid={isInvalid}>
-                      <FieldLabel htmlFor="email">
-                        {localization.auth.email}
-                      </FieldLabel>
+                      <FieldLabel htmlFor="email">{localization.auth.email}</FieldLabel>
                       <Input
                         id="email"
                         name={field.name}
@@ -116,9 +88,7 @@ export function ForgotPassword({ className }: ForgotPasswordProps) {
                         disabled={isPending}
                         value={field.state.value}
                         onBlur={field.handleBlur}
-                        onChange={(event) =>
-                          field.handleChange(event.target.value)
-                        }
+                        onChange={(event) => field.handleChange(event.target.value)}
                         aria-invalid={isInvalid}
                       />
                       <field.AuthFormFieldError />
@@ -130,10 +100,7 @@ export function ForgotPassword({ className }: ForgotPasswordProps) {
               {Captcha && <div className="flex justify-center">{Captcha}</div>}
 
               <div className="flex flex-col gap-3">
-                <form.AuthFormSubmitButton
-                  isPending={isPending}
-                  disabled={isPending}
-                >
+                <form.AuthFormSubmitButton isPending={isPending} disabled={isPending}>
                   {localization.auth.sendResetLink}
                 </form.AuthFormSubmitButton>
               </div>
@@ -143,7 +110,7 @@ export function ForgotPassword({ className }: ForgotPasswordProps) {
 
         <div className="flex flex-col gap-3 items-center w-full mt-4">
           <FieldDescription className="text-center">
-            {localization.auth.rememberYourPassword}{" "}
+            {localization.auth.rememberYourPassword}{' '}
             <Link
               href={`${basePaths.auth}/${viewPaths.auth.signIn}`}
               className="underline underline-offset-4"

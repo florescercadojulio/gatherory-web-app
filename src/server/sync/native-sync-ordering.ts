@@ -1,19 +1,19 @@
 export type NativeSyncEntityType =
-  | "workspace"
-  | "event"
-  | "idea"
-  | "idea_response"
-  | "participant"
-  | "event_participation"
-  | "attendance"
-  | "expense"
-  | "registry_item"
-  | "note"
-  | "moment"
+  | 'workspace'
+  | 'event'
+  | 'idea'
+  | 'idea_response'
+  | 'participant'
+  | 'event_participation'
+  | 'attendance'
+  | 'expense'
+  | 'registry_item'
+  | 'note'
+  | 'moment'
 
 type OrderedNativeMutation = {
   entityType: NativeSyncEntityType
-  operation: "create" | "update" | "delete"
+  operation: 'create' | 'update' | 'delete'
 }
 
 const mutationDependencyOrder: Record<NativeSyncEntityType, number> = {
@@ -34,12 +34,12 @@ const mutationDependencyOrder: Record<NativeSyncEntityType, number> = {
 /// reverse that relationship so the workspace is removed last.
 export function compareNativeMutationOrder(
   left: OrderedNativeMutation,
-  right: OrderedNativeMutation,
+  right: OrderedNativeMutation
 ) {
   const leftOrder = mutationDependencyOrder[left.entityType]
   const rightOrder = mutationDependencyOrder[right.entityType]
-  if (left.operation === "delete" && right.operation !== "delete") return 1
-  if (left.operation !== "delete" && right.operation === "delete") return -1
-  if (left.operation === "delete") return rightOrder - leftOrder
+  if (left.operation === 'delete' && right.operation !== 'delete') return 1
+  if (left.operation !== 'delete' && right.operation === 'delete') return -1
+  if (left.operation === 'delete') return rightOrder - leftOrder
   return leftOrder - rightOrder
 }

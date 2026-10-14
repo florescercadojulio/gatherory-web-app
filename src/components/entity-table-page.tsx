@@ -6,13 +6,8 @@ import {
   type KeyboardEvent as ReactKeyboardEvent,
   type MouseEvent as ReactMouseEvent,
   type ReactNode,
-} from "react"
-import {
-  tableFeatures,
-  useTable,
-  type ColumnDef,
-  type RowData,
-} from "@tanstack/react-table"
+} from 'react'
+import { tableFeatures, useTable, type ColumnDef, type RowData } from '@tanstack/react-table'
 import {
   ChevronLeftIcon,
   ChevronRightIcon,
@@ -20,23 +15,23 @@ import {
   SearchIcon,
   SlidersHorizontalIcon,
   XIcon,
-} from "lucide-react"
-import { toast } from "sonner"
-import { useTranslation } from "react-i18next"
+} from 'lucide-react'
+import { toast } from 'sonner'
+import { useTranslation } from 'react-i18next'
 
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Kbd, KbdGroup } from "@/components/ui/kbd"
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Kbd, KbdGroup } from '@/components/ui/kbd'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
-import { cn } from "@/lib/utils"
-import { toastServerError } from "@/lib/toast-server-error"
-import type { Page, ServerResult } from "@/server/result"
+} from '@/components/ui/select'
+import { cn } from '@/lib/utils'
+import { toastServerError } from '@/lib/toast-server-error'
+import type { Page, ServerResult } from '@/server/result'
 
 export const entityTableFeatures = tableFeatures({})
 
@@ -46,9 +41,7 @@ export type EntityTableColumnDef<TData extends RowData> = ColumnDef<
   unknown
 >
 
-export type EntityTablePageRequest<
-  TInput extends object = Record<never, never>,
-> = {
+export type EntityTablePageRequest<TInput extends object = Record<never, never>> = {
   limit: number
   offset: number
   query: string
@@ -57,9 +50,7 @@ export type EntityTablePageRequest<
 export type EntityTableServerFn<
   TData extends RowData,
   TInput extends object = Record<never, never>,
-> = (args: {
-  data: EntityTablePageRequest<TInput>
-}) => Promise<ServerResult<Page<TData>>>
+> = (args: { data: EntityTablePageRequest<TInput> }) => Promise<ServerResult<Page<TData>>>
 
 type SearchConfig = {
   placeholder?: string
@@ -94,9 +85,7 @@ function isInteractiveRowTarget(target: EventTarget | null) {
   return (
     target instanceof Element &&
     Boolean(
-      target.closest(
-        "a, button, input, select, textarea, [role='button'], [data-row-control]",
-      ),
+      target.closest("a, button, input, select, textarea, [role='button'], [data-row-control]")
     )
   )
 }
@@ -108,30 +97,25 @@ export function EntityTablePage<
   config,
   emptyMessage,
   className,
-  layout = "page",
+  layout = 'page',
 }: {
   config: EntityTableConfig<TData, TInput>
   emptyMessage?: ReactNode
   className?: string
-  layout?: "page" | "section"
+  layout?: 'page' | 'section'
 }) {
   const { t } = useTranslation()
-  const pageSizeOptions =
-    config.pagination?.pageSizeOptions ?? defaultPageSizeOptions
+  const pageSizeOptions = config.pagination?.pageSizeOptions ?? defaultPageSizeOptions
   const [rows, setRows] = useState<TData[]>([])
   const [pageIndex, setPageIndex] = useState(0)
-  const [pageSize, setPageSize] = useState(
-    config.pagination?.initialPageSize ?? pageSizeOptions[0],
-  )
+  const [pageSize, setPageSize] = useState(config.pagination?.initialPageSize ?? pageSizeOptions[0])
   const [hasNextPage, setHasNextPage] = useState(false)
-  const [search, setSearch] = useState("")
-  const [appliedQuery, setAppliedQuery] = useState("")
+  const [search, setSearch] = useState('')
+  const [appliedQuery, setAppliedQuery] = useState('')
   const [refreshVersion, setRefreshVersion] = useState(0)
   const [isLoading, setIsLoading] = useState(true)
   const searchRef = useRef<HTMLInputElement>(null)
-  const [previousResetKey, setPreviousResetKey] = useState(
-    config.paginationResetKey,
-  )
+  const [previousResetKey, setPreviousResetKey] = useState(config.paginationResetKey)
 
   if (previousResetKey !== config.paginationResetKey) {
     setPreviousResetKey(config.paginationResetKey)
@@ -142,13 +126,13 @@ export function EntityTablePage<
   const columns = useMemo(
     () => [
       {
-        id: "row-number",
-        header: "#",
+        id: 'row-number',
+        header: '#',
         cell: ({ row }: { row: { index: number } }) => offset + row.index + 1,
       },
       ...config.columns,
     ],
-    [config.columns, offset],
+    [config.columns, offset]
   )
   const table = useTable({
     columns,
@@ -181,8 +165,8 @@ export function EntityTablePage<
 
     const timeout = new Promise<never>((_, reject) => {
       timeoutId = window.setTimeout(
-        () => reject(new Error("Table request timed out.")),
-        requestTimeoutMs,
+        () => reject(new Error('Table request timed out.')),
+        requestTimeoutMs
       )
     })
 
@@ -202,7 +186,7 @@ export function EntityTablePage<
         if (!cancelled) {
           setRows([])
           setHasNextPage(false)
-          toast.error(t("picker.tableLoadFailed"))
+          toast.error(t('picker.tableLoadFailed'))
         }
       })
       .finally(() => {
@@ -228,28 +212,28 @@ export function EntityTablePage<
   useEffect(() => {
     const focusSearch = (event: KeyboardEvent) => {
       if ((!event.metaKey && !event.ctrlKey) || event.altKey) return
-      if (event.key !== "/" && event.code !== "Slash") return
+      if (event.key !== '/' && event.code !== 'Slash') return
       event.preventDefault()
       searchRef.current?.focus()
       searchRef.current?.select()
     }
-    window.addEventListener("keydown", focusSearch)
-    return () => window.removeEventListener("keydown", focusSearch)
+    window.addEventListener('keydown', focusSearch)
+    return () => window.removeEventListener('keydown', focusSearch)
   }, [])
 
   const clearSearch = () => {
-    setSearch("")
+    setSearch('')
     setPageIndex(0)
-    setAppliedQuery("")
+    setAppliedQuery('')
   }
 
   return (
     <section
       className={cn(
-        layout === "page"
-          ? "flex min-h-0 min-w-0 flex-1 flex-col gap-3 overflow-hidden bg-background px-2"
-          : "flex flex-col gap-3",
-        className,
+        layout === 'page'
+          ? 'flex min-h-0 min-w-0 flex-1 flex-col gap-3 overflow-hidden bg-background px-2'
+          : 'flex flex-col gap-3',
+        className
       )}
     >
       <div className="shrink-0 border-b border-border/70 bg-background">
@@ -269,8 +253,8 @@ export function EntityTablePage<
                   ref={searchRef}
                   value={search}
                   onChange={(event) => setSearch(event.target.value)}
-                  placeholder={config.search.placeholder ?? t("picker.search")}
-                  aria-label={config.search.placeholder ?? t("picker.search")}
+                  placeholder={config.search.placeholder ?? t('picker.search')}
+                  aria-label={config.search.placeholder ?? t('picker.search')}
                   className="h-9 bg-background/80 pr-20 pl-9"
                 />
                 {search ? (
@@ -280,7 +264,7 @@ export function EntityTablePage<
                     size="icon-xs"
                     className="absolute top-1/2 right-2 -translate-y-1/2 text-muted-foreground"
                     onClick={clearSearch}
-                    aria-label={t("common.clearSearch")}
+                    aria-label={t('common.clearSearch')}
                   >
                     <XIcon />
                   </Button>
@@ -292,12 +276,8 @@ export function EntityTablePage<
                 )}
               </div>
               <div className="flex w-full gap-1.5 sm:w-auto">
-                <Button
-                  type="submit"
-                  className="flex-1 sm:flex-none"
-                  disabled={isLoading}
-                >
-                  {t("picker.search")}
+                <Button type="submit" className="flex-1 sm:flex-none" disabled={isLoading}>
+                  {t('picker.search')}
                 </Button>
                 <Button
                   type="button"
@@ -305,18 +285,16 @@ export function EntityTablePage<
                   size="icon"
                   onClick={() => setRefreshVersion((version) => version + 1)}
                   disabled={isLoading}
-                  aria-label={t("common.refresh")}
+                  aria-label={t('common.refresh')}
                 >
-                  <RefreshCwIcon className={isLoading ? "animate-spin" : ""} />
+                  <RefreshCwIcon className={isLoading ? 'animate-spin' : ''} />
                 </Button>
               </div>
             </div>
           </form>
         )}
 
-        {(config.search?.filters ||
-          config.search?.appliedFilters ||
-          config.resourceControls) && (
+        {(config.search?.filters || config.search?.appliedFilters || config.resourceControls) && (
           <div className="flex flex-col gap-4 border-t border-border/70 py-3">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               {config.search?.filters && (
@@ -341,10 +319,8 @@ export function EntityTablePage<
 
       <div
         className={cn(
-          "relative",
-          layout === "page"
-            ? "min-h-0 min-w-0 flex-1 overflow-auto"
-            : "min-w-0 overflow-x-auto",
+          'relative',
+          layout === 'page' ? 'min-h-0 min-w-0 flex-1 overflow-auto' : 'min-w-0 overflow-x-auto'
         )}
       >
         <table className="w-full text-left text-sm">
@@ -357,9 +333,7 @@ export function EntityTablePage<
                     scope="col"
                     className="sticky top-0 z-10 h-10 bg-muted px-2 text-xs font-bold tracking-wider whitespace-nowrap uppercase"
                   >
-                    {header.isPlaceholder ? null : (
-                      <table.FlexRender header={header} />
-                    )}
+                    {header.isPlaceholder ? null : <table.FlexRender header={header} />}
                   </th>
                 ))}
               </tr>
@@ -370,25 +344,21 @@ export function EntityTablePage<
               <tr
                 key={row.id}
                 className={cn(
-                  "border-b transition-colors hover:bg-muted/30",
+                  'border-b transition-colors hover:bg-muted/30',
                   config.onRowClick &&
-                    "cursor-pointer focus-visible:bg-muted/30 focus-visible:outline-none",
+                    'cursor-pointer focus-visible:bg-muted/30 focus-visible:outline-none'
                 )}
                 {...(config.onRowClick
                   ? {
-                      role: "link",
+                      role: 'link',
                       tabIndex: 0,
-                      onClick: (
-                        event: ReactMouseEvent<HTMLTableRowElement>,
-                      ) => {
+                      onClick: (event: ReactMouseEvent<HTMLTableRowElement>) => {
                         if (!isInteractiveRowTarget(event.target)) {
                           config.onRowClick?.(row.original)
                         }
                       },
-                      onKeyDown: (
-                        event: ReactKeyboardEvent<HTMLTableRowElement>,
-                      ) => {
-                        if (event.key !== "Enter" && event.key !== " ") return
+                      onKeyDown: (event: ReactKeyboardEvent<HTMLTableRowElement>) => {
+                        if (event.key !== 'Enter' && event.key !== ' ') return
                         if (isInteractiveRowTarget(event.target)) return
                         event.preventDefault()
                         config.onRowClick?.(row.original)
@@ -397,10 +367,7 @@ export function EntityTablePage<
                   : {})}
               >
                 {row.getAllCells().map((cell) => (
-                  <td
-                    key={cell.id}
-                    className="p-2 align-middle whitespace-nowrap"
-                  >
+                  <td key={cell.id} className="p-2 align-middle whitespace-nowrap">
                     <table.FlexRender cell={cell} />
                   </td>
                 ))}
@@ -412,7 +379,7 @@ export function EntityTablePage<
                   colSpan={columns.length}
                   className="h-24 text-center text-sm text-muted-foreground"
                 >
-                  {emptyMessage ?? t("picker.noResults")}
+                  {emptyMessage ?? t('picker.noResults')}
                 </td>
               </tr>
             )}
@@ -423,13 +390,13 @@ export function EntityTablePage<
       <footer className="flex min-h-10 shrink-0 flex-wrap items-center justify-between gap-4 border-t border-border/70 bg-background">
         <p className="text-xs tabular-nums text-muted-foreground">
           {isLoading
-            ? t("common.loading")
+            ? t('common.loading')
             : rows.length === 0
-              ? t("picker.noResultsShort")
-              : t("picker.loadedCount", { count: rows.length })}
+              ? t('picker.noResultsShort')
+              : t('picker.loadedCount', { count: rows.length })}
         </p>
         <div className="flex items-center gap-2">
-          <span className="text-xs text-muted-foreground">{t("common.rowsPerPage")}</span>
+          <span className="text-xs text-muted-foreground">{t('common.rowsPerPage')}</span>
           <Select
             value={String(pageSize)}
             onValueChange={(value) => {
@@ -454,7 +421,7 @@ export function EntityTablePage<
             onClick={() => setPageIndex((page) => page - 1)}
             disabled={pageIndex === 0 || isLoading}
           >
-            <ChevronLeftIcon /> {t("picker.previous")}
+            <ChevronLeftIcon /> {t('picker.previous')}
           </Button>
           <Button
             variant="outline"
@@ -462,7 +429,7 @@ export function EntityTablePage<
             onClick={() => setPageIndex((page) => page + 1)}
             disabled={!hasNextPage || isLoading}
           >
-            {t("picker.next")} <ChevronRightIcon />
+            {t('picker.next')} <ChevronRightIcon />
           </Button>
         </div>
       </footer>

@@ -1,8 +1,8 @@
-import { useAuth, useSignOut } from "@better-auth-ui/react"
-import { useEffect, useRef } from "react"
-import { Spinner } from "@/components/ui/spinner.tsx"
-import { cn } from "cn"
-import { getAuthLinkURL } from "@better-auth-ui/core"
+import { useAuth, useSignOut } from '@better-auth-ui/react'
+import { useEffect, useRef } from 'react'
+import { Spinner } from '@/components/ui/spinner.tsx'
+import { cn } from 'cn'
+import { getAuthLinkURL } from '@better-auth-ui/core'
 
 export type SignOutProps = {
   className?: string
@@ -21,14 +21,14 @@ export function SignOut({ className }: SignOutProps) {
     onError: () => {
       navigate({
         to: getAuthLinkURL(`${basePaths.auth}/${viewPaths.auth.signIn}`, redirectTo),
-        replace: true
+        replace: true,
       })
     },
     onSuccess: () =>
       navigate({
         to: getAuthLinkURL(`${basePaths.auth}/${viewPaths.auth.signIn}`, redirectTo),
-        replace: true
-      })
+        replace: true,
+      }),
   })
 
   const hasSignedOut = useRef(false)
@@ -40,5 +40,5 @@ export function SignOut({ className }: SignOutProps) {
     signOut()
   }, [signOut])
 
-  return <Spinner className={cn("mx-auto my-auto", className)} />
+  return <Spinner className={cn('mx-auto my-auto', className)} />
 }

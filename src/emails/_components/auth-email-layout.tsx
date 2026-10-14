@@ -1,4 +1,4 @@
-import type { ReactNode } from "react"
+import type { ReactNode } from 'react'
 import {
   Body,
   Button,
@@ -13,7 +13,7 @@ import {
   Tailwind,
   Text,
   pixelBasedPreset,
-} from "react-email"
+} from 'react-email'
 
 type AuthEmailLayoutProps = {
   preview: string
@@ -63,8 +63,7 @@ export function AuthEmailLayout({
                 </Button>
 
                 <Text className="mb-0 mt-[24px] text-[13px] leading-[20px] text-[#526176]">
-                  If the button does not work, copy and paste this link into
-                  your browser:
+                  If the button does not work, copy and paste this link into your browser:
                 </Text>
                 <Link
                   href={actionUrl}
@@ -76,9 +75,7 @@ export function AuthEmailLayout({
             ) : null}
 
             <Hr className="my-[28px] border-0 border-t border-solid border-[#dce4f0]" />
-            <Text className="m-0 text-[12px] leading-[18px] text-[#66758a]">
-              {footer}
-            </Text>
+            <Text className="m-0 text-[12px] leading-[18px] text-[#66758a]">{footer}</Text>
           </Container>
         </Body>
       </Tailwind>
