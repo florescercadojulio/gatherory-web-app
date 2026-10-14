@@ -52,7 +52,7 @@ export function leaveGuestEvent(userId: string, eventId: string) {
         const [updated] = yield* db.update(nativeWorkspaceSnapshot).set({ payload, serverVersion: sql`${nativeWorkspaceSnapshot.serverVersion} + 1`, updatedAt: new Date() })
           .where(eq(nativeWorkspaceSnapshot.scopeId, scopeId)).returning({ version: nativeWorkspaceSnapshot.serverVersion })
         yield* db.insert(nativeSyncChange).values({ scopeId, ownerUserId: snapshot.ownerUserId, entityType: "workspace", entityId: scopeId,
-          operation: "upsert", payload, serverVersion: updated.version })
+          operation: "update", payload, serverVersion: updated.version })
       }
       return { eventId }
     }))

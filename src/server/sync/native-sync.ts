@@ -1,4 +1,4 @@
-import { and, asc, eq, gt, inArray, or } from "drizzle-orm"
+import { and, asc, eq, gt, inArray, isNull, sql } from "drizzle-orm"
 
 import { db } from "@/db"
 import { user } from "@/db/schema/auth.schema"
@@ -15,9 +15,10 @@ import {
   materializeNativeMutation,
   NativeMaterializationError,
 } from "./native-materializer"
-import { type NativeMutation } from "./native-sync-contracts"
+import { nativePullOperation, type NativeMutation } from "./native-sync-contracts"
 import { compareNativeMutationOrder } from "./native-sync-ordering"
 import { deletedAccountTombstone } from "./native-tombstones"
+import { nativeIdentityWriteAllowed } from "./native-identity-access"
 
 export { pushRequestSchema } from "./native-sync-contracts"
 
@@ -42,7 +43,9 @@ async function scopeRole(
 ): Promise<NativeScopeRole | null> {
   const [participant] = await transaction.select({ role: eventParticipant.role, permission: eventParticipant.planningPermission })
     .from(eventParticipant).innerJoin(workspacePerson, eq(workspacePerson.id, eventParticipant.personId))
-    .where(and(eq(eventParticipant.eventId, input.scopeId), eq(workspacePerson.userId, input.userId))).limit(1)
+    .innerJoin(event, eq(event.id, eventParticipant.eventId))
+    .where(and(eq(eventParticipant.eventId, input.scopeId), eq(workspacePerson.userId, input.userId),
+      eq(event.organizationId, workspacePerson.organizationId), isNull(event.parentEventId))).limit(1)
   // A stale/legacy scope grant must never expose private planning to a guest.
   if (!participant || participant.role === "guest") return null
   const [membership] = await transaction
@@ -56,17 +59,20 @@ async function scopeRole(
     )
     .limit(1)
 
-  if (membership) return participant.permission === "view_only" ? "viewer"
-    : membership.role === "owner" && participant.role !== "host" ? "editor" : membership.role
-  if (input.legacyOwnerUserId !== input.userId) return null
+  // The replication grant is a projection, not a second independent permission
+  // system. Role changes must not strand an authorized collaborator.
+  const role: NativeScopeRole = participant.permission === "view_only" ? "viewer"
+    : participant.role === "host" && input.legacyOwnerUserId === input.userId ? "owner" : "editor"
+  if (membership?.role === role) return role
 
   await transaction
     .insert(nativeSyncScopeMember)
-    .values({ scopeId: input.scopeId, userId: input.userId, role: "owner" })
-    .onConflictDoNothing({
+    .values({ scopeId: input.scopeId, userId: input.userId, role })
+    .onConflictDoUpdate({
       target: [nativeSyncScopeMember.scopeId, nativeSyncScopeMember.userId],
+      set: { role, updatedAt: new Date() },
     })
-  return "owner"
+  return role
 }
 
 export async function applyNativeMutations(input: {
@@ -76,234 +82,264 @@ export async function applyNativeMutations(input: {
   const resultsByMutationId = new Map<string, NativePushResult>()
 
   for (const mutation of input.mutations.toSorted(compareNativeMutationOrder)) {
-    let result: NativePushResult
-    try {
-      result = await db.transaction(async (transaction) => {
-      const [receipt] = await transaction
-        .select()
-        .from(nativeSyncMutationReceipt)
-        .where(eq(nativeSyncMutationReceipt.mutationId, mutation.id))
-        .limit(1)
+    const result = await db.transaction(async (locked) => {
+      // Transaction locks also cover first writes, where no row exists to lock.
+      // Lock receipt IDs globally before scopes so cross-account/retried IDs
+      // cannot race the receipt insert. Each transaction handles one mutation.
+      await locked.execute(sql`select pg_advisory_xact_lock(hashtextextended(${`native-mutation:${mutation.id}`}, 0))`)
+      await locked.execute(sql`select pg_advisory_xact_lock(hashtextextended(${`native-scope:${mutation.scopeID}`}, 0))`)
+      // Match canonical RSVP/lifecycle lock order: event before snapshot.
+      await locked.select({ id: event.id }).from(event)
+        .where(eq(event.id, mutation.scopeID)).for("update")
+      try {
+        return await locked.transaction(async (transaction) => {
+          const [receipt] = await transaction
+            .select()
+            .from(nativeSyncMutationReceipt)
+            .where(eq(nativeSyncMutationReceipt.mutationId, mutation.id))
+            .limit(1)
 
-      if (receipt) {
-        if (receipt.ownerUserId !== input.userId) {
-          return {
-            mutationID: mutation.id,
-            disposition: "rejected",
-            serverVersion: null,
-            failureCode: "MUTATION_ID_OWNERSHIP_MISMATCH",
-          } satisfies NativePushResult
-        }
+          if (receipt) {
+            if (receipt.ownerUserId !== input.userId) {
+              return {
+                mutationID: mutation.id,
+                disposition: "rejected",
+                serverVersion: null,
+                failureCode: "MUTATION_ID_OWNERSHIP_MISMATCH",
+              } satisfies NativePushResult
+            }
 
-        return {
-          mutationID: mutation.id,
-          disposition: "duplicate",
-          serverVersion: receipt.serverVersion,
-          failureCode: receipt.failureCode,
-        } satisfies NativePushResult
-      }
+            return {
+              mutationID: mutation.id,
+              // A repeated conflict/rejection is not an acknowledgement. Otherwise
+              // a retry would cause iOS to delete an edit the server never applied.
+              disposition: receipt.disposition === "applied" ? "duplicate"
+                : receipt.disposition === "conflict" ? "conflict" : "rejected",
+              serverVersion: receipt.serverVersion,
+              failureCode: receipt.failureCode,
+            } satisfies NativePushResult
+          }
 
-      const [snapshot] = await transaction
-        .select()
-        .from(nativeWorkspaceSnapshot)
-        .where(eq(nativeWorkspaceSnapshot.scopeId, mutation.scopeID))
-        .limit(1)
+          const [snapshot] = await transaction
+            .select()
+            .from(nativeWorkspaceSnapshot)
+            .where(eq(nativeWorkspaceSnapshot.scopeId, mutation.scopeID))
+            .limit(1)
+            .for("update")
 
-      if (snapshot) {
-        const role = await scopeRole(transaction, {
-          scopeId: mutation.scopeID,
-          userId: input.userId,
-          legacyOwnerUserId: snapshot.ownerUserId,
-        })
-        if (!role || role === "viewer") {
-          return recordRejectedMutation(transaction, {
-            userId: input.userId,
-            mutation,
-            failureCode: "SCOPE_WRITE_FORBIDDEN",
-          })
-        }
-        if (
-          role !== "owner" &&
-          mutation.entityType === "workspace" &&
-          mutation.operation === "delete"
-        ) {
-          return recordRejectedMutation(transaction, {
-            userId: input.userId,
-            mutation,
-            failureCode: "SCOPE_DELETE_FORBIDDEN",
-          })
-        }
-      }
+          if (snapshot) {
+            const role = await scopeRole(transaction, {
+              scopeId: mutation.scopeID,
+              userId: input.userId,
+              legacyOwnerUserId: snapshot.ownerUserId,
+            })
+            if (!role || role === "viewer") {
+              return recordRejectedMutation(transaction, {
+                userId: input.userId,
+                mutation,
+                failureCode: "SCOPE_WRITE_FORBIDDEN",
+              })
+            }
+            if (["participant", "event_participation"].includes(mutation.entityType)) {
+              const [actor] = await transaction.select({ personId: eventParticipant.personId, role: eventParticipant.role, planningPermission: eventParticipant.planningPermission })
+                .from(eventParticipant).innerJoin(workspacePerson, eq(workspacePerson.id, eventParticipant.personId))
+                .where(and(eq(eventParticipant.eventId, mutation.scopeID), eq(workspacePerson.userId, input.userId))).limit(1)
+              const [participation] = mutation.entityType === "event_participation" ? await transaction.select().from(eventParticipant)
+                .where(eq(eventParticipant.id, mutation.entityID)).limit(1) : []
+              if (!actor || !nativeIdentityWriteAllowed({ mutation, actor, participation })) {
+                return recordRejectedMutation(transaction, { userId: input.userId, mutation, failureCode: "EVENT_PERMISSION_REQUIRED" })
+              }
+            }
+            if (
+              role !== "owner" &&
+              mutation.entityType === "workspace" &&
+              mutation.operation === "delete"
+            ) {
+              return recordRejectedMutation(transaction, {
+                userId: input.userId,
+                mutation,
+                failureCode: "SCOPE_DELETE_FORBIDDEN",
+              })
+            }
+          }
 
-      const isDeleted = mutation.operation === "delete"
-      const payload = isDeleted ? "" : mutation.payload
-      let serverVersion: number
+          const isDeleted = mutation.operation === "delete"
+          let payload = isDeleted ? "" : mutation.payload
+          let serverVersion: number
 
-      if (mutation.entityType === "workspace") {
-        if (
-          snapshot &&
-          mutation.baseVersion != null &&
-          mutation.baseVersion !== snapshot.serverVersion
-        ) {
-          return recordConflictingMutation(transaction, {
-            userId: input.userId,
-            mutation,
-            serverVersion: snapshot.serverVersion,
-          })
-        }
+          if (mutation.entityType === "workspace") {
+            if (
+              snapshot &&
+              mutation.baseVersion != null &&
+              mutation.baseVersion !== snapshot.serverVersion
+            ) {
+              return recordConflictingMutation(transaction, {
+                userId: input.userId,
+                mutation,
+                serverVersion: snapshot.serverVersion,
+              })
+            }
 
-        serverVersion = (snapshot?.serverVersion ?? 0) + 1
-        const materialized = await materializeNativeMutation(transaction, {
-          userId: input.userId,
-          mutation,
-          organizationId: snapshot?.organizationId,
-        })
-        await transaction
-          .insert(nativeWorkspaceSnapshot)
-          .values({
-            scopeId: mutation.scopeID,
+            serverVersion = (snapshot?.serverVersion ?? 0) + 1
+            const materialized = await materializeNativeMutation(transaction, {
+              userId: input.userId,
+              mutation,
+              organizationId: snapshot?.organizationId,
+            })
+            await transaction
+              .insert(nativeWorkspaceSnapshot)
+              .values({
+                scopeId: mutation.scopeID,
+                ownerUserId: input.userId,
+                organizationId: materialized.organizationId,
+                payload,
+                serverVersion,
+                isDeleted,
+              })
+              .onConflictDoUpdate({
+                target: nativeWorkspaceSnapshot.scopeId,
+                set: {
+                  organizationId: materialized.organizationId,
+                  payload,
+                  serverVersion,
+                  isDeleted,
+                  updatedAt: new Date(),
+                },
+              })
+            if (!snapshot) await transaction
+              .insert(nativeSyncScopeMember)
+              .values({
+                scopeId: mutation.scopeID,
+                userId: input.userId,
+                role: "owner",
+              })
+              .onConflictDoNothing({
+                target: [
+                  nativeSyncScopeMember.scopeId,
+                  nativeSyncScopeMember.userId,
+                ],
+              })
+          } else {
+            if (!snapshot || snapshot.isDeleted) {
+              return recordRejectedMutation(transaction, {
+                userId: input.userId,
+                mutation,
+                failureCode: "SYNC_SCOPE_NOT_FOUND",
+              })
+            }
+
+            const [entity] = await transaction
+              .select()
+              .from(nativeSyncEntity)
+              .where(
+                and(
+                  eq(nativeSyncEntity.scopeId, mutation.scopeID),
+                  eq(nativeSyncEntity.entityType, mutation.entityType),
+                  eq(nativeSyncEntity.entityId, mutation.entityID),
+                ),
+              )
+              .limit(1)
+
+            // Reject even another delete: replacing this marker with an ordinary
+            // empty tombstone would allow a later unversioned create to resurrect it.
+            if (entity?.isDeleted && entity.payload === deletedAccountTombstone) {
+              return recordRejectedMutation(transaction, { userId: input.userId, mutation,
+                failureCode: "PARTICIPANT_ACCOUNT_DELETED" })
+            }
+            if (
+              entity &&
+              mutation.baseVersion != null &&
+              mutation.baseVersion !== entity.serverVersion
+            ) {
+              return recordConflictingMutation(transaction, {
+                userId: input.userId,
+                mutation,
+                serverVersion: entity.serverVersion,
+              })
+            }
+
+            serverVersion = (entity?.serverVersion ?? 0) + 1
+            await materializeNativeMutation(transaction, {
+              userId: input.userId,
+              mutation,
+              organizationId: snapshot.organizationId,
+            })
+            // Notes are displayed with an author on native clients. Mirror the
+            // canonical table: never trust a client-supplied author's identity.
+            // Materialization above has already validated this JSON payload.
+            if (!isDeleted && mutation.entityType === "note") {
+              const note = JSON.parse(Buffer.from(payload, "base64").toString("utf8"))
+              payload = Buffer.from(JSON.stringify({ ...note, authorUserID: input.userId })).toString("base64")
+            }
+            await transaction
+              .insert(nativeSyncEntity)
+              .values({
+                scopeId: mutation.scopeID,
+                entityType: mutation.entityType,
+                entityId: mutation.entityID,
+                ownerUserId: input.userId,
+                payload,
+                serverVersion,
+                isDeleted,
+              })
+              .onConflictDoUpdate({
+                target: [
+                  nativeSyncEntity.scopeId,
+                  nativeSyncEntity.entityType,
+                  nativeSyncEntity.entityId,
+                ],
+                set: {
+                  payload,
+                  serverVersion,
+                  isDeleted,
+                  updatedAt: new Date(),
+                },
+              })
+          }
+
+          await transaction.insert(nativeSyncChange).values({
             ownerUserId: input.userId,
-            organizationId: materialized.organizationId,
-            payload,
-            serverVersion,
-            isDeleted,
-          })
-          .onConflictDoUpdate({
-            target: nativeWorkspaceSnapshot.scopeId,
-            set: {
-              organizationId: materialized.organizationId,
-              payload,
-              serverVersion,
-              isDeleted,
-              updatedAt: new Date(),
-            },
-          })
-        await transaction
-          .insert(nativeSyncScopeMember)
-          .values({
-            scopeId: mutation.scopeID,
-            userId: input.userId,
-            role: "owner",
-          })
-          .onConflictDoNothing({
-            target: [
-              nativeSyncScopeMember.scopeId,
-              nativeSyncScopeMember.userId,
-            ],
-          })
-      } else {
-        if (!snapshot || snapshot.isDeleted) {
-          return recordRejectedMutation(transaction, {
-            userId: input.userId,
-            mutation,
-            failureCode: "SYNC_SCOPE_NOT_FOUND",
-          })
-        }
-
-        const [entity] = await transaction
-          .select()
-          .from(nativeSyncEntity)
-          .where(
-            and(
-              eq(nativeSyncEntity.scopeId, mutation.scopeID),
-              eq(nativeSyncEntity.entityType, mutation.entityType),
-              eq(nativeSyncEntity.entityId, mutation.entityID),
-            ),
-          )
-          .limit(1)
-
-        // Reject even another delete: replacing this marker with an ordinary
-        // empty tombstone would allow a later unversioned create to resurrect it.
-        if (entity?.isDeleted && entity.payload === deletedAccountTombstone) {
-          return recordRejectedMutation(transaction, { userId: input.userId, mutation,
-            failureCode: "PARTICIPANT_ACCOUNT_DELETED" })
-        }
-        if (
-          entity &&
-          mutation.baseVersion != null &&
-          mutation.baseVersion !== entity.serverVersion
-        ) {
-          return recordConflictingMutation(transaction, {
-            userId: input.userId,
-            mutation,
-            serverVersion: entity.serverVersion,
-          })
-        }
-
-        serverVersion = (entity?.serverVersion ?? 0) + 1
-        await materializeNativeMutation(transaction, {
-          userId: input.userId,
-          mutation,
-          organizationId: snapshot.organizationId,
-        })
-        await transaction
-          .insert(nativeSyncEntity)
-          .values({
             scopeId: mutation.scopeID,
             entityType: mutation.entityType,
             entityId: mutation.entityID,
-            ownerUserId: input.userId,
+            operation: mutation.operation,
             payload,
             serverVersion,
-            isDeleted,
           })
-          .onConflictDoUpdate({
-            target: [
-              nativeSyncEntity.scopeId,
-              nativeSyncEntity.entityType,
-              nativeSyncEntity.entityId,
-            ],
-            set: {
-              payload,
-              serverVersion,
-              isDeleted,
-              updatedAt: new Date(),
-            },
+
+          await transaction.insert(nativeSyncMutationReceipt).values({
+            mutationId: mutation.id,
+            ownerUserId: input.userId,
+            scopeId: mutation.scopeID,
+            disposition: "applied",
+            serverVersion,
           })
-      }
 
-      await transaction.insert(nativeSyncChange).values({
-        ownerUserId: input.userId,
-        scopeId: mutation.scopeID,
-        entityType: mutation.entityType,
-        entityId: mutation.entityID,
-        operation: mutation.operation,
-        payload,
-        serverVersion,
-      })
+          if (!isDeleted) {
+            await transaction
+              .update(user)
+              .set({ hasCompletedOnboarding: true })
+              .where(eq(user.id, input.userId))
+          }
 
-      await transaction.insert(nativeSyncMutationReceipt).values({
-        mutationId: mutation.id,
-        ownerUserId: input.userId,
-        scopeId: mutation.scopeID,
-        disposition: "applied",
-        serverVersion,
-      })
-
-      if (!isDeleted) {
-        await transaction
-          .update(user)
-          .set({ hasCompletedOnboarding: true })
-          .where(eq(user.id, input.userId))
-      }
-
-      return {
-        mutationID: mutation.id,
-        disposition: "applied",
-        serverVersion,
-        failureCode: null,
-      } satisfies NativePushResult
-      })
-    } catch (error) {
-      if (!(error instanceof NativeMaterializationError)) throw error
-      result = await db.transaction((transaction) =>
-        recordRejectedMutation(transaction, {
+          return {
+            mutationID: mutation.id,
+            disposition: "applied",
+            serverVersion,
+            failureCode: null,
+          } satisfies NativePushResult
+        })
+      } catch (error) {
+        if (!(error instanceof NativeMaterializationError)) throw error
+        // The savepoint rolls back partial materialization, while the outer
+        // transaction retains its locks through recording the failed receipt.
+        return recordRejectedMutation(locked, {
           userId: input.userId,
           mutation,
           failureCode: error.code,
-        }),
-      )
-    }
+        })
+      }
+    })
 
     resultsByMutationId.set(mutation.id, result)
   }
@@ -409,7 +445,9 @@ export async function pullNativeChanges(input: {
       payloadSchemaVersion: 1,
       entityType: change.entityType,
       entityID: change.entityId,
-      operation: change.operation,
+      // Repair already-written development changes at the boundary without
+      // resetting accounts or advancing clients past unapplied records.
+      operation: nativePullOperation(change.operation),
       payload: change.payload,
       serverVersion: change.serverVersion,
       occurredAt: nativeISODate(change.occurredAt),
@@ -432,25 +470,18 @@ export async function listNativeWorkspaceSnapshots(userId: string) {
       .limit(1),
   ])
   const memberScopeIds = memberships.map((membership) => membership.scopeId)
-  const accessibleScope = memberScopeIds.length
-    ? or(
-        eq(nativeWorkspaceSnapshot.ownerUserId, userId),
-        inArray(nativeWorkspaceSnapshot.scopeId, memberScopeIds),
-      )
-    : eq(nativeWorkspaceSnapshot.ownerUserId, userId)
-  const candidateRows = await db
-    .select()
-    .from(nativeWorkspaceSnapshot)
-    .where(
-      and(accessibleScope, eq(nativeWorkspaceSnapshot.isDeleted, false)),
-    )
-    .orderBy(asc(nativeWorkspaceSnapshot.createdAt))
   const planningScopes = await db.select({ id: event.id }).from(event)
     .innerJoin(eventParticipant, eq(eventParticipant.eventId, event.id))
     .innerJoin(workspacePerson, eq(workspacePerson.id, eventParticipant.personId))
-    .where(and(eq(workspacePerson.userId, userId), inArray(eventParticipant.role, ["host", "collaborator"])))
-  const allowedScopes = new Set(planningScopes.map((item) => item.id))
-  const rows = candidateRows.filter((snapshot) => allowedScopes.has(snapshot.scopeId))
+    .where(and(eq(workspacePerson.userId, userId), inArray(eventParticipant.role, ["host", "collaborator"]),
+      eq(event.organizationId, workspacePerson.organizationId), isNull(event.parentEventId)))
+  const rows = planningScopes.length ? await db
+    .select()
+    .from(nativeWorkspaceSnapshot)
+    .where(
+      and(inArray(nativeWorkspaceSnapshot.scopeId, planningScopes.map(item => item.id)), eq(nativeWorkspaceSnapshot.isDeleted, false)),
+    )
+    .orderBy(asc(nativeWorkspaceSnapshot.createdAt)) : []
 
   // Backfill pre-membership snapshots without requiring a destructive migration.
   const legacyOwnedScopes = rows

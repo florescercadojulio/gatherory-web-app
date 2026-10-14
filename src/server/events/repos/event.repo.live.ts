@@ -1,4 +1,4 @@
-import { Layer } from "effect"
+import { Layer } from "effect";
 
 import {
   acceptEventInvitation,
@@ -9,7 +9,7 @@ import {
   hasWorkspaceMembership,
   listVisibleMainEvents,
   type EventRepoShape,
-} from "./event.repo"
+} from "./event.repo";
 
 export const EventRepoLive = Layer.succeed(EventRepo, {
   hasWorkspaceMembership,
@@ -18,4 +18,4 @@ export const EventRepoLive = Layer.succeed(EventRepo, {
   listVisibleMainEvents,
   createEventInvitation,
   acceptEventInvitation,
-} satisfies EventRepoShape)
+} satisfies EventRepoShape);

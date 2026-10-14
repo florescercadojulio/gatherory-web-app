@@ -11,6 +11,20 @@ import { eventRepositoryError } from "../src/server/events/errors"
 import en from "../src/i18n/locales/en.server-errors"
 import es from "../src/i18n/locales/es.server-errors"
 
+test("client request IDs correlate failures without echoing arbitrary header content", async () => {
+  const failure = Effect.fail(new ForbiddenError({ category: "authorization", code: "MEDIA_FORBIDDEN", userMessageKey: "serverErrors.MEDIA_FORBIDDEN" }))
+  const requestID = crypto.randomUUID()
+  const response = await runServerResponse(failure, { headers: new Headers({ "x-request-id": requestID }), operation: "media.prepare" })
+  const body = await response.json()
+  assert.equal(body.error.traceId, requestID)
+  assert.equal(body.error.code, "MEDIA_FORBIDDEN")
+  assert.ok(body.error.errorId)
+  const untrusted = await runServerResponse(failure, { headers: new Headers({ "x-request-id": "private-untrusted-value" }) })
+  const untrustedBody = await untrusted.json()
+  assert.match(untrustedBody.error.traceId, /^[0-9a-f-]{36}$/i)
+  assert.doesNotMatch(JSON.stringify(untrustedBody), /private-untrusted-value/)
+})
+
 test("translated errors never serialize provider causes or developer context", async () => {
   const result = await runServerEffect(Effect.fail(new PersistenceError({
     category: "system", code: "SECRET_PROVIDER_CODE", userMessageKey: "serverErrors.SYSTEM",

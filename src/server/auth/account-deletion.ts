@@ -212,14 +212,14 @@ export async function prepareGatheroryAccountDeletion(userId: string) {
               set: { ownerUserId, payload: recordPayload, isDeleted: false, serverVersion: sql`${nativeSyncEntity.serverVersion} + 1`, updatedAt: new Date() },
             }).returning({ version: nativeSyncEntity.serverVersion })
             await transaction.insert(nativeSyncChange).values({ scopeId: snapshot.scopeId, ownerUserId, entityType: record.type,
-              entityId: record.id, operation: "upsert", payload: recordPayload, serverVersion: updated.version })
+              entityId: record.id, operation: "update", payload: recordPayload, serverVersion: updated.version })
           }
         }
         const version = snapshot.serverVersion + 1
         await transaction.update(nativeWorkspaceSnapshot).set({ ownerUserId, payload, serverVersion: version, updatedAt: new Date() })
           .where(eq(nativeWorkspaceSnapshot.scopeId, snapshot.scopeId))
         await transaction.insert(nativeSyncChange).values({ scopeId: snapshot.scopeId, ownerUserId, entityType: "workspace",
-          entityId: snapshot.scopeId, operation: "upsert", payload, serverVersion: version })
+          entityId: snapshot.scopeId, operation: "update", payload, serverVersion: version })
       }
       // Category configuration can embed the same native identity/media fields.
       const configuredIdeas = await transaction.select({ id: idea.id, organizationId: idea.organizationId, configuration: idea.configuration })

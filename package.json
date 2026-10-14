@@ -121,6 +121,7 @@
     "babel-plugin-react-compiler": "^1.0.0",
     "drizzle-kit": "1.0.0-rc.4",
     "drizzle-seed": "1.0.0-rc.4",
+    "prettier": "^3.9.10",
     "tsx": "^4.23.15",
     "typescript": "^7.0.2",
     "vite": "^8.0.0"

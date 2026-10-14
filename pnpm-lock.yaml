@@ -264,6 +264,9 @@ importers:
       drizzle-seed:
         specifier: 1.0.0-rc.4
         version: 1.0.0-rc.4(drizzle-orm@1.0.0-rc.4(@effect/sql-pg@4.0.0-beta.102(effect@4.0.0-beta.102))(@opentelemetry/api@1.9.1)(@types/pg@8.23.1)(effect@4.0.0-beta.102)(pg@8.23.1)(zod@4.6.5))
+      prettier:
+        specifier: ^3.9.10
+        version: 3.9.10
       tsx:
         specifier: ^4.23.15
         version: 4.23.15
@@ -5808,6 +5811,11 @@ packages:
       preact-render-to-string:
         optional: true
 
+  prettier@3.9.10:
+    resolution: {integrity: sha512-skGHTH1Yb9QvaTC4hWnRTzEYtCpApF0UMBPz+t/0ZPzP8ihefo/btKd+QA7pUE0fEwA1SbS/NmhyEcstdXOIdA==}
+    engines: {node: '>=14'}
+    hasBin: true
+
   prettier@3.9.9:
     resolution: {integrity: sha512-Z/CJHIkdujO/OtN7nXUii0Rf3VT5SRuhjBA82Xvu2XhBUgX3nhP67T0LHceBdQLex7OOFGTox+Q5Yg8Jk2Qivg==}
     engines: {node: '>=14'}
@@ -9848,7 +9856,7 @@ snapshots:
       '@tanstack/virtual-file-routes': 1.162.0
       jiti: 2.7.0
       magic-string: 0.30.21
-      prettier: 3.9.9
+      prettier: 3.9.10
       zod: 4.6.5
     transitivePeerDependencies:
       - supports-color
@@ -12403,6 +12411,8 @@ snapshots:
   powershell-utils@0.2.1: {}
 
   preact@10.29.8: {}
+
+  prettier@3.9.10: {}
 
   prettier@3.9.9: {}
 

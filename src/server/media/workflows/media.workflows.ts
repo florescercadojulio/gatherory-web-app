@@ -91,7 +91,8 @@ export function prepareEventMediaUploadWorkflow(input: {
       eventId: input.media.eventId,
       userId: input.userId,
     })
-    if (!actor) return yield* Effect.fail(mediaFailure("MEDIA_FORBIDDEN"))
+    if (!actor) return yield* Effect.fail(mediaFailure("MEDIA_FORBIDDEN",
+      `Event prepare requires participation; event=${input.media.eventId}`))
 
     yield* requireCapabilities({
       role: actor.role,
@@ -247,7 +248,8 @@ export function prepareNativeMediaUploadWorkflow(input: {
       scopeId: input.media.scopeId,
       userId: input.userId,
     })
-    if (!actor) return yield* Effect.fail(mediaFailure("MEDIA_FORBIDDEN"))
+    if (!actor) return yield* Effect.fail(mediaFailure("MEDIA_FORBIDDEN",
+      `Native prepare requires writable root-event participation; scope=${input.media.scopeId}`))
 
     const storageKey = MediaKeys.original({
       workspaceId: actor.organizationId,
@@ -293,7 +295,8 @@ export function finalizeNativeMediaUploadWorkflow(input: {
       userId: input.userId,
     })
     if (!context || context.uploadedByUserId !== input.userId) {
-      return yield* Effect.fail(mediaFailure("MEDIA_FORBIDDEN"))
+      return yield* Effect.fail(mediaFailure("MEDIA_FORBIDDEN",
+        `Native finalize denied; asset=${input.media.mediaAssetId}; reason=${context ? "uploader_mismatch" : "no_media_access"}`))
     }
 
     if (context.status === "ready") {

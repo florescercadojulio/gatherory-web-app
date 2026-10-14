@@ -1,1 +1,0 @@
-ALTER TYPE "organization_type" ADD VALUE 'personal' BEFORE 'event';

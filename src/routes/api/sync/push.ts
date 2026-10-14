@@ -17,5 +17,5 @@ export const Route = createFileRoute("/api/sync/push")({ server: { handlers: {
       }))
     }
     return yield* tryServerOperation({ category: "system", code: "SYNC_PUSH_FAILED", userMessageKey: "serverErrors.SYNC_PUSH_FAILED" }, () => applyNativeMutations({ userId: user.id, mutations: parsed.data.mutations }))
-  }), { headers: request.headers, successEnvelope: false, legacyErrorCode: true }),
+  }), { headers: request.headers, operation: "sync.push", successEnvelope: false, legacyErrorCode: true }),
 } } })

@@ -21,12 +21,14 @@ import {
   eventExpense,
   eventNote,
   idea,
+  ideaDecision,
   registryItem,
   workspacePlanningSettings,
 } from "@/db/schema/planning.schema"
 import { nativeSyncEntity } from "@/db/schema/sync.schema"
 
 import type { NativeMutation } from "./native-sync-contracts"
+import { ideaResponseID } from "./idea-response"
 
 type NativeTransaction = Parameters<Parameters<typeof db.transaction>[0]>[0]
 
@@ -81,6 +83,9 @@ export async function materializeNativeMutation(
   )
 
   if (mutation.operation === "delete") {
+    // A response is retracted by an authenticated update with a nil choice.
+    // Reject bare ID deletes, which do not carry the idea/account ownership key.
+    if (mutation.entityType === "idea_response") throw nativeMaterializationFailure("IDEA_RESPONSE_DELETE_FORBIDDEN")
     await deleteCanonicalEntity(transaction, {
       organizationId,
       entityType: mutation.entityType,
@@ -91,6 +96,36 @@ export async function materializeNativeMutation(
 
   const payload = asRecord(decodeNativePayload(mutation.payload))
   switch (mutation.entityType) {
+    case "idea_response": {
+      assertPayloadId(mutation.entityID, payload.id)
+      const ideaId = requiredUUID(payload.ideaID, "IDEA_RESPONSE_IDEA_MISSING")
+      if (payload.userID !== input.userId || mutation.entityID !== ideaResponseID(ideaId, input.userId)) {
+        throw nativeMaterializationFailure("IDEA_RESPONSE_OWNER_MISMATCH")
+      }
+      const [target] = await transaction.select({ eventId: idea.eventId, status: idea.status })
+        .from(idea).where(and(eq(idea.id, ideaId), eq(idea.organizationId, organizationId))).limit(1)
+      if (!target) throw nativeMaterializationFailure("IDEA_RESPONSE_SCOPE_MISMATCH")
+      const [context] = await transaction.select().from(event).where(eq(event.id, target.eventId)).limit(1)
+      const [root] = await transaction.select().from(event).where(eq(event.id, mutation.scopeID)).limit(1)
+      if (!context || (context.id !== mutation.scopeID && context.parentEventId !== mutation.scopeID)) {
+        throw nativeMaterializationFailure("IDEA_RESPONSE_SCOPE_MISMATCH")
+      }
+      if (!root || ["finished", "cancelled"].includes(root.status ?? "")
+          || ["archived", "cancelled"].includes(context.planningStatus ?? "")
+          || context.completionStatus === "complete"
+          || ["approved", "passed", "archived"].includes(target.status)) {
+        throw nativeMaterializationFailure("IDEA_RESPONSE_CLOSED")
+      }
+      const choice = payload.choice
+      if (choice == null) {
+        await transaction.delete(ideaDecision).where(and(eq(ideaDecision.ideaId, ideaId), eq(ideaDecision.userId, input.userId)))
+      } else {
+        if (choice !== "love" && choice !== "maybe" && choice !== "pass") throw nativeMaterializationFailure("IDEA_RESPONSE_INVALID")
+        await transaction.insert(ideaDecision).values({ ideaId, userId: input.userId, choice })
+          .onConflictDoUpdate({ target: [ideaDecision.ideaId, ideaDecision.userId], set: { choice, updatedAt: new Date() } })
+      }
+      break
+    }
     case "participant":
       await materializePerson(transaction, {
         organizationId,
@@ -192,6 +227,24 @@ async function materializeWorkspace(
   const organizationId = input.organizationId ?? input.scopeId
   const slug = `${slugify(title)}-${input.scopeId.slice(0, 8)}`
   const now = new Date()
+  const [existingEvent] = await transaction.select({ id: event.id })
+    .from(event).where(eq(event.id, mainEventId)).limit(1)
+
+  if (existingEvent) {
+    const [settings] = await transaction.select().from(workspacePlanningSettings)
+      .where(eq(workspacePlanningSettings.organizationId, organizationId)).limit(1)
+    const changesSharing = (settings?.collaboratorLinkEnabled ?? true) !== (payload.isCollaboratorLinkEnabled !== false)
+      || (settings?.requiresCollaboratorApproval ?? true) !== (payload.requiresCollaboratorApproval !== false)
+      || (settings?.defaultCollaboratorPermission ?? "contribute") !== mapPlanningPermission(payload.defaultCollaboratorPermission)
+    if (changesSharing) {
+      const [actor] = await transaction.select({ role: eventParticipant.role, permission: eventParticipant.planningPermission })
+        .from(eventParticipant).innerJoin(workspacePerson, eq(workspacePerson.id, eventParticipant.personId))
+        .where(and(eq(eventParticipant.eventId, mainEventId), eq(workspacePerson.userId, input.userId))).limit(1)
+      if (!actor || (actor.role !== "host" && !(actor.role === "collaborator" && actor.permission === "manage"))) {
+        throw new NativeMaterializationError({ category: "authorization", code: "EVENT_PERMISSION_REQUIRED", userMessageKey: "serverErrors.EVENT_PERMISSION_REQUIRED" })
+      }
+    }
+  }
 
   await transaction
     .insert(organization)
@@ -207,7 +260,7 @@ async function materializeWorkspace(
       set: { name: title },
     })
 
-  await transaction
+  if (!existingEvent) await transaction
     .insert(member)
     .values({
       id: crypto.randomUUID(),
@@ -317,6 +370,10 @@ async function materializeWorkspace(
     mediaAssetId: optionalUUID(payload.mainEventMediaAssetID),
   })
 
+  // A workspace edit changes event details, never the editor's identity or
+  // access. Participants/RSVPs have their own independently versioned records.
+  if (existingEvent) return { organizationId }
+
   const people = Array.isArray(payload.members)
     ? payload.members.map(asRecord)
     : []
@@ -364,8 +421,8 @@ async function materializeWorkspace(
       : []
     const ownerParticipation = participations.find(
       (participation) =>
-        participation.eventID === mainEventId &&
-        participation.memberID === personId,
+        optionalUUID(participation.eventID) === mainEventId &&
+        optionalUUID(participation.memberID) === personId,
     )
     const participationId = ownerParticipation
       ? requiredUUID(ownerParticipation.id, "OWNER_PARTICIPATION_ID_MISSING")
@@ -483,6 +540,7 @@ async function materializeParticipation(
     .onConflictDoUpdate({
       target: [eventParticipant.eventId, eventParticipant.personId],
       set: {
+        id: input.entityId,
         role,
         planningPermission,
         attendanceStatus: mapAttendance(input.payload.attendance),

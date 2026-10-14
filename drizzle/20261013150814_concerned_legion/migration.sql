@@ -1,3 +1,0 @@
-ALTER TABLE "abuse_report_review" ADD CONSTRAINT "abuse_report_review_action_check" CHECK ("action" in ('start_review', 'hide_image', 'dismiss'));--> statement-breakpoint
-ALTER TABLE "abuse_report_review" ADD CONSTRAINT "abuse_report_review_note_check" CHECK (length(trim("note")) between 5 and 2000);--> statement-breakpoint
-ALTER TABLE "abuse_report" DROP CONSTRAINT "abuse_report_resolution_check", ADD CONSTRAINT "abuse_report_resolution_check" CHECK (("status" in ('open', 'in_review') and "resolution" is null) or ("status" = 'resolved' and "resolution" is not null and "resolution" = 'hidden') or ("status" = 'dismissed' and "resolution" is not null and "resolution" = 'kept'));

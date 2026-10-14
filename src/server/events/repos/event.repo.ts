@@ -657,7 +657,7 @@ export function acceptEventInvitation(input: {
         // Only a planning role on the main event implies workspace-wide access.
         // Guests and child-event participants must stay event-scoped.
         const [acceptedEvent] = yield* transaction
-          .select({ id: event.id, parentEventId: event.parentEventId })
+          .select({ id: event.id, parentEventId: event.parentEventId, organizationId: event.organizationId })
           .from(event)
           .where(eq(event.id, pendingInvitation.eventId))
           .limit(1);
@@ -668,6 +668,12 @@ export function acceptEventInvitation(input: {
             ? acceptedEvent.id
             : null;
         if (nativeScopeId) {
+          // Admission creates ordinary organization membership, never ownership.
+          // Keep this here (not workspace saves) so pending requests grant nothing.
+          yield* transaction.insert(member).values({
+            id: crypto.randomUUID(), organizationId: acceptedEvent!.organizationId,
+            userId: input.userId, role: "member", createdAt: new Date(),
+          }).onConflictDoNothing({ target: [member.organizationId, member.userId] });
           const [nativeScope] = yield* transaction
             .select({ id: nativeWorkspaceSnapshot.scopeId })
             .from(nativeWorkspaceSnapshot)
@@ -735,7 +741,7 @@ export function acceptEventInvitation(input: {
               }).returning({ serverVersion: nativeSyncEntity.serverVersion });
               yield* transaction.insert(nativeSyncChange).values({
                 scopeId: rootId, ownerUserId: snapshot.ownerUserId, entityType: record.type,
-                entityId: record.id, operation: "upsert", payload, serverVersion: entity.serverVersion,
+                entityId: record.id, operation: "update", payload, serverVersion: entity.serverVersion,
               });
             }
             const archive = JSON.parse(Buffer.from(snapshot.payload, "base64").toString("utf8"));
@@ -752,7 +758,7 @@ export function acceptEventInvitation(input: {
             }).where(eq(nativeWorkspaceSnapshot.scopeId, rootId)).returning({ serverVersion: nativeWorkspaceSnapshot.serverVersion });
             yield* transaction.insert(nativeSyncChange).values({
               scopeId: rootId, ownerUserId: snapshot.ownerUserId, entityType: "workspace", entityId: rootId,
-              operation: "upsert", payload, serverVersion: updatedSnapshot.serverVersion,
+              operation: "update", payload, serverVersion: updatedSnapshot.serverVersion,
             });
           }
         }

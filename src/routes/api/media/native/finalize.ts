@@ -12,6 +12,6 @@ export const Route = createFileRoute("/api/media/native/finalize")({
       const user = yield* requestUser(request)
       const input = yield* validateInput(NativeMediaAssetInputSchema, yield* requestJson(request))
       return yield* finalizeNativeMediaUploadWorkflow({ userId: user.id, media: input })
-    }).pipe(Effect.provide(PgClientLive)), { headers: request.headers }),
+    }).pipe(Effect.provide(PgClientLive)), { headers: request.headers, operation: "media.finalize" }),
   } },
 })

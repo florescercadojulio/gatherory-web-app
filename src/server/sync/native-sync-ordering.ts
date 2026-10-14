@@ -2,6 +2,7 @@ export type NativeSyncEntityType =
   | "workspace"
   | "event"
   | "idea"
+  | "idea_response"
   | "participant"
   | "event_participation"
   | "attendance"
@@ -20,6 +21,7 @@ const mutationDependencyOrder: Record<NativeSyncEntityType, number> = {
   participant: 1,
   event: 2,
   idea: 3,
+  idea_response: 4,
   event_participation: 4,
   attendance: 5,
   expense: 6,

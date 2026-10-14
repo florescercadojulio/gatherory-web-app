@@ -1,9 +1,9 @@
 {
   "version": "8",
   "dialect": "postgres",
-  "id": "cb29b1b0-a4ee-4598-8bbf-eebac5fff0a3",
+  "id": "a3868e97-b706-47fa-8d29-3f75e6d55fb2",
   "prevIds": [
-    "d0804cae-8d25-4c6e-8d0e-587fe8e94e33"
+    "00000000-0000-0000-0000-000000000000"
   ],
   "ddl": [
     {
@@ -103,7 +103,8 @@
         "approved",
         "not_sure",
         "rejected",
-        "archived"
+        "archived",
+        "cancelled"
       ],
       "name": "event_planning_status",
       "entityType": "enums",
@@ -131,7 +132,8 @@
       "values": [
         "draft",
         "ongoing",
-        "finished"
+        "finished",
+        "cancelled"
       ],
       "name": "event_status",
       "entityType": "enums",
@@ -185,6 +187,17 @@
         "gallery"
       ],
       "name": "planning_media_role",
+      "entityType": "enums",
+      "schema": "public"
+    },
+    {
+      "values": [
+        "open",
+        "in_review",
+        "resolved",
+        "dismissed"
+      ],
+      "name": "abuse_report_status",
       "entityType": "enums",
       "schema": "public"
     },
@@ -360,7 +373,19 @@
     },
     {
       "isRlsEnabled": false,
+      "name": "event_departure",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
       "name": "event_invitation",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "event_join_request",
       "entityType": "tables",
       "schema": "public"
     },
@@ -403,6 +428,36 @@
     {
       "isRlsEnabled": false,
       "name": "registry_item_media",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "abuse_report",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "abuse_report_review",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "hidden_media",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "moderation_staff",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "user_block",
       "entityType": "tables",
       "schema": "public"
     },
@@ -1756,6 +1811,45 @@
       "typeSchema": null,
       "notNull": true,
       "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "event_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "event_departure"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "user_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "event_departure"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "created_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "event_departure"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
       "default": "gen_random_uuid()",
       "generated": null,
       "identity": null,
@@ -1919,6 +2013,110 @@
       "entityType": "columns",
       "schema": "public",
       "table": "event_invitation"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "gen_random_uuid()",
+      "generated": null,
+      "identity": null,
+      "name": "id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "event_join_request"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "event_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "event_join_request"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "user_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "event_join_request"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "share_link_token",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "event_join_request"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "'pending'",
+      "generated": null,
+      "identity": null,
+      "name": "status",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "event_join_request"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "reviewed_by_user_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "event_join_request"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "created_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "event_join_request"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "updated_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "event_join_request"
     },
     {
       "type": "uuid",
@@ -2493,6 +2691,19 @@
       "table": "media_asset"
     },
     {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "moderation_hidden_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "media_asset"
+    },
+    {
       "type": "text",
       "typeSchema": null,
       "notNull": true,
@@ -2777,6 +2988,370 @@
       "entityType": "columns",
       "schema": "public",
       "table": "registry_item_media"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "gen_random_uuid()",
+      "generated": null,
+      "identity": null,
+      "name": "id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "abuse_report"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "reporter_user_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "abuse_report"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "media_asset_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "abuse_report"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "reported_user_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "abuse_report"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "reason",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "abuse_report"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "''",
+      "generated": null,
+      "identity": null,
+      "name": "detail",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "abuse_report"
+    },
+    {
+      "type": "abuse_report_status",
+      "typeSchema": "public",
+      "notNull": true,
+      "dimensions": 0,
+      "default": "'open'",
+      "generated": null,
+      "identity": null,
+      "name": "status",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "abuse_report"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "resolution",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "abuse_report"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "reviewed_by_user_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "abuse_report"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "created_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "abuse_report"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "updated_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "abuse_report"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "gen_random_uuid()",
+      "generated": null,
+      "identity": null,
+      "name": "id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "abuse_report_review"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "report_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "abuse_report_review"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "actor_user_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "abuse_report_review"
+    },
+    {
+      "type": "abuse_report_status",
+      "typeSchema": "public",
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "previous_status",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "abuse_report_review"
+    },
+    {
+      "type": "abuse_report_status",
+      "typeSchema": "public",
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "status",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "abuse_report_review"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "action",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "abuse_report_review"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "note",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "abuse_report_review"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "created_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "abuse_report_review"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "user_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "hidden_media"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "media_asset_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "hidden_media"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "created_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "hidden_media"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "user_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "moderation_staff"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "granted_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "moderation_staff"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "revoked_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "moderation_staff"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "user_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "user_block"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "blocked_user_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "user_block"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "created_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "user_block"
     },
     {
       "type": "uuid",
@@ -4801,6 +5376,34 @@
           "opclass": null
         },
         {
+          "value": "user_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": true,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "event_join_request_event_user_unique",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "event_join_request"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "event_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        },
+        {
           "value": "person_id",
           "isExpression": false,
           "asc": true,
@@ -5251,6 +5854,90 @@
       "entityType": "indexes",
       "schema": "public",
       "table": "registry_item_media"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "reporter_user_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        },
+        {
+          "value": "media_asset_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": true,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "abuse_report_reporter_media_uidx",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "abuse_report"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "status",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        },
+        {
+          "value": "created_at",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "abuse_report_status_created_idx",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "abuse_report"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "report_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        },
+        {
+          "value": "created_at",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "abuse_report_review_report_idx",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "abuse_report_review"
     },
     {
       "nameExplicit": true,
@@ -6086,6 +6773,40 @@
       ],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
+      "name": "event_departure_event_id_event_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "event_departure"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "user_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "user",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "name": "event_departure_user_id_user_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "event_departure"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "event_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "event",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
       "name": "event_invitation_event_id_event_id_fkey",
       "entityType": "fks",
       "schema": "public",
@@ -6141,6 +6862,57 @@
       "entityType": "fks",
       "schema": "public",
       "table": "event_invitation"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "event_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "event",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "name": "event_join_request_event_id_event_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "event_join_request"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "user_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "user",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "name": "event_join_request_user_id_user_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "event_join_request"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "reviewed_by_user_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "user",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "SET NULL",
+      "name": "event_join_request_reviewed_by_user_id_user_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "event_join_request"
     },
     {
       "nameExplicit": false,
@@ -6408,6 +7180,193 @@
       "entityType": "fks",
       "schema": "public",
       "table": "registry_item_media"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "reporter_user_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "user",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "SET NULL",
+      "name": "abuse_report_reporter_user_id_user_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "abuse_report"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "media_asset_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "media_asset",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "SET NULL",
+      "name": "abuse_report_media_asset_id_media_asset_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "abuse_report"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "reported_user_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "user",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "SET NULL",
+      "name": "abuse_report_reported_user_id_user_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "abuse_report"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "reviewed_by_user_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "user",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "SET NULL",
+      "name": "abuse_report_reviewed_by_user_id_user_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "abuse_report"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "report_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "abuse_report",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "name": "abuse_report_review_report_id_abuse_report_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "abuse_report_review"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "actor_user_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "user",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "SET NULL",
+      "name": "abuse_report_review_actor_user_id_user_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "abuse_report_review"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "user_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "user",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "name": "hidden_media_user_id_user_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "hidden_media"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "media_asset_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "media_asset",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "name": "hidden_media_media_asset_id_media_asset_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "hidden_media"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "user_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "user",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "name": "moderation_staff_user_id_user_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "moderation_staff"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "user_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "user",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "name": "user_block_user_id_user_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "user_block"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "blocked_user_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "user",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "name": "user_block_blocked_user_id_user_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "user_block"
     },
     {
       "nameExplicit": false,
@@ -6903,6 +7862,39 @@
     },
     {
       "columns": [
+        "event_id",
+        "user_id"
+      ],
+      "nameExplicit": false,
+      "name": "event_departure_pkey",
+      "entityType": "pks",
+      "schema": "public",
+      "table": "event_departure"
+    },
+    {
+      "columns": [
+        "user_id",
+        "media_asset_id"
+      ],
+      "nameExplicit": false,
+      "name": "hidden_media_pkey",
+      "entityType": "pks",
+      "schema": "public",
+      "table": "hidden_media"
+    },
+    {
+      "columns": [
+        "user_id",
+        "blocked_user_id"
+      ],
+      "nameExplicit": false,
+      "name": "user_block_pkey",
+      "entityType": "pks",
+      "schema": "public",
+      "table": "user_block"
+    },
+    {
+      "columns": [
         "idea_id",
         "user_id"
       ],
@@ -7061,6 +8053,16 @@
         "id"
       ],
       "nameExplicit": false,
+      "name": "event_join_request_pkey",
+      "schema": "public",
+      "table": "event_join_request",
+      "entityType": "pks"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
       "name": "event_participant_pkey",
       "schema": "public",
       "table": "event_participant",
@@ -7124,6 +8126,36 @@
       "name": "registry_item_media_pkey",
       "schema": "public",
       "table": "registry_item_media",
+      "entityType": "pks"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "name": "abuse_report_pkey",
+      "schema": "public",
+      "table": "abuse_report",
+      "entityType": "pks"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "name": "abuse_report_review_pkey",
+      "schema": "public",
+      "table": "abuse_report_review",
+      "entityType": "pks"
+    },
+    {
+      "columns": [
+        "user_id"
+      ],
+      "nameExplicit": false,
+      "name": "moderation_staff_pkey",
+      "schema": "public",
+      "table": "moderation_staff",
       "entityType": "pks"
     },
     {
@@ -7374,6 +8406,13 @@
       "table": "event_invitation"
     },
     {
+      "value": "\"status\" in ('pending', 'approved', 'declined')",
+      "name": "event_join_request_status_check",
+      "entityType": "checks",
+      "schema": "public",
+      "table": "event_join_request"
+    },
+    {
       "value": "(\"role\" = 'host' and \"planning_permission\" = 'manage') or (\"role\" = 'collaborator' and \"planning_permission\" in ('manage', 'contribute', 'view_only')) or (\"role\" = 'guest' and \"planning_permission\" = 'view_only')",
       "name": "event_participant_role_permission_check",
       "entityType": "checks",
@@ -7435,6 +8474,41 @@
       "entityType": "checks",
       "schema": "public",
       "table": "registry_item_media"
+    },
+    {
+      "value": "\"reason\" in ('inappropriate', 'harassment', 'privacy', 'other')",
+      "name": "abuse_report_reason_check",
+      "entityType": "checks",
+      "schema": "public",
+      "table": "abuse_report"
+    },
+    {
+      "value": "(\"status\" in ('open', 'in_review') and \"resolution\" is null) or (\"status\" = 'resolved' and \"resolution\" is not null and \"resolution\" = 'hidden') or (\"status\" = 'dismissed' and \"resolution\" is not null and \"resolution\" = 'kept')",
+      "name": "abuse_report_resolution_check",
+      "entityType": "checks",
+      "schema": "public",
+      "table": "abuse_report"
+    },
+    {
+      "value": "\"action\" in ('start_review', 'hide_image', 'dismiss')",
+      "name": "abuse_report_review_action_check",
+      "entityType": "checks",
+      "schema": "public",
+      "table": "abuse_report_review"
+    },
+    {
+      "value": "length(trim(\"note\")) between 5 and 2000",
+      "name": "abuse_report_review_note_check",
+      "entityType": "checks",
+      "schema": "public",
+      "table": "abuse_report_review"
+    },
+    {
+      "value": "\"user_id\" <> \"blocked_user_id\"",
+      "name": "user_block_no_self_check",
+      "entityType": "checks",
+      "schema": "public",
+      "table": "user_block"
     },
     {
       "value": "\"amount\" >= 0",

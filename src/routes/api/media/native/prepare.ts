@@ -12,6 +12,6 @@ export const Route = createFileRoute("/api/media/native/prepare")({
       const user = yield* requestUser(request)
       const input = yield* validateInput(PrepareNativeMediaUploadInputSchema, yield* requestJson(request))
       return yield* prepareNativeMediaUploadWorkflow({ userId: user.id, media: input })
-    }).pipe(Effect.provide(PgClientLive)), { headers: request.headers }),
+    }).pipe(Effect.provide(PgClientLive)), { headers: request.headers, operation: "media.prepare" }),
   } },
 })

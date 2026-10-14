@@ -12,6 +12,6 @@ export const Route = createFileRoute("/api/media/native/url")({
       const user = yield* requestUser(request)
       const input = yield* validateInput(NativeMediaAssetInputSchema, { mediaAssetId: new URL(request.url).searchParams.get("mediaAssetId") })
       return yield* getNativeMediaUrlWorkflow({ userId: user.id, mediaAssetId: input.mediaAssetId })
-    }).pipe(Effect.provide(PgClientLive)), { headers: request.headers }),
+    }).pipe(Effect.provide(PgClientLive)), { headers: request.headers, operation: "media.url" }),
   } },
 })

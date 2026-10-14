@@ -3,6 +3,8 @@ import type { MessageParams, UserMessageKey } from "@/lib/domain-errors"
 export type ClientError = {
   userMessage: string
   errorId: string
+  traceId?: string
+  code?: string
   messageKey?: UserMessageKey
   messageParams?: MessageParams
 }

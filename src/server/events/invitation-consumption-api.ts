@@ -6,7 +6,7 @@ import { event, eventInvitation, eventShareLink } from "@/db/schema"
 import { EntityNotFoundError, ForbiddenError, InvalidInputError, runServerResponse, tryServerOperation } from "@/server/effect"
 import { nativeSyncUser } from "@/server/sync/native-sync-auth"
 import { acceptEventShareLink, previewEventShareLink } from "./repos/event-share-link.repo"
-import { guestEventInvitations, respondToEvent } from "./repos/guest-invitation.repo"
+import { guestEventInvitations, invitationCoverURL, respondToEvent } from "./repos/guest-invitation.repo"
 import { leaveGuestEvent } from "./repos/event-departure.repo"
 import { isTrustedModerationMutation } from "@/server/moderation/contracts"
 import { EventService } from "./services/event.service"
@@ -49,23 +49,25 @@ export async function invitationConsumptionResponse(request: Request, operation:
       if (shared) {
         const preview = yield* previewEventShareLink(token, account?.id)
         if (!preview) return yield* Effect.fail(new EntityNotFoundError({ category: "not_found", code: "INVITATION_UNAVAILABLE", userMessageKey: "serverErrors.INVITATION_UNAVAILABLE" }))
-        return { ...preview, requiresSignIn: false }
+        return { ...preview, coverURL: yield* invitationCoverURL(shared.id, account?.id), requiresSignIn: false }
       }
       if (!account) return { requiresSignIn: true }
-      const [invitation] = yield* db.select({ title: event.title, role: eventInvitation.role, status: eventInvitation.status,
+      const [invitation] = yield* db.select({ eventId: event.id, title: event.title, role: eventInvitation.role, status: eventInvitation.status,
         expiresAt: eventInvitation.expiresAt, startsAt: event.startsAt, locationName: event.locationName })
         .from(eventInvitation).innerJoin(event, eq(event.id, eventInvitation.eventId))
         .where(and(eq(eventInvitation.token, token), eq(eventInvitation.email, account.email.trim().toLowerCase()))).limit(1)
       if (!invitation || !["pending", "accepted"].includes(invitation.status) || (invitation.status !== "accepted" && invitation.expiresAt <= new Date())) {
         return yield* Effect.fail(new EntityNotFoundError({ category: "not_found", code: "INVITATION_UNAVAILABLE", userMessageKey: "serverErrors.INVITATION_UNAVAILABLE" }))
       }
-      return { ...invitation, expiresAt: invitation.expiresAt.toISOString(), startsAt: invitation.startsAt?.toISOString() ?? null, requiresSignIn: false }
+      const { eventId, ...details } = invitation
+      return { ...details, coverURL: yield* invitationCoverURL(eventId, account.id), expiresAt: invitation.expiresAt.toISOString(), startsAt: invitation.startsAt?.toISOString() ?? null, requiresSignIn: false }
     }
     const service = yield* EventService
     const accepted = shared ? yield* acceptEventShareLink(account!.id, token)
       : yield* service.acceptInvitation({ userId: account!.id, userEmail: account!.email, invitation: { token } })
     const [target] = yield* db.select({ parent: event.parentEventId }).from(event).where(eq(event.id, accepted.eventId)).limit(1)
-    return { ...accepted, planningScopeId: target?.parent === null && accepted.role !== "guest" ? accepted.eventId : null }
+    const awaitingApproval = "status" in accepted && accepted.status === "awaiting_approval"
+    return { ...accepted, planningScopeId: !awaitingApproval && target?.parent === null && accepted.role !== "guest" ? accepted.eventId : null }
   }).pipe(Effect.provide(EventServiceLive), Effect.provide(EventRepoLive), Effect.provide(EventAuthorizationLive), Effect.provide(PgClientLive),
-  ), { headers: request.headers })
+  ), { headers: request.headers, operation: `invitation.${operation}` })
 }

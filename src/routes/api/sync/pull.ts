@@ -13,7 +13,8 @@ export const Route = createFileRoute("/api/sync/pull")({ server: { handlers: {
     const url = new URL(request.url)
     const input = yield* validateInput(querySchema, { scopeID: url.searchParams.get("scopeID"), after: url.searchParams.get("after") ?? 0 })
     const page = yield* tryServerOperation({ category: "system", code: "SYNC_PULL_FAILED", userMessageKey: "serverErrors.SYNC_PULL_FAILED" }, () => pullNativeChanges({ userId: user.id, scopeId: input.scopeID, after: input.after }))
-    if (!page) return yield* Effect.fail(new EntityNotFoundError({ category: "not_found", code: "SYNC_SCOPE_NOT_FOUND", userMessageKey: "serverErrors.SYNC_SCOPE_NOT_FOUND" }))
+    if (!page) return yield* Effect.fail(new EntityNotFoundError({ category: "not_found", code: "SYNC_SCOPE_NOT_FOUND", userMessageKey: "serverErrors.SYNC_SCOPE_NOT_FOUND",
+      debugMessage: `No accessible planning snapshot; scope=${input.scopeID}` }))
     return page
-  }), { headers: request.headers, successEnvelope: false, legacyErrorCode: true }),
+  }), { headers: request.headers, operation: "sync.pull", successEnvelope: false, legacyErrorCode: true }),
 } } })

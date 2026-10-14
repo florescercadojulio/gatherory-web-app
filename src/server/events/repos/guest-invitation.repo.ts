@@ -19,6 +19,18 @@ function mediaURL(asset: { bucket: string; storageKey: string } | undefined) {
   }).pipe(Effect.catch(() => Effect.logWarning("Invitation artwork could not be signed").pipe(Effect.as(null))))
 }
 
+/** Call only after validating the invitation token and its intended audience. */
+export function invitationCoverURL(eventId: string, userId?: string) {
+  return Effect.gen(function* () {
+    const db = yield* DB
+    const [cover] = yield* db.select({ bucket: mediaAsset.bucket, storageKey: mediaAsset.storageKey })
+      .from(eventMedia).innerJoin(mediaAsset, eq(mediaAsset.id, eventMedia.mediaAssetId))
+      .where(and(eq(eventMedia.eventId, eventId), eq(eventMedia.role, "cover"), visibleMediaPredicate(userId)))
+      .orderBy(asc(eventMedia.sortOrder)).limit(1)
+    return yield* mediaURL(cover)
+  })
+}
+
 /** Canonical, event-scoped projection. No replication table is read by this feed. */
 export function guestEventInvitations(userId: string) {
   return Effect.gen(function* () {
@@ -120,7 +132,7 @@ export function respondToEvent(userId: string, eventId: string, attendance: "goi
           set: { payload, isDeleted: false, serverVersion: sql`${nativeSyncEntity.serverVersion} + 1`, updatedAt: new Date() },
         }).returning({ version: nativeSyncEntity.serverVersion })
         yield* db.insert(nativeSyncChange).values({ scopeId, ownerUserId: snapshot.ownerUserId, entityType: "event_participation",
-          entityId: participation.id, operation: "upsert", payload, serverVersion: entity.version })
+          entityId: participation.id, operation: "update", payload, serverVersion: entity.version })
         const archive = JSON.parse(Buffer.from(snapshot.payload, "base64").toString("utf8"))
         archive.eventParticipations = [...(archive.eventParticipations ?? []).filter((item: { id: string }) => item.id.toLowerCase() !== value.id), value]
         if (scopeId === eventId) archive.members = (archive.members ?? []).map((person: { id: string }) =>
@@ -130,7 +142,7 @@ export function respondToEvent(userId: string, eventId: string, attendance: "goi
           serverVersion: sql`${nativeWorkspaceSnapshot.serverVersion} + 1`, updatedAt: new Date() })
           .where(eq(nativeWorkspaceSnapshot.scopeId, scopeId)).returning({ version: nativeWorkspaceSnapshot.serverVersion })
         yield* db.insert(nativeSyncChange).values({ scopeId, ownerUserId: snapshot.ownerUserId, entityType: "workspace",
-          entityId: scopeId, operation: "upsert", payload: archivePayload, serverVersion: updated.version })
+          entityId: scopeId, operation: "update", payload: archivePayload, serverVersion: updated.version })
       }
       return { eventId, attendance }
     }))

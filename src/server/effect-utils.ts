@@ -30,12 +30,18 @@ function requestHeaders() {
 export type ServerEffectOptions = {
   headers?: Headers
   locale?: string
+  operation?: string
   onFailure?: (error: DomainErrorShape) => void
 }
 
 /** Logs full developer context; only translated product copy and IDs cross this boundary. */
 export async function runServerEffect<A, E>(program: Effect.Effect<A, E>, options: ServerEffectOptions = {}): Promise<ServerResult<A>> {
-  const traceId = crypto.randomUUID()
+  const headers = options.headers ?? requestHeaders()
+  const suppliedID = headers?.get("x-request-id")
+  const traceId = suppliedID && /^[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(suppliedID) ? suppliedID : crypto.randomUUID()
+  // A label only, never a reason to suppress errors or bypass authorization.
+  const clientSource = headers?.get("x-client-source") === "integration-test" ? "integration-test" : "app"
+  const operation = options.operation ?? "server_operation"
   const exit = await Effect.runPromiseExit(program.pipe(Effect.annotateLogs({ traceId })))
   if (Exit.isSuccess(exit)) return { ok: true, data: exit.value }
 
@@ -50,12 +56,15 @@ export async function runServerEffect<A, E>(program: Effect.Effect<A, E>, option
     : domain.userMessage!
 
   await Effect.runPromise(Effect.logError("Server operation failed").pipe(Effect.annotateLogs({
-    traceId, errorId, category, code: domain.code ?? domain._tag,
+    traceId, errorId, operation, clientSource, category, code: domain.code ?? domain._tag,
     debugMessage: domain.debugMessage ?? "none", cause: Cause.pretty(exit.cause),
   })))
   options.onFailure?.(domain)
   return { ok: false, error: {
-    userMessage, errorId,
+    userMessage, errorId, traceId,
+    // Only catalogued public error keys cross the boundary, not arbitrary
+    // provider/driver codes that may carry sensitive implementation details.
+    code: messageKey?.split(".").at(-1) ?? category.toUpperCase(),
     ...(messageKey ? { messageKey } : {}),
     ...(domain.messageParams ? { messageParams: domain.messageParams } : {}),
   } }

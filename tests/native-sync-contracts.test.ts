@@ -1,7 +1,13 @@
 import assert from "node:assert/strict"
 import { test } from "node:test"
 
-import { pushRequestSchema } from "../src/server/sync/native-sync-contracts"
+import { nativePullOperation, pushRequestSchema } from "../src/server/sync/native-sync-contracts"
+
+test("pull operations match iOS and repair existing invitation changes", () => {
+  for (const operation of ["create", "update", "delete"]) assert.equal(nativePullOperation(operation), operation)
+  assert.equal(nativePullOperation("upsert"), "update")
+  assert.throws(() => nativePullOperation("unexpected"))
+})
 
 test("native sync canonicalizes uppercase UUIDs sent by Foundation", () => {
   const workspaceID = "5CF54762-4A9A-49C3-B1E8-DF26D184AFBA"

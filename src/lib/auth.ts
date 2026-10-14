@@ -2,6 +2,7 @@ import { ConfigurationError } from "@/lib/domain-errors"
 import { drizzleAdapter } from '@better-auth/drizzle-adapter/relations-v2'
 import { waitUntil } from '@vercel/functions'
 import { betterAuth } from 'better-auth'
+import { and, eq } from 'drizzle-orm'
 import { i18n, locales } from '@better-auth/i18n'
 import { bearer } from 'better-auth/plugins/bearer'
 import { emailOTP } from 'better-auth/plugins/email-otp'
@@ -24,6 +25,7 @@ import {
 } from '@/server/email/auth-email'
 import { prepareGatheroryAccountDeletion } from '@/server/auth/account-deletion'
 import { generateAppleClientSecret, revokeAppleAccountsBeforeDeletion } from '@/server/auth/apple-tokens'
+import { mapAppleProfile } from '@/server/auth/apple-profile'
 
 const google =
   env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET
@@ -54,6 +56,17 @@ const apple = hasAllAppleCredentials
       return {
         clientId,
         clientSecret: await generateAppleClientSecret(clientId),
+        mapProfileToUser: (profile: { sub: string; email?: string }) => mapAppleProfile(profile, async (subject) => {
+          const [saved] = await db.select({
+            email: authSchema.user.email,
+            emailVerified: authSchema.user.emailVerified,
+            name: authSchema.user.name,
+          }).from(authSchema.account)
+            .innerJoin(authSchema.user, eq(authSchema.account.userId, authSchema.user.id))
+            .where(and(eq(authSchema.account.providerId, 'apple'), eq(authSchema.account.accountId, subject)))
+            .limit(1)
+          return saved
+        }),
         ...(env.APPLE_APP_BUNDLE_IDENTIFIER
           ? { appBundleIdentifier: env.APPLE_APP_BUNDLE_IDENTIFIER }
           : {}),

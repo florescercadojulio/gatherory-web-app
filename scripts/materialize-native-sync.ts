@@ -27,6 +27,7 @@ const dependencyOrder: Record<NativeMutation["entityType"], number> = {
   participant: 1,
   event: 2,
   idea: 3,
+  idea_response: 4,
   event_participation: 4,
   attendance: 5,
   expense: 6,

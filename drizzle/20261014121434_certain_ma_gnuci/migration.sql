@@ -1,4 +1,4 @@
-CREATE TYPE "organization_type" AS ENUM('event', 'business');--> statement-breakpoint
+CREATE TYPE "organization_type" AS ENUM('personal', 'event', 'business');--> statement-breakpoint
 CREATE TYPE "event_attendance_status" AS ENUM('pending', 'going', 'not_sure', 'not_going');--> statement-breakpoint
 CREATE TYPE "event_category" AS ENUM('venue', 'food_tasting', 'photography', 'honeymoon', 'attire_fitting', 'wedding_shower', 'bachelor_bachelorette', 'rehearsal', 'ceremony', 'reception', 'other');--> statement-breakpoint
 CREATE TYPE "event_completion_status" AS ENUM('upcoming', 'complete');--> statement-breakpoint
@@ -6,18 +6,19 @@ CREATE TYPE "event_invitation_status" AS ENUM('pending', 'accepted', 'declined',
 CREATE TYPE "event_participant_role" AS ENUM('host', 'collaborator', 'guest');--> statement-breakpoint
 CREATE TYPE "event_planning_mode" AS ENUM('open_to_ideas', 'help_me_decide', 'quiet_planning', 'decision_made');--> statement-breakpoint
 CREATE TYPE "event_planning_permission" AS ENUM('manage', 'contribute', 'view_only');--> statement-breakpoint
-CREATE TYPE "event_planning_status" AS ENUM('draft', 'approved', 'not_sure', 'rejected', 'archived');--> statement-breakpoint
+CREATE TYPE "event_planning_status" AS ENUM('draft', 'approved', 'not_sure', 'rejected', 'archived', 'cancelled');--> statement-breakpoint
 CREATE TYPE "event_purpose" AS ENUM('planning_scouting', 'part_of_event');--> statement-breakpoint
 CREATE TYPE "event_scheduling_state" AS ENUM('scheduled', 'unscheduled');--> statement-breakpoint
-CREATE TYPE "event_status" AS ENUM('draft', 'ongoing', 'finished');--> statement-breakpoint
+CREATE TYPE "event_status" AS ENUM('draft', 'ongoing', 'finished', 'cancelled');--> statement-breakpoint
 CREATE TYPE "event_media_role" AS ENUM('cover', 'background', 'gallery');--> statement-breakpoint
 CREATE TYPE "media_kind" AS ENUM('image', 'video', 'audio');--> statement-breakpoint
 CREATE TYPE "media_status" AS ENUM('pending', 'uploaded', 'processing', 'ready', 'failed', 'deleted');--> statement-breakpoint
 CREATE TYPE "media_visibility" AS ENUM('private', 'public');--> statement-breakpoint
 CREATE TYPE "planning_media_role" AS ENUM('cover', 'gallery');--> statement-breakpoint
+CREATE TYPE "abuse_report_status" AS ENUM('open', 'in_review', 'resolved', 'dismissed');--> statement-breakpoint
 CREATE TYPE "expense_category" AS ENUM('venue', 'food_and_drink', 'attire', 'decor', 'entertainment', 'photography', 'stationery', 'travel', 'gifts', 'other');--> statement-breakpoint
 CREATE TYPE "expense_status" AS ENUM('estimated', 'committed', 'paid');--> statement-breakpoint
-CREATE TYPE "idea_category" AS ENUM('event', 'registry', 'venue', 'attire', 'flowers', 'food', 'photography', 'music', 'decor', 'invitations', 'honeymoon', 'other');--> statement-breakpoint
+CREATE TYPE "idea_category" AS ENUM('event', 'registry', 'link', 'venue', 'attire', 'flowers', 'food', 'photography', 'music', 'decor', 'invitations', 'honeymoon', 'other');--> statement-breakpoint
 CREATE TYPE "idea_decision_choice" AS ENUM('pass', 'maybe', 'love');--> statement-breakpoint
 CREATE TYPE "idea_guest_visibility" AS ENUM('planning_only', 'shown_to_guests');--> statement-breakpoint
 CREATE TYPE "idea_status" AS ENUM('new', 'maybe', 'shortlisted', 'approved', 'passed', 'archived');--> statement-breakpoint
@@ -160,6 +161,13 @@ CREATE TABLE "event" (
 	CONSTRAINT "event_time_zone_not_blank_check" CHECK (length(trim("time_zone")) > 0)
 );
 --> statement-breakpoint
+CREATE TABLE "event_departure" (
+	"event_id" uuid,
+	"user_id" text,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	CONSTRAINT "event_departure_pkey" PRIMARY KEY("event_id","user_id")
+);
+--> statement-breakpoint
 CREATE TABLE "event_invitation" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
 	"event_id" uuid NOT NULL,
@@ -177,6 +185,18 @@ CREATE TABLE "event_invitation" (
 	CONSTRAINT "event_invitation_role_permission_check" CHECK (("role" = 'host' and "planning_permission" = 'manage') or ("role" = 'collaborator' and "planning_permission" in ('manage', 'contribute', 'view_only')) or ("role" = 'guest' and "planning_permission" = 'view_only'))
 );
 --> statement-breakpoint
+CREATE TABLE "event_join_request" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+	"event_id" uuid NOT NULL,
+	"user_id" text NOT NULL,
+	"share_link_token" uuid NOT NULL,
+	"status" text DEFAULT 'pending' NOT NULL,
+	"reviewed_by_user_id" text,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
+	CONSTRAINT "event_join_request_status_check" CHECK ("status" in ('pending', 'approved', 'declined'))
+);
+--> statement-breakpoint
 CREATE TABLE "event_participant" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
 	"event_id" uuid NOT NULL,
@@ -187,6 +207,18 @@ CREATE TABLE "event_participant" (
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
 	CONSTRAINT "event_participant_role_permission_check" CHECK (("role" = 'host' and "planning_permission" = 'manage') or ("role" = 'collaborator' and "planning_permission" in ('manage', 'contribute', 'view_only')) or ("role" = 'guest' and "planning_permission" = 'view_only'))
+);
+--> statement-breakpoint
+CREATE TABLE "event_share_link" (
+	"event_id" uuid PRIMARY KEY,
+	"token" uuid DEFAULT gen_random_uuid() NOT NULL UNIQUE,
+	"role" text DEFAULT 'guest' NOT NULL,
+	"created_by_user_id" text NOT NULL,
+	"expires_at" timestamp with time zone NOT NULL,
+	"revoked_at" timestamp with time zone,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
+	CONSTRAINT "event_share_link_role_check" CHECK ("role" in ('guest', 'collaborator'))
 );
 --> statement-breakpoint
 CREATE TABLE "workspace_person" (
@@ -230,6 +262,7 @@ CREATE TABLE "media_asset" (
 	"kind" "media_kind" NOT NULL,
 	"status" "media_status" DEFAULT 'pending'::"media_status" NOT NULL,
 	"visibility" "media_visibility" DEFAULT 'private'::"media_visibility" NOT NULL,
+	"moderation_hidden_at" timestamp with time zone,
 	"storage_provider" text DEFAULT 'r2' NOT NULL,
 	"bucket" text NOT NULL,
 	"storage_key" text NOT NULL,
@@ -259,6 +292,56 @@ CREATE TABLE "registry_item_media" (
 	"sort_order" integer DEFAULT 0 NOT NULL,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
 	CONSTRAINT "registry_media_sort_order_check" CHECK ("sort_order" >= 0)
+);
+--> statement-breakpoint
+CREATE TABLE "abuse_report" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+	"reporter_user_id" text,
+	"media_asset_id" uuid,
+	"reported_user_id" text,
+	"reason" text NOT NULL,
+	"detail" text DEFAULT '' NOT NULL,
+	"status" "abuse_report_status" DEFAULT 'open'::"abuse_report_status" NOT NULL,
+	"resolution" text,
+	"reviewed_by_user_id" text,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
+	CONSTRAINT "abuse_report_reason_check" CHECK ("reason" in ('inappropriate', 'harassment', 'privacy', 'other')),
+	CONSTRAINT "abuse_report_resolution_check" CHECK (("status" in ('open', 'in_review') and "resolution" is null) or ("status" = 'resolved' and "resolution" is not null and "resolution" = 'hidden') or ("status" = 'dismissed' and "resolution" is not null and "resolution" = 'kept'))
+);
+--> statement-breakpoint
+CREATE TABLE "abuse_report_review" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+	"report_id" uuid NOT NULL,
+	"actor_user_id" text,
+	"previous_status" "abuse_report_status" NOT NULL,
+	"status" "abuse_report_status" NOT NULL,
+	"action" text NOT NULL,
+	"note" text NOT NULL,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	CONSTRAINT "abuse_report_review_action_check" CHECK ("action" in ('start_review', 'hide_image', 'dismiss')),
+	CONSTRAINT "abuse_report_review_note_check" CHECK (length(trim("note")) between 5 and 2000)
+);
+--> statement-breakpoint
+CREATE TABLE "hidden_media" (
+	"user_id" text,
+	"media_asset_id" uuid,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	CONSTRAINT "hidden_media_pkey" PRIMARY KEY("user_id","media_asset_id")
+);
+--> statement-breakpoint
+CREATE TABLE "moderation_staff" (
+	"user_id" text PRIMARY KEY,
+	"granted_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"revoked_at" timestamp with time zone
+);
+--> statement-breakpoint
+CREATE TABLE "user_block" (
+	"user_id" text,
+	"blocked_user_id" text,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	CONSTRAINT "user_block_pkey" PRIMARY KEY("user_id","blocked_user_id"),
+	CONSTRAINT "user_block_no_self_check" CHECK ("user_id" <> "blocked_user_id")
 );
 --> statement-breakpoint
 CREATE TABLE "event_expense" (
@@ -455,6 +538,7 @@ CREATE UNIQUE INDEX "event_one_main_per_workspace_uidx" ON "event" ("organizatio
 CREATE INDEX "event_invitation_event_id_idx" ON "event_invitation" ("event_id");--> statement-breakpoint
 CREATE INDEX "event_invitation_email_idx" ON "event_invitation" ("email");--> statement-breakpoint
 CREATE UNIQUE INDEX "event_invitation_pending_email_uidx" ON "event_invitation" ("event_id","email") WHERE "status" = 'pending';--> statement-breakpoint
+CREATE UNIQUE INDEX "event_join_request_event_user_unique" ON "event_join_request" ("event_id","user_id");--> statement-breakpoint
 CREATE UNIQUE INDEX "event_participant_event_person_uidx" ON "event_participant" ("event_id","person_id");--> statement-breakpoint
 CREATE INDEX "event_participant_person_id_idx" ON "event_participant" ("person_id");--> statement-breakpoint
 CREATE UNIQUE INDEX "workspace_person_organization_id_id_uidx" ON "workspace_person" ("organization_id","id");--> statement-breakpoint
@@ -471,6 +555,9 @@ CREATE INDEX "media_asset_organization_status_idx" ON "media_asset" ("organizati
 CREATE INDEX "media_asset_uploaded_by_user_id_idx" ON "media_asset" ("uploaded_by_user_id");--> statement-breakpoint
 CREATE UNIQUE INDEX "registry_media_item_asset_role_uidx" ON "registry_item_media" ("registry_item_id","media_asset_id","role");--> statement-breakpoint
 CREATE INDEX "registry_media_item_sort_idx" ON "registry_item_media" ("registry_item_id","role","sort_order");--> statement-breakpoint
+CREATE UNIQUE INDEX "abuse_report_reporter_media_uidx" ON "abuse_report" ("reporter_user_id","media_asset_id");--> statement-breakpoint
+CREATE INDEX "abuse_report_status_created_idx" ON "abuse_report" ("status","created_at");--> statement-breakpoint
+CREATE INDEX "abuse_report_review_report_idx" ON "abuse_report_review" ("report_id","created_at");--> statement-breakpoint
 CREATE INDEX "event_expense_event_status_idx" ON "event_expense" ("event_id","status");--> statement-breakpoint
 CREATE UNIQUE INDEX "event_expense_source_idea_uidx" ON "event_expense" ("source_idea_id") WHERE "source_idea_id" is not null;--> statement-breakpoint
 CREATE INDEX "event_note_event_sent_at_idx" ON "event_note" ("event_id","sent_at");--> statement-breakpoint
@@ -506,12 +593,19 @@ ALTER TABLE "team_member" ADD CONSTRAINT "team_member_user_id_user_id_fkey" FORE
 ALTER TABLE "event" ADD CONSTRAINT "event_organization_id_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "organization"("id") ON DELETE CASCADE;--> statement-breakpoint
 ALTER TABLE "event" ADD CONSTRAINT "event_created_by_user_id_user_id_fkey" FOREIGN KEY ("created_by_user_id") REFERENCES "user"("id") ON DELETE SET NULL;--> statement-breakpoint
 ALTER TABLE "event" ADD CONSTRAINT "event_parent_same_workspace_fk" FOREIGN KEY ("organization_id","parent_event_id") REFERENCES "event"("organization_id","id") ON DELETE CASCADE;--> statement-breakpoint
+ALTER TABLE "event_departure" ADD CONSTRAINT "event_departure_event_id_event_id_fkey" FOREIGN KEY ("event_id") REFERENCES "event"("id") ON DELETE CASCADE;--> statement-breakpoint
+ALTER TABLE "event_departure" ADD CONSTRAINT "event_departure_user_id_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "user"("id") ON DELETE CASCADE;--> statement-breakpoint
 ALTER TABLE "event_invitation" ADD CONSTRAINT "event_invitation_event_id_event_id_fkey" FOREIGN KEY ("event_id") REFERENCES "event"("id") ON DELETE CASCADE;--> statement-breakpoint
 ALTER TABLE "event_invitation" ADD CONSTRAINT "event_invitation_person_id_workspace_person_id_fkey" FOREIGN KEY ("person_id") REFERENCES "workspace_person"("id") ON DELETE CASCADE;--> statement-breakpoint
 ALTER TABLE "event_invitation" ADD CONSTRAINT "event_invitation_invited_by_user_id_user_id_fkey" FOREIGN KEY ("invited_by_user_id") REFERENCES "user"("id") ON DELETE SET NULL;--> statement-breakpoint
 ALTER TABLE "event_invitation" ADD CONSTRAINT "event_invitation_accepted_by_user_id_user_id_fkey" FOREIGN KEY ("accepted_by_user_id") REFERENCES "user"("id") ON DELETE SET NULL;--> statement-breakpoint
+ALTER TABLE "event_join_request" ADD CONSTRAINT "event_join_request_event_id_event_id_fkey" FOREIGN KEY ("event_id") REFERENCES "event"("id") ON DELETE CASCADE;--> statement-breakpoint
+ALTER TABLE "event_join_request" ADD CONSTRAINT "event_join_request_user_id_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "user"("id") ON DELETE CASCADE;--> statement-breakpoint
+ALTER TABLE "event_join_request" ADD CONSTRAINT "event_join_request_reviewed_by_user_id_user_id_fkey" FOREIGN KEY ("reviewed_by_user_id") REFERENCES "user"("id") ON DELETE SET NULL;--> statement-breakpoint
 ALTER TABLE "event_participant" ADD CONSTRAINT "event_participant_event_id_event_id_fkey" FOREIGN KEY ("event_id") REFERENCES "event"("id") ON DELETE CASCADE;--> statement-breakpoint
 ALTER TABLE "event_participant" ADD CONSTRAINT "event_participant_person_id_workspace_person_id_fkey" FOREIGN KEY ("person_id") REFERENCES "workspace_person"("id") ON DELETE CASCADE;--> statement-breakpoint
+ALTER TABLE "event_share_link" ADD CONSTRAINT "event_share_link_event_id_event_id_fkey" FOREIGN KEY ("event_id") REFERENCES "event"("id") ON DELETE CASCADE;--> statement-breakpoint
+ALTER TABLE "event_share_link" ADD CONSTRAINT "event_share_link_created_by_user_id_user_id_fkey" FOREIGN KEY ("created_by_user_id") REFERENCES "user"("id") ON DELETE CASCADE;--> statement-breakpoint
 ALTER TABLE "workspace_person" ADD CONSTRAINT "workspace_person_organization_id_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "organization"("id") ON DELETE CASCADE;--> statement-breakpoint
 ALTER TABLE "workspace_person" ADD CONSTRAINT "workspace_person_user_id_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "user"("id") ON DELETE SET NULL;--> statement-breakpoint
 ALTER TABLE "event_media" ADD CONSTRAINT "event_media_organization_id_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "organization"("id") ON DELETE CASCADE;--> statement-breakpoint
@@ -523,6 +617,17 @@ ALTER TABLE "media_asset" ADD CONSTRAINT "media_asset_organization_id_organizati
 ALTER TABLE "media_asset" ADD CONSTRAINT "media_asset_uploaded_by_user_id_user_id_fkey" FOREIGN KEY ("uploaded_by_user_id") REFERENCES "user"("id") ON DELETE SET NULL;--> statement-breakpoint
 ALTER TABLE "registry_item_media" ADD CONSTRAINT "registry_media_item_same_workspace_fk" FOREIGN KEY ("organization_id","registry_item_id") REFERENCES "registry_item"("organization_id","id") ON DELETE CASCADE;--> statement-breakpoint
 ALTER TABLE "registry_item_media" ADD CONSTRAINT "registry_media_asset_same_workspace_fk" FOREIGN KEY ("organization_id","media_asset_id") REFERENCES "media_asset"("organization_id","id") ON DELETE CASCADE;--> statement-breakpoint
+ALTER TABLE "abuse_report" ADD CONSTRAINT "abuse_report_reporter_user_id_user_id_fkey" FOREIGN KEY ("reporter_user_id") REFERENCES "user"("id") ON DELETE SET NULL;--> statement-breakpoint
+ALTER TABLE "abuse_report" ADD CONSTRAINT "abuse_report_media_asset_id_media_asset_id_fkey" FOREIGN KEY ("media_asset_id") REFERENCES "media_asset"("id") ON DELETE SET NULL;--> statement-breakpoint
+ALTER TABLE "abuse_report" ADD CONSTRAINT "abuse_report_reported_user_id_user_id_fkey" FOREIGN KEY ("reported_user_id") REFERENCES "user"("id") ON DELETE SET NULL;--> statement-breakpoint
+ALTER TABLE "abuse_report" ADD CONSTRAINT "abuse_report_reviewed_by_user_id_user_id_fkey" FOREIGN KEY ("reviewed_by_user_id") REFERENCES "user"("id") ON DELETE SET NULL;--> statement-breakpoint
+ALTER TABLE "abuse_report_review" ADD CONSTRAINT "abuse_report_review_report_id_abuse_report_id_fkey" FOREIGN KEY ("report_id") REFERENCES "abuse_report"("id") ON DELETE CASCADE;--> statement-breakpoint
+ALTER TABLE "abuse_report_review" ADD CONSTRAINT "abuse_report_review_actor_user_id_user_id_fkey" FOREIGN KEY ("actor_user_id") REFERENCES "user"("id") ON DELETE SET NULL;--> statement-breakpoint
+ALTER TABLE "hidden_media" ADD CONSTRAINT "hidden_media_user_id_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "user"("id") ON DELETE CASCADE;--> statement-breakpoint
+ALTER TABLE "hidden_media" ADD CONSTRAINT "hidden_media_media_asset_id_media_asset_id_fkey" FOREIGN KEY ("media_asset_id") REFERENCES "media_asset"("id") ON DELETE CASCADE;--> statement-breakpoint
+ALTER TABLE "moderation_staff" ADD CONSTRAINT "moderation_staff_user_id_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "user"("id") ON DELETE CASCADE;--> statement-breakpoint
+ALTER TABLE "user_block" ADD CONSTRAINT "user_block_user_id_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "user"("id") ON DELETE CASCADE;--> statement-breakpoint
+ALTER TABLE "user_block" ADD CONSTRAINT "user_block_blocked_user_id_user_id_fkey" FOREIGN KEY ("blocked_user_id") REFERENCES "user"("id") ON DELETE CASCADE;--> statement-breakpoint
 ALTER TABLE "event_expense" ADD CONSTRAINT "event_expense_created_by_user_id_user_id_fkey" FOREIGN KEY ("created_by_user_id") REFERENCES "user"("id") ON DELETE SET NULL;--> statement-breakpoint
 ALTER TABLE "event_expense" ADD CONSTRAINT "event_expense_event_same_workspace_fk" FOREIGN KEY ("organization_id","event_id") REFERENCES "event"("organization_id","id") ON DELETE CASCADE;--> statement-breakpoint
 ALTER TABLE "event_expense" ADD CONSTRAINT "event_expense_idea_same_event_fk" FOREIGN KEY ("organization_id","event_id","source_idea_id") REFERENCES "idea"("organization_id","event_id","id") ON DELETE CASCADE;--> statement-breakpoint

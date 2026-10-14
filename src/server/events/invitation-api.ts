@@ -9,11 +9,27 @@ import { EventRepoLive } from "./repos/event.repo.live"
 import { EventAuthorizationLive } from "./services/event-authorization.service"
 import { EventService } from "./services/event.service"
 import { EventServiceLive } from "./services/event.service.live"
-import { createEventShareLink, revokeEventShareLink } from "./repos/event-share-link.repo"
+import { createEventShareLink, revokeEventShareLink, listEventJoinRequests, reviewEventJoinRequest } from "./repos/event-share-link.repo"
+import { isTrustedModerationMutation } from "@/server/moderation/contracts"
 
 function verifiedUser(request: Request) {
   return requestUser(request).pipe(Effect.flatMap(user => user.emailVerified ? Effect.succeed(user) :
     Effect.fail(new ForbiddenError({ category: "authorization", code: "INVITATION_SESSION_REQUIRED", userMessageKey: "serverErrors.INVITATION_SESSION_REQUIRED" }))))
+}
+
+export function eventJoinRequestsResponse(request: Request) {
+  return runServerResponse(Effect.gen(function* () {
+    const user = yield* verifiedUser(request)
+    if (request.method === "GET") {
+      const input = yield* validateInput(z.object({ eventId: z.uuid() }), { eventId: new URL(request.url).searchParams.get("eventId") })
+      return yield* listEventJoinRequests(user.id, input.eventId)
+    }
+    if (!isTrustedModerationMutation(request, process.env.BETTER_AUTH_URL)) return yield* Effect.fail(new ForbiddenError({
+      category: "authorization", code: "UNTRUSTED_INVITATION_REQUEST", userMessageKey: "serverErrors.UNTRUSTED_INVITATION_REQUEST",
+    }))
+    const input = yield* validateInput(z.object({ eventId: z.uuid(), requestId: z.uuid(), action: z.enum(["approve", "decline"]) }), yield* requestJson(request))
+    return yield* reviewEventJoinRequest(user.id, input.eventId, input.requestId, input.action)
+  }).pipe(Effect.provide(PgClientLive)), { headers: request.headers, operation: "invitation.join_requests" })
 }
 
 /** Cookie and native bearer clients share the same domain authorization. */
