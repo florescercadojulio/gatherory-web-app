@@ -243,6 +243,12 @@ importers:
       '@tanstack/router-cli':
         specifier: ^1.132.0
         version: 1.167.40
+      '@tanstack/start-client-core':
+        specifier: 1.170.34
+        version: 1.170.34
+      '@tanstack/start-storage-context':
+        specifier: 1.167.36
+        version: 1.167.36
       '@types/node':
         specifier: ^26.6.4
         version: 26.6.4
