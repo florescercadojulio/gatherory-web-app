@@ -7,10 +7,7 @@ import { requireSessionMiddleware } from '@/lib/auth.middleware'
 import { runServerEffect } from '@/server/effect'
 import { validateInput } from '@/server/validation'
 import { ResolveWorkspaceSchema } from '../contracts/workspace.contracts'
-import { BetterAuthWorkspaceConLive } from '../connectors/better-auth.con.live'
-import { WorkspaceRepoLive } from '../repos/workspace.repo.live'
-import { WorkspaceServiceLive } from '../services/workspace.service.live'
-import { resolveWorkspaceWorkflow } from '../workflows/resolve-workspace.workflow'
+import { resolveWorkspaceWorkflow } from '../workflows/workspace.workflows.live'
 
 export const resolveWorkspace = createServerFn({ method: 'GET' })
   .middleware([requireSessionMiddleware])
@@ -28,11 +25,6 @@ export const resolveWorkspace = createServerFn({ method: 'GET' })
             })
           )
         )
-        .pipe(
-          Effect.provide(WorkspaceServiceLive),
-          Effect.provide(WorkspaceRepoLive),
-          Effect.provide(BetterAuthWorkspaceConLive),
-          Effect.provide(PgClientLive)
-        )
+        .pipe(Effect.provide(PgClientLive))
     )
   )

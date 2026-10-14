@@ -1,4 +1,5 @@
 import { Effect, Layer } from 'effect'
+import { EventInvitationArtwork } from '../connectors/event-invitation-artwork.con'
 import { EventGuestRepo } from '../repos/event-guest.repo'
 import { EventGuestService } from './event-guest.service'
 
@@ -6,9 +7,52 @@ export const EventGuestServiceLive = Layer.effect(
   EventGuestService,
   Effect.gen(function* () {
     const repo = yield* EventGuestRepo
+    const artwork = yield* EventInvitationArtwork
+
+    const sign = (asset: { bucket: string; storageKey: string } | null | undefined) =>
+      asset
+        ? artwork
+            .sign(asset)
+            .pipe(
+              Effect.catch(() =>
+                Effect.logWarning('Invitation artwork could not be signed').pipe(Effect.as(null))
+              )
+            )
+        : Effect.succeed(null)
+
     return {
-      listInvitations: repo.listInvitations,
-      invitationCoverURL: repo.invitationCoverURL,
+      listInvitations: (userId) =>
+        Effect.gen(function* () {
+          const projections = yield* repo.listInvitationProjections(userId)
+          const invitations = []
+          for (const projection of projections) {
+            const ideas = []
+            for (const idea of projection.ideas) {
+              const { imageAsset, ...details } = idea
+              ideas.push({
+                ...details,
+                imageURL: yield* sign(imageAsset),
+                imageId: imageAsset?.id ?? null,
+              })
+            }
+            const moments = []
+            for (const moment of projection.moments) {
+              const { imageAsset, ...details } = moment
+              moments.push({ ...details, imageURL: yield* sign(imageAsset) })
+            }
+            const { coverAsset, ...details } = projection
+            invitations.push({
+              ...details,
+              coverURL: yield* sign(coverAsset),
+              coverId: coverAsset?.id ?? null,
+              ideas,
+              moments,
+            })
+          }
+          return invitations
+        }),
+      invitationCoverURL: (eventId, userId) =>
+        repo.getInvitationCoverAsset(eventId, userId).pipe(Effect.flatMap(sign)),
       respondToEvent: repo.respondToEvent,
       leaveGuestEvent: repo.leaveGuestEvent,
     }

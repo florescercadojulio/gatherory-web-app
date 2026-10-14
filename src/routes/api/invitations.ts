@@ -3,7 +3,7 @@ import {
   createInvitationResponse,
   revokeInvitationResponse,
   eventJoinRequestsResponse,
-} from '@/server/events/invitation-api'
+} from '@/server/events/handlers/invitation-api.handler'
 
 export const Route = createFileRoute('/api/invitations')({
   server: {

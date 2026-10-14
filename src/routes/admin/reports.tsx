@@ -6,8 +6,8 @@ import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import type { ServerResult } from '@/server/result'
-import { moderatorAccess } from '@/server/moderation/moderation.handlers'
-import { reportStatuses } from '@/server/moderation/contracts'
+import { moderatorAccess } from '@/server/moderation/handlers/moderator-access.handler'
+import { reportStatuses } from '@/server/moderation/contracts/moderation.contracts'
 
 type Status = (typeof reportStatuses)[number]
 type Report = {

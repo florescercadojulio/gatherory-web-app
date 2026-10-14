@@ -3,8 +3,7 @@ import { Effect } from 'effect'
 import { z } from 'zod'
 import { EntityNotFoundError, runServerResponse } from '@/server/effect-utils'
 import { requestUser, validateInput } from '@/server/http-errors'
-import { NativeSyncRepoLive } from '@/server/sync/repos/native-sync.repo.live'
-import { pullNativeSync } from '@/server/sync/workflows/native-sync-pull.workflow'
+import { pullNativeSync } from '@/server/sync/workflows/native-sync.workflows.live'
 
 const querySchema = z.object({
   scopeID: z.uuid(),
@@ -27,7 +26,7 @@ export const Route = createFileRoute('/api/sync/pull')({
               userId: user.id,
               scopeId: input.scopeID,
               after: input.after,
-            }).pipe(Effect.provide(NativeSyncRepoLive))
+            })
             if (!page)
               return yield* Effect.fail(
                 new EntityNotFoundError({

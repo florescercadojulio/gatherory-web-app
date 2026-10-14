@@ -26,11 +26,11 @@ export const BetterAuthWorkspaceConLive = Layer.succeed(BetterAuthWorkspaceCon, 
       const organizations = await auth.api.listOrganizations({ headers })
       return organizations.map((organization) => organization satisfies AuthWorkspace)
     }),
-  createOrganization: ({ headers, name, slug }) =>
+  createOrganization: ({ headers, name, slug, userId }) =>
     authCall('create organization', async () => {
       const organization = await auth.api.createOrganization({
-        headers,
-        body: { name, slug },
+        ...(headers ? { headers } : {}),
+        body: { name, slug, ...(userId ? { userId } : {}) },
       })
       return organization satisfies AuthWorkspace
     }),

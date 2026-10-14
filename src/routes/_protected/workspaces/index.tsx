@@ -18,10 +18,8 @@ import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { Separator } from '@/components/ui/separator'
 import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
-import {
-  listNativeWorkspaceInsights,
-  type NativeWorkspaceInsight,
-} from '@/server/sync/native-insights'
+import { listNativeWorkspaceInsights } from '@/server/sync/handlers/native-workspace-insights.handler'
+import type { NativeWorkspaceInsight } from '@/server/sync/contracts/native-insights.contract'
 
 export const Route = createFileRoute('/_protected/workspaces/')({
   loader: () => listNativeWorkspaceInsights(),

@@ -5,8 +5,8 @@ import { requireSessionMiddleware } from '@/lib/auth.middleware'
 import { runServerEffect } from '@/server/effect'
 import { validateInput } from '@/server/validation'
 import { FinalizeEventMediaUploadInputSchema } from '../contracts/media.contracts'
-import { provideMediaLayers } from '../media.layers'
-import { finalizeEventMediaUploadWorkflow } from '../workflows/finalize-event-media-upload.workflow'
+import { finalizeEventMediaUploadWorkflow } from '../workflows/media.workflows.live'
+import { PgClientLive } from '@/db'
 import { mediaError } from './media.handler-utils'
 
 export const finalizeEventMediaUpload = createServerFn({ method: 'POST' })
@@ -16,10 +16,9 @@ export const finalizeEventMediaUpload = createServerFn({ method: 'POST' })
     runServerEffect(
       validateInput(FinalizeEventMediaUploadInputSchema, data).pipe(
         Effect.flatMap((media) =>
-          provideMediaLayers(
-            finalizeEventMediaUploadWorkflow({ userId: context.user.id, media }).pipe(
-              Effect.mapError(mediaError)
-            )
+          finalizeEventMediaUploadWorkflow({ userId: context.user.id, media }).pipe(
+            Effect.mapError(mediaError),
+            Effect.provide(PgClientLive)
           )
         )
       )

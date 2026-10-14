@@ -22,13 +22,13 @@ import {
   scheduleMagicLinkEmail,
   schedulePasswordResetEmail,
   scheduleVerificationEmail,
-} from '@/server/email/auth-email'
-import { prepareGatheroryAccountDeletion } from '@/server/auth/account-deletion'
+} from '@/server/email/handlers/auth-email.adapter'
+import { prepareGatheroryAccountDeletion } from '@/server/auth/handlers/account-deletion.adapter'
 import {
   generateAppleClientSecret,
   revokeAppleAccountsBeforeDeletion,
-} from '@/server/auth/apple-tokens'
-import { mapAppleProfile } from '@/server/auth/apple-profile'
+} from '@/server/auth/handlers/apple-tokens.adapter'
+import { mapAppleProfile } from '@/server/auth/handlers/apple-profile.adapter'
 
 const google =
   env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET

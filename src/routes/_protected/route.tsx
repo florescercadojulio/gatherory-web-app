@@ -2,7 +2,7 @@ import { createFileRoute, Outlet } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 
 import { PageUnavailable, ServerErrorToast } from '@/components/route-feedback'
-import { ensurePersonalWorkspace } from '@/server/workspaces/handlers/workspace.handlers'
+import { ensurePersonalWorkspace } from '@/server/workspaces/handlers/ensure-personal-workspace.handler'
 
 export const Route = createFileRoute('/_protected')({
   beforeLoad: async () => {

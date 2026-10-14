@@ -1,3 +1,4 @@
+import { PgClientLive } from '@/db'
 import { transportInput } from '@/lib/input-validation'
 import { requireSessionMiddleware } from '@/lib/auth.middleware'
 import { validateInput } from '@/server/validation'
@@ -5,8 +6,7 @@ import { InvalidInputError, runServerEffect } from '@/server/effect'
 import { createServerFn } from '@tanstack/react-start'
 import { Effect } from 'effect'
 import { CreateEventInputSchema } from '../contracts/event.contracts'
-import { createEventWorkflow } from '../workflows/create-event.workflow'
-import { provideEventLayers } from './event-handler.layers'
+import { createEventWorkflow } from '../workflows/event.workflows.live'
 
 export const createEvent = createServerFn({ method: 'POST' })
   .middleware([requireSessionMiddleware])
@@ -30,8 +30,8 @@ export const createEvent = createServerFn({ method: 'POST' })
     return runServerEffect(
       validateInput(CreateEventInputSchema, data).pipe(
         Effect.flatMap((event) =>
-          provideEventLayers(
-            createEventWorkflow({ organizationId, userId: context.user.id, event })
+          createEventWorkflow({ organizationId, userId: context.user.id, event }).pipe(
+            Effect.provide(PgClientLive)
           )
         )
       )

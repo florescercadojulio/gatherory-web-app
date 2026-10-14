@@ -24,6 +24,16 @@ test('live domain logic can be imported without production adapters or credentia
     import('@/server/workspaces/services/workspace.service.live'),
     import('@/server/sync/services/native-insights.service.live'),
     import('@/server/auth/services/apple-token.service.live'),
+    import('@/server/auth/services/account-deletion.service.live'),
+    import('@/server/auth/services/apple-account-deletion.service.live'),
+    import('@/server/auth/workflows/prepare-account-deletion.workflow'),
+    import('@/server/auth/workflows/revoke-apple-accounts-before-deletion.workflow'),
+    import('@/server/workspaces/workflows/create-event-workspace.workflow'),
+    import('@/server/moderation/workflows/moderator-access.workflow'),
+    import('@/server/email/workflows/send-verification-email.workflow'),
+    import('@/server/email/workflows/send-password-reset-email.workflow'),
+    import('@/server/email/workflows/send-email-otp.workflow'),
+    import('@/server/email/workflows/send-magic-link-email.workflow'),
   ])
   for (const module of modules) expect(Object.keys(module).length).toBeGreaterThan(0)
 })

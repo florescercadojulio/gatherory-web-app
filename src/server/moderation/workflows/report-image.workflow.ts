@@ -1,5 +1,5 @@
 import { Effect } from 'effect'
-import type { ReportImageInput } from '../contracts'
+import type { ReportImageInput } from '../contracts/moderation.contracts'
 import type { z } from 'zod'
 import { ModerationService } from '../services/moderation.service'
 

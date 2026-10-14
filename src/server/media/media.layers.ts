@@ -1,17 +1,13 @@
-import { Effect, Layer } from 'effect'
+import { Effect } from 'effect'
 import type { PgClient } from '@effect/sql-pg/PgClient'
 
 import { PgClientLive } from '@/db'
-import { MediaService } from './services/media.service'
-import { MediaStorageLive } from './connectors/media-storage.con.live'
-import { MediaRepoLive } from './repos/media.repo.live'
-import { MediaServiceLive } from './services/media.service.live'
+import { MediaDomainLive } from './media.layers.live'
+import type { MediaService } from './services/media.service'
 
-/** Composition point for server-function and API-route transports. */
-export const MediaDomainLive = MediaServiceLive.pipe(
-  Layer.provide(Layer.mergeAll(MediaRepoLive, MediaStorageLive))
-)
+export { MediaDomainLive } from './media.layers.live'
 
+/** @deprecated Use composed media workflows and provide PgClientLive at the boundary. */
 export function provideMediaLayers<A, E, R extends MediaService | PgClient>(
   program: Effect.Effect<A, E, R>
 ) {

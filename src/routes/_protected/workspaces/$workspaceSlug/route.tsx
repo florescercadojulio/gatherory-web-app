@@ -5,7 +5,7 @@ import { AppSidebar } from '@/components/app-sidebar'
 import { PageUnavailable, ServerErrorToast } from '@/components/route-feedback'
 import { Separator } from '@/components/ui/separator'
 import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
-import { resolveWorkspace } from '@/server/workspaces/handlers/workspace.handlers'
+import { resolveWorkspace } from '@/server/workspaces/handlers/resolve-workspace.handler'
 
 export const Route = createFileRoute('/_protected/workspaces/$workspaceSlug')({
   beforeLoad: async ({ params, context }) => {

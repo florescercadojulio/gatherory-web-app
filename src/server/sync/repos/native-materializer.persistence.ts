@@ -23,7 +23,7 @@ import {
 import { nativeSyncEntity } from '@/db/schema/sync.schema'
 
 import type { NativeMutation } from '../contracts/native-sync.contracts'
-import { ideaResponseID } from '../idea-response'
+import { ideaResponseID } from '../contracts/idea-response'
 
 type NativeTransaction = Parameters<Parameters<typeof db.transaction>[0]>[0]
 

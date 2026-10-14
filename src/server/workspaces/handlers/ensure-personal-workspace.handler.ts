@@ -4,10 +4,7 @@ import { getRequestHeaders } from '@tanstack/react-start/server'
 import { PgClientLive } from '@/db'
 import { requireSessionMiddleware } from '@/lib/auth.middleware'
 import { runServerEffect } from '@/server/effect'
-import { BetterAuthWorkspaceConLive } from '../connectors/better-auth.con.live'
-import { WorkspaceRepoLive } from '../repos/workspace.repo.live'
-import { WorkspaceServiceLive } from '../services/workspace.service.live'
-import { ensurePersonalWorkspaceWorkflow } from '../workflows/ensure-personal-workspace.workflow'
+import { ensurePersonalWorkspaceWorkflow } from '../workflows/workspace.workflows.live'
 
 export const ensurePersonalWorkspace = createServerFn({ method: 'GET' })
   .middleware([requireSessionMiddleware])
@@ -17,11 +14,6 @@ export const ensurePersonalWorkspace = createServerFn({ method: 'GET' })
         user: context.user,
         headers: getRequestHeaders(),
         activeOrganizationId: context.session.activeOrganizationId,
-      }).pipe(
-        Effect.provide(WorkspaceServiceLive),
-        Effect.provide(WorkspaceRepoLive),
-        Effect.provide(BetterAuthWorkspaceConLive),
-        Effect.provide(PgClientLive)
-      )
+      }).pipe(Effect.provide(PgClientLive))
     )
   )

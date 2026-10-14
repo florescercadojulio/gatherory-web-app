@@ -1,3 +1,4 @@
+import { PgClientLive } from '@/db'
 import { transportInput } from '@/lib/input-validation'
 import { requireSessionMiddleware } from '@/lib/auth.middleware'
 import { validateInput } from '@/server/validation'
@@ -5,8 +6,7 @@ import { ForbiddenError, runServerEffect } from '@/server/effect'
 import { createServerFn } from '@tanstack/react-start'
 import { Effect } from 'effect'
 import { AcceptEventInvitationInputSchema } from '../contracts/event.contracts'
-import { acceptEventInvitationWorkflow } from '../workflows/accept-event-invitation.workflow'
-import { provideEventLayers } from './event-handler.layers'
+import { acceptEventInvitationWorkflow } from '../workflows/event.workflows.live'
 
 export const acceptEventInvitation = createServerFn({ method: 'POST' })
   .middleware([requireSessionMiddleware])
@@ -23,13 +23,11 @@ export const acceptEventInvitation = createServerFn({ method: 'POST' })
                   userMessageKey: 'serverErrors.INVITATION_EMAIL_UNVERIFIED',
                 })
               )
-            : provideEventLayers(
-                acceptEventInvitationWorkflow({
-                  userId: context.user.id,
-                  userEmail: context.user.email,
-                  invitation,
-                })
-              )
+            : acceptEventInvitationWorkflow({
+                userId: context.user.id,
+                userEmail: context.user.email,
+                invitation,
+              }).pipe(Effect.provide(PgClientLive))
         )
       )
     )

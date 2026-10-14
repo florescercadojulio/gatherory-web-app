@@ -5,8 +5,8 @@ import { requireSessionMiddleware } from '@/lib/auth.middleware'
 import { runServerEffect } from '@/server/effect'
 import { validateInput } from '@/server/validation'
 import { GetEventMediaUrlInputSchema } from '../contracts/media.contracts'
-import { provideMediaLayers } from '../media.layers'
-import { getEventMediaUrlWorkflow } from '../workflows/get-event-media-url.workflow'
+import { PgClientLive } from '@/db'
+import { getEventMediaUrlWorkflow } from '../workflows/media.workflows.live'
 import { mediaError } from './media.handler-utils'
 
 export const getEventMediaUrl = createServerFn({ method: 'GET' })
@@ -16,10 +16,9 @@ export const getEventMediaUrl = createServerFn({ method: 'GET' })
     runServerEffect(
       validateInput(GetEventMediaUrlInputSchema, data).pipe(
         Effect.flatMap(({ mediaAssetId }) =>
-          provideMediaLayers(
-            getEventMediaUrlWorkflow({ userId: context.user.id, mediaAssetId }).pipe(
-              Effect.mapError(mediaError)
-            )
+          getEventMediaUrlWorkflow({ userId: context.user.id, mediaAssetId }).pipe(
+            Effect.mapError(mediaError),
+            Effect.provide(PgClientLive)
           )
         )
       )

@@ -26,7 +26,7 @@ import {
   reviewWorkspaceIds,
 } from '@/db/review-workspace-fixture'
 import { auth } from '@/lib/auth'
-import { createEventWorkspace } from '@/server/workspaces/create-event-workspace'
+import { createEventWorkspace } from '@/server/workspaces/handlers/workspace-provisioning.adapter'
 
 const developmentUsers = [
   {

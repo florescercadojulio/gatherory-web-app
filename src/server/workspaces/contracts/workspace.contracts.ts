@@ -22,6 +22,14 @@ export const CreateWorkspaceSchema = z
 
 export type CreateWorkspaceInput = z.infer<typeof CreateWorkspaceSchema>
 
+/** Trusted provisioning input for server scripts, not a client RPC contract. */
+export type CreateEventWorkspaceInput = {
+  name: string
+  slug: string
+  headers?: Headers
+  userId?: string
+}
+
 export const ResolveWorkspaceSchema = z.object({
   slug: z.string().trim().min(1).max(160),
 })

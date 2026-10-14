@@ -8,7 +8,7 @@ import { eventMedia, mediaAsset } from '@/db/schema/media.schema'
 
 import type { PrepareEventMediaUploadInput } from '../contracts/media.contracts'
 import type { PrepareNativeMediaUploadInput } from '../contracts/media.contracts'
-import { visibleMediaPredicate } from '@/server/moderation/media-visibility'
+import { visibleMediaPredicate } from '@/server/moderation/repos/media-visibility'
 import { retainedEventAccess } from '@/server/events/repos/event-departure.repo'
 
 /** Native scope IDs identify main events, never Better Auth organizations.

@@ -1,6 +1,6 @@
 # Server architecture refactor
 
-Status: Structural refactor complete; persistence follow-up remains
+Status: Architecture and file-structure cleanup complete; existing transaction engines retained
 Owner: `src/server/` and native API transport boundaries
 Started: October 14, 2026
 
@@ -14,12 +14,14 @@ Gatherory keeps domains directly under `src/server/`; it does not acquire an `ap
 
 1. Separate use-case handlers, contracts, workflows, injected domain services,
    repository contracts/live implementations, and provider connectors.
-2. Compose production layers at transport boundaries. Keep workflows as Effect
+2. Compose domain layers once and bind production workflows, leaving only
+   PostgreSQL at transport boundaries. Keep the underlying workflows as Effect
    programs that tests can run with substitute services.
 3. Verify authorization, safe errors, and existing wire shapes with Vitest and
    `@effect/vitest`; keep local database and R2 tests explicitly opt-in.
-4. Continue native Effect persistence migration for legacy transactional engines
-   after their locking and rollback behavior has equivalent integration coverage.
+4. Keep existing transaction engines intact behind injectable adapters. A native
+   Effect persistence rewrite is a separate future migration requiring equivalent
+   locking and rollback integration coverage.
 
 ## Completed scope
 
@@ -49,21 +51,44 @@ contracts. Provider promises belong in connector implementations. Legacy
 transactional persistence may use a typed Effect adapter while its underlying
 algorithm remains unchanged.
 
-## Constraints and deliberate deferrals
+## Completed remaining cleanup
+
+- Account deletion's transaction algorithm now lives in `auth/repos/` behind
+  injectable repository/storage contracts and a service/workflow. The Promise
+  callback is composed in `handlers/account-deletion.adapter.ts`.
+- Apple revocation now has separate account persistence, token decoding/configuration
+  and revocation connectors, and a pure service/workflow. Sequential revocation,
+  legacy token handling, and stop-on-failure behavior are preserved.
+- Guest invitation repositories return projections and asset metadata; the guest
+  service signs through an injected connector with the same best-effort null
+  fallback. The original repository path delegates through a compatibility adapter.
+- Moderation preview signing no longer lives in the repository. Its legacy
+  adapter supplies the injected service while retaining the caller's PostgreSQL
+  requirement and ambient transaction. Visibility predicates live under repos.
+- Native sync helpers live under contracts, services, workflows, and handlers.
+  Original root imports remain thin exports, and transaction engines use canonical
+  imports. Native session lookup delegates to the auth connector boundary.
+- Trusted workspace provisioning now uses an Effect workflow over the same
+  repository/Better Auth connector ports, with a Promise script adapter. It does
+  not add team/session/main-event side effects to seeding.
+- Authentication emails use separate injectable Effect workflows; their adapter
+  retains nonblocking scheduling, original copy/templates, and failure logging.
+- Application route and auth integration imports point to canonical handlers and
+  adapters. Architecture tests cover pure domain imports, provider-free repository
+  implementations, email workflows, and thin legacy entry points.
+
+## Preserved behavior and intentional boundaries
 
 - Preserve event permissions, workspace membership distinctions, sync protocol,
   receipt ordering, locks, transaction behavior, and error codes.
 - Keep Better Auth's required Promise callbacks at their integration boundary.
-- Native materialization and account-deletion persistence need a follow-up
-  migration; extracting interfaces does not make their internals Effect-native.
-- Guest invitation feed/artwork helpers still mix projection and URL signing
-  inside the legacy repository adapter. Extract those into injected storage
-  orchestration in a follow-up, retaining the current visibility checks and
-  best-effort artwork behavior.
-- The seed-compatible `workspaces/create-event-workspace.ts` helper, Apple
-  account-revocation/deletion callbacks, and direct moderation preview export
-  remain compatibility boundaries. New application code should use the injected
-  paths rather than expand these older entry points.
+- Native materialization, sync, and account-deletion persistence remain
+  Promise-based internally by design. Their transaction algorithms were not
+  rewritten. Account deletion accepts an injected storage callback at its
+  original execution point; it still finishes object removal before SQL work.
+- Older public import paths remain as thin compatibility exports. Their actual
+  composition lives in adapters, with domain logic and persistence in the canonical
+  folders. These paths are supported but are not the entry point for new code.
 - No schema migration, deployment, provider operation, or production build is
   required by this structural refactor.
 
@@ -96,10 +121,26 @@ Pre-handler denials use sanitized rejected calls, not handler `ServerResult`s.
 Tests cover the role matrix, identity/permission spoofing, malformed scope,
 revoked participation, empty declarations, and private provider failures.
 
+### Effect v4 layer composition follow-up
+
+Production workflow bindings now compose reusable domain graphs with
+`Layer.provide`. PostgreSQL-backed transport callers provide only `PgClientLive`;
+email and retained Promise-based sync/account-deletion workflows remain Pg-free.
+The underlying use-case workflows stay injectable for tests. Transaction engines,
+scope propagation, and authorization rules are unchanged. Luna agents handled
+media/workspaces, auth/email, and moderation/sync; integration review covered
+events, middleware, import isolation, and the shared tests.
+
+New checks enforce the production workflow requirement types, prevent renewed
+handler graph wiring, and exercise cross-service invitation composition with a
+caller-owned client and ambient scope. The moderator-access workflow has a
+separate production binding to avoid pulling session infrastructure into ordinary
+moderation callers.
+
 ### Local verification
 
 - `pnpm typecheck`: passed.
-- `pnpm test`: passed, 121 tests across 28 files; 9 opt-in integration tests skipped.
+- `pnpm test`: passed, 163 tests across 37 files; 9 opt-in integration tests skipped.
   Contract schema freshness is included in this command.
 - New service tests use `@effect/vitest` with substituted ports. They cover
   event authorization, workspace compensation and participant-only resolution,
@@ -111,6 +152,11 @@ revoked participation, empty declarations, and private provider failures.
 - Existing real-resource Effect tests use `it.live` rather than the test clock.
   They were not enabled during this refactor; transaction/provider behavior
   still needs explicit local integration verification before release.
+- Source comparison against the pre-cleanup revision confirms unchanged sync
+  and materializer bodies (imports only), unchanged RSVP transaction code, and
+  unchanged account-deletion operation body apart from the injected storage
+  callback name. This is preservation evidence, not a substitute for executing
+  the opt-in database/provider tests.
 - `git diff --check`: passed. No production build, schema migration, deployment,
   or external database/provider write was performed.
 

@@ -7,9 +7,7 @@ import { requireSessionMiddleware } from '@/lib/auth.middleware'
 import { transportInput } from '@/lib/input-validation'
 import type { EventPermissions } from '@/lib/permissions'
 import { runAuthorizationCheck } from '@/server/auth/authorization-boundary'
-import { ensureEventPermission } from '@/server/events/authorization'
-import { EventRepoLive } from '@/server/events/repos/event.repo.live'
-import { EventAuthorizationLive } from '@/server/events/services/event-authorization.service'
+import { ensureEventPermission } from '@/server/events/authorization.live'
 import { validateInput } from '@/server/validation'
 
 const EventAuthorizationInputSchema = z.object({ eventId: z.uuid() })
@@ -32,8 +30,6 @@ export function eventAuthorizationMiddleware(permissions: EventPermissions) {
             Effect.flatMap(({ eventId }) =>
               ensureEventPermission(permissions, { eventId, userId: context.user.id }).pipe(
                 Effect.map((participant) => ({ eventId, ...participant })),
-                Effect.provide(EventRepoLive),
-                Effect.provide(EventAuthorizationLive),
                 Effect.provide(PgClientLive)
               )
             )

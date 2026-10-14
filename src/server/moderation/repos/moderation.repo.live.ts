@@ -17,13 +17,14 @@ import {
   eventMedia,
 } from '@/db/schema'
 import { ConflictError, EntityNotFoundError, ForbiddenError } from '@/server/effect'
-import {
-  getEventMediaAccessContext,
-  getNativeMediaAccessContext,
-} from '@/server/media/repos/media.repo.compat'
-import { nextReportStatus } from '../contracts'
+import { MediaRepo } from '@/server/media/repos/media.repo.contract'
+import { nextReportStatus } from '../contracts/moderation.contracts'
 import { retainedEventAccess } from '@/server/events/repos/event-departure.repo'
-import type { ReportImageInput, ReviewReportInput, reportStatuses } from '../contracts'
+import type {
+  ReportImageInput,
+  ReviewReportInput,
+  reportStatuses,
+} from '../contracts/moderation.contracts'
 import { ModerationRepo } from './moderation.repo'
 
 const unavailable = () =>
@@ -61,10 +62,11 @@ export function requireModerator(userId: string) {
 
 function requireImageAccess(userId: string, mediaAssetId: string) {
   return Effect.gen(function* () {
+    const media = yield* MediaRepo
     // Resolve the actual asset's event/workspace, never activeOrganizationId.
     const access =
-      (yield* getNativeMediaAccessContext({ userId, mediaAssetId })) ??
-      (yield* getEventMediaAccessContext({ userId, mediaAssetId }))
+      (yield* media.getNativeMediaAccessContext({ userId, mediaAssetId })) ??
+      (yield* media.getEventMediaAccessContext({ userId, mediaAssetId }))
     if (!access) return yield* Effect.fail(unavailable())
     const db = yield* DB
     const [asset] = yield* db
@@ -257,22 +259,9 @@ export function reportImagePreviewAsset(actorUserId: string, reportId: string) {
       .innerJoin(mediaAsset, eq(mediaAsset.id, abuseReport.mediaAssetId))
       .where(and(eq(abuseReport.id, reportId), eq(mediaAsset.status, 'ready')))
       .limit(1)
+      .for('share')
     if (!asset) return yield* Effect.fail(unavailable())
     return asset
-  })
-}
-
-/** Legacy direct repository export retained for existing internal callers. */
-export function reportImagePreview(actorUserId: string, reportId: string) {
-  return Effect.gen(function* () {
-    const asset = yield* reportImagePreviewAsset(actorUserId, reportId)
-    const { createMediaReadUrl } = yield* Effect.tryPromise(
-      () => import('@/server/media/connectors/media-storage.con')
-    )
-    const url = yield* Effect.tryPromise(() =>
-      createMediaReadUrl({ ...asset, expiresInSeconds: 60 })
-    )
-    return { url }
   })
 }
 
@@ -280,17 +269,18 @@ export const ModerationRepoLive = Layer.effect(
   ModerationRepo,
   Effect.gen(function* () {
     const pg = yield* PgClient
-    const bindPg = <A, E, R>(effect: Effect.Effect<A, E, R>) =>
-      effect.pipe(Effect.provideService(PgClient, pg))
+    const media = yield* MediaRepo
+    const provideDependencies = <A, E, R>(effect: Effect.Effect<A, E, R>) =>
+      effect.pipe(Effect.provideService(PgClient, pg), Effect.provideService(MediaRepo, media))
     return {
-      requireModerator: (userId) => bindPg(requireModerator(userId)),
-      hideImage: (userId, mediaAssetId) => bindPg(hideImage(userId, mediaAssetId)),
-      hiddenImageIDs: (userId) => bindPg(hiddenImageIDs(userId)),
-      reportImage: (userId, input) => bindPg(reportImage(userId, input)),
-      listAbuseReports: (userId, status) => bindPg(listAbuseReports(userId, status)),
-      reviewAbuseReport: (userId, input) => bindPg(reviewAbuseReport(userId, input)),
+      requireModerator: (userId) => provideDependencies(requireModerator(userId)),
+      hideImage: (userId, mediaAssetId) => provideDependencies(hideImage(userId, mediaAssetId)),
+      hiddenImageIDs: (userId) => provideDependencies(hiddenImageIDs(userId)),
+      reportImage: (userId, input) => provideDependencies(reportImage(userId, input)),
+      listAbuseReports: (userId, status) => provideDependencies(listAbuseReports(userId, status)),
+      reviewAbuseReport: (userId, input) => provideDependencies(reviewAbuseReport(userId, input)),
       reportImagePreviewAsset: (userId, reportId) =>
-        bindPg(reportImagePreviewAsset(userId, reportId)),
+        provideDependencies(reportImagePreviewAsset(userId, reportId)),
     }
   })
 )

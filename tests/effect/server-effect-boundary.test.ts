@@ -87,8 +87,8 @@ it('application repositories use Effect Drizzle instead of Promise wrappers', ()
 
 it('database-backed transport composition provides the PostgreSQL Effect layer', () => {
   const handlerFiles = [
-    'src/server/events/handlers/event-handler.layers.ts',
-    'src/server/media/media.layers.ts',
+    'src/server/events/handlers/invite-event-participant.handler.ts',
+    'src/server/media/handlers/prepare-event-media-upload.handler.ts',
     'src/server/sync/handlers/native-workspace-insights.handler.ts',
   ]
 

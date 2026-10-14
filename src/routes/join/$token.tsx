@@ -8,13 +8,11 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { ServerErrorToast } from '@/components/route-feedback'
 import { getSession } from '@/lib/auth.functions'
 import { invitationPath } from '@/lib/event-invitation-links'
-import {
-  acceptEventInvitation,
-  getEventInvitation,
-  acceptSharedEventInvitation,
-  getSharedEventInvitation,
-  getJoinedSharedInvitation,
-} from '@/server/events/handlers/event.handlers'
+import { acceptEventInvitation } from '@/server/events/handlers/accept-event-invitation.handler'
+import { getEventInvitation } from '@/server/events/handlers/get-event-invitation.handler'
+import { acceptSharedEventInvitation } from '@/server/events/handlers/accept-shared-event-invitation.handler'
+import { getSharedEventInvitation } from '@/server/events/handlers/get-shared-event-invitation.handler'
+import { getJoinedSharedInvitation } from '@/server/events/handlers/get-joined-shared-invitation.handler'
 
 export const Route = createFileRoute('/join/$token')({
   loader: async ({ params }) => {

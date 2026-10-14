@@ -51,7 +51,9 @@ test('native media routes authenticate and use the shared Effect boundary', () =
     )
     expect(source).toMatch(/requestUser\(request\)/)
     expect(source).toMatch(/runServerResponse\(/)
-    expect(source).toMatch(/provideMediaLayers\(/)
+    expect(source).toMatch(/workflows\/media\.workflows\.live/)
+    expect(source).toMatch(/Effect\.provide\(PgClientLive\)/)
+    expect(source).not.toMatch(/provideMediaLayers\(|Layer\.(?:provide|merge)/)
   }
   const authentication = readFileSync(join(process.cwd(), 'src/server/http-errors.ts'), 'utf8')
   expect(authentication).toMatch(/nativeSyncUser\(request\)/)

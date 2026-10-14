@@ -48,13 +48,19 @@ Use these suffixes consistently:
 - `*.contract.ts` or `*.contracts.ts` — serializable Zod schemas and types.
 - `*.handler.ts` — TanStack Start server-function boundaries.
 - `*.workflow.ts` — one use-case orchestration and transaction ownership.
+- `*.workflows.live.ts` — production bindings of injectable workflows to domain layers.
+- `*.layers.live.ts` — reusable dependency graphs; leave `PgClient` unresolved.
 - `*.service.ts` / `*.service.live.ts` — domain API and implementation.
 - `*.repo.ts` / `*.repo.live.ts` — persistence API and implementation.
 - `*.con.ts` — an external provider connector.
+- `*.adapter.ts` — a runtime bridge for framework callbacks, scripts, or legacy
+  callers; use composed workflows rather than rebuilding their dependency graphs.
+- `*.persistence.ts` — a concrete persistence implementation behind an injected
+  repository, including retained Promise transaction engines.
 
 UI routes and client components call handlers. They never import Drizzle,
 repositories, workflows, or provider SDKs. HTTP API routes are transport
-boundaries too: they may compose live layers and execute workflows through
+boundaries too: they provide infrastructure and execute composed workflows through
 `runServerResponse`, or delegate to a dedicated request handler.
 
 TanStack Start emits a client RPC stub for every imported server function.
@@ -93,6 +99,33 @@ service intact; never build a second PostgreSQL layer inside a repository or
 service method. `Layer.mergeAll` combines independent layers but does not feed
 one layer's outputs into another; use `Layer.provide` to wire dependencies.
 
+### Production layer composition
+
+Follow the [Effect v4 layer guide](https://effect.website/docs/v4/requirements-management/layers).
+Define each domain graph once with `Layer.provide`, combining independent inputs
+with `Layer.mergeAll`. For example, `EventServiceLive` receives `EventAccessLive`
+(the repository and authorization layers); the graph still requires `PgClient`.
+Do not provide `PgClientLive` inside that graph or inside a workflow binding.
+
+Production handlers import from `workflows/*.workflows.live.ts`. These small
+bindings supply the graph to the underlying use case, preserving its inferred
+input, success, and error types. PostgreSQL-backed callers now supply just
+`PgClientLive`. Individual `*.workflow.ts` files remain pure and injectable:
+tests and larger use cases import those to substitute services or compose a
+single shared graph. Do not compose larger workflows from production bindings,
+which would rebuild their service layers in separate scopes.
+
+Invitation acceptance/preview compose the required event, sharing, and guest
+graphs together. All use the caller's client and retain ambient transaction
+context. Layer composition does not start a new transaction or move existing
+transaction boundaries. Email, legacy native sync, and account deletion do not
+acquire an artificial `PgClient` requirement: their existing connectors/Promise
+persistence engines remain responsible for their resources.
+
+Keep unrelated runtime dependencies in separate entry points. For example,
+moderator session lookup has its own binding so ordinary moderation workflows
+do not initialize Better Auth just by being imported.
+
 ### Effect runtime
 
 Application server logic is modeled with Effect. The conventions intentionally
@@ -101,14 +134,18 @@ match the reference architecture:
 - repositories and connectors are `Context.Service` contracts;
 - `*.live.ts` modules provide their production `Layer` implementations;
 - workflows return `Effect` values and never call `Effect.run*`;
-- handlers provide the required layers and call `runServerEffect` exactly once;
+- handlers provide `PgClientLive` when required and call `runServerEffect` exactly once;
 - expected failures use tagged domain errors rather than sentinel strings;
 - promise-based SDKs are lifted at the repository or connector boundary, never
   in a workflow.
 
-`src/server/effect.ts` is the only Effect-to-transport boundary. It logs the
+`src/server/effect.ts` is the shared HTTP/server-function result boundary. It logs the
 full failure with trace and error IDs while returning only safe product copy.
 This is also why handlers must not maintain their own `try/catch` error maps.
+Framework callbacks and trusted scripts instead use explicit Promise adapters
+under `handlers/`. They must preserve the callback's failure/return contract,
+not replace it with an HTTP result envelope. Authentication email adapters also
+retain `waitUntil` scheduling and logged, non-disclosing delivery failures.
 
 The implementation lives in `src/server/effect-utils.ts`; `effect.ts` re-exports
 it for existing callers. Backend expected failures use `Data.TaggedError` with
@@ -217,17 +254,18 @@ assignment against the declared resource/action statement. Route guards and
 client visibility checks improve navigation, but do not authorize data access.
 
 ```ts
-export const updateEvent = createServerFn({ method: 'POST' })
-  .middleware([eventAuthorizationMiddleware({ event: ['update'] })])
-  .validator(transportInput(UpdateEventSchema))
+import { inviteEventParticipantWorkflow } from '@/server/events/workflows/event.workflows.live'
+
+export const inviteEventParticipant = createServerFn({ method: 'POST' })
+  .middleware([eventAuthorizationMiddleware({ event: ['manage_participants'] })])
+  .validator(transportInput(InviteEventParticipantInputSchema))
   .handler(({ data, context }) =>
     runServerEffect(
-      validateInput(UpdateEventSchema, data).pipe(
-        Effect.flatMap((input) =>
-          updateEventWorkflow(input, { userId: context.user.id }).pipe(
-            Effect.provide(EventServiceLive),
-            Effect.provide(EventRepoLive),
-            Effect.provide(EventAuthorizationLive)
+      validateInput(InviteEventParticipantInputSchema, data).pipe(
+        Effect.flatMap((invitation) =>
+          inviteEventParticipantWorkflow({ userId: context.user.id, invitation }).pipe(
+            Effect.map((result) => ({ ...result, expiresAt: result.expiresAt.toISOString() })),
+            Effect.provide(PgClientLive)
           )
         )
       )
@@ -378,8 +416,24 @@ Creating a child event is a good transaction example:
 3. copy the main event participant assignments into independent child records;
 4. commit all writes together.
 
-Services and repositories do not open or commit transactions. Repositories may
-perform row locking inside a workflow-owned transaction.
+For new use cases, services and repositories should not open or commit separate
+transactions: repositories may perform row locking inside a workflow-owned
+transaction. Existing atomic persistence operations are intentionally retained
+at their established boundaries during the structure cleanup. In particular,
+native sync/materialization, account deletion, event RSVP/invitations,
+moderation, and workspace creation keep their existing transaction ownership,
+locks, savepoints, ordering, and rollback behavior. Do not move a transaction
+outward merely to match the target folder layout.
+
+The sync Promise engines live in `sync/repos/*persistence.ts` behind `NativeSyncRepo`.
+Account deletion lives in `auth/repos/account-deletion.persistence.ts` behind
+`AccountDeletionRepo`. Its injected storage callback remains Promise-based so
+idempotent object deletion completes at the same point before the database
+transaction. The repository adapter lifts the whole operation, rather than
+running a separate Effect runtime inside its transaction. Original callback
+failures remain observable to Better Auth. A future native-Effect rewrite of
+these engines is a separate behavior-sensitive migration, not unfinished file
+organization.
 
 ## Services, repositories, and connectors
 
@@ -390,6 +444,20 @@ Apple Music, maps, email, and object storage.
 Every event-owned repository query includes an access or ownership scope. An
 event ID by itself is never authorization. Repositories return narrow typed
 projections; services map those projections into public contracts.
+
+Guest invitation repositories return asset metadata without signing URLs.
+`EventGuestService` resolves artwork through `EventInvitationArtwork`, preserves
+the public feed projection, and treats signing failure as a null URL. Moderation
+evidence signing similarly belongs in the service/connector path after access
+checks. Metadata such as private bucket names and storage keys must never appear
+in those public projections.
+
+Retained root modules and plural `*.handlers.ts`/`*.workflows.ts` files are
+compatibility exports, not alternative implementations. Production
+`*.workflows.live.ts` files are bindings, not compatibility barrels. Application routes and domain modules
+use canonical contracts, handlers, and injected ports. Compatibility adapters
+provide dependencies without creating a second PostgreSQL client inside an
+existing transaction.
 
 Expected failures use tagged domain errors and cross one safe handler boundary.
 Never send database messages, provider responses, stack traces, or raw `Error`
@@ -440,6 +508,12 @@ Architecture checks additionally guard use-case handlers against direct SQL
 and SDK imports, and guard workflows against runtime execution, Promise
 adapters, and imports of live implementations. These checks complement behavior
 tests and do not replace database integration verification.
+
+`workflow-layer-requirements.test.ts` checks every production binding's remaining
+requirements during `pnpm typecheck`; run typechecking as well as Vitest because
+Vitest does not typecheck assertions by default. Composition tests exercise real
+repository adapters and service graphs with substituted persistence, verifying
+shared client identity, ambient context, scope cleanup, and authorization.
 
 ## Current backend slice
 

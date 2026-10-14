@@ -20,9 +20,9 @@ import {
   type NativeMutation,
   type NativePushResult,
 } from '../contracts/native-sync.contracts'
-import { compareNativeMutationOrder } from '../native-sync-ordering'
-import { deletedAccountTombstone } from '../native-tombstones'
-import { nativeIdentityWriteAllowed } from '../native-identity-access'
+import { compareNativeMutationOrder } from '../workflows/native-sync-ordering'
+import { deletedAccountTombstone } from '../contracts/native-tombstones'
+import { nativeIdentityWriteAllowed } from '../services/native-identity-access'
 
 export { pushRequestSchema } from '../contracts/native-sync.contracts'
 

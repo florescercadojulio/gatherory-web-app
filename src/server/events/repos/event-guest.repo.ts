@@ -1,9 +1,9 @@
 import { Context, Effect } from 'effect'
 import type {
-  guestEventInvitations,
-  invitationCoverURL,
+  getInvitationCoverAsset,
+  listGuestEventInvitationProjections,
   respondToEvent,
-} from './guest-invitation.repo'
+} from './guest-invitation.repo.persistence'
 import type { leaveGuestEvent } from './event-departure.repo'
 
 type NeedsPg<T> = T extends (
@@ -13,8 +13,8 @@ type NeedsPg<T> = T extends (
   : never
 
 export type EventGuestRepoShape = {
-  readonly listInvitations: NeedsPg<typeof guestEventInvitations>
-  readonly invitationCoverURL: NeedsPg<typeof invitationCoverURL>
+  readonly listInvitationProjections: NeedsPg<typeof listGuestEventInvitationProjections>
+  readonly getInvitationCoverAsset: NeedsPg<typeof getInvitationCoverAsset>
   readonly respondToEvent: NeedsPg<typeof respondToEvent>
   readonly leaveGuestEvent: NeedsPg<typeof leaveGuestEvent>
 }

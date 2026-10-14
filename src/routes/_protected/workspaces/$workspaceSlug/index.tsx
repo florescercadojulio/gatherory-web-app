@@ -16,7 +16,7 @@ import {
 } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import type { EventWorkspaceSummary } from '@/server/events/contracts/event.contracts'
-import { listEvents } from '@/server/events/handlers/event.handlers'
+import { listEvents } from '@/server/events/handlers/list-events.handler'
 
 export const Route = createFileRoute('/_protected/workspaces/$workspaceSlug/')({
   loader: ({ context }) => {

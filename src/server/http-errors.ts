@@ -1,6 +1,6 @@
 import { Effect } from 'effect'
 import { ForbiddenError, InvalidInputError, tryServerOperation } from './effect-utils'
-import { nativeSyncUser } from './sync/native-sync-auth'
+import { nativeSyncUser } from './sync/handlers/native-sync-auth.handler'
 export { validateInput } from './validation'
 
 export function requestUser(request: Request) {
