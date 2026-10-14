@@ -37,10 +37,10 @@ This repository currently includes:
 - the sidebar-07 protected application shell;
 - reusable `EntityTablePage`, `EntityPicker`, and `MultiEntityPicker`
   components; and
-- architecture and page conventions in [`docs/`](./docs/).
+- architecture and page conventions in the [documentation index](docs/README.md).
 
 Media storage behavior, authorization, and R2 configuration are documented in
-[`docs/media-system.md`](./docs/media-system.md).
+[`docs/architecture/media-system.md`](docs/architecture/media-system.md).
 
 ## Image safety and moderation
 
@@ -117,7 +117,7 @@ Sync status, media-transfer status, and manual retry stay in Account. Event and
 idea editors and invitation content do not duplicate sync indicators or copy.
 
 Remaining release audit items are tracked in
-[`docs/v1-release-safeguards.md`](./docs/v1-release-safeguards.md).
+[`docs/release/v1-release-safeguards.md`](docs/release/v1-release-safeguards.md).
 
 The first release is scoped to user-created event workspaces, events, and the
 people invited to plan or attend them. Professional workspaces, published
@@ -151,7 +151,7 @@ RESEND_API_KEY=re_replace_me
 EMAIL_FROM="Gatherory <hello@your-verified-domain.com>"
 ```
 
-Generate a secret with `pnpm auth:secret`. The current local `.env.local` still
+Generate a secret with `pnpm auth:secret`. Your local `.env.local`
 needs a non-empty `BETTER_AUTH_SECRET` and a real `DATABASE_URL` before sign-in
 or registration can persist accounts. Email registration and password reset
 also require a Resend API key and a sender on a verified Resend domain.
@@ -347,12 +347,12 @@ and uploaded media are removed, while historical author fields are cleared.
 
 Start here before adding product behavior:
 
-- [Product model](./docs/product-model.md)
-- [Data model](./docs/data-model.md)
-- [Cross-platform experience architecture](./docs/experience-blueprints.md)
-- [Server architecture](./docs/server.architecture.md)
-- [Page creation standard](./docs/page-creation.md)
-- [Roadmap guide](./docs/roadmap-guide.md)
+- [Product model](docs/architecture/product-model.md)
+- [Data model](docs/architecture/data-model.md)
+- [Cross-platform experience architecture](docs/architecture/experience-blueprints.md)
+- [Server architecture](docs/architecture/server-architecture.md)
+- [Page creation standard](docs/development/page-creation.md)
+- [Roadmap guide](docs/development/roadmap-guide.md)
 
 The server boundary is event-scoped. A signed-in person can be a host,
 collaborator, or guest on different events, so identity middleware and event

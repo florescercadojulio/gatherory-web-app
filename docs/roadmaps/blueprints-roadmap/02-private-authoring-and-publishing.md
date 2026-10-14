@@ -72,7 +72,7 @@ It writes no events, participants, decisions, notifications, or sync records.
 Published preview always identifies the exact revision and its authored locale.
 
 Add interface copy under an English `blueprints` catalog section. Follow
-`docs/page-creation.md` for breadcrumbs/header controls and route generation.
+`docs/development/page-creation.md` for breadcrumbs/header controls and route generation.
 The current shell does not consistently have the guide's described RouteHeader
 helper; inspect what exists and reuse the working header, or add the smallest
 shared helper needed. Do not invent a second shell or restructure unrelated pages.

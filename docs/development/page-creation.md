@@ -56,7 +56,7 @@ apply its own session and event authorization middleware.
 
 ### Collection page
 
-Use [`EntityTablePage`](../src/components/entity-table-page.tsx) for major
+Use [`EntityTablePage`](../../src/components/entity-table-page.tsx) for major
 sections that browse tabular entities. It already owns server-function reads,
 search, pagination, loading, retry, and empty states.
 
@@ -156,7 +156,7 @@ relevant action and include the trace ID as a support reference when useful.
 
 ## Selecting related entities
 
-Use [`EntityPicker`](../src/components/entity-picker.tsx) for searchable,
+Use [`EntityPicker`](../../src/components/entity-picker.tsx) for searchable,
 paginated related records such as participants, collaborators, events, or ideas.
 Supply an
 authorized page server function, a selected display row, and the form field's

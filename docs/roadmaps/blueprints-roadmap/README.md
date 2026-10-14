@@ -84,15 +84,15 @@ completion.
 
 ## Sources and continuation
 
-- [Roadmap guide](../../roadmap-guide.md)
-- [Product model](../../product-model.md)
-- [Experience architecture](../../experience-blueprints.md)
-- [Server architecture](../../server.architecture.md)
-- [Page creation standard](../../page-creation.md)
-- [Data model](../../data-model.md)
-- [Media ownership](../../media-system.md)
+- [Roadmap guide](../../development/roadmap-guide.md)
+- [Product model](../../architecture/product-model.md)
+- [Experience architecture](../../architecture/experience-blueprints.md)
+- [Server architecture](../../architecture/server-architecture.md)
+- [Page creation standard](../../development/page-creation.md)
+- [Data model](../../architecture/data-model.md)
+- [Media ownership](../../architecture/media-system.md)
 - [Portable contracts](../../../src/contracts/experience.contracts.ts)
-- [Shared fixtures](../../../contracts/examples/)
+- [Shared fixtures](../../../contracts/examples)
 - Native repository: `../ios-apps/gatherory` relative to the web-app root.
   Use the current registered project path, not an old `isaidyes` checkout.
 

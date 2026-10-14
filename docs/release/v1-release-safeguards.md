@@ -1,5 +1,9 @@
 # v1 safeguards — implementation and remaining release checks
 
+> Verification snapshot: October 13, 2026. The checks below describe that
+> implementation pass, not a live audit of production or the current TestFlight
+> build. Revalidate against the target environment before marking a check done.
+
 ## Implemented
 
 - Archived sub-events can be restored with their saved planning status.
@@ -22,10 +26,10 @@
   remains enabled by default in Debug and Release as currently requested;
   automated fixtures do not send analytics.
 
-## Configuration not yet applied
+## Deployment configuration to verify
 
-The new additive Drizzle migrations are generated, not installed by automated
-tests. Apply them through the normal migration workflow before exercising the
+Automated tests do not establish whether deployed Drizzle migrations are
+current. Verify them through the normal migration workflow before exercising the
 features against a running backend. Tests use local PostgreSQL and roll back
 their fixtures and temporary DDL. They never reset user data or write R2 objects.
 

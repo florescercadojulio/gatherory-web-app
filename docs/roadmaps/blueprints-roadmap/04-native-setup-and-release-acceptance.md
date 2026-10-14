@@ -98,7 +98,7 @@ the implementation is ready to review.
 Before marking the iteration implemented, record the actual routes, handlers,
 schema/migration, seed command, native entry points, failure/retry behavior, and
 privacy checks in this roadmap. Update `product-model.md`,
-`experience-blueprints.md`, `data-model.md`, and `server.architecture.md` to
+`experience-blueprints.md`, `data-model.md`, and `server-architecture.md` to
 distinguish the newly implemented private templates from the still-deferred
 professional ecosystem.
 

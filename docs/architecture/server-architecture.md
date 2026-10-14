@@ -4,7 +4,7 @@ This document defines the server conventions for Gatherory. Gatherory is one
 product, not a platform that hosts several independent applications. It uses
 workspaces as ownership, collaboration, and template-publishing scopes, without
 carrying over Humphrey Hub's application or platform-host abstractions. The
-agreed domain hierarchy is defined in [Product model](./product-model.md).
+agreed domain hierarchy is defined in [Product model](product-model.md).
 
 ## Product boundary
 
