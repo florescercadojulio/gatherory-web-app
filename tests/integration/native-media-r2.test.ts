@@ -1,5 +1,5 @@
 import assert from "node:assert/strict"
-import { test } from "node:test"
+import { test } from "vitest"
 import { eq, inArray } from "drizzle-orm"
 
 /** Explicit opt-in: local API/database and only the existing private DEV
@@ -11,9 +11,9 @@ test("native image bytes, metadata, finalize, download, and retry round-trip thr
   assert.equal(process.env.CLOUDFLARE_R2_PRIVATE_BUCKET_NAME, "gatherory-private-dev", "Never run this test on production storage")
   const base = process.env.INVITATION_TEST_BASE_URL ?? "http://127.0.0.1:3003"
   assert.ok(["localhost", "127.0.0.1"].includes(new URL(base).hostname))
-  const { db, pool } = await import("../src/db")
-  const { user, session, organization, event, eventParticipant, workspacePerson, mediaAsset } = await import("../src/db/schema")
-  const { inspectMediaObject, deleteMediaObject } = await import("../src/server/media/connectors/media-storage.con")
+  const { db, pool } = await import("@/db")
+  const { user, session, organization, event, eventParticipant, workspacePerson, mediaAsset } = await import("@/db/schema")
+  const { inspectMediaObject, deleteMediaObject } = await import("@/server/media/connectors/media-storage.con")
   const suffix = crypto.randomUUID()
   const owner = `media-r2-owner-${suffix}`
   const stranger = `media-r2-stranger-${suffix}`

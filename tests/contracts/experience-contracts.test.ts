@@ -1,16 +1,16 @@
 import assert from "node:assert/strict"
 import { readFile } from "node:fs/promises"
-import { test } from "node:test"
+import { test } from "vitest"
 
 import {
   ContributionVisibilitySchema,
   ExperienceBlueprintSchema,
   ServicePackageSchema,
-} from "../src/contracts/experience.contracts"
+} from "@/contracts/experience.contracts"
 
 async function fixture(name: string) {
   return JSON.parse(
-    await readFile(new URL(`../contracts/examples/${name}`, import.meta.url), "utf8"),
+    await readFile(new URL(`../../contracts/examples/${name}`, import.meta.url), "utf8"),
   )
 }
 

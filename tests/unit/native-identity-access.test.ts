@@ -1,6 +1,6 @@
 import assert from "node:assert/strict"
-import { test } from "node:test"
-import { nativeIdentityWriteAllowed } from "../src/server/sync/native-identity-access"
+import { test } from "vitest"
+import { nativeIdentityWriteAllowed } from "@/server/sync/native-identity-access"
 
 test("a contributor can RSVP without promoting themselves or other participants", () => {
   const personId = crypto.randomUUID(), eventId = crypto.randomUUID(), id = crypto.randomUUID()

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict"
-import { test } from "node:test"
+import { test } from "vitest"
 import { and, eq, inArray } from "drizzle-orm"
-import { ideaResponseID } from "../src/server/sync/idea-response"
+import { ideaResponseID } from "@/server/sync/idea-response"
 
 /** Requires the existing local dev server. Does not start or build a web app. */
 test("native bearer HTTP flow joins, refreshes guest content, responds, and denies private sync", {
@@ -10,9 +10,9 @@ test("native bearer HTTP flow joins, refreshes guest content, responds, and deni
   assert.ok(["localhost", "127.0.0.1", "[::1]"].includes(new URL(process.env.DATABASE_URL!).hostname))
   const base = process.env.INVITATION_TEST_BASE_URL ?? "http://127.0.0.1:3003"
   assert.ok(["localhost", "127.0.0.1"].includes(new URL(base).hostname))
-  const { db, pool } = await import("../src/db")
-  const { ideaDecision } = await import("../src/db/schema")
-  const { user, session, organization, event, workspacePerson, eventParticipant, idea, mediaAsset, eventMedia, nativeWorkspaceSnapshot, nativeSyncScopeMember, nativeSyncChange, nativeSyncMutationReceipt, eventNote } = await import("../src/db/schema")
+  const { db, pool } = await import("@/db")
+  const { ideaDecision } = await import("@/db/schema")
+  const { user, session, organization, event, workspacePerson, eventParticipant, idea, mediaAsset, eventMedia, nativeWorkspaceSnapshot, nativeSyncScopeMember, nativeSyncChange, nativeSyncMutationReceipt, eventNote } = await import("@/db/schema")
   const suffix = crypto.randomUUID()
   const ids = ["host", "guest", "collaborator"].map((role) => `http-invite-${role}-${suffix}`)
   const tokens = ids.map(() => crypto.randomUUID())
@@ -22,7 +22,7 @@ test("native bearer HTTP flow joins, refreshes guest content, responds, and deni
   const otherRootEventId = crypto.randomUUID()
   const foreignEventId = crypto.randomUUID()
   let uploadedCover: { bucket: string; key: string } | undefined
-  const storage = await import("../src/server/media/connectors/media-storage.con")
+  const storage = await import("@/server/media/connectors/media-storage.con")
   async function request(path: string, actor?: number, method = "GET", body?: unknown) {
     const response = await fetch(`${base}${path}`, { method, headers: {
       "X-Client-Source": "integration-test",
@@ -92,7 +92,7 @@ test("native bearer HTTP flow joins, refreshes guest content, responds, and deni
     assert.equal(preview.json.data.coverURL, null, "No upload means the client uses its default artwork")
     const coverId = crypto.randomUUID()
     // Real private R2 object: verify the bytes, not just that a URL was signed.
-    const { env } = await import("../src/env")
+    const { env } = await import("@/env")
     const coverBytes = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jRZkAAAAASUVORK5CYII=", "base64")
     const key = `test-only/invitation-http/${suffix}/${coverId}.png`
     const upload = await storage.createMediaUploadUrl({ key, contentType: "image/png", mediaAssetId: coverId })

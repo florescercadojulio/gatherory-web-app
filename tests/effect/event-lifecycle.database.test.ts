@@ -1,12 +1,12 @@
 import assert from "node:assert/strict"
-import { test } from "node:test"
+import { it as test } from "@effect/vitest"
 import { Cause, Data, Effect, Exit } from "effect"
 
 test("closed event lifecycle blocks new admissions without deleting history", { skip: process.env.RUN_EVENT_LIFECYCLE_DB_TESTS !== "1" }, async () => {
   assert.ok(["localhost", "127.0.0.1", "[::1]"].includes(new URL(process.env.DATABASE_URL!).hostname))
-  const { PgClientLive } = await import("../src/db")
+  const { PgClientLive } = await import("@/db")
   const { PgClient } = await import("@effect/sql-pg/PgClient")
-  const { requireJoinableEvent } = await import("../src/server/events/repos/event-lifecycle.repo")
+  const { requireJoinableEvent } = await import("@/server/events/repos/event-lifecycle.repo")
   class Rollback extends Data.TaggedError("LifecycleVerificationRollback")<{}> {}
   const program = Effect.gen(function* () {
     const pg = yield* PgClient

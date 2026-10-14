@@ -1,5 +1,5 @@
 import assert from "node:assert/strict"
-import { test } from "node:test"
+import { it as test } from "@effect/vitest"
 import { Cause, Data, Effect, Exit } from "effect"
 import { and, eq } from "drizzle-orm"
 
@@ -9,21 +9,21 @@ test("real invitation queries rotate, accept, retry, project native identity, an
 }, async () => {
   const url = new URL(process.env.DATABASE_URL!)
   assert.ok(["localhost", "127.0.0.1", "[::1]"].includes(url.hostname), "Only a local database is allowed")
-  const { DB, PgClientLive } = await import("../src/db")
+  const { DB, PgClientLive } = await import("@/db")
   const { PgClient } = await import("@effect/sql-pg/PgClient")
-  const { user, organization, member } = await import("../src/db/schema/auth.schema")
-  const { event, eventParticipant, eventInvitation, workspacePerson, eventShareLink } = await import("../src/db/schema/event.schema")
-  const { nativeWorkspaceSnapshot, nativeSyncScopeMember, nativeSyncEntity, nativeSyncChange } = await import("../src/db/schema/sync.schema")
-  const { createEventInvitation, acceptEventInvitation } = await import("../src/server/events/repos/event.repo")
-  const { EventService } = await import("../src/server/events/services/event.service")
-  const { EventServiceLive } = await import("../src/server/events/services/event.service.live")
-  const { EventRepoLive } = await import("../src/server/events/repos/event.repo.live")
-  const { EventAuthorizationLive } = await import("../src/server/events/services/event-authorization.service")
-  const { createEventShareLink, acceptEventShareLink, revokeEventShareLink, previewEventShareLink, listEventJoinRequests, reviewEventJoinRequest } = await import("../src/server/events/repos/event-share-link.repo")
-  const { guestEventInvitations, respondToEvent } = await import("../src/server/events/repos/guest-invitation.repo")
-  const { idea, workspacePlanningSettings } = await import("../src/db/schema/planning.schema")
-  const { mediaAsset } = await import("../src/db/schema/media.schema")
-  const { getNativeMediaAccessContext, getNativeMediaActorContext, upsertPendingNativeMedia } = await import("../src/server/media/repos/media.repo")
+  const { user, organization, member } = await import("@/db/schema/auth.schema")
+  const { event, eventParticipant, eventInvitation, workspacePerson, eventShareLink } = await import("@/db/schema/event.schema")
+  const { nativeWorkspaceSnapshot, nativeSyncScopeMember, nativeSyncEntity, nativeSyncChange } = await import("@/db/schema/sync.schema")
+  const { createEventInvitation, acceptEventInvitation } = await import("@/server/events/repos/event.repo")
+  const { EventService } = await import("@/server/events/services/event.service")
+  const { EventServiceLive } = await import("@/server/events/services/event.service.live")
+  const { EventRepoLive } = await import("@/server/events/repos/event.repo.live")
+  const { EventAuthorizationLive } = await import("@/server/events/services/event-authorization.service")
+  const { createEventShareLink, acceptEventShareLink, revokeEventShareLink, previewEventShareLink, listEventJoinRequests, reviewEventJoinRequest } = await import("@/server/events/repos/event-share-link.repo")
+  const { guestEventInvitations, respondToEvent } = await import("@/server/events/repos/guest-invitation.repo")
+  const { idea, workspacePlanningSettings } = await import("@/db/schema/planning.schema")
+  const { mediaAsset } = await import("@/db/schema/media.schema")
+  const { getNativeMediaAccessContext, getNativeMediaActorContext, upsertPendingNativeMedia } = await import("@/server/media/repos/media.repo")
   class RollbackVerification extends Data.TaggedError("RollbackVerification")<{}> {}
 
   const verification = Effect.gen(function* () {

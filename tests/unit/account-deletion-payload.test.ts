@@ -1,6 +1,6 @@
 import assert from "node:assert/strict"
-import { test } from "node:test"
-import { redactAccountPayload, type DeletionPayloadContext } from "../src/server/auth/account-deletion-payload"
+import { test } from "vitest"
+import { redactAccountPayload, type DeletionPayloadContext } from "@/server/auth/account-deletion-payload"
 
 const context: DeletionPayloadContext = { userId: "departing", personIds: new Set(["person-a"]),
   mediaIds: new Set(["image-a"]), scopeId: "scope", successorPersonId: "person-b" }

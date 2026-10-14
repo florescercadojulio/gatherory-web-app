@@ -1,7 +1,7 @@
 import assert from "node:assert/strict"
-import { test } from "node:test"
+import { test } from "vitest"
 
-import { nativePullOperation, pushRequestSchema } from "../src/server/sync/native-sync-contracts"
+import { nativePullOperation, pushRequestSchema } from "@/server/sync/native-sync-contracts"
 
 test("pull operations match iOS and repair existing invitation changes", () => {
   for (const operation of ["create", "update", "delete"]) assert.equal(nativePullOperation(operation), operation)

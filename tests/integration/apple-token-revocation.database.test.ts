@@ -1,5 +1,5 @@
 import assert from "node:assert/strict"
-import { test } from "node:test"
+import { test } from "vitest"
 import { symmetricEncrypt } from "better-auth/crypto"
 import { eq } from "drizzle-orm"
 import { createLocalJWKSet, exportJWK, generateKeyPair, SignJWT } from "jose"
@@ -8,11 +8,11 @@ test("native Apple code is bound to its signed-in account, stored encrypted, and
   skip: process.env.RUN_APPLE_TOKEN_DB_TESTS !== "1", timeout: 30_000,
 }, async () => {
   assert.ok(["localhost", "127.0.0.1", "[::1]"].includes(new URL(process.env.DATABASE_URL!).hostname))
-  const { env } = await import("../src/env")
+  const { env } = await import("@/env")
   assert.ok(env.APPLE_APP_BUNDLE_IDENTIFIER && env.APPLE_TEAM_ID && env.APPLE_KEY_ID && env.APPLE_PRIVATE_KEY)
-  const { db, pool } = await import("../src/db")
-  const { user, account } = await import("../src/db/schema/auth.schema")
-  const { saveNativeAppleRevocationToken, revokeAppleAccountsBeforeDeletion } = await import("../src/server/auth/apple-tokens")
+  const { db, pool } = await import("@/db")
+  const { user, account } = await import("@/db/schema/auth.schema")
+  const { saveNativeAppleRevocationToken, revokeAppleAccountsBeforeDeletion } = await import("@/server/auth/apple-tokens")
   const { publicKey, privateKey } = await generateKeyPair("ES256")
   const keys = createLocalJWKSet({ keys: [{ ...await exportJWK(publicKey), alg: "ES256", kid: "fixture" }] })
   const userId = `apple-token-test-${crypto.randomUUID()}`

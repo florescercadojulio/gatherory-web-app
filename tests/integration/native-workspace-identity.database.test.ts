@@ -1,14 +1,14 @@
 import assert from "node:assert/strict"
-import { test } from "node:test"
+import { test } from "vitest"
 import { and, eq } from "drizzle-orm"
 
 test("workspace saves preserve the editor's role, RSVP, organization access and canonical participation ID", {
   skip: process.env.RUN_INVITATION_DB_TESTS !== "1",
 }, async () => {
   assert.ok(["localhost", "127.0.0.1", "[::1]"].includes(new URL(process.env.DATABASE_URL!).hostname))
-  const { db } = await import("../src/db")
-  const { user, member, event, workspacePerson, eventParticipant } = await import("../src/db/schema")
-  const { materializeNativeMutation } = await import("../src/server/sync/native-materializer")
+  const { db } = await import("@/db")
+  const { user, member, event, workspacePerson, eventParticipant } = await import("@/db/schema")
+  const { materializeNativeMutation } = await import("@/server/sync/native-materializer")
   const rollback = Symbol("identity-fixture-rollback")
   try {
     await db.transaction(async transaction => {

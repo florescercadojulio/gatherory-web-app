@@ -1,21 +1,21 @@
 import assert from "node:assert/strict"
 import { readFile } from "node:fs/promises"
-import { test } from "node:test"
+import { it as test } from "@effect/vitest"
 import { Cause, Data, Effect, Exit } from "effect"
 import { eq } from "drizzle-orm"
 
 test("local moderation authorization, atomic reviews, personal hiding, and read denial", { skip: process.env.RUN_MODERATION_DB_TESTS !== "1" }, async () => {
   const url = new URL(process.env.DATABASE_URL!)
   assert.ok(["localhost", "127.0.0.1", "[::1]"].includes(url.hostname), "Only local PostgreSQL is allowed")
-  const { DB, PgClientLive } = await import("../src/db")
+  const { DB, PgClientLive } = await import("@/db")
   const { PgClient } = await import("@effect/sql-pg/PgClient")
-  const { user, organization, event, eventParticipant, workspacePerson, mediaAsset, eventMedia, abuseReport, abuseReportReview, hiddenMedia, moderationStaff, eventDeparture } = await import("../src/db/schema")
-  const { reportImage, hideImage, hiddenImageIDs, listAbuseReports, reviewAbuseReport, requireModerator } = await import("../src/server/moderation/moderation.repo")
-  const { canReadMedia } = await import("../src/server/moderation/media-visibility")
-  const { getNativeMediaUrlWorkflow, getEventMediaUrlWorkflow, finalizeNativeMediaUploadWorkflow } = await import("../src/server/media/workflows/media.workflows")
-  const { blockPerson, unblockPerson, listBlockedPeople, requireUnblockedInvitation } = await import("../src/server/moderation/user-block.repo")
-  const { leaveGuestEvent } = await import("../src/server/events/repos/event-departure.repo")
-  const { guestEventInvitations, respondToEvent } = await import("../src/server/events/repos/guest-invitation.repo")
+  const { user, organization, event, eventParticipant, workspacePerson, mediaAsset, eventMedia, abuseReport, abuseReportReview, hiddenMedia, moderationStaff, eventDeparture } = await import("@/db/schema")
+  const { reportImage, hideImage, hiddenImageIDs, listAbuseReports, reviewAbuseReport, requireModerator } = await import("@/server/moderation/moderation.repo")
+  const { canReadMedia } = await import("@/server/moderation/media-visibility")
+  const { getNativeMediaUrlWorkflow, getEventMediaUrlWorkflow, finalizeNativeMediaUploadWorkflow } = await import("@/server/media/workflows/media.workflows")
+  const { blockPerson, unblockPerson, listBlockedPeople, requireUnblockedInvitation } = await import("@/server/moderation/user-block.repo")
+  const { leaveGuestEvent } = await import("@/server/events/repos/event-departure.repo")
+  const { guestEventInvitations, respondToEvent } = await import("@/server/events/repos/guest-invitation.repo")
   // Migration DDL is itself rolled back. Do not migrate or reset the user's DB.
   const migrations = ["20261013150431_useful_swordsman", "20261013150814_concerned_legion"]
   class Rollback extends Data.TaggedError("ModerationVerificationRollback")<{}> {}
@@ -26,19 +26,19 @@ test("local moderation authorization, atomic reviews, personal hiding, and read 
       const [installed] = yield* pg<{ name: string | null }>`select to_regclass('public.abuse_report')::text as name`
       if (!installed.name) {
         for (const migration of migrations) {
-          const source = yield* Effect.tryPromise(() => readFile(new URL(`../drizzle/${migration}/migration.sql`, import.meta.url), "utf8"))
+        const source = yield* Effect.tryPromise(() => readFile(new URL(`../../drizzle/${migration}/migration.sql`, import.meta.url), "utf8"))
           for (const statement of source.split("--> statement-breakpoint").filter(value => value.trim())) yield* pg.unsafe(statement)
         }
       }
       const [blocksInstalled] = yield* pg<{ name: string | null }>`select to_regclass('public.user_block')::text as name`
       if (!blocksInstalled.name) {
-        const source = yield* Effect.tryPromise(() => readFile(new URL("../drizzle/20261013155056_secret_whistler/migration.sql", import.meta.url), "utf8"))
+        const source = yield* Effect.tryPromise(() => readFile(new URL("../../drizzle/20261013155056_secret_whistler/migration.sql", import.meta.url), "utf8"))
         for (const statement of source.split("--> statement-breakpoint").filter(value => value.trim())) yield* pg.unsafe(statement)
       }
       const db = yield* DB
       const [departureInstalled] = yield* pg<{ name: string | null }>`select to_regclass('public.event_departure')::text as name`
       if (!departureInstalled.name) {
-        const source = yield* Effect.tryPromise(() => readFile(new URL("../drizzle/20261013161335_new_human_torch/migration.sql", import.meta.url), "utf8"))
+        const source = yield* Effect.tryPromise(() => readFile(new URL("../../drizzle/20261013161335_new_human_torch/migration.sql", import.meta.url), "utf8"))
         for (const statement of source.split("--> statement-breakpoint").filter(value => value.trim())) yield* pg.unsafe(statement)
       }
       const suffix = crypto.randomUUID()

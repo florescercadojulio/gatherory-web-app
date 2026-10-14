@@ -1,6 +1,6 @@
 import assert from "node:assert/strict"
-import { test } from "node:test"
-import { mapAppleProfile } from "../src/server/auth/apple-profile"
+import { test } from "vitest"
+import { mapAppleProfile } from "@/server/auth/apple-profile"
 
 test("Apple email omission recovers only the profile linked to the verified subject", async () => {
   const saved = { email: "person@privaterelay.appleid.com", emailVerified: true, name: "Person" }

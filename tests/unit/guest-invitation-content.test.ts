@@ -1,6 +1,6 @@
 import assert from "node:assert/strict"
-import { test } from "node:test"
-import { guestIdeaContent } from "../src/lib/guest-invitation-content"
+import { test } from "vitest"
+import { guestIdeaContent } from "@/lib/guest-invitation-content"
 
 test("invitation configuration is explicitly allowlisted, including nested music fields", () => {
   const content = guestIdeaContent("music", { version: 1, secret: "PRIVATE", native: { music: { _0: {

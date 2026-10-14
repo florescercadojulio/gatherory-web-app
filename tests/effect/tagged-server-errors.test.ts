@@ -1,15 +1,15 @@
 import assert from "node:assert/strict"
-import { test } from "node:test"
+import { it as test } from "@effect/vitest"
 import { Data, Effect } from "effect"
 import { z } from "zod"
 import {
   ConflictError, ExternalServiceError, ForbiddenError, InvalidInputError, PersistenceError,
   runServerEffect, runServerResponse, tryServerOperation,
-} from "../src/server/effect-utils"
-import { validateInput } from "../src/server/validation"
-import { eventRepositoryError } from "../src/server/events/errors"
-import en from "../src/i18n/locales/en.server-errors"
-import es from "../src/i18n/locales/es.server-errors"
+} from "@/server/effect-utils"
+import { validateInput } from "@/server/validation"
+import { eventRepositoryError } from "@/server/events/errors"
+import en from "@/i18n/locales/en.server-errors"
+import es from "@/i18n/locales/es.server-errors"
 
 test("client request IDs correlate failures without echoing arbitrary header content", async () => {
   const failure = Effect.fail(new ForbiddenError({ category: "authorization", code: "MEDIA_FORBIDDEN", userMessageKey: "serverErrors.MEDIA_FORBIDDEN" }))

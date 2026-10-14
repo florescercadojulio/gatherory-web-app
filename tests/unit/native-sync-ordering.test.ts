@@ -1,10 +1,10 @@
 import assert from "node:assert/strict"
-import { test } from "node:test"
+import { test } from "vitest"
 
 import {
   compareNativeMutationOrder,
   type NativeSyncEntityType,
-} from "../src/server/sync/native-sync-ordering"
+} from "@/server/sync/native-sync-ordering"
 
 type NativeMutation = {
   id: string

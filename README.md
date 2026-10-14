@@ -86,12 +86,17 @@ inquiries use `legal@gatherory.com`. A staffed response process and a
 content-filtering strategy still need release verification. This report
 queue alone is **not** a claim of App Store moderation compliance.
 
+Tests are grouped by purpose under `tests/`: fast logic in `unit/`, portable
+schema and boundary checks in `contracts/`, Effect-backed checks in `effect/`,
+external database/HTTP/R2 checks in `integration/`, and script-environment
+checks in `tooling/`. Vitest discovers all groups recursively.
+
 Verification without a web build:
 
 ```sh
 pnpm typecheck
 pnpm test
-pnpm exec dotenv run -f .env.local -- sh -c 'RUN_MODERATION_DB_TESTS=1 RUN_EVENT_LIFECYCLE_DB_TESTS=1 tsx --test tests/moderation.database.test.ts tests/event-lifecycle.database.test.ts tests/event-departure-materialization.database.test.ts'
+pnpm exec dotenv run -f .env.local -- sh -c 'RUN_MODERATION_DB_TESTS=1 RUN_EVENT_LIFECYCLE_DB_TESTS=1 vitest run tests/effect/moderation.database.test.ts tests/effect/event-lifecycle.database.test.ts tests/integration/event-departure-materialization.database.test.ts'
 ```
 
 The database test accepts localhost only and rolls back fixture data, moderator

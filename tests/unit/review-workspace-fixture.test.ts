@@ -1,11 +1,11 @@
 import assert from "node:assert/strict"
-import { test } from "node:test"
+import { test } from "vitest"
 
 import {
   createReviewWorkspaceArchive,
   encodeNativeWorkspaceSnapshot,
   reviewWorkspaceIds,
-} from "../src/db/review-workspace-fixture"
+} from "@/db/review-workspace-fixture"
 
 const users = [
   { id: "alex-user", name: "Alex Morgan", email: "planner@gatherory.test" },

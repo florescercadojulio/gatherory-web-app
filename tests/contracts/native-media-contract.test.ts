@@ -1,12 +1,12 @@
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { test } from 'node:test'
+import { test } from 'vitest'
 
 import {
   MAX_IMAGE_BYTES,
   PrepareNativeMediaUploadInputSchema,
-} from '../src/server/media/contracts/media.contracts'
+} from '@/server/media/contracts/media.contracts'
 
 test('native media uploads require an idempotent asset id and enforce the R2 size limit', () => {
   const valid = PrepareNativeMediaUploadInputSchema.safeParse({

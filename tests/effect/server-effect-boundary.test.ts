@@ -1,10 +1,10 @@
 import assert from "node:assert/strict"
 import { readdirSync, readFileSync, statSync } from "node:fs"
 import { join, relative } from "node:path"
-import { test } from "node:test"
+import { it as test } from "@effect/vitest"
 import { Effect } from "effect"
 
-import { PersistenceError, runServerEffect } from "../src/server/effect"
+import { PersistenceError, runServerEffect } from "@/server/effect"
 
 test("runServerEffect returns successful values through ServerResult", async () => {
   const result = await runServerEffect(Effect.succeed({ id: "event-1" }))

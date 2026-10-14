@@ -8,7 +8,7 @@ actively changing shared event, media, and sync code.
 | Area | Existing behavior | Gap for this iteration |
 | --- | --- | --- |
 | `src/contracts/experience.contracts.ts` | Schema-v1 envelope, roles, module metadata, generic `config`, duplicate-key checks | No executable, typed configuration for events, ideas, or instructions; no capability enforcement |
-| `contracts/examples/` and `tests/experience-contracts.test.ts` | Destination wedding, cabin stay, and package fixtures | No Wedding/Birthday/Thanksgiving catalog or installation behavior |
+| `contracts/examples/` and `tests/contracts/experience-contracts.test.ts` | Destination wedding, cabin stay, and package fixtures | No Wedding/Birthday/Thanksgiving catalog or installation behavior |
 | `scripts/generate-contract-schemas.ts` | Generates JSON Schema from Zod sources | New supported module shapes need generator and fixture coverage |
 | `src/db/schema/` | Auth, events/participants, planning, media, sync | No blueprint, published revision, installation, or reusable instruction records |
 | `src/server/workspaces/handlers/workspace.handlers.ts` | Creates/provisions workspaces and a main event | No template selection; creation mixes Better Auth calls and product writes |

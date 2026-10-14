@@ -1,12 +1,12 @@
 import assert from "node:assert/strict";
-import { test } from "node:test";
+import { test } from "vitest";
 
-import { organizationType } from "../src/db/schema/auth.schema";
+import { organizationType } from "@/db/schema/auth.schema";
 import {
   defaultOrganizationType,
   organizationTypes,
   prepareOrganizationForCreation,
-} from "../src/lib/organization-contract";
+} from "@/lib/organization-contract";
 
 test("the Better Auth default is accepted by the PostgreSQL enum", () => {
   assert.equal(defaultOrganizationType, "event");

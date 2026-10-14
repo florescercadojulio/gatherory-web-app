@@ -1,19 +1,19 @@
 import assert from "node:assert/strict"
 import { readFile } from "node:fs/promises"
-import { test } from "node:test"
+import { test } from "vitest"
 import { eq, sql } from "drizzle-orm"
 
 test("stale native participation cannot undo a guest departure", { skip: process.env.RUN_EVENT_LIFECYCLE_DB_TESTS !== "1" }, async () => {
   assert.ok(["localhost", "127.0.0.1", "[::1]"].includes(new URL(process.env.DATABASE_URL!).hostname))
-  const { db } = await import("../src/db")
-  const { user, organization, event, workspacePerson, eventParticipant, eventDeparture } = await import("../src/db/schema")
-  const { materializeNativeMutation } = await import("../src/server/sync/native-materializer")
+  const { db } = await import("@/db")
+  const { user, organization, event, workspacePerson, eventParticipant, eventDeparture } = await import("@/db/schema")
+  const { materializeNativeMutation } = await import("@/server/sync/native-materializer")
   const rollback = Symbol("departure-fixture-rollback")
   try {
     await db.transaction(async transaction => {
       const installed = await transaction.execute<{ name: string | null }>(sql`select to_regclass('public.event_departure')::text as name`)
       if (!installed.rows[0].name) {
-        const migration = await readFile(new URL("../drizzle/20261013161335_new_human_torch/migration.sql", import.meta.url), "utf8")
+        const migration = await readFile(new URL("../../drizzle/20261013161335_new_human_torch/migration.sql", import.meta.url), "utf8")
         for (const statement of migration.split("--> statement-breakpoint").filter(value => value.trim())) await transaction.execute(sql.raw(statement))
       }
       const suffix = crypto.randomUUID(), userId = `departure-${suffix}`, organizationId = `departure-org-${suffix}`

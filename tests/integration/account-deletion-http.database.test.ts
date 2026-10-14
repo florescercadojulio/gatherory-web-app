@@ -1,5 +1,5 @@
 import assert from "node:assert/strict"
-import { test } from "node:test"
+import { test } from "vitest"
 import { hashPassword } from "better-auth/crypto"
 import { and, eq, inArray } from "drizzle-orm"
 
@@ -9,7 +9,9 @@ import { and, eq, inArray } from "drizzle-orm"
  */
 test("account deletion through the server cleans private data and preserves shared planning", {
   skip: process.env.RUN_ACCOUNT_DELETION_HTTP_TESTS !== "1", timeout: 120_000,
-}, async (t) => {
+}, async () => {
+  const step = async (_name: string, run: () => Promise<void>) => run()
+  const diagnostic = (message: string) => console.info(message)
   const localHosts = ["localhost", "127.0.0.1", "[::1]"]
   assert.ok(localHosts.includes(new URL(process.env.DATABASE_URL!).hostname))
   const base = process.env.ACCOUNT_DELETION_TEST_BASE_URL ?? "http://127.0.0.1:3003"
@@ -17,11 +19,11 @@ test("account deletion through the server cleans private data and preserves shar
   const withR2 = process.env.RUN_ACCOUNT_DELETION_R2_TESTS === "1"
   if (withR2) assert.equal(process.env.CLOUDFLARE_R2_PRIVATE_BUCKET_NAME, "gatherory-private-dev")
 
-  const { db, pool } = await import("../src/db")
+  const { db, pool } = await import("@/db")
   const { user, account, session, organization, member, event, workspacePerson,
     eventParticipant, mediaAsset, nativeWorkspaceSnapshot, nativeSyncScopeMember,
-    nativeSyncEntity, nativeSyncChange } = await import("../src/db/schema")
-  const { inspectMediaObject, deleteMediaObject } = await import("../src/server/media/connectors/media-storage.con")
+    nativeSyncEntity, nativeSyncChange } = await import("@/db/schema")
+  const { inspectMediaObject, deleteMediaObject } = await import("@/server/media/connectors/media-storage.con")
   const suffix = crypto.randomUUID()
   const ids = ["private-owner", "shared-owner", "successor", "writer", "guest"].map(role => `deletion-http-${role}-${suffix}`)
   const orgs = ["private", "shared"].map(role => `deletion-http-${role}-${suffix}`)
@@ -139,10 +141,10 @@ test("account deletion through the server cleans private data and preserves shar
     if (withR2) {
       assetIds.push(await upload(0, 0), await upload(1, 1), await upload(2, 1))
     } else {
-      t.diagnostic("R2 checks disabled; this run does not verify object deletion")
+      diagnostic("R2 checks disabled; this run does not verify object deletion")
     }
 
-    await t.test("authentication rejects anonymous deletion and native media access", async () => {
+    await step("authentication rejects anonymous deletion and native media access", async () => {
       assert.equal((await request("/api/auth/delete-user", undefined, {})).status, 401)
       for (const route of ["prepare", "finalize"]) {
         assert.equal((await request(`/api/media/native/${route}`, undefined, {})).status, 401)
@@ -151,7 +153,7 @@ test("account deletion through the server cleans private data and preserves shar
       assert.equal((await db.select().from(user).where(inArray(user.id, ids))).length, 5)
     })
 
-    await t.test("deleting a non-owner writer preserves shared entities and cleans historical attribution", async () => {
+    await step("deleting a non-owner writer preserves shared entities and cleans historical attribution", async () => {
       assert.equal((await request("/api/auth/delete-user", 3, {})).status, 200)
       assert.equal((await request("/api/sync/bootstrap", 3)).status, 401)
       const [preserved] = await db.select().from(nativeSyncEntity).where(and(eq(nativeSyncEntity.scopeId, scopes[1]), eq(nativeSyncEntity.entityId, writerEntity.entityId)))
@@ -165,7 +167,7 @@ test("account deletion through the server cleans private data and preserves shar
       }
     })
 
-    await t.test("private owner deletion removes credentials, sessions, workspace, and R2 image", async () => {
+    await step("private owner deletion removes credentials, sessions, workspace, and R2 image", async () => {
       const deleted = await request("/api/auth/delete-user", 0, {})
       assert.equal(deleted.status, 200)
       assert.deepEqual(deleted.json, { success: true, message: "User deleted" }, "Matches the iOS client response contract")
@@ -181,7 +183,7 @@ test("account deletion through the server cleans private data and preserves shar
       }
     })
 
-    await t.test("shared owner deletion preserves collaborator planning and removes personal contact data", async () => {
+    await step("shared owner deletion preserves collaborator planning and removes personal contact data", async () => {
       assert.equal((await request("/api/auth/delete-user", 1, {})).status, 200)
       assert.equal((await db.select().from(user).where(eq(user.id, ids[1]))).length, 0)
       assert.equal((await request("/api/sync/bootstrap", 1)).status, 401)
@@ -255,7 +257,7 @@ test("account deletion through the server cleans private data and preserves shar
       await db.delete(user).where(inArray(user.id, ids))
       assert.equal((await db.select().from(user).where(inArray(user.id, ids))).length, 0)
       assert.equal((await db.select().from(organization).where(inArray(organization.id, orgs))).length, 0)
-      t.diagnostic("Disposable accounts, organizations, and exact temporary R2 objects cleaned up")
+      diagnostic("Disposable accounts, organizations, and exact temporary R2 objects cleaned up")
       await pool.end()
     }
   }

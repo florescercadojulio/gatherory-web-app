@@ -1,7 +1,7 @@
 import assert from "node:assert/strict"
-import { test } from "node:test"
-import { invitationContinuation, invitationPath, invitationURL, safeAuthContinuation } from "../src/lib/event-invitation-links"
-import { InviteEventParticipantInputSchema, ShareLinkInput } from "../src/server/events/contracts/event.contracts"
+import { test } from "vitest"
+import { invitationContinuation, invitationPath, invitationURL, safeAuthContinuation } from "@/lib/event-invitation-links"
+import { InviteEventParticipantInputSchema, ShareLinkInput } from "@/server/events/contracts/event.contracts"
 
 const token = "d41db411-7cfe-47de-99d8-c5916b8fd306"
 

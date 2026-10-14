@@ -1,6 +1,6 @@
 import assert from "node:assert/strict"
-import { test } from "node:test"
-import { HideImageInput, ReportImageInput, ReviewReportInput, isTrustedModerationMutation, nextReportStatus, reportStatuses } from "../src/server/moderation/contracts"
+import { test } from "vitest"
+import { HideImageInput, ReportImageInput, ReviewReportInput, isTrustedModerationMutation, nextReportStatus, reportStatuses } from "@/server/moderation/contracts"
 
 test("report transitions preserve closed decisions and reject stale review actions", () => {
   assert.equal(nextReportStatus("open", "start_review"), "in_review")
