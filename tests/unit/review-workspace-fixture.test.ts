@@ -26,8 +26,9 @@ test('App Review fixture creates a populated iOS workspace snapshot', () => {
 
   expect(decoded.mainEventID).toBe(reviewWorkspaceIds.events.main)
   expect(decoded.title).toBe("Alex & Jordan's Wedding")
-  expect(decoded.members.at(-1)?.userID).toBe(users[4].id)
-  expect(decoded.members.at(-1)?.planningPermission).toBe('manage')
+  expect(decoded.members.find((person) => person.userID === users[4].id)?.planningPermission).toBe(
+    'manage'
+  )
   expect(decoded.timeline.length >= 3).toBeTruthy()
   expect(new Set(decoded.ideas.map((idea) => idea.category))).toEqual(
     new Set([
@@ -110,4 +111,20 @@ test('App Review snapshot uses Foundation reference dates and valid UUIDs', () =
       /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
     )
   }
+})
+
+test('App Review catering expense uses the native expense category rather than the idea category', () => {
+  const archive = createReviewWorkspaceArchive({ users })
+  const decoded = JSON.parse(
+    Buffer.from(encodeNativeWorkspaceSnapshot(archive), 'base64').toString('utf8')
+  ) as typeof archive
+
+  expect(
+    decoded.eventExpenses.find(
+      (expense) => expense.id === reviewWorkspaceIds.planning.receptionExpense
+    )?.category
+  ).toBe('foodAndDrink')
+  expect(
+    decoded.ideas.find((idea) => idea.id === reviewWorkspaceIds.planning.foodIdea)?.category
+  ).toBe('food')
 })

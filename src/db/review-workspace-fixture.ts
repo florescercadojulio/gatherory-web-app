@@ -1,3 +1,5 @@
+import { ideaResponseID } from '@/server/sync/contracts/idea-response'
+
 /**
  * A real, iOS-compatible workspace for local App Review testing.
  *
@@ -31,7 +33,12 @@ export const reviewWorkspaceIds = {
     otherIdea: '20000000-0000-4000-8000-000000000013',
     musicTrack: '30000000-0000-4000-8000-000000000001',
     venueExpense: '40000000-0000-4000-8000-000000000001',
+    receptionExpense: '40000000-0000-4000-8000-000000000002',
+    receptionEstimate: '40000000-0000-4000-8000-000000000003',
     eventNote: '50000000-0000-4000-8000-000000000001',
+    latestNote: '50000000-0000-4000-8000-000000000002',
+    receptionNote: '50000000-0000-4000-8000-000000000003',
+    latestReceptionNote: '50000000-0000-4000-8000-000000000004',
     registryItem: '60000000-0000-4000-8000-000000000001',
   },
   people: {
@@ -41,6 +48,9 @@ export const reviewWorkspaceIds = {
     sam: '70000000-0000-4000-8000-000000000004',
     pendingGuest: '70000000-0000-4000-8000-000000000005',
     appReview: '70000000-0000-4000-8000-000000000006',
+    receptionPlanner: '70000000-0000-4000-8000-000000000007',
+    goingGuest: '70000000-0000-4000-8000-000000000008',
+    declinedGuest: '70000000-0000-4000-8000-000000000009',
   },
 } as const
 
@@ -49,6 +59,14 @@ export type ReviewFixtureUser = {
   name: string
   email: string
 }
+
+export type ReviewFixtureUsers = readonly [
+  ReviewFixtureUser,
+  ReviewFixtureUser,
+  ReviewFixtureUser,
+  ReviewFixtureUser,
+  ReviewFixtureUser,
+]
 
 const appleReferenceDateOffsetSeconds = 978_307_200
 
@@ -75,17 +93,11 @@ function location(placeName: string, address: string) {
  * 2001 reference-date seconds, not JavaScript ISO strings.
  */
 export function createReviewWorkspaceArchive(input: {
-  users: readonly [
-    ReviewFixtureUser,
-    ReviewFixtureUser,
-    ReviewFixtureUser,
-    ReviewFixtureUser,
-    ReviewFixtureUser,
-  ]
+  users: ReviewFixtureUsers
+  receptionPlanner?: ReviewFixtureUser
 }) {
   const [alex, jordan, maya, sam, reviewer] = input.users
   const { events, planning, people } = reviewWorkspaceIds
-  const mainParticipantIDs = [people.alex, people.jordan, people.maya, people.sam, people.appReview]
   const users = [
     {
       id: people.alex,
@@ -131,33 +143,116 @@ export function createReviewWorkspaceArchive(input: {
   const createdAt = foundationDate('2026-10-12T12:00:00.000Z')
 
   const members = users.map((person) => ({
-    id: person.id,
-    userID: person.account.id,
+    id: person.id as string,
+    userID: person.account.id as string | null,
     name: person.account.name,
-    participantRole: person.role,
-    initials: person.initials,
-    attendance: person.attendance,
+    participantRole: person.role as string,
+    initials: person.initials as string,
+    attendance: person.attendance as string,
     email: person.account.email,
     profileImageAssetName: null,
     profileImageURL: null,
-    planningPermission: person.permission,
+    planningPermission: person.permission as string,
     invitationStatus: 'active',
   }))
+
+  // Contacts can RSVP without an account. Only the invited contact receives an
+  // email invitation; neither contacts nor guests receive native scope grants.
+  const guestContacts = [
+    {
+      id: people.pendingGuest,
+      name: 'Invited Family',
+      email: 'family@gatherory.test',
+      attendance: 'invited',
+    },
+    {
+      id: people.goingGuest,
+      name: 'Jamie Park',
+      email: 'jamie@gatherory.test',
+      attendance: 'going',
+    },
+    {
+      id: people.declinedGuest,
+      name: 'Drew Ellis',
+      email: 'drew@gatherory.test',
+      attendance: 'declined',
+    },
+  ]
+  for (const guest of guestContacts) {
+    members.push({
+      ...guest,
+      userID: null,
+      participantRole: 'guest',
+      initials: guest.name
+        .split(' ')
+        .map((part) => part[0])
+        .join(''),
+      profileImageAssetName: null,
+      profileImageURL: null,
+      planningPermission: 'viewOnly',
+      invitationStatus: guest.attendance === 'invited' ? 'invited' : 'active',
+    })
+  }
+  const mainParticipantIDs = members.map((person) => person.id)
 
   const eventParticipations = Object.values(events).flatMap((eventID, eventIndex) =>
     users.map((person, index) => ({
       // Stable UUIDs make a second seed produce the exact same snapshot.
       id: `80000000-0000-4000-8000-${String(eventIndex * 10 + index + 1).padStart(12, '0')}`,
-      eventID,
-      memberID: person.id,
-      role: person.role,
-      planningPermission: person.permission,
-      attendance: person.attendance,
+      eventID: eventID as string,
+      memberID: person.id as string,
+      role: person.role as string,
+      planningPermission: person.permission as string,
+      attendance: person.attendance as string,
       invitationStatus: 'active',
       createdAt,
       updatedAt: createdAt,
     }))
   )
+
+  for (const [eventIndex, eventID] of [events.main, events.ceremony, events.reception].entries()) {
+    guestContacts.forEach((person, index) => {
+      eventParticipations.push({
+        id: `81000000-0000-4000-8000-${String(eventIndex * 10 + index + 1).padStart(12, '0')}`,
+        eventID,
+        memberID: person.id,
+        role: 'guest',
+        planningPermission: 'viewOnly',
+        attendance: person.attendance,
+        invitationStatus: person.attendance === 'invited' ? 'invited' : 'active',
+        createdAt,
+        updatedAt: createdAt,
+      })
+    })
+  }
+
+  if (input.receptionPlanner) {
+    const planner = input.receptionPlanner
+    members.push({
+      id: people.receptionPlanner,
+      userID: planner.id,
+      name: planner.name,
+      email: planner.email,
+      initials: 'TB',
+      participantRole: 'collaborator',
+      planningPermission: 'contribute',
+      attendance: 'going',
+      invitationStatus: 'active',
+      profileImageAssetName: null,
+      profileImageURL: null,
+    })
+    eventParticipations.push({
+      id: '82000000-0000-4000-8000-000000000001',
+      eventID: events.reception,
+      memberID: people.receptionPlanner,
+      role: 'collaborator',
+      planningPermission: 'contribute',
+      attendance: 'going',
+      invitationStatus: 'active',
+      createdAt,
+      updatedAt: createdAt,
+    })
+  }
 
   const eventDetails = [
     [
@@ -262,7 +357,7 @@ export function createReviewWorkspaceArchive(input: {
         category: 'venue',
         submittedBy: alex.name,
         submittedByUserID: alex.id,
-        estimatedCost: 14500,
+        estimatedCost: 8500,
         status: 'chosen',
         submittedAt: createdAt,
         imageData: null,
@@ -361,7 +456,7 @@ export function createReviewWorkspaceArchive(input: {
         submittedAt: createdAt,
         imageData: null,
         mediaAssetID: null,
-        configuration: { standard: {} },
+        configuration: { link: { _0: { url: 'https://example.com/wedding-weekend' } } },
         invitationVisibility: 'shownToGuests',
       },
       {
@@ -377,7 +472,24 @@ export function createReviewWorkspaceArchive(input: {
         submittedAt: createdAt,
         imageData: null,
         mediaAssetID: null,
-        configuration: { standard: {} },
+        configuration: {
+          event: {
+            _0: {
+              category: 'reception',
+              purpose: 'eventExperience',
+              audience: 'inherited',
+              requiresBudget: true,
+              proposedBudget: 850,
+              proposedDate: null,
+              proposedEndDate: null,
+              isAllDay: false,
+              timeZoneIdentifier: 'America/Detroit',
+              location: null,
+              attireStyle: 'any',
+              attireGuidance: '',
+            },
+          },
+        },
         invitationVisibility: 'planningOnly',
       },
       {
@@ -393,7 +505,7 @@ export function createReviewWorkspaceArchive(input: {
         submittedAt: createdAt,
         imageData: null,
         mediaAssetID: null,
-        configuration: { standard: {} },
+        configuration: { flowers: { _0: { focus: 'tables', palette: 'Roses and soft greens' } } },
         invitationVisibility: 'planningOnly',
       },
       {
@@ -402,14 +514,18 @@ export function createReviewWorkspaceArchive(input: {
         title: 'Family-style dinner',
         note: 'A seasonal dinner with vegetarian and gluten-free options for every guest.',
         category: 'food',
-        submittedBy: sam.name,
-        submittedByUserID: sam.id,
+        submittedBy: maya.name,
+        submittedByUserID: maya.id,
         estimatedCost: 7200,
         status: 'maybe',
         submittedAt: createdAt,
         imageData: null,
         mediaAssetID: null,
-        configuration: { standard: {} },
+        configuration: {
+          food: {
+            _0: { type: 'meal', servings: 140, dietaryNotes: 'Vegetarian and gluten-free options' },
+          },
+        },
         invitationVisibility: 'planningOnly',
       },
       {
@@ -425,12 +541,16 @@ export function createReviewWorkspaceArchive(input: {
         submittedAt: createdAt,
         imageData: null,
         mediaAssetID: null,
-        configuration: { standard: {} },
+        configuration: {
+          photography: {
+            _0: { style: 'documentary', coverageHours: 4, priorities: 'Golden-hour portraits' },
+          },
+        },
         invitationVisibility: 'planningOnly',
       },
       {
         id: planning.decorIdea,
-        eventID: events.main,
+        eventID: events.reception,
         title: 'Candlelit reception tables',
         note: 'Layered glass votives and low arrangements to keep every conversation open.',
         category: 'decor',
@@ -441,7 +561,11 @@ export function createReviewWorkspaceArchive(input: {
         submittedAt: createdAt,
         imageData: null,
         mediaAssetID: null,
-        configuration: { standard: {} },
+        configuration: {
+          decor: {
+            _0: { focus: 'tables', paletteOrMaterials: 'Glass votives and seasonal greens' },
+          },
+        },
         invitationVisibility: 'planningOnly',
       },
       {
@@ -457,7 +581,15 @@ export function createReviewWorkspaceArchive(input: {
         submittedAt: createdAt,
         imageData: null,
         mediaAssetID: null,
-        configuration: { standard: {} },
+        configuration: {
+          invitations: {
+            _0: {
+              format: 'printed',
+              quantity: 80,
+              productionNotes: 'Botanical watercolor stationery',
+            },
+          },
+        },
         invitationVisibility: 'shownToGuests',
       },
       {
@@ -473,7 +605,9 @@ export function createReviewWorkspaceArchive(input: {
         submittedAt: createdAt,
         imageData: null,
         mediaAssetID: null,
-        configuration: { standard: {} },
+        configuration: {
+          honeymoon: { _0: { style: 'relaxing', destination: 'Amalfi coast', nights: 5 } },
+        },
         invitationVisibility: 'planningOnly',
       },
       {
@@ -482,8 +616,8 @@ export function createReviewWorkspaceArchive(input: {
         title: 'Late-night coffee bar',
         note: 'An espresso cart and small treats for the last dance set.',
         category: 'other',
-        submittedBy: sam.name,
-        submittedByUserID: sam.id,
+        submittedBy: jordan.name,
+        submittedByUserID: jordan.id,
         estimatedCost: 500,
         status: 'new',
         submittedAt: createdAt,
@@ -516,7 +650,9 @@ export function createReviewWorkspaceArchive(input: {
         isAllDay: false,
         timeZoneIdentifier: 'America/Detroit',
         eventLocation: location(place, address),
-        participantIDs: mainParticipantIDs,
+        participantIDs: eventParticipations
+          .filter((item) => item.eventID === id)
+          .map((item) => item.memberID),
         parentEventID: events.main,
         status: 'approved',
         completionStatus: 'upcoming',
@@ -529,6 +665,20 @@ export function createReviewWorkspaceArchive(input: {
         budgetCap,
       })
     ),
+    ideaResponses: [
+      {
+        id: ideaResponseID(planning.musicIdea, alex.id),
+        ideaID: planning.musicIdea,
+        userID: alex.id,
+        choice: 'love',
+      },
+      {
+        id: ideaResponseID(planning.musicIdea, maya.id),
+        ideaID: planning.musicIdea,
+        userID: maya.id,
+        choice: 'maybe',
+      },
+    ],
     eventExpenses: [
       {
         id: planning.venueExpense,
@@ -542,10 +692,34 @@ export function createReviewWorkspaceArchive(input: {
         createdAt,
         updatedAt: createdAt,
       },
+      {
+        id: planning.receptionExpense,
+        eventID: events.reception,
+        sourceIdeaID: null,
+        title: 'Catering deposit',
+        amount: 2400,
+        category: 'foodAndDrink',
+        status: 'paid',
+        createdByUserID: alex.id,
+        createdAt,
+        updatedAt: createdAt,
+      },
+      {
+        id: planning.receptionEstimate,
+        eventID: events.reception,
+        sourceIdeaID: planning.decorIdea,
+        title: 'Table decor estimate',
+        amount: 950,
+        category: 'decor',
+        status: 'estimated',
+        createdByUserID: jordan.id,
+        createdAt,
+        updatedAt: createdAt,
+      },
     ],
     workspaceBudgetCap: 30000,
     currencyCode: 'USD',
-    mainEventBudgetCap: 30000,
+    mainEventBudgetCap: 10000,
     notes: [
       {
         id: planning.eventNote,
@@ -553,6 +727,27 @@ export function createReviewWorkspaceArchive(input: {
         authorUserID: alex.id,
         body: 'The venue walkthrough is confirmed. Meet at the garden entrance.',
         sentAt: createdAt,
+      },
+      {
+        id: planning.latestNote,
+        eventID: events.main,
+        authorUserID: jordan.id,
+        body: 'Please share your travel plans before Friday so we can arrange rides. Comfortable shoes are recommended for the garden paths, and we will share the rain plan after the venue walkthrough.',
+        sentAt: createdAt + 3600,
+      },
+      {
+        id: planning.receptionNote,
+        eventID: events.reception,
+        authorUserID: alex.id,
+        body: 'The caterer has confirmed vegetarian options for dinner.',
+        sentAt: createdAt,
+      },
+      {
+        id: planning.latestReceptionNote,
+        eventID: events.reception,
+        authorUserID: jordan.id,
+        body: 'Table setup starts at four. Please meet by the reception entrance.',
+        sentAt: createdAt + 7200,
       },
     ],
     mainEventStatus: 'draft',
@@ -578,7 +773,8 @@ export function createReviewWorkspaceArchive(input: {
     isCollaboratorLinkEnabled: true,
     requiresCollaboratorApproval: true,
     defaultCollaboratorPermission: 'contribute',
-    collaboratorInviteURL: 'https://gatherory.com/join/review-wedding',
+    isScopedEvent: false,
+    scopedEvent: null,
   }
 }
 
