@@ -232,16 +232,14 @@ export function reviewAbuseReport(actorUserId: string, input: z.infer<typeof Rev
             updatedAt: new Date(),
           })
           .where(eq(abuseReport.id, report.id))
-        yield* db
-          .insert(abuseReportReview)
-          .values({
-            reportId: report.id,
-            actorUserId,
-            previousStatus: report.status,
-            status,
-            action: input.action,
-            note: input.note,
-          })
+        yield* db.insert(abuseReportReview).values({
+          reportId: report.id,
+          actorUserId,
+          previousStatus: report.status,
+          status,
+          action: input.action,
+          note: input.note,
+        })
         return { reportId: report.id, status }
       })
     )

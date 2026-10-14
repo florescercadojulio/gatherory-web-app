@@ -303,17 +303,15 @@ export async function prepareGatheroryAccountDeletion(userId: string) {
                   eq(nativeSyncEntity.entityId, entity.entityId)
                 )
               )
-            await transaction
-              .insert(nativeSyncChange)
-              .values({
-                scopeId: snapshot.scopeId,
-                ownerUserId,
-                entityType: entity.entityType,
-                entityId: entity.entityId,
-                operation: entity.isDeleted ? 'delete' : 'upsert',
-                payload,
-                serverVersion: version,
-              })
+            await transaction.insert(nativeSyncChange).values({
+              scopeId: snapshot.scopeId,
+              ownerUserId,
+              entityType: entity.entityType,
+              entityId: entity.entityId,
+              operation: entity.isDeleted ? 'delete' : 'upsert',
+              payload,
+              serverVersion: version,
+            })
           }
         }
         for (const { type, id } of tombstones.values()) {
@@ -342,17 +340,15 @@ export async function prepareGatheroryAccountDeletion(userId: string) {
               },
             })
             .returning({ version: nativeSyncEntity.serverVersion })
-          await transaction
-            .insert(nativeSyncChange)
-            .values({
-              scopeId: snapshot.scopeId,
-              ownerUserId,
-              entityType: type,
-              entityId: id,
-              operation: 'delete',
-              payload: deletedAccountTombstone,
-              serverVersion: entity.version,
-            })
+          await transaction.insert(nativeSyncChange).values({
+            scopeId: snapshot.scopeId,
+            ownerUserId,
+            entityType: type,
+            entityId: id,
+            operation: 'delete',
+            payload: deletedAccountTombstone,
+            serverVersion: entity.version,
+          })
         }
         const payload = redactAccountPayload(snapshot.payload, context)
         // Native clients deliberately preserve collaborative arrays when a
@@ -454,17 +450,15 @@ export async function prepareGatheroryAccountDeletion(userId: string) {
                 },
               })
               .returning({ version: nativeSyncEntity.serverVersion })
-            await transaction
-              .insert(nativeSyncChange)
-              .values({
-                scopeId: snapshot.scopeId,
-                ownerUserId,
-                entityType: record.type,
-                entityId: record.id,
-                operation: 'update',
-                payload: recordPayload,
-                serverVersion: updated.version,
-              })
+            await transaction.insert(nativeSyncChange).values({
+              scopeId: snapshot.scopeId,
+              ownerUserId,
+              entityType: record.type,
+              entityId: record.id,
+              operation: 'update',
+              payload: recordPayload,
+              serverVersion: updated.version,
+            })
           }
         }
         const version = snapshot.serverVersion + 1
@@ -472,17 +466,15 @@ export async function prepareGatheroryAccountDeletion(userId: string) {
           .update(nativeWorkspaceSnapshot)
           .set({ ownerUserId, payload, serverVersion: version, updatedAt: new Date() })
           .where(eq(nativeWorkspaceSnapshot.scopeId, snapshot.scopeId))
-        await transaction
-          .insert(nativeSyncChange)
-          .values({
-            scopeId: snapshot.scopeId,
-            ownerUserId,
-            entityType: 'workspace',
-            entityId: snapshot.scopeId,
-            operation: 'update',
-            payload,
-            serverVersion: version,
-          })
+        await transaction.insert(nativeSyncChange).values({
+          scopeId: snapshot.scopeId,
+          ownerUserId,
+          entityType: 'workspace',
+          entityId: snapshot.scopeId,
+          operation: 'update',
+          payload,
+          serverVersion: version,
+        })
       }
       // Category configuration can embed the same native identity/media fields.
       const configuredIdeas = await transaction

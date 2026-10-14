@@ -99,17 +99,15 @@ export function leaveGuestEvent(userId: string, eventId: string) {
               },
             })
             .returning({ version: nativeSyncEntity.serverVersion })
-          yield* db
-            .insert(nativeSyncChange)
-            .values({
-              scopeId,
-              ownerUserId: snapshot.ownerUserId,
-              entityType: 'event_participation',
-              entityId: participation.id,
-              operation: 'delete',
-              payload: '',
-              serverVersion: entity.version,
-            })
+          yield* db.insert(nativeSyncChange).values({
+            scopeId,
+            ownerUserId: snapshot.ownerUserId,
+            entityType: 'event_participation',
+            entityId: participation.id,
+            operation: 'delete',
+            payload: '',
+            serverVersion: entity.version,
+          })
           const archive = JSON.parse(Buffer.from(snapshot.payload, 'base64').toString('utf8'))
           archive.eventParticipations = (archive.eventParticipations ?? []).filter(
             (item: { id: string }) => item.id.toLowerCase() !== participation.id
@@ -139,17 +137,15 @@ export function leaveGuestEvent(userId: string, eventId: string) {
             })
             .where(eq(nativeWorkspaceSnapshot.scopeId, scopeId))
             .returning({ version: nativeWorkspaceSnapshot.serverVersion })
-          yield* db
-            .insert(nativeSyncChange)
-            .values({
-              scopeId,
-              ownerUserId: snapshot.ownerUserId,
-              entityType: 'workspace',
-              entityId: scopeId,
-              operation: 'update',
-              payload,
-              serverVersion: updated.version,
-            })
+          yield* db.insert(nativeSyncChange).values({
+            scopeId,
+            ownerUserId: snapshot.ownerUserId,
+            entityType: 'workspace',
+            entityId: scopeId,
+            operation: 'update',
+            payload,
+            serverVersion: updated.version,
+          })
         }
         return { eventId }
       })

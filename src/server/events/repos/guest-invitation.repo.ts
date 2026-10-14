@@ -367,17 +367,15 @@ export function respondToEvent(
               },
             })
             .returning({ version: nativeSyncEntity.serverVersion })
-          yield* db
-            .insert(nativeSyncChange)
-            .values({
-              scopeId,
-              ownerUserId: snapshot.ownerUserId,
-              entityType: 'event_participation',
-              entityId: participation.id,
-              operation: 'update',
-              payload,
-              serverVersion: entity.version,
-            })
+          yield* db.insert(nativeSyncChange).values({
+            scopeId,
+            ownerUserId: snapshot.ownerUserId,
+            entityType: 'event_participation',
+            entityId: participation.id,
+            operation: 'update',
+            payload,
+            serverVersion: entity.version,
+          })
           const archive = JSON.parse(Buffer.from(snapshot.payload, 'base64').toString('utf8'))
           archive.eventParticipations = [
             ...(archive.eventParticipations ?? []).filter(
@@ -401,17 +399,15 @@ export function respondToEvent(
             })
             .where(eq(nativeWorkspaceSnapshot.scopeId, scopeId))
             .returning({ version: nativeWorkspaceSnapshot.serverVersion })
-          yield* db
-            .insert(nativeSyncChange)
-            .values({
-              scopeId,
-              ownerUserId: snapshot.ownerUserId,
-              entityType: 'workspace',
-              entityId: scopeId,
-              operation: 'update',
-              payload: archivePayload,
-              serverVersion: updated.version,
-            })
+          yield* db.insert(nativeSyncChange).values({
+            scopeId,
+            ownerUserId: snapshot.ownerUserId,
+            entityType: 'workspace',
+            entityId: scopeId,
+            operation: 'update',
+            payload: archivePayload,
+            serverVersion: updated.version,
+          })
         }
         return { eventId, attendance }
       })

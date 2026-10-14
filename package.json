@@ -6,6 +6,7 @@
     "dev": "dotenv run -f .env.local -- sh -c \"NODE_OPTIONS='--import ./instrument.server.mjs' vite dev --port 3003\"",
     "dev:device": "dotenv run -f .env.local -- sh -c \"NODE_OPTIONS='--import ./instrument.server.mjs' vite dev --host 0.0.0.0 --port 3003\"",
     "generate-routes": "tsr generate",
+    "format": "prettier --write src tests",
     "test": "pnpm contracts:check && vitest run",
     "test:invitations:local": "dotenv run -f .env.local -- sh -c 'RUN_INVITATION_DB_TESTS=1 RUN_INVITATION_HTTP_TESTS=1 vitest run tests/effect/event-invitations.database.test.ts tests/contracts/event-invitations.test.ts tests/unit/guest-invitation-content.test.ts tests/integration/invitation-http.database.test.ts'",
     "typecheck": "tsc --noEmit",
