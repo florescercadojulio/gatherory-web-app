@@ -673,6 +673,115 @@ const verification = Effect.gen(function* () {
         expect((yield* previewEventShareLink(planningLink.token, otherGuestId))?.status).toBe(
           'accepted'
         )
+        // A child-only manager can approve a child request without granting
+        // either account access to the root workspace or its siblings.
+        const childId = crypto.randomUUID()
+        const childManagerId = `child-manager-${suffix}`
+        const childInviteeId = `child-invitee-${suffix}`
+        yield* db.insert(user).values([
+          {
+            id: childManagerId,
+            name: 'Child manager',
+            email: `${childManagerId}@example.com`,
+            emailVerified: true,
+          },
+          {
+            id: childInviteeId,
+            name: 'Child invitee',
+            email: `${childInviteeId}@example.com`,
+            emailVerified: true,
+          },
+        ])
+        yield* db.insert(event).values({
+          id: childId,
+          organizationId,
+          parentEventId: eventId,
+          title: 'Dinner',
+          status: null,
+          planningStatus: 'draft',
+          category: 'other',
+          purpose: 'planning_scouting',
+          startsAt: new Date(),
+          timeZone: 'America/Detroit',
+        })
+        const [childManager] = yield* db
+          .insert(workspacePerson)
+          .values({
+            organizationId,
+            userId: childManagerId,
+            displayName: 'Child manager',
+            email: `${childManagerId}@example.com`,
+          })
+          .returning()
+        yield* db.insert(eventParticipant).values({
+          eventId: childId,
+          personId: childManager.id,
+          role: 'collaborator',
+          planningPermission: 'manage',
+        })
+        yield* db
+          .update(workspacePlanningSettings)
+          .set({
+            requiresCollaboratorApproval: true,
+            defaultCollaboratorPermission: 'contribute',
+          })
+          .where(eq(workspacePlanningSettings.organizationId, organizationId))
+        const childLink = yield* createEventShareLink(childManagerId, {
+          eventId: childId,
+          role: 'collaborator',
+        })
+        expect((yield* acceptEventShareLink(childInviteeId, childLink.token)).status).toBe(
+          'awaiting_approval'
+        )
+        const childRequests = (yield* listEventJoinRequests(childManagerId, childId)).requests
+        expect(childRequests).toHaveLength(1)
+        expect(
+          Exit.isFailure(yield* Effect.exit(listEventJoinRequests(childManagerId, eventId)))
+        ).toBe(true)
+        expect(
+          Exit.isFailure(
+            yield* Effect.exit(
+              reviewEventJoinRequest(ownerId, eventId, childRequests[0].id, 'approve')
+            )
+          )
+        ).toBe(true)
+        expect(
+          Exit.isFailure(
+            yield* Effect.exit(
+              reviewEventJoinRequest(childInviteeId, childId, childRequests[0].id, 'approve')
+            )
+          )
+        ).toBe(true)
+        yield* reviewEventJoinRequest(childManagerId, childId, childRequests[0].id, 'approve')
+        yield* reviewEventJoinRequest(childManagerId, childId, childRequests[0].id, 'approve')
+        expect((yield* listEventJoinRequests(childManagerId, childId)).requests).toHaveLength(0)
+        const [childInvitee] = yield* db
+          .select()
+          .from(workspacePerson)
+          .where(eq(workspacePerson.userId, childInviteeId))
+        const childMemberships = yield* db
+          .select()
+          .from(eventParticipant)
+          .where(eq(eventParticipant.personId, childInvitee.id))
+        expect(
+          childMemberships.map((row) => ({
+            eventId: row.eventId,
+            role: row.role,
+            permission: row.planningPermission,
+          }))
+        ).toEqual([{ eventId: childId, role: 'collaborator', permission: 'contribute' }])
+        for (const scopedUserId of [childManagerId, childInviteeId]) {
+          expect(
+            yield* db.select().from(member).where(eq(member.userId, scopedUserId))
+          ).toHaveLength(0)
+          expect(
+            yield* db
+              .select()
+              .from(nativeSyncScopeMember)
+              .where(eq(nativeSyncScopeMember.userId, scopedUserId))
+          ).toHaveLength(0)
+        }
+
         const renewed = yield* createEventShareLink(ownerId, { eventId, role: 'guest' })
         yield* db
           .delete(eventParticipant)
