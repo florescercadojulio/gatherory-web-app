@@ -1,14 +1,13 @@
-import assert from 'node:assert/strict'
-import { it } from '@effect/vitest'
+import { expect, it } from '@effect/vitest'
 import { Cause, Data, Effect, Exit } from 'effect'
 
 it.effect(
   'closed event lifecycle blocks new admissions without deleting history',
   () =>
     Effect.gen(function* () {
-      assert.ok(
+      expect(
         ['localhost', '127.0.0.1', '[::1]'].includes(new URL(process.env.DATABASE_URL!).hostname)
-      )
+      ).toBeTruthy()
       const { PgClientLive } = yield* Effect.promise(() => import('@/db'))
       const { PgClient } = yield* Effect.promise(() => import('@effect/sql-pg/PgClient'))
       const { requireJoinableEvent } = yield* Effect.promise(
@@ -33,35 +32,35 @@ it.effect(
             for (const status of ['cancelled', 'finished']) {
               yield* pg`update event set status = ${status} where id = ${root}`
               const result = yield* Effect.exit(requireJoinableEvent(child))
-              assert.ok(
+              expect(
                 Exit.isFailure(result) &&
                   result.cause.reasons.some(
                     (reason) =>
                       Cause.isFailReason(reason) &&
                       (reason.error as { code?: string }).code === 'EVENT_CLOSED'
                   )
-              )
+              ).toBeTruthy()
             }
             yield* pg`update event set status = 'draft' where id = ${root}`
             yield* pg`update event set planning_status = 'cancelled' where id = ${child}`
-            assert.ok(Exit.isFailure(yield* Effect.exit(requireJoinableEvent(child))))
+            expect(Exit.isFailure(yield* Effect.exit(requireJoinableEvent(child)))).toBeTruthy()
             yield* requireJoinableEvent(root)
             const [count] = yield* pg<{
               count: number
             }>`select count(*)::integer as count from event`
-            assert.equal(count.count, 2)
+            expect(count.count).toBe(2)
             return yield* Effect.fail(new Rollback())
           })
         )
       }).pipe(Effect.provide(PgClientLive))
       const result = yield* Effect.exit(program)
-      assert.ok(
+      expect(
         Exit.isFailure(result) &&
           result.cause.reasons.some(
             (reason) => Cause.isFailReason(reason) && reason.error instanceof Rollback
           ),
         Exit.isFailure(result) ? Cause.pretty(result.cause) : 'Expected rollback'
-      )
+      ).toBeTruthy()
     }),
   { skip: process.env.RUN_EVENT_LIFECYCLE_DB_TESTS !== '1' }
 )

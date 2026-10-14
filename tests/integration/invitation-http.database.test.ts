@@ -1,5 +1,4 @@
-import assert from 'node:assert/strict'
-import { test } from 'vitest'
+import { expect, test } from 'vitest'
 import { and, eq, inArray } from 'drizzle-orm'
 import { ideaResponseID } from '@/server/sync/idea-response'
 
@@ -11,11 +10,11 @@ test(
     timeout: 60_000,
   },
   async () => {
-    assert.ok(
+    expect(
       ['localhost', '127.0.0.1', '[::1]'].includes(new URL(process.env.DATABASE_URL!).hostname)
-    )
+    ).toBeTruthy()
     const base = process.env.INVITATION_TEST_BASE_URL ?? 'http://127.0.0.1:3003'
-    assert.ok(['localhost', '127.0.0.1'].includes(new URL(base).hostname))
+    expect(['localhost', '127.0.0.1'].includes(new URL(base).hostname)).toBeTruthy()
     const { db, pool } = await import('@/db')
     const { ideaDecision } = await import('@/db/schema')
     const {
@@ -62,27 +61,23 @@ test(
       }
     }
     try {
-      await db
-        .insert(user)
-        .values(
-          ids.map((id) => ({
-            id,
-            name: 'Invitation HTTP verification',
-            email: `${id}@example.com`,
-            emailVerified: true,
-          }))
-        )
-      await db
-        .insert(session)
-        .values(
-          ids.map((id, index) => ({
-            id: crypto.randomUUID(),
-            token: tokens[index],
-            userId: id,
-            expiresAt: new Date(Date.now() + 3600_000),
-            updatedAt: new Date(),
-          }))
-        )
+      await db.insert(user).values(
+        ids.map((id) => ({
+          id,
+          name: 'Invitation HTTP verification',
+          email: `${id}@example.com`,
+          emailVerified: true,
+        }))
+      )
+      await db.insert(session).values(
+        ids.map((id, index) => ({
+          id: crypto.randomUUID(),
+          token: tokens[index],
+          userId: id,
+          expiresAt: new Date(Date.now() + 3600_000),
+          updatedAt: new Date(),
+        }))
+      )
       await db.insert(organization).values([
         {
           id: org,
@@ -144,30 +139,26 @@ test(
           displayName: 'Host in other workspace',
         })
         .returning()
-      await db
-        .insert(eventParticipant)
-        .values({
-          eventId: otherRootEventId,
-          personId: otherPerson.id,
-          role: 'host',
-          planningPermission: 'manage',
-        })
-      await db
-        .insert(nativeWorkspaceSnapshot)
-        .values({
-          scopeId: eventId,
-          ownerUserId: ids[0],
-          organizationId: org,
-          payload: Buffer.from(
-            JSON.stringify({
-              mainEventID: eventId,
-              members: [],
-              eventParticipations: [],
-              mainEventParticipantIDs: [],
-              privateBudget: 'PRIVATE',
-            })
-          ).toString('base64'),
-        })
+      await db.insert(eventParticipant).values({
+        eventId: otherRootEventId,
+        personId: otherPerson.id,
+        role: 'host',
+        planningPermission: 'manage',
+      })
+      await db.insert(nativeWorkspaceSnapshot).values({
+        scopeId: eventId,
+        ownerUserId: ids[0],
+        organizationId: org,
+        payload: Buffer.from(
+          JSON.stringify({
+            mainEventID: eventId,
+            members: [],
+            eventParticipations: [],
+            mainEventParticipantIDs: [],
+            privateBudget: 'PRIVATE',
+          })
+        ).toString('base64'),
+      })
       await db.insert(idea).values([
         {
           organizationId: org,
@@ -200,57 +191,54 @@ test(
         })
       async function assertPreparedMedia(actor: number, scopeId = eventId, expectedOrg = org) {
         const prepared = await prepareMedia(actor, scopeId)
-        assert.equal(
+        expect(
           prepared.status,
-          200,
           'The event scope UUID must resolve to its storage organization'
-        )
-        assert.equal(prepared.json.ok, true)
-        assert.equal(prepared.json.data.method, 'PUT')
-        assert.equal(prepared.json.data.requiredHeaders['Content-Type'], 'image/jpeg')
+        ).toBe(200)
+        expect(prepared.json.ok).toBe(true)
+        expect(prepared.json.data.method).toBe('PUT')
+        expect(prepared.json.data.requiredHeaders['Content-Type']).toBe('image/jpeg')
         const [asset] = await db
           .select()
           .from(mediaAsset)
           .where(eq(mediaAsset.id, prepared.json.data.mediaAssetId))
-        assert.equal(asset.organizationId, expectedOrg)
-        assert.equal(asset.uploadedByUserId, ids[actor])
-        assert.equal(asset.status, 'pending')
-        assert.equal(asset.storageKey, `workspaces/${expectedOrg}/media/${asset.id}/original.jpg`)
-        assert.ok(new URL(prepared.json.data.uploadUrl).pathname.includes(asset.storageKey))
+        expect(asset.organizationId).toBe(expectedOrg)
+        expect(asset.uploadedByUserId).toBe(ids[actor])
+        expect(asset.status).toBe('pending')
+        expect(asset.storageKey).toBe(`workspaces/${expectedOrg}/media/${asset.id}/original.jpg`)
+        expect(
+          new URL(prepared.json.data.uploadUrl).pathname.includes(asset.storageKey)
+        ).toBeTruthy()
       }
       // A session's active web workspace must not reroute a mobile outbox item.
       await db
         .update(session)
         .set({ activeOrganizationId: otherOrg })
         .where(eq(session.userId, ids[0]))
-      assert.equal(
-        (await request('/api/auth/get-session', 0)).json.session.activeOrganizationId,
+      expect((await request('/api/auth/get-session', 0)).json.session.activeOrganizationId).toBe(
         otherOrg
       )
       await assertPreparedMedia(0, eventId, org)
       await db.update(session).set({ activeOrganizationId: org }).where(eq(session.userId, ids[0]))
-      assert.equal(
-        (await request('/api/auth/get-session', 0)).json.session.activeOrganizationId,
+      expect((await request('/api/auth/get-session', 0)).json.session.activeOrganizationId).toBe(
         org
       )
       await assertPreparedMedia(0, otherRootEventId, otherOrg)
-      assert.equal(
+      expect(
         (await prepareMedia(0, foreignEventId)).json.ok,
-        false,
         'A child event is not a native planning scope'
-      )
-      assert.equal((await prepareMedia(2)).json.ok, false, 'An uninvited account cannot upload')
+      ).toBe(false)
+      expect((await prepareMedia(2)).json.ok, 'An uninvited account cannot upload').toBe(false)
       const generated = await request('/api/invitations', 0, 'POST', { eventId, role: 'guest' })
-      assert.equal(generated.status, 200, JSON.stringify(generated.json))
+      expect(generated.status, JSON.stringify(generated.json)).toBe(200)
       const token = new URL(generated.json.data.url).pathname.split('/').at(-1)
       const preview = await request(`/api/invitations/preview?token=${token}`)
-      assert.equal(preview.status, 200)
-      assert.equal(preview.json.data.title, 'Shared HTTP event')
-      assert.equal(
+      expect(preview.status).toBe(200)
+      expect(preview.json.data.title).toBe('Shared HTTP event')
+      expect(
         preview.json.data.coverURL,
-        null,
         'No upload means the client uses its default artwork'
-      )
+      ).toBe(null)
       const coverId = crypto.randomUUID()
       // Real private R2 object: verify the bytes, not just that a URL was signed.
       const { env } = await import('@/env')
@@ -270,39 +258,32 @@ test(
         headers: upload.requiredHeaders,
         body: coverBytes,
       })
-      assert.equal(uploaded.status, 200, 'Private cover upload must succeed')
+      expect(uploaded.status, 'Private cover upload must succeed').toBe(200)
       async function assertCoverReadable(url: string) {
-        assert.equal(new URL(url).protocol, 'https:')
+        expect(new URL(url).protocol).toBe('https:')
         const image = await fetch(url)
-        assert.equal(
-          image.status,
-          200,
-          'Invitation recipient can download the signed private image'
-        )
-        assert.deepEqual(Buffer.from(await image.arrayBuffer()), coverBytes)
+        expect(image.status, 'Invitation recipient can download the signed private image').toBe(200)
+        expect(Buffer.from(await image.arrayBuffer())).toEqual(coverBytes)
       }
-      await db
-        .insert(mediaAsset)
-        .values({
-          id: coverId,
-          organizationId: org,
-          uploadedByUserId: ids[0],
-          kind: 'image',
-          status: 'ready',
-          bucket: env.CLOUDFLARE_R2_PRIVATE_BUCKET_NAME,
-          storageKey: key,
-          originalFilename: 'cover.png',
-          contentType: 'image/png',
-          byteSize: coverBytes.length,
-        })
+      await db.insert(mediaAsset).values({
+        id: coverId,
+        organizationId: org,
+        uploadedByUserId: ids[0],
+        kind: 'image',
+        status: 'ready',
+        bucket: env.CLOUDFLARE_R2_PRIVATE_BUCKET_NAME,
+        storageKey: key,
+        originalFilename: 'cover.png',
+        contentType: 'image/png',
+        byteSize: coverBytes.length,
+      })
       await db
         .insert(eventMedia)
         .values({ organizationId: org, eventId, mediaAssetId: coverId, role: 'cover' })
       const coveredPreview = await request(`/api/invitations/preview?token=${token}`)
-      assert.ok(new URL(coveredPreview.json.data.coverURL).pathname.includes(coverId))
+      expect(new URL(coveredPreview.json.data.coverURL).pathname.includes(coverId)).toBeTruthy()
       await assertCoverReadable(coveredPreview.json.data.coverURL)
-      assert.equal(
-        (await request('/api/sync/bootstrap', 1)).json.account.hasCompletedOnboarding,
+      expect((await request('/api/sync/bootstrap', 1)).json.account.hasCompletedOnboarding).toBe(
         false
       )
       await assertCoverReadable(
@@ -312,8 +293,7 @@ test(
         .update(mediaAsset)
         .set({ moderationHiddenAt: new Date() })
         .where(eq(mediaAsset.id, coverId))
-      assert.equal(
-        (await request(`/api/invitations/preview?token=${token}`)).json.data.coverURL,
+      expect((await request(`/api/invitations/preview?token=${token}`)).json.data.coverURL).toBe(
         null
       )
       await db
@@ -321,63 +301,58 @@ test(
         .set({ moderationHiddenAt: null })
         .where(eq(mediaAsset.id, coverId))
       const accepted = await request('/api/invitations/accept', 1, 'POST', { token })
-      assert.equal(accepted.status, 200, JSON.stringify(accepted.json))
-      assert.equal(accepted.json.data.role, 'guest')
-      assert.equal(accepted.json.data.planningScopeId, null)
-      assert.equal(
+      expect(accepted.status, JSON.stringify(accepted.json)).toBe(200)
+      expect(accepted.json.data.role).toBe('guest')
+      expect(accepted.json.data.planningScopeId).toBe(null)
+      expect(
         (await prepareMedia(1)).json.ok,
-        false,
         'A guest cannot upload through private planning media'
-      )
-      assert.equal((await request('/api/invitations/accept', 1, 'POST', { token })).status, 200)
+      ).toBe(false)
+      expect((await request('/api/invitations/accept', 1, 'POST', { token })).status).toBe(200)
       const feed = await request('/api/events/invitations', 1)
-      assert.equal(feed.status, 200)
-      assert.match(feed.cache!, /no-store/)
-      assert.equal(feed.json.data.events.length, 1)
+      expect(feed.status).toBe(200)
+      expect(feed.cache!).toMatch(/no-store/)
+      expect(feed.json.data.events.length).toBe(1)
       await assertCoverReadable(feed.json.data.events[0].coverURL)
-      assert.equal(feed.json.data.events[0].ideas.length, 1)
-      assert.doesNotMatch(JSON.stringify(feed.json), /PRIVATE|budgetCap|estimatedCost|email/)
-      assert.equal(
+      expect(feed.json.data.events[0].ideas.length).toBe(1)
+      expect(JSON.stringify(feed.json)).not.toMatch(/PRIVATE|budgetCap|estimatedCost|email/)
+      expect(
         (await request('/api/events/invitations', 1, 'POST', { eventId, attendance: 'going' }))
-          .status,
-        200
-      )
-      assert.equal(
-        (await request('/api/events/invitations', 1)).json.data.events[0].attendance,
+          .status
+      ).toBe(200)
+      expect((await request('/api/events/invitations', 1)).json.data.events[0].attendance).toBe(
         'going'
       )
       const hostView = await request('/api/events/invitations', 0)
-      assert.equal(
+      expect(
         hostView.json.data.events[0].people.find(
           (person: { id: string }) => person.id === feed.json.data.events[0].viewerPersonId
-        ).attendance,
-        'going'
-      )
+        ).attendance
+      ).toBe('going')
       const hostUpdates = await request(`/api/sync/pull?scopeID=${eventId}`, 0)
-      assert.equal(hostUpdates.status, 200)
-      assert.ok(
+      expect(hostUpdates.status).toBe(200)
+      expect(
         hostUpdates.json.changes.some(
           (change: { entityType: string; payload: string }) =>
             change.entityType === 'event_participation' &&
             JSON.parse(Buffer.from(change.payload, 'base64').toString()).attendance === 'going'
         )
-      )
-      assert.equal(
+      ).toBeTruthy()
+      expect(
         (
           await request('/api/events/invitations', 1, 'POST', {
             eventId: foreignEventId,
             attendance: 'going',
           })
-        ).status,
-        403
-      )
+        ).status
+      ).toBe(403)
       // A stale seeded scope grant must not bypass the canonical guest role.
       await db
         .insert(nativeSyncScopeMember)
         .values({ scopeId: eventId, userId: ids[1], role: 'viewer' })
-      assert.equal((await request('/api/sync/bootstrap', 1)).json.snapshots.length, 0)
-      assert.equal((await request(`/api/sync/pull?scopeID=${eventId}`, 1)).status, 404)
-      assert.equal((await request('/api/events/invitations')).status, 401)
+      expect((await request('/api/sync/bootstrap', 1)).json.snapshots.length).toBe(0)
+      expect((await request(`/api/sync/pull?scopeID=${eventId}`, 1)).status).toBe(404)
+      expect((await request('/api/events/invitations')).status).toBe(401)
       const planningLink = await request('/api/invitations', 0, 'POST', {
         eventId,
         role: 'collaborator',
@@ -386,38 +361,35 @@ test(
       const collaborator = await request('/api/invitations/accept', 2, 'POST', {
         token: planningToken,
       })
-      assert.equal(collaborator.status, 200)
-      assert.equal(collaborator.json.data.status, 'awaiting_approval')
-      assert.equal(collaborator.json.data.planningScopeId, null)
-      assert.equal((await request('/api/sync/bootstrap', 2)).json.snapshots.length, 0)
+      expect(collaborator.status).toBe(200)
+      expect(collaborator.json.data.status).toBe('awaiting_approval')
+      expect(collaborator.json.data.planningScopeId).toBe(null)
+      expect((await request('/api/sync/bootstrap', 2)).json.snapshots.length).toBe(0)
       const pending = (await request(`/api/invitations?eventId=${eventId}`, 0)).json.data.requests
-      assert.equal(pending.length, 1)
-      assert.equal(
+      expect(pending.length).toBe(1)
+      expect(
         (
           await request('/api/invitations', 2, 'PATCH', {
             eventId,
             requestId: pending[0].id,
             action: 'approve',
           })
-        ).status,
-        403
-      )
-      assert.equal(
+        ).status
+      ).toBe(403)
+      expect(
         (
           await request('/api/invitations', 0, 'PATCH', {
             eventId,
             requestId: pending[0].id,
             action: 'approve',
           })
-        ).status,
-        200
-      )
-      assert.equal(
+        ).status
+      ).toBe(200)
+      expect(
         (await request('/api/invitations/accept', 2, 'POST', { token: planningToken })).json.data
-          .planningScopeId,
-        eventId
-      )
-      assert.equal((await request('/api/sync/bootstrap', 2)).json.snapshots.length, 1)
+          .planningScopeId
+      ).toBe(eventId)
+      expect((await request('/api/sync/bootstrap', 2)).json.snapshots.length).toBe(1)
       const joinedChanges = await request(`/api/sync/pull?scopeID=${eventId}`, 2)
       // Who's Coming refreshes this canonical feed, not an event-wide response.
       // Exercise each choice for both guest HTTP RSVP and native planner sync.
@@ -430,7 +402,7 @@ test(
           JSON.parse(Buffer.from(change.payload, 'base64').toString()).memberID ===
             collaboratorPersonId
       )
-      assert.ok(participationChange)
+      expect(participationChange).toBeTruthy()
       const participationPayload = JSON.parse(
         Buffer.from(participationChange.payload, 'base64').toString()
       )
@@ -440,22 +412,20 @@ test(
         ['not_going', 'declined'],
         ['going', 'going'],
       ]) {
-        assert.equal(
+        expect(
           (
             await request('/api/events/invitations', 1, 'POST', {
               eventId,
               attendance: wireAttendance,
             })
-          ).status,
-          200
-        )
+          ).status
+        ).toBe(200)
         const beforePlannerResponse = (await request('/api/events/invitations', 0)).json.data
           .events[0]
-        assert.equal(
+        expect(
           beforePlannerResponse.people.find((p: { id: string }) => p.id === guestPersonId)
-            .attendance,
-          wireAttendance
-        )
+            .attendance
+        ).toBe(wireAttendance)
         const updatedParticipation = {
           ...participationPayload,
           attendance: nativeAttendance,
@@ -477,32 +447,31 @@ test(
             },
           ],
         })
-        assert.equal(response.json.results[0].disposition, 'applied', JSON.stringify(response.json))
+        expect(response.json.results[0].disposition, JSON.stringify(response.json)).toBe('applied')
         participationVersion = response.json.results[0].serverVersion
         for (const viewer of [0, 1, 2]) {
           const refreshed = (await request('/api/events/invitations', viewer)).json.data.events[0]
-          assert.equal(
-            refreshed.people.find((p: { id: string }) => p.id === collaboratorPersonId).attendance,
-            wireAttendance
-          )
-          assert.equal(
-            refreshed.people.find((p: { id: string }) => p.id === guestPersonId).attendance,
-            wireAttendance
-          )
-          assert.equal(
+          expect(
+            refreshed.people.find((p: { id: string }) => p.id === collaboratorPersonId).attendance
+          ).toBe(wireAttendance)
+          expect(
+            refreshed.people.find((p: { id: string }) => p.id === guestPersonId).attendance
+          ).toBe(wireAttendance)
+          expect(
             refreshed.people.find((p: { id: string }) => p.id === person.id).attendance,
-            beforePlannerResponse.people.find((p: { id: string }) => p.id === person.id).attendance,
             "Responding must not change the host's RSVP"
+          ).toBe(
+            beforePlannerResponse.people.find((p: { id: string }) => p.id === person.id).attendance
           )
         }
       }
-      assert.ok(joinedChanges.json.changes.length > 0)
-      assert.ok(
+      expect(joinedChanges.json.changes.length > 0).toBeTruthy()
+      expect(
         joinedChanges.json.changes.every((change: { operation: string }) =>
           ['create', 'update', 'delete'].includes(change.operation)
         ),
         'Every join and RSVP change must use an operation iOS can decode'
-      )
+      ).toBeTruthy()
       // Existing development rows must heal without another database reset.
       const [historical] = await db
         .insert(nativeSyncChange)
@@ -517,11 +486,10 @@ test(
         })
         .returning()
       const repaired = await request(`/api/sync/pull?scopeID=${eventId}`, 2)
-      assert.equal(
+      expect(
         repaired.json.changes.find((change: { id: string }) => change.id === historical.id)
-          .operation,
-        'update'
-      )
+          .operation
+      ).toBe('update')
       await assertCoverReadable(
         (await request('/api/events/invitations', 2)).json.data.events[0].coverURL
       )
@@ -529,11 +497,10 @@ test(
         `/api/media/native/url?mediaAssetId=${coverId.toUpperCase()}`,
         2
       )
-      assert.equal(
+      expect(
         nativeCover.status,
-        200,
         'A collaborator can resolve native media without an active organization'
-      )
+      ).toBe(200)
       await assertCoverReadable(nativeCover.json.data.url)
       // Canonical collaboration must survive a missing replication grant (for
       // example a role change), without admitting guests with stale grants.
@@ -542,8 +509,8 @@ test(
         .where(
           and(eq(nativeSyncScopeMember.scopeId, eventId), eq(nativeSyncScopeMember.userId, ids[2]))
         )
-      assert.equal((await request('/api/sync/bootstrap', 2)).json.snapshots.length, 1)
-      assert.equal((await request(`/api/sync/pull?scopeID=${eventId}`, 2)).status, 200)
+      expect((await request('/api/sync/bootstrap', 2)).json.snapshots.length).toBe(1)
+      expect((await request(`/api/sync/pull?scopeID=${eventId}`, 2)).status).toBe(200)
       // Final sign-out sync can overlap background delivery or another device.
       // Exercise real HTTP + Postgres, not a mocked sequential version check.
       const noteId = crypto.randomUUID()
@@ -569,85 +536,79 @@ test(
       })
       const push = async (value: ReturnType<typeof mutation>, actor = 0) => {
         const result = await request('/api/sync/push', actor, 'POST', { mutations: [value] })
-        assert.equal(result.status, 200, JSON.stringify(result.json))
+        expect(result.status, JSON.stringify(result.json)).toBe(200)
         return result.json.results[0]
       }
       const initial = mutation('One durable delivery')
       const retries = await Promise.all(Array.from({ length: 6 }, () => push(initial)))
-      assert.equal(retries.filter((r) => r.disposition === 'applied').length, 1)
-      assert.equal(retries.filter((r) => r.disposition === 'duplicate').length, 5)
+      expect(retries.filter((r) => r.disposition === 'applied').length).toBe(1)
+      expect(retries.filter((r) => r.disposition === 'duplicate').length).toBe(5)
       const storedNote = (await db.select().from(eventNote).where(eq(eventNote.id, noteId)))[0]
-      assert.equal(storedNote.eventId, eventId)
-      assert.equal(storedNote.authorUserId, ids[0])
-      assert.equal(storedNote.body, 'One durable delivery')
+      expect(storedNote.eventId).toBe(eventId)
+      expect(storedNote.authorUserId).toBe(ids[0])
+      expect(storedNote.body).toBe('One durable delivery')
       const collaboratorNotes = await request(`/api/sync/pull?scopeID=${eventId}`, 2)
-      assert.equal(collaboratorNotes.status, 200)
+      expect(collaboratorNotes.status).toBe(200)
       const receivedNote = collaboratorNotes.json.changes.find(
         (change: { entityID: string }) => change.entityID === noteId
       )
-      assert.ok(receivedNote, 'A collaborator can pull a newly sent note')
-      assert.deepEqual(JSON.parse(Buffer.from(receivedNote.payload, 'base64').toString()), {
+      expect(receivedNote, 'A collaborator can pull a newly sent note').toBeTruthy()
+      expect(JSON.parse(Buffer.from(receivedNote.payload, 'base64').toString())).toEqual({
         id: noteId,
         eventID: eventId,
         authorUserID: ids[0],
         body: 'One durable delivery',
         sentAt: 813456000,
       })
-      assert.equal(
+      expect(
         (await request(`/api/sync/pull?scopeID=${eventId}`, 1)).status,
-        404,
         'Planning notes remain inaccessible to guests'
-      )
-      assert.equal((await push(mutation('Guest cannot send'), 1)).disposition, 'rejected')
+      ).toBe(404)
+      expect((await push(mutation('Guest cannot send'), 1)).disposition).toBe('rejected')
       const edits = Array.from({ length: 6 }, (_, i) => mutation(`Concurrent edit ${i}`, 1))
       const races = await Promise.all(edits.map((edit, i) => push(edit, i % 2 === 0 ? 0 : 2)))
-      assert.equal(races.filter((r) => r.disposition === 'applied').length, 1)
-      assert.equal(races.filter((r) => r.disposition === 'conflict').length, 5)
+      expect(races.filter((r) => r.disposition === 'applied').length).toBe(1)
+      expect(races.filter((r) => r.disposition === 'conflict').length).toBe(5)
       const losingIndex = races.findIndex((r) => r.disposition === 'conflict')
-      assert.equal(
+      expect(
         (await push(edits[losingIndex], losingIndex % 2 === 0 ? 0 : 2)).disposition,
-        'conflict',
         'Retrying a conflict must not acknowledge an unapplied edit'
-      )
-      assert.equal((await push(initial, 2)).failureCode, 'MUTATION_ID_OWNERSHIP_MISMATCH')
+      ).toBe('conflict')
+      expect((await push(initial, 2)).failureCode).toBe('MUTATION_ID_OWNERSHIP_MISMATCH')
       const changes = await db
         .select()
         .from(nativeSyncChange)
         .where(and(eq(nativeSyncChange.scopeId, eventId), eq(nativeSyncChange.entityId, noteId)))
-      assert.deepEqual(changes.map((row) => row.serverVersion).sort(), [1, 2])
+      expect(changes.map((row) => row.serverVersion).sort()).toEqual([1, 2])
       const winner = races.findIndex((r) => r.disposition === 'applied')
-      assert.equal(
-        (await db.select().from(eventNote).where(eq(eventNote.id, noteId)))[0].body,
+      expect((await db.select().from(eventNote).where(eq(eventNote.id, noteId)))[0].body).toBe(
         `Concurrent edit ${winner}`
       )
       const invalid = mutation('', 2)
       const rejected = await Promise.all([push(invalid), push(invalid)])
-      assert.ok(
+      expect(
         rejected.every((r) => r.disposition === 'rejected' && r.failureCode === 'NOTE_BODY_MISSING')
-      )
-      assert.equal(
+      ).toBeTruthy()
+      expect(
         (
           await db
             .select()
             .from(nativeSyncMutationReceipt)
             .where(eq(nativeSyncMutationReceipt.mutationId, invalid.id))
-        ).length,
-        1
-      )
+        ).length
+      ).toBe(1)
       await assertPreparedMedia(2)
       // Personal input is independent of the shared approval and of other voters.
       const votingIdeaId = crypto.randomUUID()
-      await db
-        .insert(idea)
-        .values({
-          id: votingIdeaId,
-          organizationId: org,
-          eventId,
-          title: 'Team response test',
-          category: 'decor',
-          status: 'new',
-          configuration: { version: 1 },
-        })
+      await db.insert(idea).values({
+        id: votingIdeaId,
+        organizationId: org,
+        eventId,
+        title: 'Team response test',
+        category: 'decor',
+        status: 'new',
+        configuration: { version: 1 },
+      })
       const vote = (
         actor: number,
         choice: string | null,
@@ -674,7 +635,7 @@ test(
       })
       const submitVote = async (actor: number, mutation: ReturnType<typeof vote>) => {
         const result = await request('/api/sync/push', actor, 'POST', { mutations: [mutation] })
-        assert.equal(result.status, 200, JSON.stringify(result.json))
+        expect(result.status, JSON.stringify(result.json)).toBe(200)
         return result.json.results[0]
       }
       const hostVote = vote(0, 'love')
@@ -682,62 +643,52 @@ test(
         submitVote(0, hostVote),
         submitVote(2, vote(2, 'pass')),
       ])
-      assert.ok(
+      expect(
         simultaneous.every((result) => result.disposition === 'applied'),
         JSON.stringify(simultaneous)
-      )
-      assert.equal((await submitVote(0, hostVote)).disposition, 'duplicate')
-      assert.equal(
-        (await db.select().from(ideaDecision).where(eq(ideaDecision.ideaId, votingIdeaId))).length,
-        2
-      )
-      assert.equal((await db.select().from(idea).where(eq(idea.id, votingIdeaId)))[0].status, 'new')
-      assert.equal((await submitVote(2, vote(2, 'maybe', 1))).disposition, 'applied')
-      assert.equal((await submitVote(0, vote(0, null, 1))).disposition, 'applied')
+      ).toBeTruthy()
+      expect((await submitVote(0, hostVote)).disposition).toBe('duplicate')
+      expect(
+        (await db.select().from(ideaDecision).where(eq(ideaDecision.ideaId, votingIdeaId))).length
+      ).toBe(2)
+      expect((await db.select().from(idea).where(eq(idea.id, votingIdeaId)))[0].status).toBe('new')
+      expect((await submitVote(2, vote(2, 'maybe', 1))).disposition).toBe('applied')
+      expect((await submitVote(0, vote(0, null, 1))).disposition).toBe('applied')
       const remainingVotes = await db
         .select()
         .from(ideaDecision)
         .where(eq(ideaDecision.ideaId, votingIdeaId))
-      assert.deepEqual(
-        remainingVotes.map((row) => [row.userId, row.choice]),
-        [[ids[2], 'maybe']]
-      )
+      expect(remainingVotes.map((row) => [row.userId, row.choice])).toEqual([[ids[2], 'maybe']])
       const receivedVotes = (
         await request(`/api/sync/pull?scopeID=${eventId}`, 2)
       ).json.changes.filter(
         (change: { entityType: string }) => change.entityType === 'idea_response'
       )
-      assert.equal(
+      expect(
         receivedVotes.length,
-        4,
         'Both accounts receive independent votes, changes, and retractions'
-      )
-      assert.equal(
-        (await submitVote(0, vote(2, 'love', 2))).failureCode,
+      ).toBe(4)
+      expect((await submitVote(0, vote(2, 'love', 2))).failureCode).toBe(
         'IDEA_RESPONSE_OWNER_MISMATCH'
       )
-      assert.equal((await submitVote(1, vote(1, 'love'))).disposition, 'rejected')
-      assert.equal(
-        (await submitVote(0, vote(0, 'love', null, crypto.randomUUID()))).failureCode,
+      expect((await submitVote(1, vote(1, 'love'))).disposition).toBe('rejected')
+      expect((await submitVote(0, vote(0, 'love', null, crypto.randomUUID()))).failureCode).toBe(
         'IDEA_RESPONSE_SCOPE_MISMATCH'
       )
       await db.update(idea).set({ status: 'approved' }).where(eq(idea.id, votingIdeaId))
-      assert.equal((await submitVote(2, vote(2, 'pass', 2))).failureCode, 'IDEA_RESPONSE_CLOSED')
-      assert.equal(
+      expect((await submitVote(2, vote(2, 'pass', 2))).failureCode).toBe('IDEA_RESPONSE_CLOSED')
+      expect(
         (await prepareMedia(2, otherRootEventId)).json.ok,
-        false,
         'Collaboration in one organization grants no access to another'
-      )
+      ).toBe(false)
       await request('/api/invitations', 0, 'DELETE', { eventId })
-      assert.equal((await request(`/api/invitations/preview?token=${planningToken}`)).status, 404)
-      assert.equal(
-        (await request(`/api/invitations/preview?token=${planningToken}`, 2)).json.data.status,
-        'accepted'
-      )
-      assert.equal(
-        (await request('/api/invitations/accept', 2, 'POST', { token: planningToken })).status,
-        200
-      )
+      expect((await request(`/api/invitations/preview?token=${planningToken}`)).status).toBe(404)
+      expect(
+        (await request(`/api/invitations/preview?token=${planningToken}`, 2)).json.data.status
+      ).toBe('accepted')
+      expect(
+        (await request('/api/invitations/accept', 2, 'POST', { token: planningToken })).status
+      ).toBe(200)
       await db
         .delete(eventParticipant)
         .where(
@@ -750,13 +701,12 @@ test(
             )
           )
         )
-      assert.equal((await request('/api/events/invitations', 1)).json.data.events.length, 0)
-      assert.equal((await request('/api/auth/sign-out', 0, 'POST', {})).status, 200)
-      assert.equal(
+      expect((await request('/api/events/invitations', 1)).json.data.events.length).toBe(0)
+      expect((await request('/api/auth/sign-out', 0, 'POST', {})).status).toBe(200)
+      expect(
         (await request('/api/sync/push', 0, 'POST', { mutations: [initial] })).status,
-        401,
         'After sign-out, the old bearer must not deliver any more work'
-      )
+      ).toBe(401)
     } finally {
       if (uploadedCover) await storage.deleteMediaObject(uploadedCover)
       // Exact, uniquely named test fixtures only. Never reset or seed the database.

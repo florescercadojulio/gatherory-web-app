@@ -1,6 +1,5 @@
-import assert from 'node:assert/strict'
 import { spawnSync } from 'node:child_process'
-import { test } from 'vitest'
+import { expect, test } from 'vitest'
 
 test('native materialization imports with database-only CI configuration', () => {
   const smokeTest = `
@@ -24,5 +23,5 @@ test('native materialization imports with database-only CI configuration', () =>
     }
   )
 
-  assert.equal(result.status, 0, [result.stdout, result.stderr].filter(Boolean).join('\n'))
+  expect(result.status, [result.stdout, result.stderr].filter(Boolean).join('\n')).toBe(0)
 })

@@ -1,5 +1,4 @@
-import assert from 'node:assert/strict'
-import { test } from 'vitest'
+import { expect, test } from 'vitest'
 
 import { organizationType } from '@/db/schema/auth.schema'
 import {
@@ -9,10 +8,10 @@ import {
 } from '@/lib/organization-contract'
 
 test('the Better Auth default is accepted by the PostgreSQL enum', () => {
-  assert.equal(defaultOrganizationType, 'event')
-  assert.deepEqual(organizationType.enumValues, organizationTypes)
-  assert.ok(organizationType.enumValues.includes(defaultOrganizationType))
-  assert.ok(organizationType.enumValues.includes('personal'))
+  expect(defaultOrganizationType).toBe('event')
+  expect(organizationType.enumValues).toEqual(organizationTypes)
+  expect(organizationType.enumValues.includes(defaultOrganizationType)).toBeTruthy()
+  expect(organizationType.enumValues.includes('personal')).toBeTruthy()
 })
 
 test('organization creation replaces a legacy personal type', () => {
@@ -23,8 +22,8 @@ test('organization creation replaces a legacy personal type', () => {
     workspaceType: 'personal',
   })
 
-  assert.equal(organization.workspaceType, 'event')
-  assert.equal(organization.slug, 'personal-abc123')
-  assert.equal(organization.id, 'organization-id')
-  assert.equal(organization.name, "Julio Flores's Workspace")
+  expect(organization.workspaceType).toBe('event')
+  expect(organization.slug).toBe('personal-abc123')
+  expect(organization.id).toBe('organization-id')
+  expect(organization.name).toBe("Julio Flores's Workspace")
 })

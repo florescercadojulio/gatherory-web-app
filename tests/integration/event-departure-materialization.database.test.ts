@@ -1,15 +1,14 @@
-import assert from 'node:assert/strict'
 import { readFile } from 'node:fs/promises'
-import { test } from 'vitest'
+import { expect, test } from 'vitest'
 import { eq, sql } from 'drizzle-orm'
 
 test(
   'stale native participation cannot undo a guest departure',
   { skip: process.env.RUN_EVENT_LIFECYCLE_DB_TESTS !== '1' },
   async () => {
-    assert.ok(
+    expect(
       ['localhost', '127.0.0.1', '[::1]'].includes(new URL(process.env.DATABASE_URL!).hostname)
-    )
+    ).toBeTruthy()
     const { db } = await import('@/db')
     const { user, organization, event, workspacePerson, eventParticipant, eventDeparture } =
       await import('@/db/schema')
@@ -36,32 +35,26 @@ test(
         const scopeID = crypto.randomUUID(),
           personId = crypto.randomUUID(),
           participationId = crypto.randomUUID()
-        await transaction
-          .insert(user)
-          .values({
-            id: userId,
-            name: 'Guest fixture',
-            email: `${userId}@example.com`,
-            emailVerified: true,
-          })
-        await transaction
-          .insert(organization)
-          .values({
-            id: organizationId,
-            name: 'Departure fixture',
-            slug: organizationId,
-            createdAt: new Date(),
-          })
-        await transaction
-          .insert(event)
-          .values({
-            id: scopeID,
-            organizationId,
-            title: 'Departure fixture',
-            status: 'draft',
-            startsAt: new Date(),
-            timeZone: 'America/Detroit',
-          })
+        await transaction.insert(user).values({
+          id: userId,
+          name: 'Guest fixture',
+          email: `${userId}@example.com`,
+          emailVerified: true,
+        })
+        await transaction.insert(organization).values({
+          id: organizationId,
+          name: 'Departure fixture',
+          slug: organizationId,
+          createdAt: new Date(),
+        })
+        await transaction.insert(event).values({
+          id: scopeID,
+          organizationId,
+          title: 'Departure fixture',
+          status: 'draft',
+          startsAt: new Date(),
+          timeZone: 'America/Detroit',
+        })
         await transaction
           .insert(workspacePerson)
           .values({ id: personId, organizationId, userId, displayName: 'Guest fixture' })
@@ -87,30 +80,28 @@ test(
           ).toString('base64'),
         }
         await materializeNativeMutation(transaction, { userId, organizationId, mutation })
-        assert.equal(
+        expect(
           (
             await transaction
               .select()
               .from(eventParticipant)
               .where(eq(eventParticipant.eventId, scopeID))
-          ).length,
-          0
-        )
+          ).length
+        ).toBe(0)
         // A fresh validated invitation clears the marker before materialization.
         await transaction.delete(eventDeparture).where(eq(eventDeparture.eventId, scopeID))
         await materializeNativeMutation(transaction, { userId, organizationId, mutation })
-        assert.equal(
+        expect(
           (
             await transaction
               .select()
               .from(eventParticipant)
               .where(eq(eventParticipant.eventId, scopeID))
-          ).length,
-          1
-        )
+          ).length
+        ).toBe(1)
         throw rollback
       })
-      assert.fail('Fixture transaction must roll back')
+      throw new Error('Fixture transaction must roll back')
     } catch (error) {
       if (error !== rollback) throw error
     }

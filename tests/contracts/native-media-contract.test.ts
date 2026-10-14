@@ -1,7 +1,6 @@
-import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { test } from 'vitest'
+import { expect, test } from 'vitest'
 
 import {
   MAX_IMAGE_BYTES,
@@ -16,7 +15,7 @@ test('native media uploads require an idempotent asset id and enforce the R2 siz
     contentType: 'image/heic',
     byteSize: MAX_IMAGE_BYTES,
   })
-  assert.equal(valid.success, true)
+  expect(valid.success).toBe(true)
 
   const oversized = PrepareNativeMediaUploadInputSchema.safeParse({
     scopeId: crypto.randomUUID(),
@@ -25,7 +24,7 @@ test('native media uploads require an idempotent asset id and enforce the R2 siz
     contentType: 'image/heic',
     byteSize: MAX_IMAGE_BYTES + 1,
   })
-  assert.equal(oversized.success, false)
+  expect(oversized.success).toBe(false)
 })
 
 test('native media canonicalizes Foundation UUIDs before R2 metadata is created', () => {
@@ -40,8 +39,8 @@ test('native media canonicalizes Foundation UUIDs before R2 metadata is created'
     byteSize: 1,
   })
 
-  assert.equal(parsed.scopeId, scopeId.toLowerCase())
-  assert.equal(parsed.mediaAssetId, mediaAssetId.toLowerCase())
+  expect(parsed.scopeId).toBe(scopeId.toLowerCase())
+  expect(parsed.mediaAssetId).toBe(mediaAssetId.toLowerCase())
 })
 
 test('native media routes authenticate and use the shared Effect boundary', () => {
@@ -50,21 +49,21 @@ test('native media routes authenticate and use the shared Effect boundary', () =
       join(process.cwd(), `src/routes/api/media/native/${route}.ts`),
       'utf8'
     )
-    assert.match(source, /requestUser\(request\)/)
-    assert.match(source, /runServerResponse\(/)
-    assert.match(source, /Effect\.provide\(PgClientLive\)/)
+    expect(source).toMatch(/requestUser\(request\)/)
+    expect(source).toMatch(/runServerResponse\(/)
+    expect(source).toMatch(/Effect\.provide\(PgClientLive\)/)
   }
   const authentication = readFileSync(join(process.cwd(), 'src/server/http-errors.ts'), 'utf8')
-  assert.match(authentication, /nativeSyncUser\(request\)/)
-  assert.match(authentication, /Effect\.fail\(\s*new ForbiddenError\(/)
-  assert.match(authentication, /code:\s*['"]UNAUTHORIZED['"],\s*httpStatus:\s*401\b/)
+  expect(authentication).toMatch(/nativeSyncUser\(request\)/)
+  expect(authentication).toMatch(/Effect\.fail\(\s*new ForbiddenError\(/)
+  expect(authentication).toMatch(/code:\s*['"]UNAUTHORIZED['"],\s*httpStatus:\s*401\b/)
 })
 
 test('native materialization projects every image-bearing domain onto typed media joins', () => {
   const source = readFileSync(join(process.cwd(), 'src/server/sync/native-materializer.ts'), 'utf8')
-  assert.match(source, /mainEventMediaAssetID/)
-  assert.match(source, /materializeEventCover/)
-  assert.match(source, /materializeIdeaCover/)
-  assert.match(source, /materializeRegistryCover/)
-  assert.match(source, /role:\s*['"]gallery['"]/)
+  expect(source).toMatch(/mainEventMediaAssetID/)
+  expect(source).toMatch(/materializeEventCover/)
+  expect(source).toMatch(/materializeIdeaCover/)
+  expect(source).toMatch(/materializeRegistryCover/)
+  expect(source).toMatch(/role:\s*['"]gallery['"]/)
 })

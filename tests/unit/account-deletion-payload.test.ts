@@ -1,5 +1,4 @@
-import assert from 'node:assert/strict'
-import { test } from 'vitest'
+import { expect, test } from 'vitest'
 import {
   redactAccountPayload,
   type DeletionPayloadContext,
@@ -39,15 +38,15 @@ test('deletion payload removes identity and participant references, promotes the
     notes: [{ authorUserID: 'departing', body: 'Keep this note' }],
     futureModule: { enabled: true },
   })
-  assert.equal(result.members.length, 1)
-  assert.equal(result.members[0].participantRole, 'host')
-  assert.deepEqual(result.mainEventParticipantIDs, ['person-b'])
-  assert.equal(result.eventParticipations.length, 1)
-  assert.equal(result.eventParticipations[0].role, 'host')
-  assert.deepEqual(result.timeline[0].participantIDs, ['person-b'])
-  assert.deepEqual(result.ideas[0], { submittedBy: '', title: 'Keep this idea' })
-  assert.deepEqual(result.notes[0], { body: 'Keep this note' })
-  assert.deepEqual(result.futureModule, { enabled: true })
+  expect(result.members.length).toBe(1)
+  expect(result.members[0].participantRole).toBe('host')
+  expect(result.mainEventParticipantIDs).toEqual(['person-b'])
+  expect(result.eventParticipations.length).toBe(1)
+  expect(result.eventParticipations[0].role).toBe('host')
+  expect(result.timeline[0].participantIDs).toEqual(['person-b'])
+  expect(result.ideas[0]).toEqual({ submittedBy: '', title: 'Keep this idea' })
+  expect(result.notes[0]).toEqual({ body: 'Keep this note' })
+  expect(result.futureModule).toEqual({ enabled: true })
 })
 
 test("deleted media references and cached bytes are removed without affecting someone else's media", () => {
@@ -60,17 +59,23 @@ test("deleted media references and cached bytes are removed without affecting so
     ],
     eventMoments: [{ mediaAssetID: 'image-a', imageData: 'private-bytes', addedAt: 42 }],
   })
-  assert.equal(result.mainEventMediaAssetID, undefined)
-  assert.equal(result.mainEventImageData, undefined)
-  assert.deepEqual(result.ideas, [{}, { mediaAssetID: 'image-b', imageData: 'keep' }])
-  assert.deepEqual(result.eventMoments, [{ imageData: '', addedAt: 42 }])
+  expect(result.mainEventMediaAssetID).toBe(undefined)
+  expect(result.mainEventImageData).toBe(undefined)
+  expect(result.ideas).toEqual([{}, { mediaAssetID: 'image-b', imageData: 'keep' }])
+  expect(result.eventMoments).toEqual([{ imageData: '', addedAt: 42 }])
 })
 
 test('unchanged payloads/tombstones keep their bytes and invalid JSON produces a tagged error', () => {
   const payload = encode({ title: 'Keep', cost: 40 })
-  assert.equal(redactAccountPayload(payload, context), payload)
-  assert.equal(redactAccountPayload('', context), '')
-  assert.throws(() => redactAccountPayload('invalid', context), {
+  expect(redactAccountPayload(payload, context)).toBe(payload)
+  expect(redactAccountPayload('', context)).toBe('')
+  let thrown: unknown
+  try {
+    redactAccountPayload('invalid', context)
+  } catch (error) {
+    thrown = error
+  }
+  expect(thrown).toMatchObject({
     _tag: 'PersistenceError',
     code: 'ACCOUNT_DELETION_INVALID_SYNC_PAYLOAD',
   })

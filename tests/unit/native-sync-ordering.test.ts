@@ -1,5 +1,4 @@
-import assert from 'node:assert/strict'
-import { test } from 'vitest'
+import { expect, test } from 'vitest'
 
 import {
   compareNativeMutationOrder,
@@ -40,10 +39,13 @@ test('native sync establishes a workspace before dependent batch records', () =>
     mutation('workspace'),
   ].sort(compareNativeMutationOrder)
 
-  assert.deepEqual(
-    ordered.map((entry) => entry.entityType),
-    ['workspace', 'participant', 'event', 'idea', 'event_participation']
-  )
+  expect(ordered.map((entry) => entry.entityType)).toEqual([
+    'workspace',
+    'participant',
+    'event',
+    'idea',
+    'event_participation',
+  ])
 })
 
 test('native sync reverses dependency order when deleting a workspace', () => {
@@ -55,8 +57,11 @@ test('native sync reverses dependency order when deleting a workspace', () => {
     }))
     .sort(compareNativeMutationOrder)
 
-  assert.deepEqual(
-    ordered.map((entry) => entry.entityType),
-    ['event_participation', 'idea', 'event', 'participant', 'workspace']
-  )
+  expect(ordered.map((entry) => entry.entityType)).toEqual([
+    'event_participation',
+    'idea',
+    'event',
+    'participant',
+    'workspace',
+  ])
 })

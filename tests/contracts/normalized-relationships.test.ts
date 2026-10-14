@@ -1,7 +1,6 @@
-import assert from 'node:assert/strict'
 import { readdirSync, readFileSync, statSync } from 'node:fs'
 import { join, relative } from 'node:path'
-import { test } from 'vitest'
+import { expect, test } from 'vitest'
 
 import { eventParticipant, workspacePerson } from '@/db/schema/event.schema'
 
@@ -14,10 +13,10 @@ function sourceFiles(directory: string): string[] {
 }
 
 test('event participants resolve accounts through workspace people', () => {
-  assert.ok('personId' in eventParticipant)
-  assert.equal('userId' in eventParticipant, false)
-  assert.ok('userId' in workspacePerson)
-  assert.ok('organizationId' in workspacePerson)
+  expect('personId' in eventParticipant).toBeTruthy()
+  expect('userId' in eventParticipant).toBe(false)
+  expect('userId' in workspacePerson).toBeTruthy()
+  expect('organizationId' in workspacePerson).toBeTruthy()
 })
 
 test('application queries do not use removed participant-account columns', () => {
@@ -34,5 +33,5 @@ test('application queries do not use removed participant-account columns', () =>
     return reasons.map((reason) => `${relative(process.cwd(), path)}: ${reason}`)
   })
 
-  assert.deepEqual(violations, [])
+  expect(violations).toEqual([])
 })

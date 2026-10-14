@@ -1,14 +1,13 @@
-import assert from 'node:assert/strict'
-import { it } from '@effect/vitest'
+import { expect, it } from '@effect/vitest'
 import { Cause, Data, Effect, Exit } from 'effect'
 import { and, eq } from 'drizzle-orm'
 
 const verification = Effect.gen(function* () {
   const url = new URL(process.env.DATABASE_URL!)
-  assert.ok(
+  expect(
     ['localhost', '127.0.0.1', '[::1]'].includes(url.hostname),
     'Only a local database is allowed'
-  )
+  ).toBeTruthy()
   const { DB, PgClientLive } = yield* Effect.promise(() => import('@/db'))
   const { PgClient } = yield* Effect.promise(() => import('@effect/sql-pg/PgClient'))
   const { user, organization, member } = yield* Effect.promise(
@@ -135,22 +134,19 @@ const verification = Effect.gen(function* () {
           .insert(nativeWorkspaceSnapshot)
           .values({ scopeId: eventId, ownerUserId: ownerId, organizationId, payload: archive })
 
-        assert.notEqual(eventId, organizationId)
-        assert.deepEqual(
+        expect(eventId).not.toBe(organizationId)
+        expect(
           yield* getNativeMediaActorContext({ scopeId: eventId, userId: ownerId }),
-          { organizationId },
           'Native uploads send the event scope UUID, not the organization ID'
-        )
-        assert.equal(
+        ).toEqual({ organizationId })
+        expect(
           yield* getNativeMediaActorContext({ scopeId: eventId, userId: guestId }),
-          null,
           'Unlinked accounts cannot upload'
-        )
-        assert.equal(
+        ).toBe(null)
+        expect(
           yield* getNativeMediaActorContext({ scopeId: crypto.randomUUID(), userId: ownerId }),
-          null,
           'A host cannot use an unrelated scope'
-        )
+        ).toBe(null)
 
         const retryId = crypto.randomUUID()
         const retry = {
@@ -166,7 +162,7 @@ const verification = Effect.gen(function* () {
             byteSize: 68,
           },
         }
-        assert.equal((yield* upsertPendingNativeMedia(retry)).status, 'pending')
+        expect((yield* upsertPendingNativeMedia(retry)).status).toBe('pending')
         yield* db
           .update(mediaAsset)
           .set({ status: 'failed', checksum: 'stale' })
@@ -177,30 +173,27 @@ const verification = Effect.gen(function* () {
           { bucket: 'different-bucket' },
           { storageKey: 'different-key' },
         ]) {
-          assert.ok(
+          expect(
             Exit.isFailure(yield* Effect.exit(upsertPendingNativeMedia({ ...retry, ...change }))),
             'Retries cannot change asset ownership or storage'
-          )
+          ).toBeTruthy()
         }
-        assert.equal(
-          (yield* db.select().from(mediaAsset).where(eq(mediaAsset.id, retryId)))[0].status,
-          'failed'
-        )
-        assert.equal(
+        expect(
+          (yield* db.select().from(mediaAsset).where(eq(mediaAsset.id, retryId)))[0].status
+        ).toBe('failed')
+        expect(
           (yield* upsertPendingNativeMedia(retry)).status,
-          'pending',
           'The uploader can reopen a failed asset'
-        )
-        assert.equal(
-          (yield* db.select().from(mediaAsset).where(eq(mediaAsset.id, retryId)))[0].checksum,
-          null
-        )
+        ).toBe('pending')
+        expect(
+          (yield* db.select().from(mediaAsset).where(eq(mediaAsset.id, retryId)))[0].checksum
+        ).toBe(null)
         for (const status of ['ready', 'deleted', 'uploaded', 'processing'] as const) {
           yield* db.update(mediaAsset).set({ status }).where(eq(mediaAsset.id, retryId))
-          assert.ok(
+          expect(
             Exit.isFailure(yield* Effect.exit(upsertPendingNativeMedia(retry))),
             `${status} assets must not be reopened`
-          )
+          ).toBeTruthy()
         }
 
         const create = (email: string, role: 'guest' | 'collaborator') =>
@@ -228,7 +221,7 @@ const verification = Effect.gen(function* () {
             Effect.provide(EventAuthorizationLive)
           )
         const stranger = yield* Effect.exit(authorizedCreate(guestId))
-        assert.ok(
+        expect(
           Exit.isFailure(stranger) &&
             stranger.cause.reasons.some(
               (reason) =>
@@ -238,12 +231,12 @@ const verification = Effect.gen(function* () {
                 'code' in reason.error &&
                 reason.error.code === 'EVENT_PARTICIPANT_REQUIRED'
             )
-        )
+        ).toBeTruthy()
         yield* authorizedCreate(ownerId)
         const first = yield* create(collaboratorEmail, 'collaborator')
         const second = yield* create(collaboratorEmail, 'collaborator')
-        assert.notEqual(first.token, second.token)
-        assert.equal(first.id, second.id)
+        expect(first.token).not.toBe(second.token)
+        expect(first.id).toBe(second.id)
         const [existingContact] = yield* db
           .select()
           .from(workspacePerson)
@@ -264,52 +257,49 @@ const verification = Effect.gen(function* () {
         const accept = (token: string, userId = collaboratorId, userEmail = collaboratorEmail) =>
           acceptEventInvitation({ userId, userEmail, invitation: { token } })
         const oldToken = yield* Effect.exit(accept(first.token))
-        assert.ok(
+        expect(
           Exit.isFailure(oldToken) &&
             JSON.stringify(oldToken.cause).includes('EVENT_INVITATION_NOT_FOUND')
-        )
+        ).toBeTruthy()
         const mismatch = yield* Effect.exit(accept(second.token, guestId, guestEmail))
-        assert.ok(
+        expect(
           Exit.isFailure(mismatch) && JSON.stringify(mismatch.cause).includes('EMAIL_MISMATCH')
-        )
+        ).toBeTruthy()
         const accepted = yield* accept(second.token)
-        assert.equal(accepted.eventId, eventId)
-        assert.equal(accepted.role, 'collaborator')
-        assert.deepEqual(yield* accept(second.token), accepted)
+        expect(accepted.eventId).toBe(eventId)
+        expect(accepted.role).toBe('collaborator')
+        expect(yield* accept(second.token)).toEqual(accepted)
         const linked = yield* db
           .select()
           .from(workspacePerson)
           .where(eq(workspacePerson.userId, collaboratorId))
-        assert.equal(linked.length, 1)
+        expect(linked.length).toBe(1)
         const participation = yield* db
           .select()
           .from(eventParticipant)
           .where(
             and(eq(eventParticipant.eventId, eventId), eq(eventParticipant.personId, linked[0].id))
           )
-        assert.equal(participation.length, 1)
-        assert.deepEqual(
-          yield* getNativeMediaActorContext({ scopeId: eventId, userId: collaboratorId }),
-          { organizationId }
-        )
+        expect(participation.length).toBe(1)
+        expect(
+          yield* getNativeMediaActorContext({ scopeId: eventId, userId: collaboratorId })
+        ).toEqual({ organizationId })
         yield* db
           .update(eventParticipant)
           .set({ planningPermission: 'contribute' })
           .where(eq(eventParticipant.id, participation[0].id))
-        assert.deepEqual(
+        expect(
           yield* getNativeMediaActorContext({ scopeId: eventId, userId: collaboratorId }),
-          { organizationId },
           'Contributors can upload'
-        )
+        ).toEqual({ organizationId })
         yield* db
           .update(eventParticipant)
           .set({ planningPermission: 'view_only' })
           .where(eq(eventParticipant.id, participation[0].id))
-        assert.equal(
+        expect(
           yield* getNativeMediaActorContext({ scopeId: eventId, userId: collaboratorId }),
-          null,
           'Read-only collaborators cannot upload'
-        )
+        ).toBe(null)
         yield* db
           .update(eventParticipant)
           .set({ planningPermission: 'manage' })
@@ -318,7 +308,7 @@ const verification = Effect.gen(function* () {
           .select()
           .from(nativeSyncScopeMember)
           .where(eq(nativeSyncScopeMember.scopeId, eventId))
-        assert.equal(memberships.find((item) => item.userId === collaboratorId)?.role, 'editor')
+        expect(memberships.find((item) => item.userId === collaboratorId)?.role).toBe('editor')
         const entities = yield* db
           .select()
           .from(nativeSyncEntity)
@@ -329,24 +319,23 @@ const verification = Effect.gen(function* () {
             'base64'
           ).toString()
         )
-        assert.equal(person.userID, collaboratorId)
-        assert.equal(person.invitationStatus, 'active')
+        expect(person.userID).toBe(collaboratorId)
+        expect(person.invitationStatus).toBe('active')
         const [published] = yield* db
           .select()
           .from(nativeWorkspaceSnapshot)
           .where(eq(nativeWorkspaceSnapshot.scopeId, eventId))
         const publishedArchive = JSON.parse(Buffer.from(published.payload, 'base64').toString())
-        assert.equal(
+        expect(
           publishedArchive.members.length,
-          1,
           'Foundation uppercase UUIDs must not create duplicate people'
-        )
-        assert.equal(publishedArchive.mainEventParticipantIDs.length, 1)
+        ).toBe(1)
+        expect(publishedArchive.mainEventParticipantIDs.length).toBe(1)
         const changes = yield* db
           .select()
           .from(nativeSyncChange)
           .where(eq(nativeSyncChange.scopeId, eventId))
-        assert.deepEqual(changes.map((item) => item.entityType).sort(), [
+        expect(changes.map((item) => item.entityType).sort()).toEqual([
           'event_participation',
           'participant',
           'workspace',
@@ -358,7 +347,7 @@ const verification = Effect.gen(function* () {
           .select()
           .from(nativeSyncScopeMember)
           .where(eq(nativeSyncScopeMember.userId, guestId))
-        assert.equal(guestMemberships.length, 0, 'Guests cannot download private planning archives')
+        expect(guestMemberships.length, 'Guests cannot download private planning archives').toBe(0)
         const publishedId = crypto.randomUUID()
         yield* db.insert(idea).values([
           {
@@ -395,12 +384,9 @@ const verification = Effect.gen(function* () {
           },
         ])
         const feed = yield* guestEventInvitations(guestId)
-        assert.equal(feed.length, 1)
-        assert.deepEqual(
-          feed[0].ideas.map((item) => item.id),
-          [publishedId]
-        )
-        assert.doesNotMatch(JSON.stringify(feed), /PRIVATE|estimatedCost|budgetCap|email/)
+        expect(feed.length).toBe(1)
+        expect(feed[0].ideas.map((item) => item.id)).toEqual([publishedId])
+        expect(JSON.stringify(feed)).not.toMatch(/PRIVATE|estimatedCost|budgetCap|email/)
         const privateMediaId = crypto.randomUUID()
         yield* db.insert(mediaAsset).values({
           id: privateMediaId,
@@ -414,40 +400,40 @@ const verification = Effect.gen(function* () {
           contentType: 'image/jpeg',
           byteSize: 100,
         })
-        assert.equal(
-          yield* getNativeMediaAccessContext({ mediaAssetId: privateMediaId, userId: guestId }),
-          null
-        )
-        assert.equal(yield* getNativeMediaActorContext({ scopeId: eventId, userId: guestId }), null)
-        assert.ok(
+        expect(
+          yield* getNativeMediaAccessContext({ mediaAssetId: privateMediaId, userId: guestId })
+        ).toBe(null)
+        expect(yield* getNativeMediaActorContext({ scopeId: eventId, userId: guestId })).toBe(null)
+        expect(
           yield* getNativeMediaAccessContext({
             mediaAssetId: privateMediaId,
             userId: collaboratorId,
           })
-        )
+        ).toBeTruthy()
         yield* respondToEvent(guestId, eventId, 'going')
-        assert.equal((yield* guestEventInvitations(guestId))[0].attendance, 'going')
+        expect((yield* guestEventInvitations(guestId))[0].attendance).toBe('going')
         const [rsvpSnapshot] = yield* db
           .select()
           .from(nativeWorkspaceSnapshot)
           .where(eq(nativeWorkspaceSnapshot.scopeId, eventId))
         const rsvpArchive = JSON.parse(Buffer.from(rsvpSnapshot.payload, 'base64').toString())
-        assert.equal(
+        expect(
           rsvpArchive.eventParticipations.find(
             (item: { memberID: string }) =>
               item.memberID ===
               rsvpArchive.members.find((person: { userID: string }) => person.userID === guestId).id
-          ).attendance,
-          'going'
-        )
-        assert.ok(
+          ).attendance
+        ).toBe('going')
+        expect(
           Exit.isFailure(yield* Effect.exit(respondToEvent(unverifiedId, eventId, 'going')))
-        )
+        ).toBeTruthy()
         yield* db.update(event).set({ status: 'finished' }).where(eq(event.id, eventId))
-        assert.ok(Exit.isFailure(yield* Effect.exit(respondToEvent(guestId, eventId, 'not_going'))))
+        expect(
+          Exit.isFailure(yield* Effect.exit(respondToEvent(guestId, eventId, 'not_going')))
+        ).toBeTruthy()
         yield* db.update(event).set({ status: 'draft' }).where(eq(event.id, eventId))
         const guestAttemptsInvite = yield* Effect.exit(authorizedCreate(guestId))
-        assert.ok(
+        expect(
           Exit.isFailure(guestAttemptsInvite) &&
             guestAttemptsInvite.cause.reasons.some(
               (reason) =>
@@ -457,107 +443,96 @@ const verification = Effect.gen(function* () {
                 'code' in reason.error &&
                 reason.error.code === 'EVENT_PERMISSION_REQUIRED'
             )
-        )
+        ).toBeTruthy()
 
         const publicLink = yield* createEventShareLink(ownerId, { eventId, role: 'guest' })
-        assert.ok(
+        expect(
           Exit.isFailure(yield* Effect.exit(acceptEventShareLink(unverifiedId, publicLink.token))),
           'An unverified account cannot join'
-        )
-        assert.equal(
+        ).toBeTruthy()
+        expect(
           (yield* createEventShareLink(ownerId, { eventId, role: 'guest' })).token,
-          publicLink.token,
           'Repeated shares reuse an active link'
-        )
-        assert.equal(
-          (yield* previewEventShareLink(publicLink.token))?.title,
+        ).toBe(publicLink.token)
+        expect((yield* previewEventShareLink(publicLink.token))?.title).toBe(
           'Invitation verification'
         )
         const guestPublic = yield* acceptEventShareLink(guestId, publicLink.token)
-        assert.equal(guestPublic.role, 'guest')
-        assert.deepEqual(yield* acceptEventShareLink(guestId, publicLink.token), guestPublic)
-        assert.equal(
+        expect(guestPublic.role).toBe('guest')
+        expect(yield* acceptEventShareLink(guestId, publicLink.token)).toEqual(guestPublic)
+        expect(
           (yield* acceptEventShareLink(otherGuestId, publicLink.token)).role,
-          'guest',
           'A different email can accept the same link'
-        )
+        ).toBe('guest')
         const preserved = yield* acceptEventShareLink(collaboratorId, publicLink.token)
-        assert.equal(
-          preserved.role,
-          'collaborator',
-          'A guest link does not downgrade existing members'
+        expect(preserved.role, 'A guest link does not downgrade existing members').toBe(
+          'collaborator'
         )
-        assert.equal(
+        expect(
           (yield* db
             .select()
             .from(nativeSyncScopeMember)
-            .where(eq(nativeSyncScopeMember.userId, otherGuestId))).length,
-          0
-        )
-        assert.ok(
+            .where(eq(nativeSyncScopeMember.userId, otherGuestId))).length
+        ).toBe(0)
+        expect(
           Exit.isFailure(
             yield* Effect.exit(createEventShareLink(guestId, { eventId, role: 'collaborator' }))
           )
-        )
-        assert.ok(Exit.isFailure(yield* Effect.exit(revokeEventShareLink(guestId, eventId))))
+        ).toBeTruthy()
+        expect(
+          Exit.isFailure(yield* Effect.exit(revokeEventShareLink(guestId, eventId)))
+        ).toBeTruthy()
         yield* revokeEventShareLink(ownerId, eventId)
-        assert.equal(yield* previewEventShareLink(publicLink.token), null)
-        assert.ok(
+        expect(yield* previewEventShareLink(publicLink.token)).toBe(null)
+        expect(
           Exit.isFailure(
             yield* Effect.exit(acceptEventShareLink(sharedCollaboratorId, publicLink.token))
           )
-        )
+        ).toBeTruthy()
         const planningLink = yield* createEventShareLink(ownerId, { eventId, role: 'collaborator' })
-        assert.notEqual(planningLink.token, publicLink.token)
-        assert.equal(
+        expect(planningLink.token).not.toBe(publicLink.token)
+        expect(
           (yield* acceptEventShareLink(guestId, planningLink.token)).role,
-          'guest',
           'A forwarded planning link cannot upgrade an existing guest'
-        )
-        assert.equal(
-          (yield* acceptEventShareLink(sharedCollaboratorId, planningLink.token)).role,
+        ).toBe('guest')
+        expect((yield* acceptEventShareLink(sharedCollaboratorId, planningLink.token)).role).toBe(
           'collaborator'
         )
-        assert.equal(
-          (yield* previewEventShareLink(planningLink.token, sharedCollaboratorId))?.status,
-          'awaiting_approval'
-        )
-        assert.equal(
+        expect(
+          (yield* previewEventShareLink(planningLink.token, sharedCollaboratorId))?.status
+        ).toBe('awaiting_approval')
+        expect(
           (yield* db
             .select()
             .from(nativeSyncScopeMember)
             .where(eq(nativeSyncScopeMember.userId, sharedCollaboratorId))).length,
-          0,
           'A request grants no planning scope'
-        )
-        assert.equal(
+        ).toBe(0)
+        expect(
           (yield* db
             .select()
             .from(workspacePerson)
             .where(eq(workspacePerson.userId, sharedCollaboratorId))).length,
-          0,
           'A request is not a participant'
-        )
-        assert.equal(
+        ).toBe(0)
+        expect(
           (yield* db.select().from(member).where(eq(member.userId, sharedCollaboratorId))).length,
-          0,
           'Pending requests grant no organization membership'
-        )
+        ).toBe(0)
         yield* acceptEventShareLink(sharedCollaboratorId, planningLink.token)
         const { requests } = yield* listEventJoinRequests(ownerId, eventId)
-        assert.equal(requests.length, 1, 'Retries do not duplicate requests')
-        assert.equal(requests[0].planningPermission, 'contribute')
-        assert.ok(
+        expect(requests.length, 'Retries do not duplicate requests').toBe(1)
+        expect(requests[0].planningPermission).toBe('contribute')
+        expect(
           Exit.isFailure(
             yield* Effect.exit(reviewEventJoinRequest(guestId, eventId, requests[0].id, 'approve'))
           )
-        )
+        ).toBeTruthy()
         yield* reviewEventJoinRequest(ownerId, eventId, requests[0].id, 'approve')
         yield* reviewEventJoinRequest(ownerId, eventId, requests[0].id, 'approve')
-        assert.equal(
-          (yield* previewEventShareLink(planningLink.token, sharedCollaboratorId))?.status,
-          'accepted'
-        )
+        expect(
+          (yield* previewEventShareLink(planningLink.token, sharedCollaboratorId))?.status
+        ).toBe('accepted')
         const [approvedPerson] = yield* db
           .select()
           .from(workspacePerson)
@@ -566,27 +541,24 @@ const verification = Effect.gen(function* () {
           .select()
           .from(eventParticipant)
           .where(eq(eventParticipant.personId, approvedPerson.id))
-        assert.equal(approved.role, 'collaborator')
-        assert.equal(
-          (yield* db.select().from(member).where(eq(member.userId, sharedCollaboratorId)))[0]?.role,
-          'member'
-        )
-        assert.equal(
+        expect(approved.role).toBe('collaborator')
+        expect(
+          (yield* db.select().from(member).where(eq(member.userId, sharedCollaboratorId)))[0]?.role
+        ).toBe('member')
+        expect(
           approved.planningPermission,
-          'contribute',
           'Approval honors configured access, never promotes to manage'
-        )
-        assert.equal(
+        ).toBe('contribute')
+        expect(
           (yield* db
             .select()
             .from(nativeSyncScopeMember)
-            .where(eq(nativeSyncScopeMember.userId, sharedCollaboratorId)))[0]?.role,
-          'editor'
-        )
-        assert.ok(
+            .where(eq(nativeSyncScopeMember.userId, sharedCollaboratorId)))[0]?.role
+        ).toBe('editor')
+        expect(
           Exit.isFailure(yield* Effect.exit(listEventJoinRequests(sharedCollaboratorId, eventId))),
           'Contributors cannot manage requests'
-        )
+        ).toBeTruthy()
         const deniedId = `denied-${suffix}`,
           readonlyId = `readonly-${suffix}`,
           instantId = `instant-${suffix}`
@@ -601,49 +573,47 @@ const verification = Effect.gen(function* () {
         yield* acceptEventShareLink(deniedId, planningLink.token)
         const deniedRequest = (yield* listEventJoinRequests(ownerId, eventId)).requests[0]
         yield* reviewEventJoinRequest(ownerId, eventId, deniedRequest.id, 'decline')
-        assert.equal(
-          (yield* previewEventShareLink(planningLink.token, deniedId))?.status,
+        expect((yield* previewEventShareLink(planningLink.token, deniedId))?.status).toBe(
           'declined'
         )
-        assert.ok(
+        expect(
           Exit.isFailure(yield* Effect.exit(acceptEventShareLink(deniedId, planningLink.token))),
           'Retry cannot bypass a decline'
-        )
+        ).toBeTruthy()
         yield* acceptEventShareLink(readonlyId, planningLink.token)
         const readonlyRequest = (yield* listEventJoinRequests(ownerId, eventId)).requests[0]
         yield* db.update(event).set({ status: 'finished' }).where(eq(event.id, eventId))
-        assert.ok(
+        expect(
           Exit.isFailure(
             yield* Effect.exit(
               reviewEventJoinRequest(ownerId, eventId, readonlyRequest.id, 'approve')
             )
           ),
           'Completed events cannot approve joins'
-        )
+        ).toBeTruthy()
         yield* db.update(event).set({ status: 'draft' }).where(eq(event.id, eventId))
         yield* revokeEventShareLink(ownerId, eventId)
-        assert.ok(
+        expect(
           Exit.isFailure(
             yield* Effect.exit(
               reviewEventJoinRequest(ownerId, eventId, readonlyRequest.id, 'approve')
             )
           ),
           'Revoked links cannot approve pending requests'
-        )
+        ).toBeTruthy()
         const rotated = yield* createEventShareLink(ownerId, { eventId, role: 'collaborator' })
-        assert.equal(
+        expect(
           (yield* listEventJoinRequests(ownerId, eventId)).requests.length,
-          0,
           'Rotated links hide stale requests'
-        )
-        assert.ok(
+        ).toBe(0)
+        expect(
           Exit.isFailure(
             yield* Effect.exit(
               reviewEventJoinRequest(ownerId, eventId, readonlyRequest.id, 'approve')
             )
           ),
           'Old requests cannot approve a different link generation'
-        )
+        ).toBeTruthy()
         yield* acceptEventShareLink(readonlyId, rotated.token)
         yield* db.insert(workspacePlanningSettings).values({
           organizationId,
@@ -651,43 +621,40 @@ const verification = Effect.gen(function* () {
           requiresCollaboratorApproval: true,
         })
         yield* reviewEventJoinRequest(ownerId, eventId, readonlyRequest.id, 'approve')
-        assert.equal(
+        expect(
           (yield* db
             .select()
             .from(nativeSyncScopeMember)
-            .where(eq(nativeSyncScopeMember.userId, readonlyId)))[0]?.role,
-          'viewer'
-        )
+            .where(eq(nativeSyncScopeMember.userId, readonlyId)))[0]?.role
+        ).toBe('viewer')
         yield* db
           .update(workspacePlanningSettings)
           .set({ requiresCollaboratorApproval: false, defaultCollaboratorPermission: 'contribute' })
           .where(eq(workspacePlanningSettings.organizationId, organizationId))
-        assert.equal(
+        expect(
           (yield* acceptEventShareLink(instantId, rotated.token)).status,
-          'accepted',
           'Explicitly disabling approval permits immediate joins'
-        )
+        ).toBe('accepted')
         const [instantPerson] = yield* db
           .select()
           .from(workspacePerson)
           .where(eq(workspacePerson.userId, instantId))
-        assert.equal(
+        expect(
           (yield* db
             .select()
             .from(eventParticipant)
-            .where(eq(eventParticipant.personId, instantPerson.id)))[0].planningPermission,
-          'contribute'
-        )
+            .where(eq(eventParticipant.personId, instantPerson.id)))[0].planningPermission
+        ).toBe('contribute')
         yield* db
           .update(workspacePlanningSettings)
           .set({ collaboratorLinkEnabled: false })
           .where(eq(workspacePlanningSettings.organizationId, organizationId))
-        assert.equal(yield* previewEventShareLink(rotated.token), null)
-        assert.ok(
+        expect(yield* previewEventShareLink(rotated.token)).toBe(null)
+        expect(
           Exit.isFailure(
             yield* Effect.exit(createEventShareLink(ownerId, { eventId, role: 'collaborator' }))
           )
-        )
+        ).toBeTruthy()
         yield* db
           .update(workspacePlanningSettings)
           .set({ collaboratorLinkEnabled: true })
@@ -698,28 +665,25 @@ const verification = Effect.gen(function* () {
           .update(eventShareLink)
           .set({ expiresAt: new Date(0) })
           .where(eq(eventShareLink.eventId, eventId))
-        assert.equal(yield* previewEventShareLink(planningLink.token), null)
-        assert.equal(
+        expect(yield* previewEventShareLink(planningLink.token)).toBe(null)
+        expect(
           (yield* acceptEventShareLink(otherGuestId, planningLink.token)).role,
-          'guest',
           'Expiry stops new joins, not existing participation'
-        )
-        assert.equal(
-          (yield* previewEventShareLink(planningLink.token, otherGuestId))?.status,
+        ).toBe('guest')
+        expect((yield* previewEventShareLink(planningLink.token, otherGuestId))?.status).toBe(
           'accepted'
         )
         const renewed = yield* createEventShareLink(ownerId, { eventId, role: 'guest' })
         yield* db
           .delete(eventParticipant)
           .where(and(eq(eventParticipant.eventId, eventId), eq(eventParticipant.personId, host.id)))
-        assert.equal(
+        expect(
           yield* previewEventShareLink(renewed.token),
-          null,
           'An inviter who loses management access cannot keep admitting people'
-        )
-        assert.ok(
+        ).toBe(null)
+        expect(
           Exit.isFailure(yield* Effect.exit(acceptEventShareLink(unverifiedId, renewed.token)))
-        )
+        ).toBeTruthy()
         const expired = yield* create(`${guestId}-expired@example.com`, 'guest')
         yield* db
           .update(eventInvitation)
@@ -728,7 +692,9 @@ const verification = Effect.gen(function* () {
         const expiry = yield* Effect.exit(
           accept(expired.token, guestId, `${guestId}-expired@example.com`)
         )
-        assert.ok(Exit.isFailure(expiry) && JSON.stringify(expiry.cause).includes('EXPIRED'))
+        expect(
+          Exit.isFailure(expiry) && JSON.stringify(expiry.cause).includes('EXPIRED')
+        ).toBeTruthy()
         yield* db
           .update(eventInvitation)
           .set({ status: 'revoked' })
@@ -736,7 +702,9 @@ const verification = Effect.gen(function* () {
         const revoked = yield* Effect.exit(
           accept(expired.token, guestId, `${guestId}-expired@example.com`)
         )
-        assert.ok(Exit.isFailure(revoked) && JSON.stringify(revoked.cause).includes('NOT_FOUND'))
+        expect(
+          Exit.isFailure(revoked) && JSON.stringify(revoked.cause).includes('NOT_FOUND')
+        ).toBeTruthy()
         return yield* Effect.fail(new RollbackVerification())
       })
     )

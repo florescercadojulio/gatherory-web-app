@@ -1,6 +1,5 @@
-import assert from 'node:assert/strict'
 import { readFile } from 'node:fs/promises'
-import { it } from '@effect/vitest'
+import { expect, it } from '@effect/vitest'
 import { Cause, Data, Effect, Exit } from 'effect'
 import { eq } from 'drizzle-orm'
 
@@ -9,10 +8,10 @@ it.effect(
   () =>
     Effect.gen(function* () {
       const url = new URL(process.env.DATABASE_URL!)
-      assert.ok(
+      expect(
         ['localhost', '127.0.0.1', '[::1]'].includes(url.hostname),
         'Only local PostgreSQL is allowed'
-      )
+      ).toBeTruthy()
       const { DB, PgClientLive } = yield* Effect.promise(() => import('@/db'))
       const { PgClient } = yield* Effect.promise(() => import('@effect/sql-pg/PgClient'))
       const {
@@ -57,7 +56,7 @@ it.effect(
       const migrations = ['20261013150431_useful_swordsman', '20261013150814_concerned_legion']
       class Rollback extends Data.TaggedError('ModerationVerificationRollback')<{}> {}
       const denied = (exit: Exit.Exit<unknown, unknown>, code: string) =>
-        assert.ok(
+        expect(
           Exit.isFailure(exit) &&
             exit.cause.reasons.some(
               (reason) =>
@@ -68,7 +67,7 @@ it.effect(
                 reason.error.code === code
             ),
           Exit.isFailure(exit) ? Cause.pretty(exit.cause) : `Expected ${code}`
-        )
+        ).toBeTruthy()
       const verification = Effect.gen(function* () {
         const pg = yield* PgClient
         yield* pg.withTransaction(
@@ -189,34 +188,30 @@ it.effect(
             denied(yield* Effect.exit(blockPerson(stranger, owner)), 'BLOCK_TARGET_UNAVAILABLE')
             yield* blockPerson(guest, owner)
             yield* blockPerson(guest, owner)
-            assert.equal(
+            expect(
               (yield* listBlockedPeople(guest)).blockedUsers.length,
-              1,
               'Block retries are idempotent'
-            )
-            assert.equal(
+            ).toBe(1)
+            expect(
               (yield* listBlockedPeople(otherGuest)).blockedUsers.length,
-              0,
               'Blocks are personal'
-            )
-            assert.equal(
+            ).toBe(0)
+            expect(
               yield* canReadMedia(guest, mediaAssetId),
-              false,
               "A blocked author's photos are hidden"
-            )
-            assert.equal(yield* canReadMedia(otherGuest, mediaAssetId), true)
-            assert.ok(
+            ).toBe(false)
+            expect(yield* canReadMedia(otherGuest, mediaAssetId)).toBe(true)
+            expect(
               (yield* hiddenImageIDs(guest)).mediaAssetIds.includes(mediaAssetId),
               'Cached photos receive the block policy'
-            )
-            assert.equal(
+            ).toBeTruthy()
+            expect(
               (yield* db
                 .select()
                 .from(eventParticipant)
                 .where(eq(eventParticipant.eventId, eventId))).length,
-              3,
               'Blocking never removes shared access'
-            )
+            ).toBe(3)
             denied(
               yield* Effect.exit(requireUnblockedInvitation(guest, owner)),
               'INVITATION_BLOCKED'
@@ -232,11 +227,10 @@ it.effect(
             )
             yield* unblockPerson(guest, owner)
             yield* requireUnblockedInvitation(guest, owner)
-            assert.equal(
+            expect(
               yield* canReadMedia(guest, mediaAssetId),
-              true,
               'Unblocking restores otherwise visible content'
-            )
+            ).toBe(true)
             const input = {
               mediaAssetId,
               reason: 'privacy' as const,
@@ -244,33 +238,29 @@ it.effect(
             }
             denied(yield* Effect.exit(reportImage(stranger, input)), 'REPORT_IMAGE_UNAVAILABLE')
             denied(yield* Effect.exit(listAbuseReports(owner, 'open')), 'MODERATOR_REQUIRED')
-            assert.equal(
+            expect(
               (yield* db.select().from(abuseReport)).filter(
                 (row) => row.mediaAssetId === mediaAssetId
-              ).length,
-              0
-            )
+              ).length
+            ).toBe(0)
             const report = yield* reportImage(guest, input)
-            assert.equal(
-              (yield* reportImage(guest, input)).reportId,
-              report.reportId,
-              'A retry is idempotent'
+            expect((yield* reportImage(guest, input)).reportId, 'A retry is idempotent').toBe(
+              report.reportId
             )
-            assert.equal(yield* canReadMedia(guest, mediaAssetId), false)
-            assert.equal(
+            expect(yield* canReadMedia(guest, mediaAssetId)).toBe(false)
+            expect(
               yield* canReadMedia(otherGuest, mediaAssetId),
-              true,
               'Reporting does not censor content for others before moderation'
-            )
+            ).toBe(true)
             denied(
               yield* Effect.exit(getEventMediaUrlWorkflow({ userId: guest, mediaAssetId })),
               'MEDIA_NOT_FOUND'
             )
             const other = yield* reportImage(otherGuest, input)
             yield* db.insert(moderationStaff).values({ userId: moderator }) // Fixture only; always rolled back.
-            assert.ok(
+            expect(
               (yield* listAbuseReports(moderator, 'open')).some((row) => row.id === report.reportId)
-            )
+            ).toBeTruthy()
             const review = {
               reportId: report.reportId,
               expectedStatus: 'open' as const,
@@ -278,28 +268,27 @@ it.effect(
               note: 'Violates image policy',
             }
             denied(yield* Effect.exit(reviewAbuseReport(owner, review)), 'MODERATOR_REQUIRED')
-            assert.equal((yield* reviewAbuseReport(moderator, review)).status, 'resolved')
+            expect((yield* reviewAbuseReport(moderator, review)).status).toBe('resolved')
             denied(
               yield* Effect.exit(reviewAbuseReport(moderator, review)),
               'REPORT_REVIEW_CONFLICT'
             )
-            assert.equal(
+            expect(
               (yield* db
                 .select()
                 .from(abuseReportReview)
                 .where(eq(abuseReportReview.reportId, report.reportId))).length,
-              1,
               'Stale review does not produce a second audit record'
-            )
-            assert.equal(yield* canReadMedia(owner, mediaAssetId), false)
-            assert.ok(
+            ).toBe(1)
+            expect(yield* canReadMedia(owner, mediaAssetId)).toBe(false)
+            expect(
               (yield* hiddenImageIDs(owner)).mediaAssetIds.includes(mediaAssetId),
               'Native cached images receive the moderation policy'
-            )
-            assert.ok(
+            ).toBeTruthy()
+            expect(
               !(yield* hiddenImageIDs(stranger)).mediaAssetIds.includes(mediaAssetId),
               "Visibility policy does not disclose another workspace's images"
-            )
+            ).toBeTruthy()
             denied(
               yield* Effect.exit(getNativeMediaUrlWorkflow({ userId: owner, mediaAssetId })),
               'MEDIA_NOT_FOUND'
@@ -315,11 +304,10 @@ it.effect(
               reportId: other.reportId,
               action: 'dismiss',
             })
-            assert.equal(
+            expect(
               yield* canReadMedia(owner, mediaAssetId),
-              false,
               'Dismissing a duplicate never unhides an image'
-            )
+            ).toBe(false)
             yield* db
               .update(moderationStaff)
               .set({ revokedAt: new Date() })
@@ -339,26 +327,26 @@ it.effect(
               byteSize: 100,
             })
             denied(yield* Effect.exit(hideImage(guest, privateId)), 'REPORT_IMAGE_UNAVAILABLE')
-            assert.equal(
+            expect(
               (yield* db.select().from(hiddenMedia).where(eq(hiddenMedia.mediaAssetId, privateId)))
                 .length,
-              0,
               'Guest cannot hide an unshared planning image'
-            )
+            ).toBe(0)
             denied(yield* Effect.exit(leaveGuestEvent(stranger, eventId)), 'EVENT_LEAVE_FORBIDDEN')
             denied(yield* Effect.exit(leaveGuestEvent(owner, eventId)), 'EVENT_LEAVE_FORBIDDEN')
             yield* leaveGuestEvent(guest, eventId)
             yield* leaveGuestEvent(guest, eventId)
-            assert.equal(
+            expect(
               (yield* db
                 .select()
                 .from(eventParticipant)
                 .where(eq(eventParticipant.eventId, eventId))).length,
-              2,
               'Leaving removes only the guest, not the shared event'
-            )
-            assert.ok((yield* db.select().from(event).where(eq(event.id, eventId))).length)
-            assert.equal((yield* guestEventInvitations(guest)).length, 0)
+            ).toBe(2)
+            expect(
+              (yield* db.select().from(event).where(eq(event.id, eventId))).length
+            ).toBeTruthy()
+            expect((yield* guestEventInvitations(guest)).length).toBe(0)
             denied(
               yield* Effect.exit(respondToEvent(guest, eventId, 'going')),
               'EVENT_RESPONSE_FORBIDDEN'
@@ -374,25 +362,24 @@ it.effect(
               role: 'guest',
               planningPermission: 'view_only',
             })
-            assert.equal((yield* guestEventInvitations(guest)).length, 0)
+            expect((yield* guestEventInvitations(guest)).length).toBe(0)
             denied(yield* Effect.exit(hideImage(guest, mediaAssetId)), 'REPORT_IMAGE_UNAVAILABLE')
-            assert.equal(
+            expect(
               (yield* db.select().from(eventDeparture).where(eq(eventDeparture.userId, guest)))
-                .length,
-              1
-            )
+                .length
+            ).toBe(1)
             return yield* Effect.fail(new Rollback())
           })
         )
       }).pipe(Effect.provide(PgClientLive))
       const result = yield* Effect.exit(verification)
-      assert.ok(
+      expect(
         Exit.isFailure(result) &&
           result.cause.reasons.some(
             (reason) => Cause.isFailReason(reason) && reason.error instanceof Rollback
           ),
         Exit.isFailure(result) ? Cause.pretty(result.cause) : 'Expected rollback'
-      )
+      ).toBeTruthy()
     }),
   { skip: process.env.RUN_MODERATION_DB_TESTS !== '1' }
 )

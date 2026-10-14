@@ -1,5 +1,4 @@
-import assert from 'node:assert/strict'
-import { test } from 'vitest'
+import { expect, test } from 'vitest'
 import { and, eq } from 'drizzle-orm'
 
 test(
@@ -8,9 +7,9 @@ test(
     skip: process.env.RUN_INVITATION_DB_TESTS !== '1',
   },
   async () => {
-    assert.ok(
+    expect(
       ['localhost', '127.0.0.1', '[::1]'].includes(new URL(process.env.DATABASE_URL!).hostname)
-    )
+    ).toBeTruthy()
     const { db } = await import('@/db')
     const { user, member, event, workspacePerson, eventParticipant } = await import('@/db/schema')
     const { materializeNativeMutation } = await import('@/server/sync/native-materializer')
@@ -23,16 +22,14 @@ test(
         const personId = crypto.randomUUID(),
           participationId = crypto.randomUUID(),
           editorPersonId = crypto.randomUUID()
-        await transaction
-          .insert(user)
-          .values(
-            [hostId, editorId].map((id) => ({
-              id,
-              name: id,
-              email: `${id}@example.com`,
-              emailVerified: true,
-            }))
-          )
+        await transaction.insert(user).values(
+          [hostId, editorId].map((id) => ({
+            id,
+            name: id,
+            email: `${id}@example.com`,
+            emailVerified: true,
+          }))
+        )
         const payload = {
           mainEventID: scopeID.toUpperCase(),
           title: 'Identity fixture',
@@ -63,33 +60,28 @@ test(
           payload: Buffer.from(JSON.stringify(payload)).toString('base64'),
         }
         await materializeNativeMutation(transaction, { userId: hostId, mutation })
-        assert.equal(
+        expect(
           (
             await transaction
               .select()
               .from(eventParticipant)
               .where(eq(eventParticipant.personId, personId))
           )[0].id,
-          participationId,
           'Uppercase Foundation UUIDs must not trigger the person-ID fallback'
-        )
-        await transaction
-          .insert(workspacePerson)
-          .values({
-            id: editorPersonId,
-            organizationId: scopeID,
-            userId: editorId,
-            displayName: 'Editor',
-          })
-        await transaction
-          .insert(eventParticipant)
-          .values({
-            eventId: scopeID,
-            personId: editorPersonId,
-            role: 'collaborator',
-            planningPermission: 'manage',
-            attendanceStatus: 'not_sure',
-          })
+        ).toBe(participationId)
+        await transaction.insert(workspacePerson).values({
+          id: editorPersonId,
+          organizationId: scopeID,
+          userId: editorId,
+          displayName: 'Editor',
+        })
+        await transaction.insert(eventParticipant).values({
+          eventId: scopeID,
+          personId: editorPersonId,
+          role: 'collaborator',
+          planningPermission: 'manage',
+          attendanceStatus: 'not_sure',
+        })
         await transaction
           .update(eventParticipant)
           .set({ attendanceStatus: 'not_going' })
@@ -100,36 +92,32 @@ test(
           .select()
           .from(eventParticipant)
           .where(eq(eventParticipant.personId, editorPersonId))
-        assert.equal(editor.role, 'collaborator')
-        assert.equal(editor.attendanceStatus, 'not_sure')
-        assert.equal(
+        expect(editor.role).toBe('collaborator')
+        expect(editor.attendanceStatus).toBe('not_sure')
+        expect(
           (
             await transaction
               .select()
               .from(member)
               .where(and(eq(member.organizationId, scopeID), eq(member.userId, editorId)))
-          ).length,
-          0
-        )
-        assert.equal(
+          ).length
+        ).toBe(0)
+        expect(
           (
             await transaction.select().from(workspacePerson).where(eq(workspacePerson.id, personId))
-          )[0].userId,
-          hostId
-        )
-        assert.equal(
+          )[0].userId
+        ).toBe(hostId)
+        expect(
           (
             await transaction
               .select()
               .from(eventParticipant)
               .where(eq(eventParticipant.personId, personId))
-          )[0].attendanceStatus,
-          'not_going'
-        )
-        assert.equal(
-          (await transaction.select().from(event).where(eq(event.id, scopeID)))[0].createdByUserId,
-          hostId
-        )
+          )[0].attendanceStatus
+        ).toBe('not_going')
+        expect(
+          (await transaction.select().from(event).where(eq(event.id, scopeID)))[0].createdByUserId
+        ).toBe(hostId)
         // Repair the old person-ID fallback when the canonical entity next materializes.
         await transaction
           .update(eventParticipant)
@@ -152,20 +140,19 @@ test(
             ).toString('base64'),
           },
         })
-        assert.equal(
+        expect(
           (
             await transaction
               .select()
               .from(eventParticipant)
               .where(eq(eventParticipant.personId, personId))
-          )[0].id,
-          participationId
-        )
+          )[0].id
+        ).toBe(participationId)
         await transaction
           .update(eventParticipant)
           .set({ planningPermission: 'contribute' })
           .where(eq(eventParticipant.personId, editorPersonId))
-        await assert.rejects(
+        await expect(
           materializeNativeMutation(transaction, {
             userId: editorId,
             mutation: {
@@ -174,13 +161,8 @@ test(
                 JSON.stringify({ ...payload, requiresCollaboratorApproval: false })
               ).toString('base64'),
             },
-          }),
-          (error) =>
-            typeof error === 'object' &&
-            error !== null &&
-            'code' in error &&
-            error.code === 'EVENT_PERMISSION_REQUIRED'
-        )
+          })
+        ).rejects.toMatchObject({ code: 'EVENT_PERMISSION_REQUIRED' })
         throw rollback
       })
     } catch (error) {

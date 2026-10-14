@@ -1,5 +1,4 @@
-import assert from 'node:assert/strict'
-import { test } from 'vitest'
+import { expect, test } from 'vitest'
 import { nativeIdentityWriteAllowed } from '@/server/sync/native-identity-access'
 
 test('a contributor can RSVP without promoting themselves or other participants', () => {
@@ -27,14 +26,14 @@ test('a contributor can RSVP without promoting themselves or other participants'
     createdAt: new Date().toISOString(),
     payload: Buffer.from(JSON.stringify(body)).toString('base64'),
   }
-  assert.equal(nativeIdentityWriteAllowed({ actor, participation, mutation }), true)
+  expect(nativeIdentityWriteAllowed({ actor, participation, mutation })).toBe(true)
   for (const patch of [
     { role: 'host' },
     { planningPermission: 'manage' },
     { memberID: crypto.randomUUID() },
     { invitationStatus: 'invited' },
   ]) {
-    assert.equal(
+    expect(
       nativeIdentityWriteAllowed({
         actor,
         participation,
@@ -42,40 +41,35 @@ test('a contributor can RSVP without promoting themselves or other participants'
           ...mutation,
           payload: Buffer.from(JSON.stringify({ ...body, ...patch })).toString('base64'),
         },
-      }),
-      false
-    )
+      })
+    ).toBe(false)
   }
-  assert.equal(
+  expect(
     nativeIdentityWriteAllowed({
       actor,
       participation,
       mutation: { ...mutation, operation: 'delete' },
-    }),
-    false
-  )
-  assert.equal(
+    })
+  ).toBe(false)
+  expect(
     nativeIdentityWriteAllowed({
       actor,
       participation,
       mutation: { ...mutation, entityType: 'participant', entityID: personId },
-    }),
-    true
-  )
-  assert.equal(
+    })
+  ).toBe(true)
+  expect(
     nativeIdentityWriteAllowed({
       actor,
       participation,
       mutation: { ...mutation, entityType: 'participant', entityID: crypto.randomUUID() },
-    }),
-    false
-  )
-  assert.equal(
+    })
+  ).toBe(false)
+  expect(
     nativeIdentityWriteAllowed({
       actor: { ...actor, planningPermission: 'manage' },
       participation,
       mutation,
-    }),
-    true
-  )
+    })
+  ).toBe(true)
 })

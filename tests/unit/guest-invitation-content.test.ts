@@ -1,5 +1,4 @@
-import assert from 'node:assert/strict'
-import { test } from 'vitest'
+import { expect, test } from 'vitest'
 import { guestIdeaContent } from '@/lib/guest-invitation-content'
 
 test('invitation configuration is explicitly allowlisted, including nested music fields', () => {
@@ -23,16 +22,14 @@ test('invitation configuration is explicitly allowlisted, including nested music
       },
     },
   })
-  assert.equal(content.tracks.length, 1)
-  assert.doesNotMatch(JSON.stringify(content), /PRIVATE|privateBudget|privateNotes/)
-  assert.equal(
-    guestIdeaContent('link', { native: { link: { _0: { url: 'javascript:alert(1)' } } } }).linkURL,
-    null
-  )
-  assert.deepEqual(
+  expect(content.tracks.length).toBe(1)
+  expect(JSON.stringify(content)).not.toMatch(/PRIVATE|privateBudget|privateNotes/)
+  expect(
+    guestIdeaContent('link', { native: { link: { _0: { url: 'javascript:alert(1)' } } } }).linkURL
+  ).toBe(null)
+  expect(
     guestIdeaContent('attire', {
       native: { attire: { _0: { style: 'garden', restrictions: 'No white', internalPrice: 999 } } },
-    }).configuration,
-    { attire: { _0: { style: 'garden', restrictions: 'No white' } } }
-  )
+    }).configuration
+  ).toEqual({ attire: { _0: { style: 'garden', restrictions: 'No white' } } })
 })

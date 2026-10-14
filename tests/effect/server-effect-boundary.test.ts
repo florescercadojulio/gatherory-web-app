@@ -1,7 +1,6 @@
-import assert from 'node:assert/strict'
 import { readdirSync, readFileSync, statSync } from 'node:fs'
 import { join, relative } from 'node:path'
-import { it } from '@effect/vitest'
+import { expect, it } from '@effect/vitest'
 import { Effect } from 'effect'
 
 import { PersistenceError, runServerEffect } from '@/server/effect'
@@ -10,7 +9,7 @@ it.effect('runServerEffect returns successful values through ServerResult', () =
   Effect.promise(async () => {
     const result = await runServerEffect(Effect.succeed({ id: 'event-1' }))
 
-    assert.deepEqual(result, { ok: true, data: { id: 'event-1' } })
+    expect(result).toEqual({ ok: true, data: { id: 'event-1' } })
   })
 )
 
@@ -27,12 +26,12 @@ it.effect('runServerEffect exposes safe copy and an error ID, not infrastructure
       )
     )
 
-    assert.equal(result.ok, false)
+    expect(result.ok).toBe(false)
     if (result.ok) return
 
-    assert.equal(result.error.userMessage, 'The event could not be loaded. Try again.')
-    assert.match(result.error.errorId, /^[0-9a-f-]{36}$/i)
-    assert.doesNotMatch(JSON.stringify(result), /private-driver-detail/)
+    expect(result.error.userMessage).toBe('The event could not be loaded. Try again.')
+    expect(result.error.errorId).toMatch(/^[0-9a-f-]{36}$/i)
+    expect(JSON.stringify(result)).not.toMatch(/private-driver-detail/)
   })
 )
 
@@ -48,26 +47,25 @@ it('every TanStack server-function module uses the shared Effect boundary', () =
     readFileSync(file, 'utf8').includes('createServerFn')
   )
 
-  assert.ok(files.length > 0)
+  expect(files.length > 0).toBeTruthy()
 
   for (const file of files) {
     const source = readFileSync(file, 'utf8')
     const displayPath = relative(process.cwd(), file)
-    assert.match(source, /createServerFn/)
-    assert.match(source, /runServerEffect\s*\(/, `${displayPath} does not use runServerEffect`)
-    assert.doesNotMatch(
+    expect(source).toMatch(/createServerFn/)
+    expect(source, `${displayPath} does not use runServerEffect`).toMatch(/runServerEffect\s*\(/)
+    expect(
       source,
-      /ok:\s*false\s*,\s*error:/,
       `${displayPath} hand-builds an error transport instead of using runServerEffect`
-    )
+    ).not.toMatch(/ok:\s*false\s*,\s*error:/)
   }
 })
 
 it('application repositories use Effect Drizzle instead of Promise wrappers', () => {
   const databaseSource = readFileSync(join(process.cwd(), 'src/db/index.ts'), 'utf8')
-  assert.match(databaseSource, /drizzle-orm\/effect-postgres/)
-  assert.match(databaseSource, /export const PgClientLive = PgClient\.layer/)
-  assert.match(databaseSource, /export const DB = PgDrizzle\.make/)
+  expect(databaseSource).toMatch(/drizzle-orm\/effect-postgres/)
+  expect(databaseSource).toMatch(/export const PgClientLive = PgClient\.layer/)
+  expect(databaseSource).toMatch(/export const DB = PgDrizzle\.make/)
 
   const repositoryFiles = [
     'src/server/events/repos/event.repo.ts',
@@ -76,17 +74,14 @@ it('application repositories use Effect Drizzle instead of Promise wrappers', ()
 
   for (const displayPath of repositoryFiles) {
     const source = readFileSync(join(process.cwd(), displayPath), 'utf8')
-    assert.match(source, /const db = yield\* DB/)
-    assert.doesNotMatch(
-      source,
-      /import\s+\{\s*db\s*\}\s+from\s+["']@\/db["']/,
-      `${displayPath} bypasses Effect Drizzle`
+    expect(source).toMatch(/const db = yield\* DB/)
+    expect(source, `${displayPath} bypasses Effect Drizzle`).not.toMatch(
+      /import\s+\{\s*db\s*\}\s+from\s+["']@\/db["']/
     )
-    assert.doesNotMatch(
+    expect(
       source,
-      /tryPersistence\s*\(/,
       `${displayPath} wraps Promise Drizzle instead of using Effect Drizzle`
-    )
+    ).not.toMatch(/tryPersistence\s*\(/)
   }
 })
 
@@ -99,10 +94,8 @@ it('database-backed handlers provide the PostgreSQL Effect layer', () => {
 
   for (const displayPath of handlerFiles) {
     const source = readFileSync(join(process.cwd(), displayPath), 'utf8')
-    assert.match(
-      source,
-      /Effect\.provide\(PgClientLive\)/,
-      `${displayPath} does not provide PgClientLive`
+    expect(source, `${displayPath} does not provide PgClientLive`).toMatch(
+      /Effect\.provide\(PgClientLive\)/
     )
   }
 })

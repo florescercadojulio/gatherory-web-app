@@ -1,5 +1,4 @@
-import assert from 'node:assert/strict'
-import { test } from 'vitest'
+import { expect, test } from 'vitest'
 import { eq, inArray } from 'drizzle-orm'
 
 /** Explicit opt-in: local API/database and only the existing private DEV
@@ -11,16 +10,15 @@ test(
     timeout: 60_000,
   },
   async () => {
-    assert.ok(
+    expect(
       ['localhost', '127.0.0.1', '[::1]'].includes(new URL(process.env.DATABASE_URL!).hostname)
-    )
-    assert.equal(
+    ).toBeTruthy()
+    expect(
       process.env.CLOUDFLARE_R2_PRIVATE_BUCKET_NAME,
-      'gatherory-private-dev',
       'Never run this test on production storage'
-    )
+    ).toBe('gatherory-private-dev')
     const base = process.env.INVITATION_TEST_BASE_URL ?? 'http://127.0.0.1:3003'
-    assert.ok(['localhost', '127.0.0.1'].includes(new URL(base).hostname))
+    expect(['localhost', '127.0.0.1'].includes(new URL(base).hostname)).toBeTruthy()
     const { db, pool } = await import('@/db')
     const { user, session, organization, event, eventParticipant, workspacePerson, mediaAsset } =
       await import('@/db/schema')
@@ -61,25 +59,24 @@ test(
     }
     async function uploadAndVerify(id: string) {
       const prepared = await prepare(id)
-      assert.equal(prepared.status, 200, 'Authenticated prepare must succeed')
-      assert.equal(prepared.json.ok, true)
-      assert.equal(prepared.json.data.requiredHeaders['x-amz-meta-mediaassetid'], id)
-      assert.equal(prepared.json.data.requiredHeaders['Content-Type'], 'image/png')
-      assert.equal(prepared.json.data.requiredHeaders['Cache-Control'], 'private, no-store')
+      expect(prepared.status, 'Authenticated prepare must succeed').toBe(200)
+      expect(prepared.json.ok).toBe(true)
+      expect(prepared.json.data.requiredHeaders['x-amz-meta-mediaassetid']).toBe(id)
+      expect(prepared.json.data.requiredHeaders['Content-Type']).toBe('image/png')
+      expect(prepared.json.data.requiredHeaders['Cache-Control']).toBe('private, no-store')
       const signed = new URL(prepared.json.data.uploadUrl)
       const signedHeaders = signed.searchParams.get('X-Amz-SignedHeaders')!.split(';')
       for (const header of ['x-amz-meta-mediaassetid', 'content-type', 'cache-control']) {
-        assert.ok(signedHeaders.includes(header), `${header} must be signed`)
+        expect(signedHeaders.includes(header), `${header} must be signed`).toBeTruthy()
       }
-      assert.equal(
+      expect(
         signed.searchParams.has('x-amz-meta-mediaassetid'),
-        false,
         'Metadata must be sent as a header'
-      )
+      ).toBe(false)
       const [asset] = await db.select().from(mediaAsset).where(eq(mediaAsset.id, id))
-      assert.equal(asset.organizationId, org)
-      assert.equal(asset.bucket, 'gatherory-private-dev')
-      assert.equal(asset.storageKey, `workspaces/${org}/media/${id}/original.png`)
+      expect(asset.organizationId).toBe(org)
+      expect(asset.bucket).toBe('gatherory-private-dev')
+      expect(asset.storageKey).toBe(`workspaces/${org}/media/${id}/original.png`)
       const target = { bucket: asset.bucket, key: asset.storageKey }
       objects.set(id, target)
       const rejected = await fetch(prepared.json.data.uploadUrl, {
@@ -90,83 +87,72 @@ test(
         },
         body: bytes,
       })
-      assert.equal(rejected.status, 403, 'The signed asset-ID header cannot be substituted')
+      expect(rejected.status, 'The signed asset-ID header cannot be substituted').toBe(403)
       const upload = await fetch(prepared.json.data.uploadUrl, {
         method: prepared.json.data.method,
         headers: prepared.json.data.requiredHeaders,
         body: bytes,
       })
-      assert.equal(upload.status, 200, 'The signed PUT must accept the exact returned headers')
+      expect(upload.status, 'The signed PUT must accept the exact returned headers').toBe(200)
       const stored = await inspectMediaObject(target)
-      assert.equal(stored.byteSize, bytes.length)
-      assert.equal(stored.contentType, 'image/png')
-      assert.equal(stored.mediaAssetId, id, 'R2 must persist the signed asset-ID metadata')
+      expect(stored.byteSize).toBe(bytes.length)
+      expect(stored.contentType).toBe('image/png')
+      expect(stored.mediaAssetId, 'R2 must persist the signed asset-ID metadata').toBe(id)
       const finalized = await api('finalize', { mediaAssetId: id.toUpperCase() })
-      assert.equal(finalized.status, 200, 'Finalize must validate the stored metadata')
-      assert.equal(finalized.json.ok, true)
-      assert.equal(finalized.json.data.mediaAssetId, id)
+      expect(finalized.status, 'Finalize must validate the stored metadata').toBe(200)
+      expect(finalized.json.ok).toBe(true)
+      expect(finalized.json.data.mediaAssetId).toBe(id)
       const download = await fetch(finalized.json.data.url)
-      assert.equal(download.status, 200)
-      assert.deepEqual(Buffer.from(await download.arrayBuffer()), bytes)
+      expect(download.status).toBe(200)
+      expect(Buffer.from(await download.arrayBuffer())).toEqual(bytes)
       const [ready] = await db.select().from(mediaAsset).where(eq(mediaAsset.id, id))
-      assert.equal(ready.status, 'ready')
-      assert.equal(
+      expect(ready.status).toBe('ready')
+      expect(
         (await api('finalize', { mediaAssetId: id })).status,
-        200,
         'Finalization retries are idempotent'
-      )
-      assert.equal(
+      ).toBe(200)
+      expect(
         (await api('finalize', { mediaAssetId: id }, 1)).json.ok,
-        false,
         'Another account cannot finalize this asset'
-      )
-      assert.equal(
+      ).toBe(false)
+      expect(
         (await prepare(id)).json.ok,
-        false,
         'A ready asset cannot be overwritten through preparation'
-      )
+      ).toBe(false)
     }
     try {
-      await db
-        .insert(user)
-        .values(
-          [owner, stranger].map((id) => ({
-            id,
-            name: 'R2 verification',
-            email: `${id}@example.com`,
-            emailVerified: true,
-          }))
-        )
-      await db
-        .insert(session)
-        .values(
-          [owner, stranger].map((userId, index) => ({
-            id: crypto.randomUUID(),
-            token: tokens[index],
-            userId,
-            expiresAt: new Date(Date.now() + 3600_000),
-            updatedAt: new Date(),
-          }))
-        )
-      await db
-        .insert(organization)
-        .values({
-          id: org,
+      await db.insert(user).values(
+        [owner, stranger].map((id) => ({
+          id,
           name: 'R2 verification',
-          slug: org,
-          workspaceType: 'event',
-          createdAt: new Date(),
-        })
-      await db
-        .insert(event)
-        .values({
-          id: scopeId,
-          organizationId: org,
-          title: 'R2 verification',
-          status: 'draft',
-          startsAt: new Date(),
-          timeZone: 'America/Detroit',
-        })
+          email: `${id}@example.com`,
+          emailVerified: true,
+        }))
+      )
+      await db.insert(session).values(
+        [owner, stranger].map((userId, index) => ({
+          id: crypto.randomUUID(),
+          token: tokens[index],
+          userId,
+          expiresAt: new Date(Date.now() + 3600_000),
+          updatedAt: new Date(),
+        }))
+      )
+      await db.insert(organization).values({
+        id: org,
+        name: 'R2 verification',
+        slug: org,
+        workspaceType: 'event',
+        createdAt: new Date(),
+      })
+      await db.insert(event).values({
+        id: scopeId,
+        organizationId: org,
+        title: 'R2 verification',
+        status: 'draft',
+        startsAt: new Date(),
+        timeZone: 'America/Detroit',
+      })
       const people = await db
         .insert(workspacePerson)
         .values(
@@ -177,33 +163,29 @@ test(
           }))
         )
         .returning()
-      await db
-        .insert(eventParticipant)
-        .values(
-          people.map((person) => ({
-            eventId: scopeId,
-            personId: person.id,
-            role: person.userId === owner ? ('host' as const) : ('guest' as const),
-            planningPermission:
-              person.userId === owner ? ('manage' as const) : ('view_only' as const),
-          }))
-        )
+      await db.insert(eventParticipant).values(
+        people.map((person) => ({
+          eventId: scopeId,
+          personId: person.id,
+          role: person.userId === owner ? ('host' as const) : ('guest' as const),
+          planningPermission:
+            person.userId === owner ? ('manage' as const) : ('view_only' as const),
+        }))
+      )
       await uploadAndVerify(crypto.randomUUID())
 
       const retryId = crypto.randomUUID()
-      assert.equal((await prepare(retryId)).status, 200)
+      expect((await prepare(retryId)).status).toBe(200)
       await db.update(mediaAsset).set({ status: 'failed' }).where(eq(mediaAsset.id, retryId))
-      assert.equal(
-        (await prepare(retryId, 1)).json.ok,
-        false,
-        'A guest cannot reopen a failed upload'
+      expect((await prepare(retryId, 1)).json.ok, 'A guest cannot reopen a failed upload').toBe(
+        false
       )
       await uploadAndVerify(retryId)
 
       // Signed headers do not replace finalization's exact byte-size validation.
       const mismatchId = crypto.randomUUID()
       const mismatch = await prepare(mismatchId)
-      assert.equal(mismatch.json.ok, true)
+      expect(mismatch.json.ok).toBe(true)
       const [pending] = await db.select().from(mediaAsset).where(eq(mediaAsset.id, mismatchId))
       const target = { bucket: pending.bucket, key: pending.storageKey }
       objects.set(mismatchId, target)
@@ -212,34 +194,23 @@ test(
         headers: mismatch.json.data.requiredHeaders,
         body: bytes.subarray(0, -1),
       })
-      assert.equal(badUpload.status, 200)
-      assert.equal((await api('finalize', { mediaAssetId: mismatchId })).json.ok, false)
-      assert.equal(
-        (await db.select().from(mediaAsset).where(eq(mediaAsset.id, mismatchId)))[0].status,
-        'failed'
-      )
-      await assert.rejects(
-        () => inspectMediaObject(target),
-        (error: unknown) =>
-          typeof error === 'object' &&
-          error !== null &&
-          '$metadata' in error &&
-          (error.$metadata as { httpStatusCode?: number })?.httpStatusCode === 404
-      )
+      expect(badUpload.status).toBe(200)
+      expect((await api('finalize', { mediaAssetId: mismatchId })).json.ok).toBe(false)
+      expect(
+        (await db.select().from(mediaAsset).where(eq(mediaAsset.id, mismatchId)))[0].status
+      ).toBe('failed')
+      await expect(inspectMediaObject(target)).rejects.toMatchObject({
+        $metadata: { httpStatusCode: 404 },
+      })
       await uploadAndVerify(mismatchId)
     } finally {
       // No recursive/list deletion: only keys created and checked by this test.
       try {
         for (const object of objects.values()) {
           await deleteMediaObject(object)
-          await assert.rejects(
-            () => inspectMediaObject(object),
-            (error: unknown) =>
-              typeof error === 'object' &&
-              error !== null &&
-              '$metadata' in error &&
-              (error.$metadata as { httpStatusCode?: number })?.httpStatusCode === 404
-          )
+          await expect(inspectMediaObject(object)).rejects.toMatchObject({
+            $metadata: { httpStatusCode: 404 },
+          })
         }
       } finally {
         await db.delete(organization).where(eq(organization.id, org))

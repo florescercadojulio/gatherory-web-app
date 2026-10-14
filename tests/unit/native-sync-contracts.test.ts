@@ -1,13 +1,12 @@
-import assert from 'node:assert/strict'
-import { test } from 'vitest'
+import { expect, test } from 'vitest'
 
 import { nativePullOperation, pushRequestSchema } from '@/server/sync/native-sync-contracts'
 
 test('pull operations match iOS and repair existing invitation changes', () => {
   for (const operation of ['create', 'update', 'delete'])
-    assert.equal(nativePullOperation(operation), operation)
-  assert.equal(nativePullOperation('upsert'), 'update')
-  assert.throws(() => nativePullOperation('unexpected'))
+    expect(nativePullOperation(operation)).toBe(operation)
+  expect(nativePullOperation('upsert')).toBe('update')
+  expect(() => nativePullOperation('unexpected')).toThrow()
 })
 
 test('native sync canonicalizes uppercase UUIDs sent by Foundation', () => {
@@ -28,10 +27,10 @@ test('native sync canonicalizes uppercase UUIDs sent by Foundation', () => {
   })
 
   const mutation = result.mutations[0]
-  assert.equal(mutation.id, 'b2a7345b-c4d4-42b6-ba01-913c31597e35')
-  assert.equal(mutation.scopeID, '5cf54762-4a9a-49c3-b1e8-df26d184afba')
-  assert.equal(mutation.entityID, '5cf54762-4a9a-49c3-b1e8-df26d184afba')
-  assert.equal(mutation.payloadSchemaVersion, 1)
+  expect(mutation.id).toBe('b2a7345b-c4d4-42b6-ba01-913c31597e35')
+  expect(mutation.scopeID).toBe('5cf54762-4a9a-49c3-b1e8-df26d184afba')
+  expect(mutation.entityID).toBe('5cf54762-4a9a-49c3-b1e8-df26d184afba')
+  expect(mutation.payloadSchemaVersion).toBe(1)
 })
 
 test('native sync rejects unsupported payload schema versions', () => {
@@ -52,5 +51,5 @@ test('native sync rejects unsupported payload schema versions', () => {
     ],
   })
 
-  assert.equal(result.success, false)
+  expect(result.success).toBe(false)
 })
