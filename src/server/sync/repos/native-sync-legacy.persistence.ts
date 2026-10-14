@@ -1,4 +1,4 @@
-import { and, asc, eq, gt, inArray, isNull, sql } from 'drizzle-orm'
+import { and, asc, eq, gt, inArray, isNull, isNotNull, sql } from 'drizzle-orm'
 
 import { db } from '@/db'
 import { user } from '@/db/schema/auth.schema'
@@ -23,6 +23,11 @@ import {
 import { compareNativeMutationOrder } from '../workflows/native-sync-ordering'
 import { deletedAccountTombstone } from '../contracts/native-tombstones'
 import { nativeIdentityWriteAllowed } from '../services/native-identity-access'
+import {
+  applyScopedEventMutation,
+  pullScopedEventChanges,
+  scopedEventSnapshot,
+} from './scoped-event-sync.persistence'
 
 export { pushRequestSchema } from '../contracts/native-sync.contracts'
 
@@ -89,6 +94,12 @@ export async function applyNativeMutations(input: { userId: string; mutations: N
   const resultsByMutationId = new Map<string, NativePushResult>()
 
   for (const mutation of input.mutations.toSorted(compareNativeMutationOrder)) {
+    const [targetEvent] = await db
+      .select({ parentId: event.parentEventId })
+      .from(event)
+      .where(eq(event.id, mutation.scopeID))
+      .limit(1)
+    const rootId = targetEvent?.parentId ?? mutation.scopeID
     const result = await db.transaction(async (locked) => {
       // Transaction locks also cover first writes, where no row exists to lock.
       // Lock receipt IDs globally before scopes so cross-account/retried IDs
@@ -97,14 +108,18 @@ export async function applyNativeMutations(input: { userId: string; mutations: N
         sql`select pg_advisory_xact_lock(hashtextextended(${`native-mutation:${mutation.id}`}, 0))`
       )
       await locked.execute(
-        sql`select pg_advisory_xact_lock(hashtextextended(${`native-scope:${mutation.scopeID}`}, 0))`
+        sql`select pg_advisory_xact_lock(hashtextextended(${`native-scope:${rootId}`}, 0))`
       )
       // Match canonical RSVP/lifecycle lock order: event before snapshot.
-      await locked
-        .select({ id: event.id })
-        .from(event)
-        .where(eq(event.id, mutation.scopeID))
-        .for('update')
+      await locked.select({ id: event.id }).from(event).where(eq(event.id, rootId)).for('update')
+      if (targetEvent?.parentId) {
+        await locked
+          .select({ id: event.id })
+          .from(event)
+          .where(eq(event.id, mutation.scopeID))
+          .for('update')
+        return applyScopedEventMutation(locked, { userId: input.userId, mutation, rootId })
+      }
       try {
         return await locked.transaction(async (transaction) => {
           const [receipt] = await transaction
@@ -114,7 +129,7 @@ export async function applyNativeMutations(input: { userId: string; mutations: N
             .limit(1)
 
           if (receipt) {
-            if (receipt.ownerUserId !== input.userId) {
+            if (receipt.ownerUserId !== input.userId || receipt.scopeId !== mutation.scopeID) {
               return {
                 mutationID: mutation.id,
                 disposition: 'rejected',
@@ -446,6 +461,13 @@ export async function pullNativeChanges(input: {
   after: number
   limit?: number
 }) {
+  const [targetEvent] = await db
+    .select({ parentId: event.parentEventId })
+    .from(event)
+    .where(eq(event.id, input.scopeId))
+    .limit(1)
+  if (targetEvent?.parentId)
+    return pullScopedEventChanges({ ...input, rootId: targetEvent.parentId })
   const limit = Math.min(Math.max(input.limit ?? 100, 1), 250)
   const access = await db.transaction(async (transaction) => {
     const [scope] = await transaction
@@ -567,22 +589,60 @@ export async function listNativeWorkspaceSnapshots(userId: string) {
         .orderBy(asc(nativeSyncEntity.createdAt))
     : []
 
-  // Native snapshots predate the explicit account flag. Treat their presence
-  // as proof that onboarding completed and repair the account record once.
-  const hasCompletedOnboarding = account?.hasCompletedOnboarding === true || rows.length > 0
+  const childEvents = await db
+    .select({ id: event.id, parentId: event.parentEventId })
+    .from(event)
+    .innerJoin(eventParticipant, eq(eventParticipant.eventId, event.id))
+    .innerJoin(
+      workspacePerson,
+      and(
+        eq(workspacePerson.id, eventParticipant.personId),
+        eq(workspacePerson.organizationId, event.organizationId)
+      )
+    )
+    .where(
+      and(
+        eq(workspacePerson.userId, userId),
+        isNotNull(event.parentEventId),
+        inArray(eventParticipant.role, ['host', 'collaborator'])
+      )
+    )
+  const rootScopes = new Set(rows.map((row) => row.scopeId))
+  const childSnapshots = []
+  for (const child of childEvents) {
+    if (rootScopes.has(child.parentId!)) continue
+    const snapshot = await db.transaction(async (tx) => {
+      await tx
+        .select({ id: event.id })
+        .from(event)
+        .where(eq(event.id, child.parentId!))
+        .for('share')
+      await tx.select({ id: event.id }).from(event).where(eq(event.id, child.id)).for('share')
+      return scopedEventSnapshot(tx, child.id, userId)
+    })
+    if (snapshot) childSnapshots.push(snapshot)
+  }
+
+  // Both a root workspace and an admitted child planning scope are usable
+  // planning experiences; neither should send an invitee through onboarding.
+  const hasCompletedOnboarding =
+    account?.hasCompletedOnboarding === true || rows.length > 0 || childSnapshots.length > 0
   if (hasCompletedOnboarding && !account?.hasCompletedOnboarding) {
     await db.update(user).set({ hasCompletedOnboarding: true }).where(eq(user.id, userId))
   }
 
   return {
     account: { hasCompletedOnboarding },
-    snapshots: rows.map((snapshot) => ({
-      scopeID: snapshot.scopeId,
-      payloadSchemaVersion: 1 as const,
-      payload: snapshot.payload,
-      serverVersion: snapshot.serverVersion,
-      updatedAt: nativeISODate(snapshot.updatedAt),
-    })),
+    snapshots: [
+      ...rows.map((snapshot) => ({
+        scopeID: snapshot.scopeId,
+        payloadSchemaVersion: 1 as const,
+        payload: snapshot.payload,
+        serverVersion: snapshot.serverVersion,
+        updatedAt: nativeISODate(snapshot.updatedAt),
+      })),
+      ...childSnapshots.map(({ cursor: _cursor, ...snapshot }) => snapshot),
+    ],
     entities: entities.map((entity) => ({
       scopeID: entity.scopeId,
       payloadSchemaVersion: 1 as const,

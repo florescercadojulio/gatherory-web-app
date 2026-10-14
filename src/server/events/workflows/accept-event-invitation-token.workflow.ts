@@ -22,8 +22,6 @@ export const acceptEventInvitationTokenWorkflow = (input: {
     return {
       ...accepted,
       planningScopeId:
-        !awaitingApproval && event?.parentEventId === null && accepted.role !== 'guest'
-          ? accepted.eventId
-          : null,
+        !awaitingApproval && event && accepted.role !== 'guest' ? accepted.eventId : null,
     }
   })

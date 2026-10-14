@@ -244,15 +244,22 @@ function prepareNativeUpload(
       return yield* Effect.fail(
         mediaFailure(
           'MEDIA_FORBIDDEN',
-          `Native prepare requires writable root-event participation; scope=${input.media.scopeId}`
+          `Native prepare requires writable planning participation; scope=${input.media.scopeId}`
         )
       )
 
-    const storageKey = MediaKeys.original({
-      workspaceId: actor.organizationId,
-      mediaAssetId: input.media.mediaAssetId,
-      contentType: input.media.contentType,
-    })
+    const storageKey = actor.parentEventId
+      ? MediaKeys.scopedOriginal({
+          workspaceId: actor.organizationId,
+          scopeId: input.media.scopeId,
+          mediaAssetId: input.media.mediaAssetId,
+          contentType: input.media.contentType,
+        })
+      : MediaKeys.original({
+          workspaceId: actor.organizationId,
+          mediaAssetId: input.media.mediaAssetId,
+          contentType: input.media.contentType,
+        })
     const signedUpload = yield* storage.createUploadUrl({
       key: storageKey,
       contentType: input.media.contentType,
@@ -291,7 +298,14 @@ function finalizeNativeUpload(
       mediaAssetId: input.media.mediaAssetId,
       userId: input.userId,
     })
-    if (!context || context.uploadedByUserId !== input.userId) {
+    if (
+      !context ||
+      (context.parentEventId != null &&
+        context.status === 'pending' &&
+        context.planningPermission === 'view_only') ||
+      (context.uploadedByUserId !== input.userId &&
+        !(context.parentEventId != null && context.status === 'ready'))
+    ) {
       return yield* Effect.fail(
         mediaFailure(
           'MEDIA_FORBIDDEN',

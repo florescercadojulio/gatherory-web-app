@@ -138,7 +138,7 @@ const verification = Effect.gen(function* () {
         expect(
           yield* getNativeMediaActorContext({ scopeId: eventId, userId: ownerId }),
           'Native uploads send the event scope UUID, not the organization ID'
-        ).toEqual({ organizationId })
+        ).toEqual({ organizationId, parentEventId: null })
         expect(
           yield* getNativeMediaActorContext({ scopeId: eventId, userId: guestId }),
           'Unlinked accounts cannot upload'
@@ -283,7 +283,7 @@ const verification = Effect.gen(function* () {
         expect(participation.length).toBe(1)
         expect(
           yield* getNativeMediaActorContext({ scopeId: eventId, userId: collaboratorId })
-        ).toEqual({ organizationId })
+        ).toEqual({ organizationId, parentEventId: null })
         yield* db
           .update(eventParticipant)
           .set({ planningPermission: 'contribute' })
@@ -291,7 +291,7 @@ const verification = Effect.gen(function* () {
         expect(
           yield* getNativeMediaActorContext({ scopeId: eventId, userId: collaboratorId }),
           'Contributors can upload'
-        ).toEqual({ organizationId })
+        ).toEqual({ organizationId, parentEventId: null })
         yield* db
           .update(eventParticipant)
           .set({ planningPermission: 'view_only' })

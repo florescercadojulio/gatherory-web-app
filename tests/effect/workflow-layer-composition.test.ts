@@ -113,6 +113,29 @@ for (const kind of ['shared', 'email'] as const) {
   )
 }
 
+it.effect('child planning invitation acceptance returns the child planning scope', () => {
+  const accepted = { eventId: 'child-event-1', role: 'collaborator' as const }
+  persistence.shareEventId.mockReturnValue(Effect.succeed(null))
+  persistence.acceptEmail.mockReturnValue(Effect.succeed(accepted))
+  persistence.parent.mockReturnValue(Effect.succeed({ parentEventId: 'root-event-1' }))
+
+  return acceptEventInvitationTokenWorkflow({
+    userId: 'user-1',
+    userEmail: 'planner@example.com',
+    token: 'child-token',
+  }).pipe(
+    Effect.provide(Layer.succeed(PgClient, testPg)),
+    Effect.tap((result) =>
+      Effect.sync(() =>
+        expect(result).toMatchObject({
+          ...accepted,
+          planningScopeId: 'child-event-1',
+        })
+      )
+    )
+  )
+})
+
 it.effect('composed event workflows retain domain authorization before persistence writes', () => {
   persistence.participant.mockReturnValue(
     Effect.succeed({ role: 'guest', planningPermission: 'view_only' })

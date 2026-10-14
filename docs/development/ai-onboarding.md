@@ -83,6 +83,11 @@ Paths in inline code are relative to their owning repository.
   invitation/home content without planning tabs. Check operation-specific
   permissions on the server. Link access and collaborator approval must follow
   the configured sharing policy.
+- Child-only collaborators use an isolated native planning projection keyed by
+  the child event UUID. Root storage and transaction boundaries are shared, but
+  parent/sibling data and organization grants are not. See the data model's
+  native replication section and `scoped-event-sync.persistence.ts`. Do not
+  "fix" child access by adding root participation or organization membership.
 - Who's Coming displays each person's RSVP for that specific event and refreshes
   on pull-down. A planning role does not imply an attendance response.
 - Decide records each planner's preference. Team input includes unanswered

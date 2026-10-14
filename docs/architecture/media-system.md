@@ -47,8 +47,15 @@ All keys come from `src/server/media/media.keys.ts`:
 workspaces/{workspaceId}/media/{mediaAssetId}/original.{extension}
 ```
 
-The key deliberately does not contain an event or idea ID. A stored asset may
-be reused or presented differently without an R2 copy-and-delete operation.
+Root-workspace keys do not contain an event or idea ID. Scoped native child
+uploads instead use `workspaces/{workspaceId}/events/{eventId}/media/{mediaAssetId}/original.{extension}`.
+This retains the upload's event boundary before a canonical placement exists.
+A child planner can read their own upload in that scope or a ready asset placed
+on that exact event, one of its ideas, or one of its registry items. Organization
+ownership alone never grants child planners access to other assets.
+
+A stored asset may be reused or presented differently after authorization
+without an R2 copy-and-delete operation.
 Filename changes, labels, alt text, ordering, and roles are database updates.
 
 Object keys are useful for organization but are never authorization. Every
@@ -107,11 +114,11 @@ proof of access.
 Use one public delivery bucket and separate private buckets for development and
 production:
 
-| Bucket | Environment | Intended content | Delivery |
-| --- | --- | --- | --- |
-| `gatherory-private-dev` | Development | Event, idea, registry, invitation, and guest media | Authorized short-lived URLs issued by the local app |
-| `gatherory-private-prod` | Production | Event, idea, registry, invitation, and guest media | Authorized short-lived URLs issued by `app.gatherory.com` |
-| `gatherory-public` | Shared public delivery | Explicitly published creator images and future template previews | `https://cdn.gatherory.com` |
+| Bucket                   | Environment            | Intended content                                                 | Delivery                                                  |
+| ------------------------ | ---------------------- | ---------------------------------------------------------------- | --------------------------------------------------------- |
+| `gatherory-private-dev`  | Development            | Event, idea, registry, invitation, and guest media               | Authorized short-lived URLs issued by the local app       |
+| `gatherory-private-prod` | Production             | Event, idea, registry, invitation, and guest media               | Authorized short-lived URLs issued by `app.gatherory.com` |
+| `gatherory-public`       | Shared public delivery | Explicitly published creator images and future template previews | `https://cdn.gatherory.com`                               |
 
 Publishing does not silently change an existing private asset's storage
 contract. If a future template needs a public derivative, create a separately

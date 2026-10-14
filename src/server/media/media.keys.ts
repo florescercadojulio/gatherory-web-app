@@ -21,4 +21,11 @@ export const MediaKeys = {
     contentType: SupportedImageContentType
   }) =>
     `${MediaKeys.workspacePrefix(input.workspaceId)}/${input.mediaAssetId}/original.${extensionForContentType(input.contentType)}`,
+  scopedOriginal: (input: {
+    workspaceId: string
+    scopeId: string
+    mediaAssetId: string
+    contentType: SupportedImageContentType
+  }) =>
+    `${MediaKeys.workspacePrefix(input.workspaceId)}/events/${input.scopeId}/${input.mediaAssetId}/original.${extensionForContentType(input.contentType)}`,
 }

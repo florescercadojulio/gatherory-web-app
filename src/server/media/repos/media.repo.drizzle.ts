@@ -1,23 +1,24 @@
-import { and, asc, eq, ne, isNull, inArray } from 'drizzle-orm'
+import { and, asc, eq, ne, isNull, isNotNull, inArray, or, sql } from 'drizzle-orm'
 import { Effect } from 'effect'
 
 import { DB } from '@/db'
 import { mediaFailure } from '../errors'
 import { event, eventParticipant, workspacePerson } from '@/db/schema/event.schema'
-import { eventMedia, mediaAsset } from '@/db/schema/media.schema'
+import { eventMedia, ideaMedia, mediaAsset, registryItemMedia } from '@/db/schema/media.schema'
+import { idea, registryItem } from '@/db/schema/planning.schema'
 
 import type { PrepareEventMediaUploadInput } from '../contracts/media.contracts'
 import type { PrepareNativeMediaUploadInput } from '../contracts/media.contracts'
 import { visibleMediaPredicate } from '@/server/moderation/repos/media-visibility'
 import { retainedEventAccess } from '@/server/events/repos/event-departure.repo'
 
-/** Native scope IDs identify main events, never Better Auth organizations.
+/** Native scope IDs identify events, never Better Auth organizations.
  * Resolve storage ownership from the event after checking its participant. */
 export function getNativeMediaActorContext(input: { scopeId: string; userId: string }) {
   return Effect.gen(function* () {
     const db = yield* DB
     const [context] = yield* db
-      .select({ organizationId: event.organizationId })
+      .select({ organizationId: event.organizationId, parentEventId: event.parentEventId })
       .from(workspacePerson)
       .innerJoin(eventParticipant, eq(eventParticipant.personId, workspacePerson.id))
       .innerJoin(event, eq(event.id, eventParticipant.eventId))
@@ -25,10 +26,10 @@ export function getNativeMediaActorContext(input: { scopeId: string; userId: str
         and(
           eq(event.id, input.scopeId),
           eq(workspacePerson.userId, input.userId),
-          isNull(event.parentEventId),
           eq(event.organizationId, workspacePerson.organizationId),
           inArray(eventParticipant.role, ['host', 'collaborator']),
-          ne(eventParticipant.planningPermission, 'view_only')
+          ne(eventParticipant.planningPermission, 'view_only'),
+          retainedEventAccess(input.userId, event.id)
         )
       )
       .limit(1)
@@ -134,6 +135,9 @@ export function getNativeMediaAccessContext(input: { mediaAssetId: string; userI
     const [context] = yield* db
       .select({
         mediaAssetId: mediaAsset.id,
+        eventId: event.id,
+        parentEventId: event.parentEventId,
+        planningPermission: eventParticipant.planningPermission,
         organizationId: mediaAsset.organizationId,
         uploadedByUserId: mediaAsset.uploadedByUserId,
         status: mediaAsset.status,
@@ -155,10 +159,39 @@ export function getNativeMediaAccessContext(input: { mediaAssetId: string; userI
       .where(
         and(
           eq(mediaAsset.id, input.mediaAssetId),
-          isNull(event.parentEventId),
           eq(event.organizationId, workspacePerson.organizationId),
+          eq(event.organizationId, mediaAsset.organizationId),
           retainedEventAccess(input.userId, event.id),
-          inArray(eventParticipant.role, ['host', 'collaborator'])
+          inArray(eventParticipant.role, ['host', 'collaborator']),
+          or(
+            // Root native workspaces retain their existing organization-wide media access.
+            isNull(event.parentEventId),
+            and(
+              isNotNull(event.parentEventId),
+              or(
+                and(
+                  eq(mediaAsset.uploadedByUserId, input.userId),
+                  sql`starts_with(${mediaAsset.storageKey}, concat('workspaces/', ${event.organizationId}, '/media/events/', ${event.id}, '/', ${mediaAsset.id}, '/original.'))`
+                ),
+                sql`exists (select 1 from ${eventMedia}
+                  where ${eventMedia.mediaAssetId} = ${mediaAsset.id}
+                    and ${eventMedia.eventId} = ${event.id}
+                    and ${eventMedia.organizationId} = ${event.organizationId})`,
+                sql`exists (select 1 from ${ideaMedia}
+                  inner join ${idea} on ${idea.id} = ${ideaMedia.ideaId}
+                    and ${idea.organizationId} = ${ideaMedia.organizationId}
+                  where ${ideaMedia.mediaAssetId} = ${mediaAsset.id}
+                    and ${idea.eventId} = ${event.id}
+                    and ${ideaMedia.organizationId} = ${event.organizationId})`,
+                sql`exists (select 1 from ${registryItemMedia}
+                  inner join ${registryItem} on ${registryItem.id} = ${registryItemMedia.registryItemId}
+                    and ${registryItem.organizationId} = ${registryItemMedia.organizationId}
+                  where ${registryItemMedia.mediaAssetId} = ${mediaAsset.id}
+                    and ${registryItem.eventId} = ${event.id}
+                    and ${registryItemMedia.organizationId} = ${event.organizationId})`
+              )
+            )
+          )
         )
       )
       .limit(1)

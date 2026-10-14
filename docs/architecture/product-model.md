@@ -162,6 +162,14 @@ Creating a child event copies the main event's participant assignments as an
 initial snapshot. Each event then owns independent participant records. Later
 changes to a parent event do not silently rewrite child-event participation.
 
+A child-only collaborator opens a planning experience scoped to that event,
+with planning tabs and the actions allowed by their assigned permission. This
+does not expose the parent or siblings or grant organization membership. The
+child is presented as the local planning root, while remaining a child in the
+canonical hierarchy. Nested events and workspace-wide settings remain outside
+that scope. Teams can later supply group assignments, but individual event
+participation currently determines this access.
+
 The same rule applies to professional planners: using a planner's template does
 not give that planner access to the consumer's event. A consumer who hires the
 planner must separately invite the planner or a planner-workspace member as an

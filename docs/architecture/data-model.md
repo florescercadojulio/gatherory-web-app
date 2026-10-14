@@ -51,36 +51,36 @@ initial setup short without creating an empty workspace shell.
 
 ## Schema ownership
 
-| Concern | Tables | Notes |
-| --- | --- | --- |
-| Identity and workspace access | `user`, `organization`, `member`, `team`, `team_member` | Better Auth owns authentication and workspace membership. |
-| Event tree | `event` | A null `parent_event_id` is the main event. A non-null parent is a direct child. |
-| Workspace people | `workspace_person` | Stable person identity before or after account signup. A nullable `user_id` links the contact to Better Auth after acceptance. |
-| Event people | `event_participant`, `event_invitation` | Event-specific role, permission, RSVP, and invitation state. New child events copy, then diverge from, the main event roster. |
-| Workspace planning defaults | `workspace_planning_settings` | Workspace budget, ISO 4217 currency, and collaboration defaults that do not belong to one child event. |
-| Ideas | `idea`, `idea_decision` | Ideas are scoped to the active event context. Titles may be omitted when category configuration already names the idea. |
-| Category-specific idea setup | `idea.configuration` | Versioned JSON for focused fields such as attire style or food servings. The relational category is the discriminator. |
-| Music | `music_track`, `idea_music_track` | Provider-neutral catalog records. Apple Music is first; another provider does not change idea ownership. |
-| Costs | `event_expense` | A decimal cost belongs to exactly one event and may retain a stable source-idea link. |
-| Notes | `event_note` | Event-context message with the product's 750-character limit enforced in PostgreSQL. |
-| Registry | `registry_item`, `registry_commitment` | Approved registry ideas can materialize as items. Commitments are per user and quantity. |
-| Media | `media_asset`, `event_media`, `idea_media`, `registry_item_media` | Storage metadata is independent from typed placement and display order. |
-| Native replication | `native_workspace_snapshot`, `native_sync_entity`, `native_sync_scope_member`, `native_sync_change` | Snapshot compatibility plus independently versioned entities and scope-based access. |
+| Concern                       | Tables                                                                                              | Notes                                                                                                                          |
+| ----------------------------- | --------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| Identity and workspace access | `user`, `organization`, `member`, `team`, `team_member`                                             | Better Auth owns authentication and workspace membership.                                                                      |
+| Event tree                    | `event`                                                                                             | A null `parent_event_id` is the main event. A non-null parent is a direct child.                                               |
+| Workspace people              | `workspace_person`                                                                                  | Stable person identity before or after account signup. A nullable `user_id` links the contact to Better Auth after acceptance. |
+| Event people                  | `event_participant`, `event_invitation`                                                             | Event-specific role, permission, RSVP, and invitation state. New child events copy, then diverge from, the main event roster.  |
+| Workspace planning defaults   | `workspace_planning_settings`                                                                       | Workspace budget, ISO 4217 currency, and collaboration defaults that do not belong to one child event.                         |
+| Ideas                         | `idea`, `idea_decision`                                                                             | Ideas are scoped to the active event context. Titles may be omitted when category configuration already names the idea.        |
+| Category-specific idea setup  | `idea.configuration`                                                                                | Versioned JSON for focused fields such as attire style or food servings. The relational category is the discriminator.         |
+| Music                         | `music_track`, `idea_music_track`                                                                   | Provider-neutral catalog records. Apple Music is first; another provider does not change idea ownership.                       |
+| Costs                         | `event_expense`                                                                                     | A decimal cost belongs to exactly one event and may retain a stable source-idea link.                                          |
+| Notes                         | `event_note`                                                                                        | Event-context message with the product's 750-character limit enforced in PostgreSQL.                                           |
+| Registry                      | `registry_item`, `registry_commitment`                                                              | Approved registry ideas can materialize as items. Commitments are per user and quantity.                                       |
+| Media                         | `media_asset`, `event_media`, `idea_media`, `registry_item_media`                                   | Storage metadata is independent from typed placement and display order.                                                        |
+| Native replication            | `native_workspace_snapshot`, `native_sync_entity`, `native_sync_scope_member`, `native_sync_change` | Snapshot compatibility plus independently versioned entities and scope-based access.                                           |
 
 ## iOS mapping
 
-| PostgreSQL | iOS |
-| --- | --- |
-| `organization` + `workspace_planning_settings` | `PlanningWorkspace` |
-| root `event` | main-event fields on `PlanningWorkspace` |
-| child `event` | `TimelineItem` |
-| `workspace_person` | `WorkspaceMember` |
-| `event_participant` | `EventParticipation` |
-| `idea` | `PlanningIdea` |
-| `event_expense` | `EventExpense` |
-| `event_note` | `EventNote` |
-| `registry_item` | `RegistryItem` |
-| `media_asset` + placement | `EventMoment.mediaAssetID` and local upload state |
+| PostgreSQL                                     | iOS                                               |
+| ---------------------------------------------- | ------------------------------------------------- |
+| `organization` + `workspace_planning_settings` | `PlanningWorkspace`                               |
+| root `event`                                   | main-event fields on `PlanningWorkspace`          |
+| child `event`                                  | `TimelineItem`                                    |
+| `workspace_person`                             | `WorkspaceMember`                                 |
+| `event_participant`                            | `EventParticipation`                              |
+| `idea`                                         | `PlanningIdea`                                    |
+| `event_expense`                                | `EventExpense`                                    |
+| `event_note`                                   | `EventNote`                                       |
+| `registry_item`                                | `RegistryItem`                                    |
+| `media_asset` + placement                      | `EventMoment.mediaAssetID` and local upload state |
 
 `WorkspaceMember` can exist without an account. Its optional Better Auth user ID
 is linked after invitation acceptance. Role and RSVP are event-specific and
@@ -133,8 +133,8 @@ Route slugs remain locators, never authorization credentials.
 
 ## Native replication
 
-`native_workspace_snapshot` is a compatibility archive and maps each native
-scope directly to its canonical Better Auth organization.
+`native_workspace_snapshot` is a compatibility archive stored once per root
+event and canonical Better Auth organization.
 `native_sync_entity` records are the independently versioned collaboration
 boundary. `native_sync_scope_member` authorizes all accounts that can read or
 write a workspace; ownership of the latest payload is not authorization. This
@@ -148,10 +148,35 @@ entire mutation rolls back and receives a rejected result rather than an
 `applied` receipt. Existing snapshots can be replayed idempotently with
 `pnpm db:materialize-native` after the relevant migration is installed.
 
-Signed-in hosts and collaborators are Better Auth organization members and may
-receive native sync-scope membership. Guests remain workspace people and event
-participants; they receive a guest-facing event projection rather than the
-workspace planning graph.
+Main-event hosts and collaborators may receive organization and root sync-scope
+membership. A child-event collaborator does not need either membership. Their
+event UUID identifies a virtual planning scope over the existing root archive
+and change log; it does not create another organization or snapshot row.
+
+The server projects the child as the native archive's `mainEventID`, with
+`isScopedEvent: true` and optional `scopedEvent` metadata. Only that event's
+participants, ideas, responses, expenses, notes, moments, and registry items
+are included. Parent and sibling records, workspace budgets, and workspace
+sharing defaults are excluded. Canonical event participation determines access
+on every bootstrap, pull, and push, including receipt retries.
+
+Child edits retain their original mutation ID but materialize into canonical
+rows and the root entity/change tables under the root lock. The same transaction
+records the receipt. Authorization checks both existing record ownership and
+payload references before applying an edit; whole-workspace writes are forbidden
+for a child scope. Hosts receive child edits through the existing root log.
+
+Child pulls return a complete authorized projection with a root-log high-water
+cursor. A stable envelope ID also incorporates the projection digest, so
+canonical permission changes arrive even without a new log entry. iOS replaces
+the scoped remote arrays, preserves downloaded media and pending local entity
+edits, and commits the archive, receipt, and cursor together. Root-scope merge
+behavior is unchanged. Read-only downgrades retain pending drafts; revoked
+planning access removes the scoped cache and stops pending delivery.
+
+Guests still receive the read-only invitation projection. Better Auth teams
+remain groups of organization members; group-to-event grants are not implemented
+by scoped individual planning access.
 
 ## Required invariants
 
@@ -164,7 +189,8 @@ workspace planning graph.
    and that idea belongs to the same event and workspace.
 6. Amounts and allocations are never negative and share the workspace currency.
 7. Media sort positions are non-negative and storage keys are immutable.
-8. Sync access is checked through scope membership for push, pull, and bootstrap.
+8. Sync access is checked against current event participation for push, pull,
+   and bootstrap; stored root scope membership is only a projection of that access.
 
 ## Deferred model
 
