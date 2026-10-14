@@ -69,7 +69,7 @@ export function hasWorkspaceMembership(input: { organizationId: string; userId: 
 export function getEventParticipant(input: { eventId: string; userId: string }) {
   return Effect.gen(function* () {
     const db = yield* DB
-    const [participant] = yield* db
+    const participants = yield* db
       .select({
         role: eventParticipant.role,
         planningPermission: eventParticipant.planningPermission,
@@ -92,7 +92,7 @@ export function getEventParticipant(input: { eventId: string; userId: string }) 
       )
       .limit(1)
 
-    return participant
+    return participants.at(0)
   })
 }
 

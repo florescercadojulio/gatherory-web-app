@@ -6,6 +6,8 @@ import { auth } from '@/lib/auth'
 import { requireSessionMiddleware } from '@/lib/auth.middleware'
 import { runServerEffect, tryServerOperation } from '@/server/effect'
 
+export { ensureActiveOrg, ensureOrgPermission } from '@/server/auth/authorization'
+
 /** Returns the current cookie-backed session without requiring authentication. */
 export const getSession = createServerFn({ method: 'GET' }).handler(() =>
   runServerEffect(

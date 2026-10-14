@@ -205,8 +205,8 @@ A handler is the only server-function edge. It must:
 
 1. declare the HTTP method;
 2. apply session middleware;
-3. make its event-scoped authorization requirement explicit in the domain
-   service call;
+3. declare event permissions in middleware for single-event inputs, retaining
+   the domain service's authorization checks;
 4. validate all caller input;
 5. call exactly one workflow; and
 6. return a safe serializable result.
@@ -218,7 +218,7 @@ client visibility checks improve navigation, but do not authorize data access.
 
 ```ts
 export const updateEvent = createServerFn({ method: 'POST' })
-  .middleware([requireSessionMiddleware])
+  .middleware([eventAuthorizationMiddleware({ event: ['update'] })])
   .validator(transportInput(UpdateEventSchema))
   .handler(({ data, context }) =>
     runServerEffect(
@@ -235,10 +235,86 @@ export const updateEvent = createServerFn({ method: 'POST' })
   )
 ```
 
-Authorization stays in a service when it depends on a domain record, such as an
-event participant assignment. Request middleware is reserved for request-wide
-facts such as identity or an active Better Auth organization. Neither layer may
-trust a role, event ID, or permission statement supplied by the browser.
+Authorization remains enforced in services for all callers, including native
+APIs. Event middleware also checks participation and declared capabilities
+before a server-function handler executes. Neither layer may treat a caller's
+event ID as proof of access or trust caller-supplied identity, roles, or permissions.
+
+### Reusable event authorization
+
+Use `eventAuthorizationMiddleware` from `src/lib/event-authorization.middleware.ts`
+for handlers whose input identifies a single event with `eventId`:
+
+```ts
+.middleware([eventAuthorizationMiddleware({ event: ['manage_participants'] })])
+```
+
+It composes session authentication, validates the event UUID before lookup, and
+calls the reusable `ensureEventPermission` Effect in `src/server/events/authorization.ts`.
+The repository resolves the authenticated user's current participation for that
+specific event, including existing retained-access rules. `EventAuthorization`
+evaluates the same policy used by services: hosts and managing collaborators can
+manage participants; contributing collaborators have contribution capabilities;
+view-only collaborators and guests have viewer capabilities. Guests cannot gain
+management rights from their planning-permission field. No active organization
+or organization membership is required. Guests here are authenticated participants,
+not anonymous visitors.
+
+Permissions come from server code and empty declarations fail closed. The
+middleware preserves the full payload for handler validation and exposes verified
+`context.eventAccess` (`eventId`, `role`, `planningPermission`). It is ordinary
+middleware context, not an ambient Effect execution-context service. Failures use
+the sanitized `runAuthorizationCheck` boundary described below and never call
+`next()`. Pre-handler denials reject the call rather than returning `ServerResult`.
+
+`inviteEventParticipant` uses this gate. Its service still rechecks permission;
+the middleware does not replace domain enforcement or provide transactional
+protection against concurrent permission changes. Do not apply this gate to
+invitation acceptance/previews, which authorize tokens before participation
+exists, or to root-event creation/listing, which have different scope. For inputs
+keyed by another resource (such as a media asset), resolve its actual event in
+the domain service; never authorize a separate caller-provided event ID and then
+operate on an unrelated resource.
+
+### Reusable organization authorization
+
+Use `orgAuthorizationMiddleware` from `src/lib/auth.middleware.ts` for
+organization administration. Declare the required permissions in server code:
+
+```ts
+createServerFn({ method: 'POST' }).middleware([
+  orgAuthorizationMiddleware({ organization: ['update'] }),
+])
+// Validate input, then execute the settings workflow in runServerEffect.
+```
+
+The middleware composes `requireActiveOrgMiddleware`, which itself composes
+`requireSessionMiddleware`. It checks the authenticated user's actual active
+membership, verifies that both its user and organization IDs match the session,
+then calls Better Auth's permission endpoint with that explicit organization ID.
+The endpoint rechecks current membership and roles. A session's active
+organization ID alone is not evidence of membership. Required actions are never
+read from caller input, and empty permission declarations fail closed.
+
+`ensureActiveOrg` and `ensureOrgPermission` are reusable Effect helpers exported
+from `src/lib/auth.functions.ts`; their implementation and injectable connector
+live under `src/server/auth/`. They are not new RPC endpoints. Other server
+boundaries can compose these Effects with their own safe response runner.
+
+Middleware failures occur before the handler's `runServerEffect`. The
+`runAuthorizationCheck` boundary uses the same logging and translation before
+throwing only public copy and an error ID; it never passes provider error details
+to the client and never calls `next()` on denial. Consumers attaching this
+middleware must handle a rejected server-function call, not expect a handler's
+`ServerResult` for pre-handler failures. Unauthenticated requests retain the
+existing sign-in redirect.
+
+No current event, media, sync, or workspace-selection handler is gated by this
+organization-administration middleware. Event hosts, collaborators, and guests
+can have event access without organization membership; their event-scoped
+authorization remains in domain services. When an organization-settings handler
+is introduced, attach the middleware explicitly. No ambient execution-context
+service is introduced by this pattern.
 
 ## Permission rules
 

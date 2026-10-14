@@ -69,8 +69,37 @@ algorithm remains unchanged.
 
 ## Verification and stopping point
 
+### Organization authorization follow-up
+
+Added `requireActiveOrgMiddleware` and `orgAuthorizationMiddleware` with typed
+Better Auth organization permissions, reusable Effect helpers, an injectable
+connector, and a sanitized pre-handler failure boundary. Existing session
+helpers remain compatible. No execution-context service was added.
+
+These organization gates are for future organization-administration handlers,
+not event participation or workspace selection. Validation for this follow-up is in
+the full suite, including real TanStack middleware-chain tests with substituted
+auth APIs. Denials, scope mismatches, revoked membership, and provider failures
+never reach the handler. Session-provider failures now use the same sanitized
+pre-handler error boundary; missing sessions still redirect to sign-in.
+
+### Event authorization follow-up
+
+Added `eventAuthorizationMiddleware` with server-declared `EventPermissions` and
+the injectable `ensureEventPermission` Effect. It authenticates, validates the
+event ID, and checks current event participation through the existing policy.
+Hosts, collaborator access levels, and authenticated guests do not need active
+organization membership. Participant invitations now use the middleware;
+domain checks remain in place for native APIs and direct service callers.
+Token-based invitation flows and mixed-scope handlers remain unchanged.
+Pre-handler denials use sanitized rejected calls, not handler `ServerResult`s.
+Tests cover the role matrix, identity/permission spoofing, malformed scope,
+revoked participation, empty declarations, and private provider failures.
+
+### Local verification
+
 - `pnpm typecheck`: passed.
-- `pnpm test`: passed, 73 tests across 24 files; 9 opt-in integration tests skipped.
+- `pnpm test`: passed, 121 tests across 28 files; 9 opt-in integration tests skipped.
   Contract schema freshness is included in this command.
 - New service tests use `@effect/vitest` with substituted ports. They cover
   event authorization, workspace compensation and participant-only resolution,

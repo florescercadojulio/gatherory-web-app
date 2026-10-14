@@ -1,5 +1,5 @@
 import { transportInput } from '@/lib/input-validation'
-import { requireSessionMiddleware } from '@/lib/auth.middleware'
+import { eventAuthorizationMiddleware } from '@/lib/event-authorization.middleware'
 import { validateInput } from '@/server/validation'
 import { runServerEffect } from '@/server/effect'
 import { createServerFn } from '@tanstack/react-start'
@@ -9,7 +9,7 @@ import { inviteEventParticipantWorkflow } from '../workflows/invite-event-partic
 import { provideEventLayers } from './event-handler.layers'
 
 export const inviteEventParticipant = createServerFn({ method: 'POST' })
-  .middleware([requireSessionMiddleware])
+  .middleware([eventAuthorizationMiddleware({ event: ['manage_participants'] })])
   .validator(transportInput(InviteEventParticipantInputSchema))
   .handler(({ data, context }) =>
     runServerEffect(
