@@ -44,7 +44,8 @@ export class BlueprintRepo extends Context.Service<
     revision: (
       catalogKey: string,
       revision: number,
-      actorId: string
+      actorId: string,
+      shareToken?: string
     ) => Effect.Effect<CatalogRevision, DomainError>
     status: (
       actorId: string,

@@ -67,8 +67,9 @@ Paths in inline code are relative to their owning repository.
 ## Decisions to preserve
 
 - Future host-authored experiences include rental stays, family cottages, and
-  wedding-package recommendations. Fine-grained template configuration belongs
-  in the web app; iOS focuses on discovering/copying/using the resulting plan.
+  wedding-package recommendations. Fine-grained business configuration belongs
+  in the web app; consumer template selection, review, creation and sharing also
+  work entirely on iOS.
   QR template links must not become event invitations or workspace membership.
   Each copy is independent; checklists reset per instance and reminders require
   separate consent/delivery handling. See the
@@ -158,6 +159,26 @@ Paths in inline code are relative to their owning repository.
   See the [installation proof](../roadmaps/blueprints-roadmap/06-wedding-installation-proof.md)
   for migration/explicit catalog seeding, compatibility gates, tests, and limits.
   Preserve ordinary sync transactions and account-isolated install intents.
+- Native pre-install setup now has device-local account/template drafts with an
+  exact source pin, selections and confirmed dates. The Workspaces + menu resumes
+  them offline; Search has no resume banner. Pending installation recovery takes priority, and matching drafts
+  clear only after canonical import. Preview/install remain server-authorized.
+  See [resumable setup](../roadmaps/blueprints-roadmap/12-resumable-setup.md).
+- Blank native events remain ordinary offline-created instances. Event-to-template
+  capture is separate and explicit: long-press an iOS Workspaces card, choose
+  Share Template, select supported content, review, then Create & Share. Web
+  capture and advanced draft editing/refresh remain available. Capture
+  only selected supported content, preserve manual template edits on reviewed
+  refresh, and keep publication separate. Source-event permissions and destination
+  template ownership are independent. See [capture](../roadmaps/blueprints-roadmap/13-event-to-template-capture.md).
+  Playlist copying, inclusion defaults and QR distribution remain future work.
+- A broad shared creation engine is deliberately deferred. Do not route ordinary
+  native workspace/event/idea creation through blueprints. Extract small shared
+  rules only when actual duplication is demonstrated; keep existing local
+  edit/outbox transactions and server installation/receipt/import workflows
+  separate. Sharing, source refresh and publication stay explicit and optional.
+  This is not a prerequisite for QR distribution or billing. See the
+  [roadmap decision](../roadmaps/blueprints-roadmap/README.md#creation-rules-and-optional-sharing).
 - Private web authoring/publication now lives at `/blueprints`; only explicitly
   selected workspace owners can author/install private templates. Account-level
   template navigation must not provision/select the active workspace. Draft CAS,
@@ -165,6 +186,32 @@ Paths in inline code are relative to their owning repository.
   from installed event permissions. See [cottage proof](../roadmaps/blueprints-roadmap/11-private-cottage-proof.md).
   Development seed data includes an App Review-owned published cottage and an
   unpublished editing draft. The seed remains destructive; never run it casually.
+- Unlisted template links now grant preview/install access to one pinned published
+  revision. Owner-only create/list/revoke never changes source-event or workspace
+  permissions. Revocation blocks new installations but preserves authorized
+  completed-receipt recovery and independent copies. Native setup retains the
+  credential in account/link-scoped drafts and exact installation intents; do
+  not move it into ordinary discovery or sync payloads. See
+  [unlisted links](../roadmaps/blueprints-roadmap/14-unlisted-template-links.md)
+  for the migration and deployment boundary. QR generation remains deferred.
+- Native Workspaces card menus offer Share Template and Manage Links for templates
+  explicitly captured from that event and owned by the current user. Do not infer
+  template ownership from installed-copy provenance or source-event management.
+  The native management endpoint checks both grants, uses online-only requests,
+  and never enqueues link mutations into offline sync. Advanced authoring remains
+  on the web; native Create & Share also publishes explicitly reviewed consumer
+  captures. Raw generated URLs are transient sheet state. See
+  [native creation](../roadmaps/blueprints-roadmap/15-native-create-and-share.md)
+  for atomic capture/publication, exact retry and account isolation.
+- New native Create & Share requests omit destination ownership and explicitly
+  publish to Search. The server uses/provisions the actor's personal owner only
+  on creation, never on source/review reads; event permissions remain separate.
+  A nullable listed revision grants catalog/install access to that exact
+  publication. Existing private/unlisted templates remain private. Search
+  withdrawal and bearer-link revocation are independent, and neither changes
+  completed installed copies. See
+  [automatic ownership and discovery](../roadmaps/blueprints-roadmap/16-public-discovery-and-automatic-ownership.md)
+  for the additive migration and replay/installation boundaries.
 - The curated catalog now also includes Birthday Party and Thanksgiving; the
   same native discovery/setup/install flow handles all three. See
   [curated starter proof](../roadmaps/blueprints-roadmap/09-curated-starters.md).

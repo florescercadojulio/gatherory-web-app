@@ -11,7 +11,12 @@ export const previewBlueprintWorkflow = (input: unknown, actorId: string) =>
   Effect.gen(function* () {
     const request = yield* validateInput(BlueprintInstallInputSchema, input)
     const repo = yield* BlueprintRepo
-    const revision = yield* repo.revision(request.catalogKey, request.revision, actorId)
+    const revision = yield* repo.revision(
+      request.catalogKey,
+      request.revision,
+      actorId,
+      request.shareToken
+    )
     if (revision.contentHash !== request.contentHash)
       return yield* Effect.fail(
         new ConflictError({
@@ -52,7 +57,12 @@ export const installBlueprintWorkflow = (actor: BlueprintActor, input: unknown) 
     if (previous) {
       receipt = yield* repo.acquire(actor.id, request.requestId, hash, token)
     } else {
-      const revision = yield* repo.revision(request.catalogKey, request.revision, actor.id)
+      const revision = yield* repo.revision(
+        request.catalogKey,
+        request.revision,
+        actor.id,
+        request.shareToken
+      )
       const { plan } = yield* previewBlueprintWorkflow(request, actor.id)
       receipt = yield* repo.claim({ actor, request, hash, plan, revision, token })
     }

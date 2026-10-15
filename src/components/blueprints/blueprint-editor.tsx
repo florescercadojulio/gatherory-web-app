@@ -331,7 +331,7 @@ export function BlueprintEditor({
                 <span className="font-medium">{starterName}</span>
               </p>
             ) : null}
-            {draft?.source ? (
+            {draft?.source && 'catalogKey' in draft.source ? (
               <p className="text-sm text-muted-foreground">
                 {t('blueprints.basedOn', { name: starterName ?? draft.source.catalogKey })}
               </p>

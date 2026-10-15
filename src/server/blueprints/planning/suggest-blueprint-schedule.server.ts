@@ -115,7 +115,10 @@ export function suggestBlueprintSchedule(
   })
 
   return BlueprintScheduleResponseSchema.parse({
-    ...input,
+    catalogKey: input.catalogKey,
+    revision: input.revision,
+    contentHash: input.contentHash,
+    mainEvent: input.mainEvent,
     suggestions,
   })
 }

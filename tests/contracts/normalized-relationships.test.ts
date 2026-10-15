@@ -25,13 +25,49 @@ test('application queries do not use removed participant-account columns', () =>
     const source = readFileSync(path, 'utf8')
     const reasons = [
       /eventParticipant\s*\.\s*userId/.test(source) ? 'eventParticipant.userId' : null,
-      /event_participant[\s\S]{0,160}\buser_id\b/i.test(source)
-        ? 'event_participant.user_id'
-        : null,
+      usesRemovedParticipantAccountColumn(source) ? 'event_participant.user_id' : null,
     ].filter((reason): reason is string => reason !== null)
 
     return reasons.map((reason) => `${relative(process.cwd(), path)}: ${reason}`)
   })
 
   expect(violations).toEqual([])
+})
+
+function usesRemovedParticipantAccountColumn(source: string) {
+  const aliases = [
+    ...source.matchAll(/\b(?:from|join)\s+event_participant\s+(?:as\s+)?([a-z_]\w*)/gi),
+  ]
+    .map((match) => match[1]!)
+    .filter(
+      (alias) =>
+        !['where', 'join', 'on', 'left', 'inner', 'order', 'for'].includes(alias.toLowerCase())
+    )
+  return (
+    ['event_participant', ...aliases].some((alias) =>
+      new RegExp(`\\b${alias}\\s*\\.\\s*user_id\\b`, 'i').test(source)
+    ) ||
+    /\bselect\s+user_id\s+from\s+event_participant\b/i.test(source) ||
+    /\bfrom\s+event_participant\s+where\s+user_id\b/i.test(source)
+  )
+}
+
+test('relationship check distinguishes person account joins from removed participant fields', () => {
+  expect(
+    usesRemovedParticipantAccountColumn(
+      'FROM event e JOIN event_participant ep ON ep.event_id = e.id JOIN workspace_person p ON p.id = ep.person_id WHERE p.user_id = actor'
+    )
+  ).toBe(false)
+  expect(
+    usesRemovedParticipantAccountColumn('FROM event_participant ep WHERE ep.user_id = actor')
+  ).toBe(true)
+  expect(
+    usesRemovedParticipantAccountColumn(
+      'FROM event_participant WHERE event_participant.user_id = actor'
+    )
+  ).toBe(true)
+  expect(usesRemovedParticipantAccountColumn('SELECT user_id FROM event_participant')).toBe(true)
+  expect(usesRemovedParticipantAccountColumn('FROM event_participant WHERE user_id = actor')).toBe(
+    true
+  )
 })

@@ -141,10 +141,15 @@ function BlueprintLibrary() {
                   ),
                 },
                 resourceControls: (
-                  <Button render={<Link to="/blueprints/new" />}>
-                    <Plus />
-                    {t('blueprints.newTemplate')}
-                  </Button>
+                  <div className="flex flex-wrap gap-2">
+                    <Button variant="outline" render={<Link to="/blueprints/capture" />}>
+                      {t('blueprints.captureCreate')}
+                    </Button>
+                    <Button render={<Link to="/blueprints/new" />}>
+                      <Plus />
+                      {t('blueprints.newTemplate')}
+                    </Button>
+                  </div>
                 ),
                 paginationResetKey: `${source}:${status}`,
                 pagination: { initialPageSize: 20, pageSizeOptions: [20, 50, 100] },

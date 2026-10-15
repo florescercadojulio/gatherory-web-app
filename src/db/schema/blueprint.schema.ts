@@ -12,6 +12,7 @@ import {
 } from 'drizzle-orm/pg-core'
 import { organization, user } from './auth.schema'
 import { event } from './event.schema'
+import type { BlueprintCaptureMetadata } from '@/contracts/blueprint-capture.contracts'
 
 /** Workspace-owned drafts. Published snapshots never share mutable content. */
 export const blueprintTemplate = pgTable(
@@ -30,8 +31,11 @@ export const blueprintTemplate = pgTable(
     content: jsonb('content').notNull(),
     draftVersion: integer('draft_version').default(1).notNull(),
     publishedRevision: integer('published_revision'),
+    listedRevision: integer('listed_revision'),
     publishedDraftVersion: integer('published_draft_version'),
-    source: jsonb('source').$type<{ catalogKey: string; revision: number }>(),
+    source: jsonb('source').$type<
+      { catalogKey: string; revision: number } | BlueprintCaptureMetadata
+    >(),
     retiredAt: timestamp('retired_at', { withTimezone: true }),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
@@ -42,6 +46,10 @@ export const blueprintTemplate = pgTable(
       table.createRequestId
     ),
     check('blueprint_template_version_positive', sql`${table.draftVersion} > 0`),
+    check(
+      'blueprint_template_listed_revision_positive',
+      sql`${table.listedRevision} is null or ${table.listedRevision} > 0`
+    ),
   ]
 )
 
@@ -68,6 +76,24 @@ export const blueprintRevision = pgTable(
   ]
 )
 
+/** Revocable bearer links pin one immutable publication; only token hashes persist. */
+export const blueprintShareLink = pgTable(
+  'blueprint_share_link',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    revisionId: uuid('revision_id')
+      .notNull()
+      .references(() => blueprintRevision.id, { onDelete: 'cascade' }),
+    tokenHash: text('token_hash').notNull().unique(),
+    createdByUserId: text('created_by_user_id')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    revokedAt: timestamp('revoked_at', { withTimezone: true }),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [check('blueprint_share_link_hash_check', sql`${table.tokenHash} ~ '^[0-9a-f]{64}$'`)]
+)
+
 /** Claimed before auth provisioning; completion commits with canonical and native records. */
 export const blueprintInstallation = pgTable(
   'blueprint_installation',
@@ -78,6 +104,7 @@ export const blueprintInstallation = pgTable(
       .references(() => user.id, { onDelete: 'cascade' }),
     requestId: uuid('request_id').notNull(),
     requestHash: text('request_hash').notNull(),
+    shareTokenHash: text('share_token_hash'),
     revisionId: uuid('revision_id').references(() => blueprintRevision.id, {
       onDelete: 'set null',
     }),

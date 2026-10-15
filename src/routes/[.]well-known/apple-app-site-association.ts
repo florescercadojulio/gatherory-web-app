@@ -11,7 +11,10 @@ export const Route = createFileRoute('/.well-known/apple-app-site-association')(
               details: [
                 {
                   appIDs: ['LW97NHT3JA.com.guide-systems.gatherory'],
-                  components: [{ '/': '/join/*', comment: 'Gatherory event invitations' }],
+                  components: [
+                    { '/': '/join/*', comment: 'Gatherory event invitations' },
+                    { '/': '/templates/shared/*', comment: 'Gatherory reusable template previews' },
+                  ],
                 },
               ],
             },

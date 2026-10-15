@@ -1,0 +1,2 @@
+ALTER TABLE "blueprint_template" ADD COLUMN "listed_revision" integer;--> statement-breakpoint
+ALTER TABLE "blueprint_template" ADD CONSTRAINT "blueprint_template_listed_revision_positive" CHECK ("listed_revision" is null or "listed_revision" > 0);

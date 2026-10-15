@@ -34,8 +34,9 @@ Wedding setup, not automatic rescheduling or a new sync engine.
   refresh. A zone change changes their display, not when they happen. A notice
   explains this. Deselecting a child clears only that child's confirmation.
 - Network failure leaves manual date entry and existing choices available.
-  Suggestion fetching never creates a durable installation intent. Setup drafts
-  are still view-local; offline catalog caching/durable setup drafts are not added.
+  Suggestion fetching never creates a durable installation intent. The later
+  [resumable setup slice](12-resumable-setup.md) adds device-local, account-scoped
+  setup recovery without changing suggestion confirmation or sync transactions.
 - Existing native transport encodes dates to whole seconds. Schedule anchors
   normalize to that precision before requests/echo checks; server contracts still
   accept milliseconds. No existing date, archive, outbox, or sync format changes.

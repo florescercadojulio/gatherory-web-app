@@ -2,7 +2,8 @@
 
 **Direction recorded:** October 15, 2026, at the user's request.
 **Status:** private authoring and cottage reuse implemented locally in [11](11-private-cottage-proof.md);
-QR distribution, checklists, reminders and richer place data remain future work.
+Unlisted URL distribution is implemented locally in [14](14-unlisted-template-links.md);
+QR generation, checklists, reminders and richer place data remain future work.
 **Surface decision:** fine-grained reusable configuration belongs in the web app;
 iOS stays focused on discovering, reviewing, using, and contributing to a plan.
 
@@ -54,14 +55,16 @@ membership, collaborator approval, or access to a host's other events. Copying
 a package grants its creator no access; collaboration requires a separate
 scoped invitation or professional engagement.
 
-Private authoring/publication and future unlisted distribution are separate capabilities. An unlisted
-link can be forwarded and is not proof of a booking or family membership. Before
-shipping, define link audience, revocation/expiry, abuse limits, and whether a
-long-lived QR resolves a pinned revision or the latest publication. Whichever
-policy is chosen, review/install must pin the exact revision and revalidate it;
-never silently substitute content after confirmation. Revocation controls new
-access, not remote deletion of recipients' independent plans. Preserve existing
-uncertain-installation recovery rather than discarding a receipt on link failure.
+Private authoring/publication and unlisted distribution are separate capabilities.
+The [unlisted-link slice](14-unlisted-template-links.md) permits anyone holding
+the URL to preview a pinned publication and an authenticated recipient to install
+it. Links can be forwarded and do not prove a booking or family membership.
+They support explicit revocation with no automatic expiry. New publications
+require new links; review/install never silently substitutes content after
+confirmation. Revocation controls new access, not deletion of recipients'
+independent plans. Completed installation receipts remain recoverable. QR
+generation and hosting-level abuse/rate-limit policy remain deployment/future
+distribution work; link secrecy never replaces scoped authorization.
 
 Public/unlisted previews must exclude door codes, private addresses, credentials,
 booking details, and previous visitors' personal content. Actual stay-specific
@@ -122,8 +125,11 @@ a wedding package's price is not the event's budget or Gatherory's pass price.
    tables, empty app tabs, or new mutation types.
 2. Build web private authoring/publication using existing ideas, activities and
    guidance; prove a cottage-style copy with fresh identities and no shared state.
-3. Add permission-aware URL/QR distribution with a safe preview and explicit
-   install. Prove forwarding, revoked links, stale revisions, and retry behavior.
+   Before distribution, add selective capture from an existing event and reviewed
+   refresh of a private template. See [13](13-event-to-template-capture.md).
+3. Unlisted URL distribution is implemented locally in [14](14-unlisted-template-links.md),
+   with preview, explicit install and revocation. Finish deployment/device
+   acceptance, then add QR generation using the same links and authorization.
 4. Add a bounded checklist capability and arrival/departure anchors; test fresh
    completion state, scoped visibility, offline edits, relaunch, and older clients.
 5. Add opt-in reminder delivery only after ownership, permission, cancellation,

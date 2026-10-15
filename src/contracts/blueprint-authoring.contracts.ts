@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import type { BlueprintCaptureMetadata } from './blueprint-capture.contracts'
 import {
   characterString,
   OpaqueIdentifierSchema,
@@ -121,7 +122,7 @@ export type BlueprintDraft = {
   publishedRevision: number | null
   publishedDraftVersion: number | null
   retired: boolean
-  source: { catalogKey: string; revision: number } | null
+  source: { catalogKey: string; revision: number } | BlueprintCaptureMetadata | null
 }
 export type BlueprintAuthoringRow = {
   id: string

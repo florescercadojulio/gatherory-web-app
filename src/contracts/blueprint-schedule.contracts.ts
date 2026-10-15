@@ -6,6 +6,7 @@ import {
 } from './blueprint-install.contracts'
 import { ConfirmedInstantSchema } from './date-time.contracts'
 import { TimeZoneNameSchema } from './content-primitives'
+import { BlueprintShareTokenSchema } from './blueprint-sharing.contracts'
 
 const mainScheduleSchema = z
   .object({ startsAt: ConfirmedInstantSchema, timeZone: TimeZoneNameSchema })
@@ -13,6 +14,7 @@ const mainScheduleSchema = z
 export const BlueprintScheduleInputSchema = z
   .object({
     catalogKey: BlueprintStableKeySchema,
+    shareToken: BlueprintShareTokenSchema.optional(),
     revision: z.number().int().positive(),
     contentHash: BlueprintContentHashSchema,
     mainEvent: mainScheduleSchema,
@@ -55,9 +57,13 @@ export const BlueprintScheduleSuggestionSchema = z.discriminatedUnion('status', 
     })
     .strict(),
 ])
-export const BlueprintScheduleResponseSchema = BlueprintScheduleInputSchema.extend({
-  suggestions: z.array(BlueprintScheduleSuggestionSchema).max(BLUEPRINT_LIMITS.children),
-}).strict()
+export const BlueprintScheduleResponseSchema = BlueprintScheduleInputSchema.omit({
+  shareToken: true,
+})
+  .extend({
+    suggestions: z.array(BlueprintScheduleSuggestionSchema).max(BLUEPRINT_LIMITS.children),
+  })
+  .strict()
 
 export type BlueprintScheduleInput = z.infer<typeof BlueprintScheduleInputSchema>
 export type BlueprintScheduleResponse = z.infer<typeof BlueprintScheduleResponseSchema>

@@ -79,6 +79,20 @@ decisions, expenses, tasks, notes, and media remain normalized relational
 records. Instantiation records the exact blueprint revision used, then the
 instance evolves independently.
 
+An existing event can also be explicitly captured into a private template draft,
+including events created through the native blank/offline flow. Capture is a
+whitelisted selection of reusable sub-events, supported ideas and guidance;
+it does not serialize the event archive or copy people, responses, costs or
+history. A reviewed refresh uses the previous capture as a baseline and preserves
+manual template edits. Publication remains explicit and immutable, and changes
+never propagate automatically to source events or installed copies. See the
+[capture slice](../roadmaps/blueprints-roadmap/13-event-to-template-capture.md).
+Consumer capture, content review and explicit creation/publication can now run
+entirely on iPhone through **Create & Share**; advanced authoring remains available
+on the web. The native flow reuses capture rules and immutable publication,
+without changing ordinary offline event creation. See
+[native sharing](../roadmaps/blueprints-roadmap/15-native-create-and-share.md).
+
 ### Participant group
 
 A participant group represents a household, family, party, team, or other
@@ -193,8 +207,9 @@ provider charges for a defined commercial scope.
 
 Host-authored stays and package-based recommendations are an explicit product
 direction, including rental properties and privately lent family cottages.
-Fine-grained reusable configuration belongs in the web app; iOS remains the
-lightweight discovery, copy, and day-to-day participation surface. QR codes will
+Fine-grained business configuration belongs in the web app; iOS also supports
+lightweight consumer template capture/review/sharing alongside discovery, copy
+and day-to-day participation. QR codes will
 open template previews, not join an owner's workspace. Each recipient creates
 an independent instance. These capabilities are planned, not implemented; see
 [host-authored experience direction](../roadmaps/blueprints-roadmap/10-host-authored-experiences.md)
@@ -230,6 +245,52 @@ and never copies the previous family's participants or contributions.
 
 ## Instantiation and revision behavior
 
+### Decision: defer a broad creation engine
+
+Recorded October 15, 2026. Do not make ordinary native workspace, event, or idea
+creation depend on a blueprint, template publication, or network access. Blank
+creation and blueprint installation remain separate workflows that produce
+ordinary, independently editable planning records. The native workspace/plan
+container is not the server's organization/ownership boundary.
+
+Extract a small shared rule only when current implementation work demonstrates
+actual duplication: two creation paths enforce the same defaults, validation,
+or domain transition and need to stay consistent. For example, adding checklist
+support might reveal common initialization rules between manual creation and
+template installation; it is not permission to build a generic engine in
+advance. Keep an extraction pure where practical, with explicit inputs and
+behavior tests, rather than combining persistence or transport workflows.
+Shared cross-platform behavior means versioned contracts and matching fixtures,
+not necessarily one executable implementation across Swift and TypeScript.
+Server authorization remains authoritative.
+
+This approach reduces inconsistent behavior and repeated fixes when duplication
+exists, without paying the abstraction and offline-regression cost of a broad
+engine now. Selective event-to-template capture already supports reuse of
+blank-created plans; sharing does not require blueprint-backed creation.
+
+Any later extraction must preserve the existing boundaries:
+
+- Native edits and their outbox mutations commit in the same local transaction;
+  stable entity/mutation IDs, account isolation, retries, and remote merge remain
+  unchanged. Existing plans are never regenerated from a blueprint on open.
+- Published-template installation retains its server authorization,
+  transactional materialization, durable receipt, and canonical native import.
+  Offline template installation is not implied by sharing creation rules.
+- Date suggestions remain server-side Temporal proposals; user-confirmed dates
+  and named zones remain explicit. Do not add a competing native scheduling
+  algorithm as part of an extraction.
+- Sharing is optional and separate from editing: explicitly select reusable
+  content into a private draft, review refreshes, and publish separately.
+  Ordinary edits do not automatically create/update a template, publish a
+  revision, or change another person's installed copy.
+
+The [roadmap decision](../roadmaps/blueprints-roadmap/README.md#creation-rules-and-optional-sharing)
+records when to reconsider extraction. This is a documented deferral, not an
+implemented creation-engine refactor or a prerequisite for distribution/billing.
+
+### Published-template installation
+
 Blueprint installation is a server-owned transaction:
 
 ```text
@@ -245,6 +306,13 @@ An instance retains provenance containing the blueprint ID and revision. A
 package-created instance additionally records package and proposal revisions.
 Existing instances never follow mutable draft data. A future update flow must
 show a semantic diff and require informed user approval.
+
+Unlisted sharing now supplies a revocable bearer link to one published revision.
+It authorizes preview and installation without granting source-event access or
+workspace membership. Revocation blocks new installations, while completed
+receipts and installed copies remain independent of that link's availability.
+See [unlisted links](../roadmaps/blueprints-roadmap/14-unlisted-template-links.md)
+for the storage, privacy, native handoff and deployment boundaries.
 
 ## Wire rules
 

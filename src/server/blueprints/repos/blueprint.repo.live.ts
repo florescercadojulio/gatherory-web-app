@@ -9,6 +9,7 @@ import {
   blueprintInstallation,
   blueprintRevision,
   blueprintTemplate,
+  blueprintShareLink,
   eventExperienceConfiguration,
   eventGuideSection,
 } from '@/db/schema/blueprint.schema'
@@ -37,6 +38,7 @@ import {
   type BlueprintManifest,
 } from '../contracts/blueprint-runtime.contracts'
 import { buildBlueprintNativeProjection } from '../services/blueprint-native-projection'
+import { hashBlueprintShareToken } from '../planning/blueprint-share-token.server'
 
 const conflict = (code: string) =>
   new ConflictError({ category: 'conflict', code, userMessageKey: 'serverErrors.CONFLICT' })
@@ -121,19 +123,54 @@ export const BlueprintRepoLive = Layer.effect(
         if (!access) return yield* Effect.fail(forbidden())
       })
     const visible = (actorId: string) => sql`(${blueprintRevision.templateId} is null or exists (
-      select 1 from blueprint_template t join member m on m.organization_id = t.organization_id
+      select 1 from blueprint_template t
       where t.id = ${blueprintRevision.templateId} and t.retired_at is null
-        and m.user_id = ${actorId} and m.role = 'owner'
+        and (t.listed_revision = ${blueprintRevision.revision} or exists (
+          select 1 from member m where m.organization_id = t.organization_id
+            and m.user_id = ${actorId} and m.role = 'owner'
+        ))
     ))`
-    const sourceAuthority = (actorId: string, source: typeof blueprintRevision.$inferSelect) =>
+    const sourceVisible = (actorId: string, shareTokenHash?: string | null) =>
+      shareTokenHash
+        ? sql`exists (
+          select 1 from blueprint_share_link l join blueprint_template t on t.id = ${blueprintRevision.templateId}
+          where l.revision_id = ${blueprintRevision.id} and l.token_hash = ${shareTokenHash}
+            and l.revoked_at is null and t.retired_at is null
+        )`
+        : visible(actorId)
+    const sourceAuthority = (
+      actorId: string,
+      source: typeof blueprintRevision.$inferSelect,
+      shareTokenHash?: string | null
+    ) =>
       Effect.gen(function* () {
-        if (!source.templateId) return
+        if (!source.templateId) {
+          if (shareTokenHash) return yield* Effect.fail(missing())
+          return
+        }
         const [template] = yield* db
           .select()
           .from(blueprintTemplate)
           .where(eq(blueprintTemplate.id, source.templateId))
           .for('share')
         if (!template || template.retiredAt) return yield* Effect.fail(missing())
+        if (shareTokenHash) {
+          // Held until commit: revocation and completion serialize on this row.
+          const [link] = yield* db
+            .select({ id: blueprintShareLink.id })
+            .from(blueprintShareLink)
+            .where(
+              and(
+                eq(blueprintShareLink.revisionId, source.id),
+                eq(blueprintShareLink.tokenHash, shareTokenHash),
+                isNull(blueprintShareLink.revokedAt)
+              )
+            )
+            .for('share')
+          if (!link) return yield* Effect.fail(missing())
+          return
+        }
+        if (template.listedRevision === source.revision) return
         const [access] = yield* db
           .select({ id: member.id })
           .from(member)
@@ -174,11 +211,12 @@ export const BlueprintRepoLive = Layer.effect(
                 and(
                   eq(blueprintRevision.id, row.revisionId),
                   isNull(blueprintRevision.retiredAt),
-                  visible(actorId)
+                  sourceVisible(actorId, row.shareTokenHash)
                 )
               )
           : []
         if (!source) return yield* Effect.fail(missing())
+        yield* sourceAuthority(actorId, source, row.shareTokenHash)
         if (
           row.leaseToken &&
           row.leaseToken !== token &&
@@ -205,7 +243,7 @@ export const BlueprintRepoLive = Layer.effect(
             .where(and(isNull(blueprintRevision.retiredAt), visible(actorId)))
             .pipe(Effect.map((rows) => rows.map(catalogRow)))
         ),
-      revision: (catalogKey, revision, actorId) =>
+      revision: (catalogKey, revision, actorId, shareToken) =>
         bind(
           Effect.gen(function* () {
             const [row] = yield* db
@@ -215,7 +253,7 @@ export const BlueprintRepoLive = Layer.effect(
                 and(
                   eq(blueprintRevision.catalogKey, catalogKey),
                   eq(blueprintRevision.revision, revision),
-                  visible(actorId),
+                  sourceVisible(actorId, shareToken ? hashBlueprintShareToken(shareToken) : null),
                   isNull(blueprintRevision.retiredAt)
                 )
               )
@@ -257,6 +295,9 @@ export const BlueprintRepoLive = Layer.effect(
                   actorUserId: input.actor.id,
                   requestId: input.request.requestId,
                   requestHash: input.hash,
+                  shareTokenHash: input.request.shareToken
+                    ? hashBlueprintShareToken(input.request.shareToken)
+                    : null,
                   revisionId: input.revision.id,
                   plan: input.plan,
                   sourceSnapshot: input.revision.definition,
@@ -381,7 +422,7 @@ export const BlueprintRepoLive = Layer.effect(
                     .for('share')
                 : []
               if (!source || source.retiredAt) return yield* Effect.fail(missing())
-              yield* sourceAuthority(actor.id, source)
+              yield* sourceAuthority(actor.id, source, receipt.shareTokenHash)
               const [existingRoot] = yield* db
                 .select({ id: event.id })
                 .from(event)

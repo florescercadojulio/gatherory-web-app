@@ -8,6 +8,12 @@
       "maxLength": 100,
       "pattern": "^[a-z][a-z0-9_]*$"
     },
+    "shareToken": {
+      "type": "string",
+      "minLength": 64,
+      "maxLength": 64,
+      "pattern": "^[0-9a-f]{64}$"
+    },
     "revision": {
       "type": "integer",
       "exclusiveMinimum": 0,

@@ -24,9 +24,11 @@ import { Route as ApiAdminReportsRouteImport } from './routes/api/admin/reports'
 import { Route as ApiAuthSplatRouteRouteImport } from './routes/api/auth/$/route'
 import { Route as ApiAuthAppleTokenRouteImport } from './routes/api/auth/apple-token'
 import { Route as ApiBlueprintsCatalogRouteImport } from './routes/api/blueprints/catalog'
+import { Route as ApiBlueprintsCreateTemplateRouteImport } from './routes/api/blueprints/create-template'
 import { Route as ApiBlueprintsInstallRouteImport } from './routes/api/blueprints/install'
 import { Route as ApiBlueprintsPreviewRouteImport } from './routes/api/blueprints/preview'
 import { Route as ApiBlueprintsScheduleRouteImport } from './routes/api/blueprints/schedule'
+import { Route as ApiBlueprintsSharingRouteImport } from './routes/api/blueprints/sharing'
 import { Route as ApiEventsInvitationsRouteImport } from './routes/api/events/invitations'
 import { Route as ApiInvitationsAcceptRouteImport } from './routes/api/invitations/accept'
 import { Route as ApiInvitationsPreviewRouteImport } from './routes/api/invitations/preview'
@@ -38,12 +40,15 @@ import { Route as ApiSyncPullRouteImport } from './routes/api/sync/pull'
 import { Route as ApiSyncPushRouteImport } from './routes/api/sync/push'
 import { Route as AuthPathIndexRouteImport } from './routes/auth/$path/index'
 import { Route as ProtectedBlueprintsBlueprintIdIndexRouteImport } from './routes/_protected/blueprints/$blueprintId/index'
+import { Route as ProtectedBlueprintsCaptureIndexRouteImport } from './routes/_protected/blueprints/capture/index'
 import { Route as ProtectedBlueprintsNewIndexRouteImport } from './routes/_protected/blueprints/new/index'
 import { Route as ProtectedWorkspacesWorkspaceSlugIndexRouteImport } from './routes/_protected/workspaces/$workspaceSlug/index'
 import { Route as ApiBlueprintsInstallationsRequestIdRouteImport } from './routes/api/blueprints/installations/$requestId'
+import { Route as ApiBlueprintsSharedTokenRouteImport } from './routes/api/blueprints/shared/$token'
 import { Route as ApiMediaNativeFinalizeRouteImport } from './routes/api/media/native/finalize'
 import { Route as ApiMediaNativePrepareRouteImport } from './routes/api/media/native/prepare'
 import { Route as ApiMediaNativeUrlRouteImport } from './routes/api/media/native/url'
+import { Route as TemplatesSharedTokenIndexRouteImport } from './routes/templates/shared/$token/index'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -123,6 +128,12 @@ const ApiBlueprintsCatalogRoute = ApiBlueprintsCatalogRouteImport.update({
   path: '/api/blueprints/catalog',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiBlueprintsCreateTemplateRoute =
+  ApiBlueprintsCreateTemplateRouteImport.update({
+    id: '/api/blueprints/create-template',
+    path: '/api/blueprints/create-template',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiBlueprintsInstallRoute = ApiBlueprintsInstallRouteImport.update({
   id: '/api/blueprints/install',
   path: '/api/blueprints/install',
@@ -136,6 +147,11 @@ const ApiBlueprintsPreviewRoute = ApiBlueprintsPreviewRouteImport.update({
 const ApiBlueprintsScheduleRoute = ApiBlueprintsScheduleRouteImport.update({
   id: '/api/blueprints/schedule',
   path: '/api/blueprints/schedule',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiBlueprintsSharingRoute = ApiBlueprintsSharingRouteImport.update({
+  id: '/api/blueprints/sharing',
+  path: '/api/blueprints/sharing',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiEventsInvitationsRoute = ApiEventsInvitationsRouteImport.update({
@@ -194,6 +210,12 @@ const ProtectedBlueprintsBlueprintIdIndexRoute =
     path: '/blueprints/$blueprintId/',
     getParentRoute: () => ProtectedRouteRoute,
   } as any)
+const ProtectedBlueprintsCaptureIndexRoute =
+  ProtectedBlueprintsCaptureIndexRouteImport.update({
+    id: '/blueprints/capture/',
+    path: '/blueprints/capture/',
+    getParentRoute: () => ProtectedRouteRoute,
+  } as any)
 const ProtectedBlueprintsNewIndexRoute =
   ProtectedBlueprintsNewIndexRouteImport.update({
     id: '/blueprints/new/',
@@ -212,6 +234,12 @@ const ApiBlueprintsInstallationsRequestIdRoute =
     path: '/api/blueprints/installations/$requestId',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiBlueprintsSharedTokenRoute =
+  ApiBlueprintsSharedTokenRouteImport.update({
+    id: '/api/blueprints/shared/$token',
+    path: '/api/blueprints/shared/$token',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiMediaNativeFinalizeRoute = ApiMediaNativeFinalizeRouteImport.update({
   id: '/api/media/native/finalize',
   path: '/api/media/native/finalize',
@@ -227,6 +255,12 @@ const ApiMediaNativeUrlRoute = ApiMediaNativeUrlRouteImport.update({
   path: '/api/media/native/url',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TemplatesSharedTokenIndexRoute =
+  TemplatesSharedTokenIndexRouteImport.update({
+    id: '/templates/shared/$token/',
+    path: '/templates/shared/$token/',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -240,9 +274,11 @@ export interface FileRoutesByFullPath {
   '/api/admin/reports': typeof ApiAdminReportsRoute
   '/api/auth/apple-token': typeof ApiAuthAppleTokenRoute
   '/api/blueprints/catalog': typeof ApiBlueprintsCatalogRoute
+  '/api/blueprints/create-template': typeof ApiBlueprintsCreateTemplateRoute
   '/api/blueprints/install': typeof ApiBlueprintsInstallRoute
   '/api/blueprints/preview': typeof ApiBlueprintsPreviewRoute
   '/api/blueprints/schedule': typeof ApiBlueprintsScheduleRoute
+  '/api/blueprints/sharing': typeof ApiBlueprintsSharingRoute
   '/api/events/invitations': typeof ApiEventsInvitationsRoute
   '/api/invitations/accept': typeof ApiInvitationsAcceptRoute
   '/api/invitations/preview': typeof ApiInvitationsPreviewRoute
@@ -257,12 +293,15 @@ export interface FileRoutesByFullPath {
   '/workspaces/': typeof ProtectedWorkspacesIndexRoute
   '/auth/$path/': typeof AuthPathIndexRoute
   '/api/blueprints/installations/$requestId': typeof ApiBlueprintsInstallationsRequestIdRoute
+  '/api/blueprints/shared/$token': typeof ApiBlueprintsSharedTokenRoute
   '/api/media/native/finalize': typeof ApiMediaNativeFinalizeRoute
   '/api/media/native/prepare': typeof ApiMediaNativePrepareRoute
   '/api/media/native/url': typeof ApiMediaNativeUrlRoute
   '/blueprints/$blueprintId/': typeof ProtectedBlueprintsBlueprintIdIndexRoute
+  '/blueprints/capture/': typeof ProtectedBlueprintsCaptureIndexRoute
   '/blueprints/new/': typeof ProtectedBlueprintsNewIndexRoute
   '/workspaces/$workspaceSlug/': typeof ProtectedWorkspacesWorkspaceSlugIndexRoute
+  '/templates/shared/$token/': typeof TemplatesSharedTokenIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -275,9 +314,11 @@ export interface FileRoutesByTo {
   '/api/admin/reports': typeof ApiAdminReportsRoute
   '/api/auth/apple-token': typeof ApiAuthAppleTokenRoute
   '/api/blueprints/catalog': typeof ApiBlueprintsCatalogRoute
+  '/api/blueprints/create-template': typeof ApiBlueprintsCreateTemplateRoute
   '/api/blueprints/install': typeof ApiBlueprintsInstallRoute
   '/api/blueprints/preview': typeof ApiBlueprintsPreviewRoute
   '/api/blueprints/schedule': typeof ApiBlueprintsScheduleRoute
+  '/api/blueprints/sharing': typeof ApiBlueprintsSharingRoute
   '/api/events/invitations': typeof ApiEventsInvitationsRoute
   '/api/invitations/accept': typeof ApiInvitationsAcceptRoute
   '/api/invitations/preview': typeof ApiInvitationsPreviewRoute
@@ -292,12 +333,15 @@ export interface FileRoutesByTo {
   '/workspaces': typeof ProtectedWorkspacesIndexRoute
   '/auth/$path': typeof AuthPathIndexRoute
   '/api/blueprints/installations/$requestId': typeof ApiBlueprintsInstallationsRequestIdRoute
+  '/api/blueprints/shared/$token': typeof ApiBlueprintsSharedTokenRoute
   '/api/media/native/finalize': typeof ApiMediaNativeFinalizeRoute
   '/api/media/native/prepare': typeof ApiMediaNativePrepareRoute
   '/api/media/native/url': typeof ApiMediaNativeUrlRoute
   '/blueprints/$blueprintId': typeof ProtectedBlueprintsBlueprintIdIndexRoute
+  '/blueprints/capture': typeof ProtectedBlueprintsCaptureIndexRoute
   '/blueprints/new': typeof ProtectedBlueprintsNewIndexRoute
   '/workspaces/$workspaceSlug': typeof ProtectedWorkspacesWorkspaceSlugIndexRoute
+  '/templates/shared/$token': typeof TemplatesSharedTokenIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -313,9 +357,11 @@ export interface FileRoutesById {
   '/api/admin/reports': typeof ApiAdminReportsRoute
   '/api/auth/apple-token': typeof ApiAuthAppleTokenRoute
   '/api/blueprints/catalog': typeof ApiBlueprintsCatalogRoute
+  '/api/blueprints/create-template': typeof ApiBlueprintsCreateTemplateRoute
   '/api/blueprints/install': typeof ApiBlueprintsInstallRoute
   '/api/blueprints/preview': typeof ApiBlueprintsPreviewRoute
   '/api/blueprints/schedule': typeof ApiBlueprintsScheduleRoute
+  '/api/blueprints/sharing': typeof ApiBlueprintsSharingRoute
   '/api/events/invitations': typeof ApiEventsInvitationsRoute
   '/api/invitations/accept': typeof ApiInvitationsAcceptRoute
   '/api/invitations/preview': typeof ApiInvitationsPreviewRoute
@@ -330,12 +376,15 @@ export interface FileRoutesById {
   '/_protected/workspaces/': typeof ProtectedWorkspacesIndexRoute
   '/auth/$path/': typeof AuthPathIndexRoute
   '/api/blueprints/installations/$requestId': typeof ApiBlueprintsInstallationsRequestIdRoute
+  '/api/blueprints/shared/$token': typeof ApiBlueprintsSharedTokenRoute
   '/api/media/native/finalize': typeof ApiMediaNativeFinalizeRoute
   '/api/media/native/prepare': typeof ApiMediaNativePrepareRoute
   '/api/media/native/url': typeof ApiMediaNativeUrlRoute
   '/_protected/blueprints/$blueprintId/': typeof ProtectedBlueprintsBlueprintIdIndexRoute
+  '/_protected/blueprints/capture/': typeof ProtectedBlueprintsCaptureIndexRoute
   '/_protected/blueprints/new/': typeof ProtectedBlueprintsNewIndexRoute
   '/_protected/workspaces/$workspaceSlug/': typeof ProtectedWorkspacesWorkspaceSlugIndexRoute
+  '/templates/shared/$token/': typeof TemplatesSharedTokenIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -351,9 +400,11 @@ export interface FileRouteTypes {
     | '/api/admin/reports'
     | '/api/auth/apple-token'
     | '/api/blueprints/catalog'
+    | '/api/blueprints/create-template'
     | '/api/blueprints/install'
     | '/api/blueprints/preview'
     | '/api/blueprints/schedule'
+    | '/api/blueprints/sharing'
     | '/api/events/invitations'
     | '/api/invitations/accept'
     | '/api/invitations/preview'
@@ -368,12 +419,15 @@ export interface FileRouteTypes {
     | '/workspaces/'
     | '/auth/$path/'
     | '/api/blueprints/installations/$requestId'
+    | '/api/blueprints/shared/$token'
     | '/api/media/native/finalize'
     | '/api/media/native/prepare'
     | '/api/media/native/url'
     | '/blueprints/$blueprintId/'
+    | '/blueprints/capture/'
     | '/blueprints/new/'
     | '/workspaces/$workspaceSlug/'
+    | '/templates/shared/$token/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -386,9 +440,11 @@ export interface FileRouteTypes {
     | '/api/admin/reports'
     | '/api/auth/apple-token'
     | '/api/blueprints/catalog'
+    | '/api/blueprints/create-template'
     | '/api/blueprints/install'
     | '/api/blueprints/preview'
     | '/api/blueprints/schedule'
+    | '/api/blueprints/sharing'
     | '/api/events/invitations'
     | '/api/invitations/accept'
     | '/api/invitations/preview'
@@ -403,12 +459,15 @@ export interface FileRouteTypes {
     | '/workspaces'
     | '/auth/$path'
     | '/api/blueprints/installations/$requestId'
+    | '/api/blueprints/shared/$token'
     | '/api/media/native/finalize'
     | '/api/media/native/prepare'
     | '/api/media/native/url'
     | '/blueprints/$blueprintId'
+    | '/blueprints/capture'
     | '/blueprints/new'
     | '/workspaces/$workspaceSlug'
+    | '/templates/shared/$token'
   id:
     | '__root__'
     | '/'
@@ -423,9 +482,11 @@ export interface FileRouteTypes {
     | '/api/admin/reports'
     | '/api/auth/apple-token'
     | '/api/blueprints/catalog'
+    | '/api/blueprints/create-template'
     | '/api/blueprints/install'
     | '/api/blueprints/preview'
     | '/api/blueprints/schedule'
+    | '/api/blueprints/sharing'
     | '/api/events/invitations'
     | '/api/invitations/accept'
     | '/api/invitations/preview'
@@ -440,12 +501,15 @@ export interface FileRouteTypes {
     | '/_protected/workspaces/'
     | '/auth/$path/'
     | '/api/blueprints/installations/$requestId'
+    | '/api/blueprints/shared/$token'
     | '/api/media/native/finalize'
     | '/api/media/native/prepare'
     | '/api/media/native/url'
     | '/_protected/blueprints/$blueprintId/'
+    | '/_protected/blueprints/capture/'
     | '/_protected/blueprints/new/'
     | '/_protected/workspaces/$workspaceSlug/'
+    | '/templates/shared/$token/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -460,9 +524,11 @@ export interface RootRouteChildren {
   ApiAdminReportsRoute: typeof ApiAdminReportsRoute
   ApiAuthAppleTokenRoute: typeof ApiAuthAppleTokenRoute
   ApiBlueprintsCatalogRoute: typeof ApiBlueprintsCatalogRoute
+  ApiBlueprintsCreateTemplateRoute: typeof ApiBlueprintsCreateTemplateRoute
   ApiBlueprintsInstallRoute: typeof ApiBlueprintsInstallRoute
   ApiBlueprintsPreviewRoute: typeof ApiBlueprintsPreviewRoute
   ApiBlueprintsScheduleRoute: typeof ApiBlueprintsScheduleRoute
+  ApiBlueprintsSharingRoute: typeof ApiBlueprintsSharingRoute
   ApiEventsInvitationsRoute: typeof ApiEventsInvitationsRoute
   ApiModerationBlocksRoute: typeof ApiModerationBlocksRoute
   ApiModerationHideRoute: typeof ApiModerationHideRoute
@@ -472,9 +538,11 @@ export interface RootRouteChildren {
   ApiSyncPushRoute: typeof ApiSyncPushRoute
   AuthPathIndexRoute: typeof AuthPathIndexRoute
   ApiBlueprintsInstallationsRequestIdRoute: typeof ApiBlueprintsInstallationsRequestIdRoute
+  ApiBlueprintsSharedTokenRoute: typeof ApiBlueprintsSharedTokenRoute
   ApiMediaNativeFinalizeRoute: typeof ApiMediaNativeFinalizeRoute
   ApiMediaNativePrepareRoute: typeof ApiMediaNativePrepareRoute
   ApiMediaNativeUrlRoute: typeof ApiMediaNativeUrlRoute
+  TemplatesSharedTokenIndexRoute: typeof TemplatesSharedTokenIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -584,6 +652,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiBlueprintsCatalogRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/blueprints/create-template': {
+      id: '/api/blueprints/create-template'
+      path: '/api/blueprints/create-template'
+      fullPath: '/api/blueprints/create-template'
+      preLoaderRoute: typeof ApiBlueprintsCreateTemplateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/blueprints/install': {
       id: '/api/blueprints/install'
       path: '/api/blueprints/install'
@@ -603,6 +678,13 @@ declare module '@tanstack/react-router' {
       path: '/api/blueprints/schedule'
       fullPath: '/api/blueprints/schedule'
       preLoaderRoute: typeof ApiBlueprintsScheduleRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/blueprints/sharing': {
+      id: '/api/blueprints/sharing'
+      path: '/api/blueprints/sharing'
+      fullPath: '/api/blueprints/sharing'
+      preLoaderRoute: typeof ApiBlueprintsSharingRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/events/invitations': {
@@ -682,6 +764,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProtectedBlueprintsBlueprintIdIndexRouteImport
       parentRoute: typeof ProtectedRouteRoute
     }
+    '/_protected/blueprints/capture/': {
+      id: '/_protected/blueprints/capture/'
+      path: '/blueprints/capture'
+      fullPath: '/blueprints/capture/'
+      preLoaderRoute: typeof ProtectedBlueprintsCaptureIndexRouteImport
+      parentRoute: typeof ProtectedRouteRoute
+    }
     '/_protected/blueprints/new/': {
       id: '/_protected/blueprints/new/'
       path: '/blueprints/new'
@@ -703,6 +792,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiBlueprintsInstallationsRequestIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/blueprints/shared/$token': {
+      id: '/api/blueprints/shared/$token'
+      path: '/api/blueprints/shared/$token'
+      fullPath: '/api/blueprints/shared/$token'
+      preLoaderRoute: typeof ApiBlueprintsSharedTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/media/native/finalize': {
       id: '/api/media/native/finalize'
       path: '/api/media/native/finalize'
@@ -722,6 +818,13 @@ declare module '@tanstack/react-router' {
       path: '/api/media/native/url'
       fullPath: '/api/media/native/url'
       preLoaderRoute: typeof ApiMediaNativeUrlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/templates/shared/$token/': {
+      id: '/templates/shared/$token/'
+      path: '/templates/shared/$token'
+      fullPath: '/templates/shared/$token/'
+      preLoaderRoute: typeof TemplatesSharedTokenIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -748,6 +851,7 @@ interface ProtectedRouteRouteChildren {
   ProtectedBlueprintsIndexRoute: typeof ProtectedBlueprintsIndexRoute
   ProtectedWorkspacesIndexRoute: typeof ProtectedWorkspacesIndexRoute
   ProtectedBlueprintsBlueprintIdIndexRoute: typeof ProtectedBlueprintsBlueprintIdIndexRoute
+  ProtectedBlueprintsCaptureIndexRoute: typeof ProtectedBlueprintsCaptureIndexRoute
   ProtectedBlueprintsNewIndexRoute: typeof ProtectedBlueprintsNewIndexRoute
 }
 
@@ -759,6 +863,7 @@ const ProtectedRouteRouteChildren: ProtectedRouteRouteChildren = {
   ProtectedWorkspacesIndexRoute: ProtectedWorkspacesIndexRoute,
   ProtectedBlueprintsBlueprintIdIndexRoute:
     ProtectedBlueprintsBlueprintIdIndexRoute,
+  ProtectedBlueprintsCaptureIndexRoute: ProtectedBlueprintsCaptureIndexRoute,
   ProtectedBlueprintsNewIndexRoute: ProtectedBlueprintsNewIndexRoute,
 }
 
@@ -793,9 +898,11 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAdminReportsRoute: ApiAdminReportsRoute,
   ApiAuthAppleTokenRoute: ApiAuthAppleTokenRoute,
   ApiBlueprintsCatalogRoute: ApiBlueprintsCatalogRoute,
+  ApiBlueprintsCreateTemplateRoute: ApiBlueprintsCreateTemplateRoute,
   ApiBlueprintsInstallRoute: ApiBlueprintsInstallRoute,
   ApiBlueprintsPreviewRoute: ApiBlueprintsPreviewRoute,
   ApiBlueprintsScheduleRoute: ApiBlueprintsScheduleRoute,
+  ApiBlueprintsSharingRoute: ApiBlueprintsSharingRoute,
   ApiEventsInvitationsRoute: ApiEventsInvitationsRoute,
   ApiModerationBlocksRoute: ApiModerationBlocksRoute,
   ApiModerationHideRoute: ApiModerationHideRoute,
@@ -806,9 +913,11 @@ const rootRouteChildren: RootRouteChildren = {
   AuthPathIndexRoute: AuthPathIndexRoute,
   ApiBlueprintsInstallationsRequestIdRoute:
     ApiBlueprintsInstallationsRequestIdRoute,
+  ApiBlueprintsSharedTokenRoute: ApiBlueprintsSharedTokenRoute,
   ApiMediaNativeFinalizeRoute: ApiMediaNativeFinalizeRoute,
   ApiMediaNativePrepareRoute: ApiMediaNativePrepareRoute,
   ApiMediaNativeUrlRoute: ApiMediaNativeUrlRoute,
+  TemplatesSharedTokenIndexRoute: TemplatesSharedTokenIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

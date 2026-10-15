@@ -107,7 +107,12 @@ it.effect('reads the exact pinned revision once and returns the pure planner res
       localDateTime: '2027-06-13T10:45:00',
       candidates: ['2027-06-13T14:45:00Z'],
     })
-    expect(fake.repo.revision).toHaveBeenCalledWith(input.catalogKey, input.revision, 'host')
+    expect(fake.repo.revision).toHaveBeenCalledWith(
+      input.catalogKey,
+      input.revision,
+      'host',
+      undefined
+    )
     fake.expectOnlyRevisionReads(1)
   }).pipe(Effect.provide(fake.layer))
 })
@@ -166,7 +171,12 @@ it.effect(
         code: 'BLUEPRINT_REVISION_CHANGED',
         userMessageKey: 'serverErrors.CONFLICT',
       })
-      expect(fake.repo.revision).toHaveBeenCalledWith(input.catalogKey, input.revision, 'host')
+      expect(fake.repo.revision).toHaveBeenCalledWith(
+        input.catalogKey,
+        input.revision,
+        'host',
+        undefined
+      )
       fake.expectOnlyRevisionReads(1)
     }).pipe(Effect.provide(fake.layer))
   }
@@ -194,7 +204,12 @@ it.effect('maps an invalid schedule zone to typed INVALID_BLUEPRINT_SCHEDULE', (
       userMessageKey: 'serverErrors.VALIDATION',
     })
     expect(failure.cause).toBeInstanceOf(Error)
-    expect(fake.repo.revision).toHaveBeenCalledWith(input.catalogKey, input.revision, 'host')
+    expect(fake.repo.revision).toHaveBeenCalledWith(
+      input.catalogKey,
+      input.revision,
+      'host',
+      undefined
+    )
     fake.expectOnlyRevisionReads(1)
   }).pipe(Effect.provide(fake.layer))
 })

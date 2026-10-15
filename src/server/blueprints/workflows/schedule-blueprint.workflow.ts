@@ -10,7 +10,12 @@ export const scheduleBlueprintWorkflow = (input: unknown, actorId: string) =>
   Effect.gen(function* () {
     const request = yield* validateInput(BlueprintScheduleInputSchema, input)
     const repo = yield* BlueprintRepo
-    const revision = yield* repo.revision(request.catalogKey, request.revision, actorId)
+    const revision = yield* repo.revision(
+      request.catalogKey,
+      request.revision,
+      actorId,
+      request.shareToken
+    )
     if (revision.contentHash !== request.contentHash)
       return yield* Effect.fail(
         new ConflictError({

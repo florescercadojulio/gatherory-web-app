@@ -2,6 +2,7 @@ import { z } from 'zod'
 
 import { ExperienceBlueprintSchema, ExperienceModuleSchema } from './experience.contracts'
 import { ConfirmedInstantSchema } from './date-time.contracts'
+import { BlueprintShareTokenSchema } from './blueprint-sharing.contracts'
 import {
   characterString,
   PermissionKeySchema,
@@ -377,6 +378,7 @@ export const BlueprintCatalogRevisionSchema = z
 export const BlueprintInstallInputSchema = z
   .object({
     requestId: UUIDSchema,
+    shareToken: BlueprintShareTokenSchema.optional(),
     catalogKey: BlueprintStableKeySchema,
     revision: z.number().int().positive(),
     contentHash: BlueprintContentHashSchema,

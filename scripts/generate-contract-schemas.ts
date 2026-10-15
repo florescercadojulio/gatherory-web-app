@@ -4,7 +4,25 @@ import { fileURLToPath } from 'node:url'
 
 import { z } from 'zod'
 import { MoneySchema } from '../src/contracts/content-primitives'
+import {
+  BlueprintNativeCreationRequestSchema,
+  BlueprintNativeCreationResponseSchema,
+} from '../src/contracts/blueprint-native-creation.contracts'
+import {
+  BlueprintLinkManagementInputSchema,
+  BlueprintLinkManagementResponseSchema,
+} from '../src/contracts/blueprint-link-management.contracts'
 import { BlueprintCatalogResponseSchema } from '../src/contracts/blueprint-discovery.contracts'
+import {
+  BlueprintShareCreateInputSchema,
+  BlueprintShareRevokeInputSchema,
+  BlueprintShareResolveInputSchema,
+} from '../src/contracts/blueprint-sharing.contracts'
+import {
+  BlueprintCapturePreviewInputSchema,
+  BlueprintCaptureSaveInputSchema,
+  BlueprintEventCaptureSourceSchema,
+} from '../src/contracts/blueprint-capture.contracts'
 import {
   BlueprintDraftContentSchema,
   BlueprintCreateDraftSchema,
@@ -31,6 +49,67 @@ const repositoryRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const checkOnly = process.argv.includes('--check')
 
 const contracts = [
+  {
+    file: 'blueprint-native-creation-input.v1.schema.json',
+    id: 'https://schemas.gatherory.com/blueprint-native-creation-input/v1.json',
+    title: 'Gatherory Native Create and Share Template Request v1',
+    schema: BlueprintNativeCreationRequestSchema,
+    io: 'input' as const,
+  },
+  {
+    file: 'blueprint-native-creation-response.v1.schema.json',
+    id: 'https://schemas.gatherory.com/blueprint-native-creation-response/v1.json',
+    title: 'Gatherory Native Create and Share Template Response v1',
+    schema: BlueprintNativeCreationResponseSchema,
+  },
+  {
+    file: 'blueprint-link-management-input.v1.schema.json',
+    id: 'https://schemas.gatherory.com/blueprint-link-management-input/v1.json',
+    title: 'Gatherory Native Template Link Management Request v1',
+    schema: BlueprintLinkManagementInputSchema,
+  },
+  {
+    file: 'blueprint-link-management-response.v1.schema.json',
+    id: 'https://schemas.gatherory.com/blueprint-link-management-response/v1.json',
+    title: 'Gatherory Native Template Link Management Response v1',
+    schema: BlueprintLinkManagementResponseSchema,
+  },
+  {
+    file: 'blueprint-share-create.v1.schema.json',
+    id: 'https://schemas.gatherory.com/blueprint-share-create/v1.json',
+    title: 'Gatherory Create Unlisted Template Link v1',
+    schema: BlueprintShareCreateInputSchema,
+  },
+  {
+    file: 'blueprint-share-revoke.v1.schema.json',
+    id: 'https://schemas.gatherory.com/blueprint-share-revoke/v1.json',
+    title: 'Gatherory Revoke Unlisted Template Link v1',
+    schema: BlueprintShareRevokeInputSchema,
+  },
+  {
+    file: 'blueprint-share-resolve.v1.schema.json',
+    id: 'https://schemas.gatherory.com/blueprint-share-resolve/v1.json',
+    title: 'Gatherory Resolve Unlisted Template Link v1',
+    schema: BlueprintShareResolveInputSchema,
+  },
+  {
+    file: 'blueprint-capture-source.v1.schema.json',
+    id: 'https://schemas.gatherory.com/blueprint-capture-source/v1.json',
+    title: 'Gatherory Authorized Event Capture Source v1',
+    schema: BlueprintEventCaptureSourceSchema,
+  },
+  {
+    file: 'blueprint-capture-preview.v1.schema.json',
+    id: 'https://schemas.gatherory.com/blueprint-capture-preview/v1.json',
+    title: 'Gatherory Event Capture Preview v1',
+    schema: BlueprintCapturePreviewInputSchema,
+  },
+  {
+    file: 'blueprint-capture-save.v1.schema.json',
+    id: 'https://schemas.gatherory.com/blueprint-capture-save/v1.json',
+    title: 'Gatherory Event Capture Save v1',
+    schema: BlueprintCaptureSaveInputSchema,
+  },
   {
     file: 'blueprint-draft.v1.schema.json',
     id: 'https://schemas.gatherory.com/blueprint-draft/v1.json',
@@ -120,7 +199,7 @@ const contracts = [
 let mismatch = false
 
 for (const contract of contracts) {
-  const generated = z.toJSONSchema(contract.schema)
+  const generated = z.toJSONSchema(contract.schema, { io: contract.io ?? 'output' })
   const document = {
     ...generated,
     $schema: 'https://json-schema.org/draft/2020-12/schema',

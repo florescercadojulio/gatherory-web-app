@@ -60,12 +60,27 @@ its [roadmap](../monetization-roadmap/README.md), and the product-experience and
 sequencing assessment. That docs-only work preceded the separately requested
 Wedding implementation; billing is still only a documented plan.
 
+Native setup drafts now preserve selections and confirmed dates across relaunch
+and account switching; see [12 — Resumable setup](12-resumable-setup.md).
+Selective event-to-template capture now precedes distribution; see
+[13 — Capture and refresh from an event](13-event-to-template-capture.md).
+Unlisted links now pin a publication and support owner revocation, anonymous
+preview and native installation; see [14 — Unlisted template links](14-unlisted-template-links.md).
+Native Workspaces card menus provide an end-to-end **Share Template** flow:
+select supported content, review it, then **Create & Share** without leaving
+iPhone. **Manage Links** retains source-scoped list/revoke controls. Advanced
+authoring and business configuration remain on the web; these online operations
+do not change the sync outbox. See [15 — Native Create & Share](15-native-create-and-share.md).
+Native creation now handles ownership automatically and explicitly publishes to
+Search. Existing private/unlisted templates stay private; owners can withdraw
+the listed version without changing installed copies. See
+[16 — Search discovery and automatic ownership](16-public-discovery-and-automatic-ownership.md).
+
 **Next slice:** finish manual/device acceptance and deployment of private
-authoring, preserve pre-install setup drafts across relaunch, and add live guide
-editing. The user explicitly moved private authoring ahead of the earlier
+authoring, and add live guide editing. The user explicitly moved private authoring ahead of the earlier
 billing-first recommendation in `05`; billing remains unimplemented. Future
-permission-aware URL/QR distribution is a separate slice in `10`, not included
-in private publication. Templates do not require payment. Do not
+QR generation remains a follow-up to the URL flow in `14`; native public
+discovery is implemented in `16`. Templates do not require payment. Do not
 describe the full feature as shipped until its remaining slices are complete.
 
 ## Evaluation summary
@@ -85,6 +100,47 @@ See [00a — Engine readiness and delivery plan](00a-implementation-readiness.md
 for source evidence, relative effort, open decisions, and the recommended gates.
 No broader custom-RBAC product or whole-server sync migration is a prerequisite.
 
+## Creation rules and optional sharing
+
+**Decision recorded:** October 15, 2026. **Broad creation engine: Deferred.**
+This is a docs-only decision; no native creation or sync behavior changes.
+
+Keep ordinary native workspace, event, and idea creation independent of
+blueprints. Template installation supplies starting content and creates an
+independent live plan; it does not become the runtime for subsequent edits.
+Selective capture already lets a blank-created event become a reusable template.
+
+Extract shared creation rules only when a concrete feature or bug exposes
+actual duplication across existing paths. Start with the smallest rule that
+must behave identically, not a generic registry or a blueprint wrapper around
+every new item. Checklists are a possible future example, not a scheduled engine
+refactor. Before extracting:
+
+- Identify the duplicated rule and its current callers; explain the consistency
+  problem the extraction solves.
+- Add behavior tests for both paths, including category-specific defaults and
+  existing transitions where relevant. Prefer pure rules with explicit inputs.
+- Preserve local edit/outbox atomicity, stable IDs, relaunch/retry recovery,
+  account switching, scoped permissions, and existing merge behavior. Test the
+  affected boundaries, including rollback where persistence is involved.
+- Keep native blank creation and server-owned template installation as distinct
+  persistence workflows. Retain installation receipts and canonical import;
+  shared rules do not require a shared transaction implementation or offline
+  template installation. Cross-platform contracts/fixtures can align behavior
+  without sharing an executable engine.
+
+Sharing remains optional: select supported content, save a private template
+draft, explicitly review source refreshes, and publish separately. Everyday
+planning never automatically exports private data, updates a template, or
+changes an installed copy. Recipient inclusion choices and permissions remain
+separate from the author's selection of reusable content.
+
+Reconsider a broader engine only if repeated, demonstrated duplication cannot
+be handled cleanly by small shared rules. This deferral does not block URL/QR
+distribution or billing and adds no implementation slice ahead of them. See the
+[architecture decision](../../architecture/experience-blueprints.md#decision-defer-a-broad-creation-engine)
+and [selective capture](13-event-to-template-capture.md).
+
 ## Implementation order
 
 1. [00 — Current state and target architecture](00-current-state-and-target-architecture.md)
@@ -100,6 +156,9 @@ No broader custom-RBAC product or whole-server sync migration is a prerequisite.
 11. [09 — Birthday Party and Thanksgiving starters](09-curated-starters.md)
 12. [10 — Host-authored stays, packages, and future capabilities](10-host-authored-experiences.md)
 13. [11 — Private cottage authoring and independent-copy proof](11-private-cottage-proof.md)
+14. [12 — Resumable native setup](12-resumable-setup.md)
+15. [13 — Selective event-to-template capture](13-event-to-template-capture.md)
+16. [14 — Unlisted template links and revocation](14-unlisted-template-links.md)
 
 Each numbered slice is a usable boundary. Contract/storage completion is not
 authoring completion; authoring completion is not installation completion.
