@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "intent": "node ./node_modules/@tanstack/intent/dist/cli.mjs",
     "dev": "dotenv run -f .env.local -- sh -c \"NODE_OPTIONS='--import ./instrument.server.mjs' vite dev --port 3003\"",
     "dev:device": "dotenv run -f .env.local -- sh -c \"NODE_OPTIONS='--import ./instrument.server.mjs' vite dev --host 0.0.0.0 --port 3003\"",
     "generate-routes": "tsr generate",
@@ -114,6 +115,7 @@
     "@tailwindcss/typography": "^0.5.16",
     "@tanstack/devtools-event-client": "0.5.0",
     "@tanstack/devtools-vite": "0.8.5",
+    "@tanstack/intent": "0.5.5",
     "@tanstack/router-cli": "^1.132.0",
     "@tanstack/start-client-core": "1.170.34",
     "@tanstack/start-storage-context": "1.167.36",

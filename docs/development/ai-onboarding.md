@@ -39,10 +39,13 @@ may still refer to the previous `isaidyes` checkout location.
    relevant integration boundaries. Update the owning docs or roadmap when
    behavior, contracts, or release evidence changes.
 
-The web app's `AGENTS.md` requires `npm exec --no -- intent list` before a
-substantial change. On this review date, the command reports that
-`@tanstack/intent` is unavailable. Report that result and follow the repository
-instructions; do not automatically download a replacement.
+The web app's `AGENTS.md` requires `pnpm intent list` before a substantial
+change, then `pnpm intent load <package>#<skill>` for matching guidance.
+`@tanstack/intent` is installed as a pinned development dependency. Use the
+package script: `@tanstack/devtools-event-client` also exports an `intent`
+binary, so bare `exec intent` commands can select its incompatible launcher.
+If the local dependency is unavailable, report it rather than downloading a
+replacement.
 
 ## Where to read for a task
 
