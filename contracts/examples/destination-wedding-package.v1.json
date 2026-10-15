@@ -23,12 +23,12 @@
   },
   "pricing": {
     "starting": {
-      "amount": "18500.00",
+      "amountMinor": "1850000",
       "currency": "USD"
     },
     "model": "base_plus_guest",
     "additionalGuest": {
-      "amount": "175.00",
+      "amountMinor": "17500",
       "currency": "USD"
     }
   },
@@ -49,7 +49,7 @@
     {
       "serviceId": "welcome_party",
       "starting": {
-        "amount": "3500.00",
+        "amountMinor": "350000",
         "currency": "USD"
       }
     }

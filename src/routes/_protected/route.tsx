@@ -3,14 +3,25 @@ import { useTranslation } from 'react-i18next'
 
 import { PageUnavailable, ServerErrorToast } from '@/components/route-feedback'
 import { ensurePersonalWorkspace } from '@/server/workspaces/handlers/ensure-personal-workspace.handler'
+import { ensureSession } from '@/lib/auth.functions'
+import { isTemplateAuthoringPath } from '@/lib/protected-route-mode'
 
 export const Route = createFileRoute('/_protected')({
-  beforeLoad: async () => {
+  beforeLoad: async ({ location }) => {
+    if (isTemplateAuthoringPath(location.pathname)) {
+      const result = await ensureSession()
+      return {
+        authoringUser: result.ok ? result.data.user : null,
+        defaultWorkspaceContext: null,
+        defaultWorkspaceError: result.ok ? null : result.error,
+      }
+    }
     const result = await ensurePersonalWorkspace()
 
     return {
       defaultWorkspaceContext: result.ok ? result.data : null,
       defaultWorkspaceError: result.ok ? null : result.error,
+      authoringUser: null,
     }
   },
   component: ProtectedLayout,
@@ -18,9 +29,9 @@ export const Route = createFileRoute('/_protected')({
 
 function ProtectedLayout() {
   const { t } = useTranslation()
-  const { defaultWorkspaceContext, defaultWorkspaceError } = Route.useRouteContext()
+  const { defaultWorkspaceContext, defaultWorkspaceError, authoringUser } = Route.useRouteContext()
 
-  if (!defaultWorkspaceContext) {
+  if (!defaultWorkspaceContext && !authoringUser) {
     return (
       <>
         <ServerErrorToast error={defaultWorkspaceError} />

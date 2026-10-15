@@ -1,6 +1,6 @@
 # Start here: Gatherory across projects
 
-Last reviewed: October 14, 2026. Read this guide when starting a fresh AI
+Last reviewed: October 15, 2026. Read this guide when starting a fresh AI
 conversation, then inspect the repositories relevant to the requested task.
 
 ## Product and project map
@@ -49,22 +49,47 @@ replacement.
 
 ## Where to read for a task
 
-| Task                                     | Read first                                                                                                                                                                                                            |
-| ---------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Backend behavior and authorization       | [Server implementation guide](server-implementation-guide.md), [server architecture](../architecture/server-architecture.md), [data model](../architecture/data-model.md), then the owning code under `src/server/`.  |
-| Invitations, account switching, or RSVPs | iOS [authentication contract](../../../ios-apps/gatherory/docs/auth-integration.md), `Gatherory/App/AuthenticationSession.swift`, `Gatherory/Features/Events/`, and web `src/server/events/` plus `src/server/auth/`. |
-| Offline sync and data isolation          | iOS [sync guide](../../../ios-apps/gatherory/docs/offline-sync.md), `Gatherory/OfflineSync/`, `Gatherory/Data/Persistence/`, and web `src/server/sync/`.                                                              |
-| Missing images or uploads                | [Media system](../architecture/media-system.md), web `src/server/media/`, iOS `Gatherory/OfflineSync/R2MediaTransport.swift` and `UploadImagePreparation.swift`.                                                      |
-| iOS UI and localization                  | iOS `Gatherory/Features/`, `Gatherory/DesignSystem/`, `Gatherory/Localization/AppCopy.swift`, `Gatherory/Localizable.xcstrings`, and `Gatherory/InfoPlist.xcstrings`.                                                 |
-| Web UI                                   | [Page creation](page-creation.md), [web localization inventory](i18n-string-inventory.md), and the relevant routes and shared components.                                                                             |
-| Marketing, guides, or legal copy         | Landing [README](../../../gatherory-landing/README.md), `AGENTS.md`, `src/pages/`, `src/lib/components/landing/`, `src/i18n/`, and `src/lib/legal-details.ts`.                                                        |
-| Templates and expansion                  | [Experience architecture](../architecture/experience-blueprints.md), [blueprint roadmap](../roadmaps/blueprints-roadmap/README.md), `src/contracts/`, and `contracts/`.                                               |
-| Release preparation                      | [v1 safeguards](../release/v1-release-safeguards.md), iOS [release guide](../../../ios-apps/gatherory/docs/app-store-release.md), and `Config/Release.xcconfig`.                                                      |
+| Task                                     | Read first                                                                                                                                                                                                                                    |
+| ---------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Backend behavior and authorization       | [Server implementation guide](server-implementation-guide.md), [server architecture](../architecture/server-architecture.md), [data model](../architecture/data-model.md), then the owning code under `src/server/`.                          |
+| Invitations, account switching, or RSVPs | iOS [authentication contract](../../../ios-apps/gatherory/docs/auth-integration.md), `Gatherory/App/AuthenticationSession.swift`, `Gatherory/Features/Events/`, and web `src/server/events/` plus `src/server/auth/`.                         |
+| Offline sync and data isolation          | iOS [sync guide](../../../ios-apps/gatherory/docs/offline-sync.md), `Gatherory/OfflineSync/`, `Gatherory/Data/Persistence/`, and web `src/server/sync/`.                                                                                      |
+| Missing images or uploads                | [Media system](../architecture/media-system.md), web `src/server/media/`, iOS `Gatherory/OfflineSync/R2MediaTransport.swift` and `UploadImagePreparation.swift`.                                                                              |
+| iOS UI and localization                  | iOS `Gatherory/Features/`, `Gatherory/DesignSystem/`, `Gatherory/Localization/AppCopy.swift`, `Gatherory/Localizable.xcstrings`, and `Gatherory/InfoPlist.xcstrings`.                                                                         |
+| Web UI                                   | [Page creation](page-creation.md), [web localization inventory](i18n-string-inventory.md), and the relevant routes and shared components.                                                                                                     |
+| Marketing, guides, or legal copy         | Landing [README](../../../gatherory-landing/README.md), `AGENTS.md`, `src/pages/`, `src/lib/components/landing/`, `src/i18n/`, and `src/lib/legal-details.ts`.                                                                                |
+| Templates and expansion                  | [Experience architecture](../architecture/experience-blueprints.md), [blueprint roadmap](../roadmaps/blueprints-roadmap/README.md), `src/contracts/`, and `contracts/`.                                                                       |
+| Monetization and delivery order          | [Monetization model](../architecture/monetization-model.md), [Event Pass roadmap](../roadmaps/monetization-roadmap/README.md), and [blueprints versus billing](../roadmaps/blueprints-roadmap/05-product-experience-and-billing-sequence.md). |
+| Release preparation                      | [v1 safeguards](../release/v1-release-safeguards.md), iOS [release guide](../../../ios-apps/gatherory/docs/app-store-release.md), and `Config/Release.xcconfig`.                                                                              |
 
 Paths in inline code are relative to their owning repository.
 
 ## Decisions to preserve
 
+- Future host-authored experiences include rental stays, family cottages, and
+  wedding-package recommendations. Fine-grained template configuration belongs
+  in the web app; iOS focuses on discovering/copying/using the resulting plan.
+  QR template links must not become event invitations or workspace membership.
+  Each copy is independent; checklists reset per instance and reminders require
+  separate consent/delivery handling. See the
+  [recorded direction](../roadmaps/blueprints-roadmap/10-host-authored-experiences.md).
+  This is a planning constraint, not implemented QR/checklist/reminder support
+  or authorization to build those features incidentally.
+
+- New API/MCP contracts use explicit Unicode character limits and monetary
+  envelopes `{ amountMinor: "100", currency: "USD" }` (one USD dollar).
+  Follow [API contract conventions](api-contract-conventions.md); existing
+  budget, archive and sync money formats require explicit adapters/versioning,
+  not reinterpretation. Blueprint schemas already enforce these conventions.
+- Date reasoning for blueprints uses native Temporal in protected server-only
+  code on Node 26+. Shared/browser contracts remain plain strings without a
+  Temporal dependency. Keep confirmed instants, named event zones and date-only
+  values distinct; reject ambiguous/gapped local times rather than guess.
+  Current installation precision is milliseconds. See the date section of the
+  same conventions guide; do not migrate offline-sync formats incidentally.
+  Native blueprint setup now requests read-only date suggestions, requires
+  explicit confirmation, and preserves confirmed/edited instants on refresh.
+  See [date-aware setup](../roadmaps/blueprints-roadmap/08-date-aware-setup.md).
 - Server code uses pure injectable workflows plus production `*.workflows.live.ts`
   bindings. Compose dependency graphs once with `Layer.provide`; database-backed
   transports supply only `PgClientLive`. Service tags/contracts must not initialize
@@ -128,6 +153,29 @@ Paths in inline code are relative to their owning repository.
 - Templates, business packages, Android delivery, and private family stays are
   expansion directions. The blueprint roadmap records implementation status;
   do not infer that a planned capability is already available.
+- The first Wedding template slice has catalog/preview/install/status APIs,
+  durable native installation recovery and read-only audience-scoped guidance.
+  See the [installation proof](../roadmaps/blueprints-roadmap/06-wedding-installation-proof.md)
+  for migration/explicit catalog seeding, compatibility gates, tests, and limits.
+  Preserve ordinary sync transactions and account-isolated install intents.
+- Private web authoring/publication now lives at `/blueprints`; only explicitly
+  selected workspace owners can author/install private templates. Account-level
+  template navigation must not provision/select the active workspace. Draft CAS,
+  publication locks, immutable snapshots and source access checks are separate
+  from installed event permissions. See [cottage proof](../roadmaps/blueprints-roadmap/11-private-cottage-proof.md).
+  Development seed data includes an App Review-owned published cottage and an
+  unpublished editing draft. The seed remains destructive; never run it casually.
+- The curated catalog now also includes Birthday Party and Thanksgiving; the
+  same native discovery/setup/install flow handles all three. See
+  [curated starter proof](../roadmaps/blueprints-roadmap/09-curated-starters.md).
+  Run the explicit catalog seed for availability; imports never seed on requests.
+- Monetization is a documented plan, not implemented billing: free personal
+  planning/RSVPs, an organizer-funded Event Pass for a main event plus children,
+  and annual coverage later. Price, term and quotas remain undecided. Commercial
+  coverage is separate from event permission; expiry must not lose offline work.
+  The user subsequently prioritized private authoring/cottage reuse before paid
+  enablement. The original sequencing assessment remains historical context;
+  do not infer billing is implemented or silently drop release acceptance gates.
 
 ## Verification by project
 

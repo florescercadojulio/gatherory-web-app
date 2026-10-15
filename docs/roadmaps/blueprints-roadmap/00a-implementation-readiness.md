@@ -145,6 +145,12 @@ installed snapshots independent, as specified in `00`.
 
 ## Recommended delivery sequence and effort
 
+October 15 sequencing addendum: [product experience and billing](05-product-experience-and-billing-sequence.md)
+recommends validating the bounded curated native journey after the installation
+proof and before paid Event Pass enablement. Full private-authoring UI may follow
+billing; its acceptance criteria remain part of the complete blueprint iteration.
+This is a product-risk recommendation, not an additional technical prerequisite.
+
 Sizes are relative engineering/risk assessments, not elapsed-time estimates or
 promises. Re-estimate after the transaction/compatibility proving slice.
 

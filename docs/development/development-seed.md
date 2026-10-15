@@ -4,8 +4,11 @@
 creating fixtures. Check the target first; this is not an incremental update or
 a migration for existing user data. The script refuses `NODE_ENV=production`,
 but that check alone does not prove a database is safe to reset. Never point it
-at production. After a reset, use clean local app data: old offline outboxes
-belong to the previous accounts/database and are not migrated by this seed.
+at production. The reset clears blueprint revisions and private templates too;
+the seed then restores curated starters and creates App Review's private cottage
+published template plus an editable draft. After a reset, use clean local app
+data: old offline outboxes belong to the previous accounts/database and are not
+migrated by this seed.
 
 ## Fixtures
 

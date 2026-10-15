@@ -1,0 +1,328 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "minLength": 36,
+      "maxLength": 36,
+      "format": "uuid",
+      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+    },
+    "expectedVersion": {
+      "type": "integer",
+      "exclusiveMinimum": 0,
+      "maximum": 9007199254740991
+    },
+    "content": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120,
+          "description": "1–120 Unicode code points; surrounding whitespace is trimmed before validation."
+        },
+        "description": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 2000,
+          "description": "0–2000 Unicode code points; surrounding whitespace is trimmed before validation."
+        },
+        "experienceType": {
+          "type": "string",
+          "enum": [
+            "wedding",
+            "birthday",
+            "holiday",
+            "custom"
+          ]
+        },
+        "children": {
+          "default": [],
+          "maxItems": 50,
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "key": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 100,
+                "pattern": "^[a-z][a-z0-9_]*$",
+                "not": {
+                  "const": "main"
+                }
+              },
+              "title": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 120,
+                "description": "1–120 Unicode code points; surrounding whitespace is trimmed before validation."
+              },
+              "purpose": {
+                "type": "string",
+                "enum": [
+                  "planning_scouting",
+                  "part_of_event"
+                ]
+              },
+              "category": {
+                "type": "string",
+                "enum": [
+                  "venue",
+                  "food_tasting",
+                  "photography",
+                  "honeymoon",
+                  "attire_fitting",
+                  "wedding_shower",
+                  "bachelor_bachelorette",
+                  "rehearsal",
+                  "ceremony",
+                  "reception",
+                  "other"
+                ]
+              },
+              "scheduleProposal": {
+                "type": "object",
+                "properties": {
+                  "anchor": {
+                    "type": "string",
+                    "const": "main_start"
+                  },
+                  "dayOffset": {
+                    "type": "integer",
+                    "minimum": -365,
+                    "maximum": 3650
+                  },
+                  "localTime": {
+                    "type": "string",
+                    "minLength": 5,
+                    "maxLength": 5,
+                    "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
+                  }
+                },
+                "required": [
+                  "anchor",
+                  "dayOffset",
+                  "localTime"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "key",
+              "title",
+              "purpose",
+              "category"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "ideas": {
+          "default": [],
+          "maxItems": 100,
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "key": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 100,
+                "pattern": "^[a-z][a-z0-9_]*$"
+              },
+              "title": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 120,
+                "description": "1–120 Unicode code points; surrounding whitespace is trimmed before validation."
+              },
+              "category": {
+                "type": "string",
+                "enum": [
+                  "event",
+                  "registry",
+                  "link",
+                  "venue",
+                  "attire",
+                  "flowers",
+                  "food",
+                  "photography",
+                  "decor",
+                  "invitations",
+                  "honeymoon",
+                  "other"
+                ]
+              },
+              "notes": {
+                "type": "string",
+                "minLength": 0,
+                "maxLength": 2000,
+                "description": "0–2000 Unicode code points; surrounding whitespace is trimmed before validation."
+              },
+              "target": {
+                "oneOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "kind": {
+                        "type": "string",
+                        "const": "main"
+                      }
+                    },
+                    "required": [
+                      "kind"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "kind": {
+                        "type": "string",
+                        "const": "child"
+                      },
+                      "key": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 100,
+                        "pattern": "^[a-z][a-z0-9_]*$"
+                      }
+                    },
+                    "required": [
+                      "kind",
+                      "key"
+                    ],
+                    "additionalProperties": false
+                  }
+                ]
+              },
+              "configuration": {
+                "default": {
+                  "version": 1
+                },
+                "type": "object",
+                "properties": {
+                  "version": {
+                    "type": "number",
+                    "const": 1
+                  }
+                },
+                "required": [
+                  "version"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "key",
+              "title",
+              "category",
+              "target",
+              "configuration"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "instructions": {
+          "default": [],
+          "maxItems": 30,
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "key": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 100,
+                "pattern": "^[a-z][a-z0-9_]*$"
+              },
+              "title": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 120,
+                "description": "1–120 Unicode code points; surrounding whitespace is trimmed before validation."
+              },
+              "body": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 5000,
+                "description": "1–5000 Unicode code points; surrounding whitespace is trimmed before validation."
+              },
+              "audience": {
+                "type": "string",
+                "enum": [
+                  "planning_only",
+                  "event_participants"
+                ]
+              },
+              "target": {
+                "oneOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "kind": {
+                        "type": "string",
+                        "const": "main"
+                      }
+                    },
+                    "required": [
+                      "kind"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "kind": {
+                        "type": "string",
+                        "const": "child"
+                      },
+                      "key": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 100,
+                        "pattern": "^[a-z][a-z0-9_]*$"
+                      }
+                    },
+                    "required": [
+                      "kind",
+                      "key"
+                    ],
+                    "additionalProperties": false
+                  }
+                ]
+              }
+            },
+            "required": [
+              "key",
+              "title",
+              "body",
+              "audience",
+              "target"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "name",
+        "description",
+        "experienceType",
+        "children",
+        "ideas",
+        "instructions"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "id",
+    "expectedVersion",
+    "content"
+  ],
+  "additionalProperties": false,
+  "$id": "https://schemas.gatherory.com/blueprint-save-draft/v1.json",
+  "title": "Gatherory Private Blueprint Save Draft v1"
+}

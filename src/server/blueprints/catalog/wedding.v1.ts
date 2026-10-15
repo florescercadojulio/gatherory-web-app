@@ -1,0 +1,145 @@
+import {
+  BlueprintCatalogDefinitionSchema,
+  BlueprintCatalogRevisionSchema,
+} from '@/contracts/blueprint-install.contracts'
+import { blueprintHash } from '../planning/blueprint-hash'
+
+const definition = BlueprintCatalogDefinitionSchema.parse({
+  $schema: 'https://gatherory.com/schemas/experience-blueprint-v1.json',
+  kind: 'experience_blueprint',
+  schemaVersion: 1,
+  blueprint: { id: 'wedding', revision: 1, name: 'Wedding' },
+  experienceDefaults: { type: 'wedding' },
+  roles: [],
+  modules: [
+    {
+      key: 'event_tree',
+      type: 'experience_tree',
+      version: 2,
+      required: true,
+      config: {
+        mainEventType: 'wedding',
+        children: [
+          {
+            key: 'venue_visit',
+            title: 'Venue visit',
+            purpose: 'planning_scouting',
+            category: 'venue',
+            scheduleProposal: { anchor: 'main_start', dayOffset: -30, localTime: '12:00' },
+          },
+          {
+            key: 'rehearsal',
+            title: 'Rehearsal',
+            purpose: 'part_of_event',
+            category: 'rehearsal',
+            scheduleProposal: { anchor: 'main_start', dayOffset: -1, localTime: '17:00' },
+          },
+          {
+            key: 'ceremony',
+            title: 'Ceremony',
+            purpose: 'part_of_event',
+            category: 'ceremony',
+            scheduleProposal: { anchor: 'main_start', dayOffset: 0, localTime: '15:00' },
+          },
+          {
+            key: 'reception',
+            title: 'Reception',
+            purpose: 'part_of_event',
+            category: 'reception',
+            scheduleProposal: { anchor: 'main_start', dayOffset: 0, localTime: '18:00' },
+          },
+        ],
+      },
+    },
+    {
+      key: 'starter_ideas',
+      type: 'ideas',
+      version: 2,
+      required: true,
+      config: {
+        categoryOrder: ['venue', 'attire', 'food', 'flowers', 'photography'],
+        ideas: [
+          {
+            key: 'venue',
+            title: 'Venue',
+            category: 'venue',
+            notes: 'Collect options and compare capacity, accessibility, and budget.',
+            target: { kind: 'main' },
+            configuration: { version: 1 },
+          },
+          {
+            key: 'attire',
+            title: 'Attire',
+            category: 'attire',
+            notes: 'Gather ideas for outfits, fittings, and any needed alterations.',
+            target: { kind: 'main' },
+            configuration: { version: 1 },
+          },
+          {
+            key: 'food',
+            title: 'Food and drinks',
+            category: 'food',
+            notes: 'Explore menu and drink options, including dietary needs.',
+            target: { kind: 'main' },
+            configuration: { version: 1 },
+          },
+          {
+            key: 'flowers',
+            title: 'Flowers',
+            category: 'flowers',
+            notes: 'Collect floral styles and seasonal ideas.',
+            target: { kind: 'main' },
+            configuration: { version: 1 },
+          },
+          {
+            key: 'photography',
+            title: 'Photography',
+            category: 'photography',
+            notes: 'Compare portfolios, coverage, and delivery options.',
+            target: { kind: 'main' },
+            configuration: { version: 1 },
+          },
+        ],
+      },
+    },
+    {
+      key: 'guest_guidance',
+      type: 'instructions',
+      version: 1,
+      required: true,
+      config: {
+        sections: [
+          {
+            key: 'planning_priorities',
+            title: 'Planning priorities',
+            body: 'Choose the details that matter most to you, then compare options against your priorities and budget. Add confirmed decisions as they are made.',
+            audience: 'planning_only',
+            target: { kind: 'main' },
+          },
+          {
+            key: 'ceremony_guidance',
+            title: 'Ceremony guidance',
+            body: 'Use this space for ceremony timing, accessibility, and arrival details once they are confirmed. Share guest-facing directions with participants when ready.',
+            audience: 'event_participants',
+            target: { kind: 'child', key: 'ceremony' },
+          },
+          {
+            key: 'reception_guidance',
+            title: 'Reception guidance',
+            body: 'Add arrival, meal, and accessibility details after they are confirmed. Keep planning notes separate from information intended for attendees.',
+            audience: 'event_participants',
+            target: { kind: 'child', key: 'reception' },
+          },
+        ],
+      },
+    },
+  ],
+})
+
+/** Immutable catalog row shape; contentHash is over the typed envelope document. */
+export const weddingBlueprintV1 = BlueprintCatalogRevisionSchema.parse({
+  catalogKey: 'wedding',
+  revision: 1,
+  contentHash: blueprintHash(definition),
+  definition,
+})

@@ -7,8 +7,15 @@ marketplace work.
 Gatherory is one event-planning product with two complementary experiences:
 
 1. people and teams create and coordinate their own events; and
-2. professional planners create reusable, branded event templates that other
-   people can discover and use.
+2. template authors—including planners, rental-property hosts, and family
+   cottage owners—create reusable experiences that other people can discover
+   and copy into independent plans.
+
+Advanced reusable configuration is web-first; iOS is the lightweight discovery
+and participation surface. Future QR distribution, checklists, and reminders
+are captured in the [host-authored experience direction](../roadmaps/blueprints-roadmap/10-host-authored-experiences.md),
+not asserted as shipped features. Noncommercial family sharing does not require
+the author to be modeled as a professional business.
 
 The product borrows Vercel's clear scope and resource hierarchy without copying
 Vercel's deployment domain or turning Gatherory into a collection of separate
@@ -43,6 +50,21 @@ The later capabilities remain part of the architecture so the core does not
 need an ownership migration, but they must not add UI or workflow complexity to
 the first release. A disabled label in the web shell may communicate the future
 direction; it is not a promise that the capability is currently available.
+
+## Planned monetization boundary
+
+The [monetization model](monetization-model.md) records the October 15, 2026
+direction: free personal planning and guest RSVPs; an organizer-funded Event
+Pass covers one main event and its direct sub-events; annual plans come later.
+Billing is not implemented, and no final price, term or allowance is approved.
+This is separate from professional template licensing and package commerce.
+
+Commercial coverage does not grant event access or organization membership.
+Child-only collaborators can benefit from a root's pass without seeing the
+parent or siblings. Existing local plans retain their identity on upgrade.
+Free templates and personal planning do not require a pass. See the
+[implementation roadmap](../roadmaps/monetization-roadmap/README.md) for paid
+launch gates, including free export and offline lifecycle protection.
 
 ## Core hierarchy
 

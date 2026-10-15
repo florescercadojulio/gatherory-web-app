@@ -3,6 +3,7 @@ import { and, asc, eq, gt, inArray, isNull, isNotNull, sql } from 'drizzle-orm'
 import { db } from '@/db'
 import { user } from '@/db/schema/auth.schema'
 import { event, eventParticipant, workspacePerson } from '@/db/schema/event.schema'
+import { eventExperienceConfiguration, eventGuideSection } from '@/db/schema/blueprint.schema'
 import {
   nativeSyncChange,
   nativeSyncEntity,
@@ -22,12 +23,16 @@ import {
 } from '../contracts/native-sync.contracts'
 import { compareNativeMutationOrder } from '../workflows/native-sync-ordering'
 import { deletedAccountTombstone } from '../contracts/native-tombstones'
+import { blueprintUpgradeRequired } from '../native-sync-compatibility'
 import { nativeIdentityWriteAllowed } from '../services/native-identity-access'
 import {
   applyScopedEventMutation,
   pullScopedEventChanges,
+  scopedEventActor,
   scopedEventSnapshot,
 } from './scoped-event-sync.persistence'
+
+type NativeSyncTransaction = Parameters<Parameters<typeof db.transaction>[0]>[0]
 
 export { pushRequestSchema } from '../contracts/native-sync.contracts'
 
@@ -35,6 +40,203 @@ function nativeISODate(date: Date) {
   // Foundation's `.iso8601` decoder consistently accepts the seconds form;
   // JavaScript's default `toISOString()` always adds fractional seconds.
   return date.toISOString().replace(/\.\d{3}Z$/, 'Z')
+}
+
+async function blueprintBackedScopeIds(scopeIds: string[]) {
+  if (!scopeIds.length) return []
+  const events = await db
+    .select({ id: event.id, parentId: event.parentEventId })
+    .from(event)
+    .where(inArray(event.id, scopeIds))
+  const roots = [...new Set(events.map((row) => row.parentId ?? row.id))]
+  if (!roots.length) return []
+  // Live content owns compatibility, not its installation audit receipt. The
+  // original actor/source may disappear while a shared event remains usable.
+  const configurations = await db
+    .select({ mainEventId: eventExperienceConfiguration.eventId })
+    .from(eventExperienceConfiguration)
+    .where(inArray(eventExperienceConfiguration.eventId, roots))
+  const installedRoots = new Set(configurations.map((row) => row.mainEventId))
+  return events.filter((row) => installedRoots.has(row.parentId ?? row.id)).map((row) => row.id)
+}
+
+function applyCanonicalBlueprintFields(
+  payload: string,
+  guides: Array<{
+    id: string
+    eventID: string
+    key: string
+    title: string
+    body: string
+    sortOrder: number
+    visibility: 'planning_only' | 'event_participants'
+  }>,
+  experienceConfiguration: {
+    eventID: string
+    experienceType: string
+    categoryOrder: string[]
+  } | null
+) {
+  let archive: Record<string, unknown>
+  try {
+    archive = JSON.parse(payload) as Record<string, unknown>
+  } catch {
+    archive = JSON.parse(Buffer.from(payload, 'base64').toString('utf8')) as Record<string, unknown>
+  }
+  archive.guides = guides.map(({ id, eventID, key, title, body, sortOrder, visibility }) => ({
+    id,
+    eventID,
+    key,
+    title,
+    body,
+    sortOrder,
+    visibility,
+  }))
+  if (experienceConfiguration) {
+    archive.experienceConfiguration = {
+      experienceType: experienceConfiguration.experienceType,
+      categoryOrder: [...experienceConfiguration.categoryOrder],
+    }
+  } else {
+    delete archive.experienceConfiguration
+  }
+  return Buffer.from(JSON.stringify(archive), 'utf8').toString('base64')
+}
+
+function selectCanonicalGuides(scopeIds: string[]) {
+  return db
+    .select({
+      id: eventGuideSection.id,
+      eventID: eventGuideSection.eventId,
+      key: eventGuideSection.key,
+      title: eventGuideSection.title,
+      body: eventGuideSection.body,
+      sortOrder: eventGuideSection.sortOrder,
+      visibility: eventGuideSection.visibility,
+    })
+    .from(eventGuideSection)
+    .where(inArray(eventGuideSection.eventId, scopeIds))
+    .orderBy(asc(eventGuideSection.sortOrder), asc(eventGuideSection.id))
+}
+
+function selectCanonicalConfigurations(scopeIds: string[]) {
+  return db
+    .select({
+      eventID: eventExperienceConfiguration.eventId,
+      experienceType: eventExperienceConfiguration.experienceType,
+      categoryOrder: eventExperienceConfiguration.categoryOrder,
+    })
+    .from(eventExperienceConfiguration)
+    .where(inArray(eventExperienceConfiguration.eventId, scopeIds))
+}
+
+async function canonicalBlueprintContent(scopeIds: string[]) {
+  if (!scopeIds.length) return new Map()
+  const requestedEvents = await db
+    .select({ id: event.id, parentId: event.parentEventId })
+    .from(event)
+    .where(inArray(event.id, scopeIds))
+  const rootScopeIds = requestedEvents.filter((row) => row.parentId === null).map((row) => row.id)
+  const directChildren = rootScopeIds.length
+    ? await db
+        .select({ id: event.id, parentId: event.parentEventId })
+        .from(event)
+        .where(inArray(event.parentEventId, rootScopeIds))
+    : []
+  const childIdsByRoot = new Map<string, string[]>()
+  for (const child of directChildren) {
+    if (!child.parentId) continue
+    const ids = childIdsByRoot.get(child.parentId) ?? []
+    ids.push(child.id)
+    childIdsByRoot.set(child.parentId, ids)
+  }
+  const allGuideEventIds = [...new Set([...scopeIds, ...directChildren.map((child) => child.id)])]
+  const configurationEventIds = [
+    ...new Set([
+      ...scopeIds,
+      ...requestedEvents.flatMap((row) => (row.parentId ? [row.parentId] : [])),
+    ]),
+  ]
+  const [guides, configurations] = await Promise.all([
+    selectCanonicalGuides(allGuideEventIds),
+    selectCanonicalConfigurations(configurationEventIds),
+  ])
+  const guidesByEvent = new Map<string, typeof guides>()
+  for (const guide of guides) {
+    const eventGuides = guidesByEvent.get(guide.eventID) ?? []
+    eventGuides.push(guide)
+    guidesByEvent.set(guide.eventID, eventGuides)
+  }
+  const configurationsByEvent = new Map(
+    configurations.map((configuration) => [configuration.eventID, configuration])
+  )
+  const requestedById = new Map(requestedEvents.map((row) => [row.id, row]))
+  return new Map(
+    scopeIds.map((scopeId) => [
+      scopeId,
+      {
+        guides: [
+          ...(guidesByEvent.get(scopeId) ?? []),
+          ...(requestedById.get(scopeId)?.parentId === null
+            ? (childIdsByRoot.get(scopeId) ?? []).flatMap(
+                (childId) => guidesByEvent.get(childId) ?? []
+              )
+            : []),
+        ],
+        experienceConfiguration:
+          configurationsByEvent.get(scopeId) ??
+          (requestedById.get(scopeId)?.parentId
+            ? (configurationsByEvent.get(requestedById.get(scopeId)!.parentId!) ?? null)
+            : null),
+      },
+    ])
+  )
+}
+
+async function canonicalizeBlueprintWorkspaceMutation(
+  transaction: NativeSyncTransaction,
+  mutation: NativeMutation
+) {
+  if (mutation.entityType !== 'workspace' || mutation.operation === 'delete') return mutation
+  const [installation] = await transaction
+    .select({ id: eventExperienceConfiguration.eventId })
+    .from(eventExperienceConfiguration)
+    .where(eq(eventExperienceConfiguration.eventId, mutation.scopeID))
+    .limit(1)
+  if (!installation) return mutation
+
+  const children = await transaction
+    .select({ id: event.id })
+    .from(event)
+    .where(eq(event.parentEventId, mutation.scopeID))
+  const eventIds = [mutation.scopeID, ...children.map((child) => child.id)]
+  const guides = await transaction
+    .select({
+      id: eventGuideSection.id,
+      eventID: eventGuideSection.eventId,
+      key: eventGuideSection.key,
+      title: eventGuideSection.title,
+      body: eventGuideSection.body,
+      sortOrder: eventGuideSection.sortOrder,
+      visibility: eventGuideSection.visibility,
+    })
+    .from(eventGuideSection)
+    .where(inArray(eventGuideSection.eventId, eventIds))
+    .orderBy(asc(eventGuideSection.sortOrder), asc(eventGuideSection.id))
+  const [configuration] = await transaction
+    .select({
+      eventID: eventExperienceConfiguration.eventId,
+      experienceType: eventExperienceConfiguration.experienceType,
+      categoryOrder: eventExperienceConfiguration.categoryOrder,
+    })
+    .from(eventExperienceConfiguration)
+    .where(eq(eventExperienceConfiguration.eventId, mutation.scopeID))
+    .limit(1)
+
+  return {
+    ...mutation,
+    payload: applyCanonicalBlueprintFields(mutation.payload, guides, configuration ?? null),
+  }
 }
 
 type NativeScopeRole = 'owner' | 'editor' | 'viewer'
@@ -90,7 +292,51 @@ async function scopeRole(
   return role
 }
 
-export async function applyNativeMutations(input: { userId: string; mutations: NativeMutation[] }) {
+async function assertBlueprintCapabilityForScopes(input: {
+  userId: string
+  scopeIds: string[]
+  supportsBlueprintGuides: boolean
+}) {
+  if (input.supportsBlueprintGuides || !input.scopeIds.length) return
+  const blueprintScopeIds = await blueprintBackedScopeIds([...new Set(input.scopeIds)])
+  if (!blueprintScopeIds.length) return
+
+  const accessibleRoots = await db
+    .select({ id: event.id })
+    .from(event)
+    .innerJoin(eventParticipant, eq(eventParticipant.eventId, event.id))
+    .innerJoin(workspacePerson, eq(workspacePerson.id, eventParticipant.personId))
+    .where(
+      and(
+        inArray(event.id, blueprintScopeIds),
+        eq(workspacePerson.userId, input.userId),
+        eq(event.organizationId, workspacePerson.organizationId),
+        inArray(eventParticipant.role, ['host', 'collaborator']),
+        isNull(event.parentEventId)
+      )
+    )
+  const accessible = new Set(accessibleRoots.map((row) => row.id))
+  for (const scopeId of blueprintScopeIds) {
+    if (accessible.has(scopeId)) continue
+    const actor = await db.transaction((transaction) =>
+      scopedEventActor(transaction, scopeId, input.userId)
+    )
+    if (actor) accessible.add(scopeId)
+  }
+  const incompatible = blueprintScopeIds.filter((scopeId) => accessible.has(scopeId))
+  if (incompatible.length) throw blueprintUpgradeRequired(incompatible)
+}
+
+export async function applyNativeMutations(input: {
+  userId: string
+  mutations: NativeMutation[]
+  supportsBlueprintGuides?: boolean
+}) {
+  await assertBlueprintCapabilityForScopes({
+    userId: input.userId,
+    scopeIds: input.mutations.map((mutation) => mutation.scopeID),
+    supportsBlueprintGuides: input.supportsBlueprintGuides === true,
+  })
   const resultsByMutationId = new Map<string, NativePushResult>()
 
   for (const mutation of input.mutations.toSorted(compareNativeMutationOrder)) {
@@ -236,9 +482,13 @@ export async function applyNativeMutations(input: { userId: string; mutations: N
             }
 
             serverVersion = (snapshot?.serverVersion ?? 0) + 1
+            const canonicalMutation = snapshot
+              ? await canonicalizeBlueprintWorkspaceMutation(transaction, mutation)
+              : mutation
+            payload = canonicalMutation.payload
             const materialized = await materializeNativeMutation(transaction, {
               userId: input.userId,
-              mutation,
+              mutation: canonicalMutation,
               organizationId: snapshot?.organizationId,
             })
             await transaction
@@ -459,6 +709,7 @@ export async function pullNativeChanges(input: {
   userId: string
   scopeId: string
   after: number
+  supportsBlueprintGuides?: boolean
   limit?: number
 }) {
   const [targetEvent] = await db
@@ -466,9 +717,40 @@ export async function pullNativeChanges(input: {
     .from(event)
     .where(eq(event.id, input.scopeId))
     .limit(1)
-  if (targetEvent?.parentId)
+  if (targetEvent?.parentId) {
+    await assertBlueprintCapabilityForScopes({
+      userId: input.userId,
+      scopeIds: [input.scopeId],
+      supportsBlueprintGuides: input.supportsBlueprintGuides === true,
+    })
     return pullScopedEventChanges({ ...input, rootId: targetEvent.parentId })
+  }
   const limit = Math.min(Math.max(input.limit ?? 100, 1), 250)
+  const [scopeSnapshot] = await db
+    .select({ ownerUserId: nativeWorkspaceSnapshot.ownerUserId })
+    .from(nativeWorkspaceSnapshot)
+    .where(eq(nativeWorkspaceSnapshot.scopeId, input.scopeId))
+    .limit(1)
+  const readAccess = await db
+    .select({ role: eventParticipant.role })
+    .from(eventParticipant)
+    .innerJoin(workspacePerson, eq(workspacePerson.id, eventParticipant.personId))
+    .innerJoin(event, eq(event.id, eventParticipant.eventId))
+    .where(
+      and(
+        eq(eventParticipant.eventId, input.scopeId),
+        eq(workspacePerson.userId, input.userId),
+        eq(event.organizationId, workspacePerson.organizationId),
+        isNull(event.parentEventId)
+      )
+    )
+    .limit(1)
+  if (!scopeSnapshot || !readAccess.length || readAccess[0]?.role === 'guest') return null
+  await assertBlueprintCapabilityForScopes({
+    userId: input.userId,
+    scopeIds: [input.scopeId],
+    supportsBlueprintGuides: input.supportsBlueprintGuides === true,
+  })
   const access = await db.transaction(async (transaction) => {
     const [scope] = await transaction
       .select({ ownerUserId: nativeWorkspaceSnapshot.ownerUserId })
@@ -497,6 +779,10 @@ export async function pullNativeChanges(input: {
   const hasMore = rows.length > limit
   const page = rows.slice(0, limit)
   const nextCursor = page.at(-1)?.cursor ?? input.after
+  const canonicalScopeIds = await blueprintBackedScopeIds([input.scopeId])
+  const canonical = canonicalScopeIds.length
+    ? (await canonicalBlueprintContent(canonicalScopeIds)).get(input.scopeId)
+    : undefined
 
   return {
     changes: page.map((change) => ({
@@ -508,7 +794,14 @@ export async function pullNativeChanges(input: {
       // Repair already-written development changes at the boundary without
       // resetting accounts or advancing clients past unapplied records.
       operation: nativePullOperation(change.operation),
-      payload: change.payload,
+      payload:
+        canonical && change.entityType === 'workspace' && change.operation !== 'delete'
+          ? applyCanonicalBlueprintFields(
+              change.payload,
+              canonical.guides,
+              canonical.experienceConfiguration
+            )
+          : change.payload,
       serverVersion: change.serverVersion,
       occurredAt: nativeISODate(change.occurredAt),
     })),
@@ -517,7 +810,17 @@ export async function pullNativeChanges(input: {
   }
 }
 
-export async function listNativeWorkspaceSnapshots(userId: string) {
+export async function listNativeWorkspaceSnapshots(
+  input:
+    | string
+    | {
+        userId: string
+        supportsBlueprintGuides?: boolean
+      }
+) {
+  const userId = typeof input === 'string' ? input : input.userId
+  const supportsBlueprintGuides =
+    typeof input !== 'string' && input.supportsBlueprintGuides === true
   const [memberships, [account]] = await Promise.all([
     db
       .select({ scopeId: nativeSyncScopeMember.scopeId })
@@ -558,25 +861,6 @@ export async function listNativeWorkspaceSnapshots(userId: string) {
         )
         .orderBy(asc(nativeWorkspaceSnapshot.createdAt))
     : []
-
-  // Backfill pre-membership snapshots without requiring a destructive migration.
-  const legacyOwnedScopes = rows
-    .filter(
-      (snapshot) => snapshot.ownerUserId === userId && !memberScopeIds.includes(snapshot.scopeId)
-    )
-    .map((snapshot) => ({
-      scopeId: snapshot.scopeId,
-      userId,
-      role: 'owner' as const,
-    }))
-  if (legacyOwnedScopes.length) {
-    await db
-      .insert(nativeSyncScopeMember)
-      .values(legacyOwnedScopes)
-      .onConflictDoNothing({
-        target: [nativeSyncScopeMember.scopeId, nativeSyncScopeMember.userId],
-      })
-  }
 
   const scopeIds = rows.map((snapshot) => snapshot.scopeId)
   const entities = scopeIds.length
@@ -623,6 +907,53 @@ export async function listNativeWorkspaceSnapshots(userId: string) {
     if (snapshot) childSnapshots.push(snapshot)
   }
 
+  const bootstrapScopeIds = [
+    ...rows.map((snapshot) => snapshot.scopeId),
+    ...childSnapshots.map((snapshot) => snapshot.scopeID),
+  ]
+  const incompatibleBlueprintScopes = supportsBlueprintGuides
+    ? []
+    : await blueprintBackedScopeIds(bootstrapScopeIds)
+  if (incompatibleBlueprintScopes.length)
+    throw blueprintUpgradeRequired(incompatibleBlueprintScopes)
+
+  // Backfill pre-membership snapshots only after compatibility has been checked.
+  const legacyOwnedScopes = rows
+    .filter(
+      (snapshot) => snapshot.ownerUserId === userId && !memberScopeIds.includes(snapshot.scopeId)
+    )
+    .map((snapshot) => ({
+      scopeId: snapshot.scopeId,
+      userId,
+      role: 'owner' as const,
+    }))
+  if (legacyOwnedScopes.length) {
+    await db
+      .insert(nativeSyncScopeMember)
+      .values(legacyOwnedScopes)
+      .onConflictDoNothing({
+        target: [nativeSyncScopeMember.scopeId, nativeSyncScopeMember.userId],
+      })
+  }
+
+  const canonicalEventIds = [...new Set(bootstrapScopeIds)]
+  const canonicalByEvent = await canonicalBlueprintContent(canonicalEventIds)
+  const projectCanonicalContent = <T extends { scopeID: string; payload: string }>(
+    snapshot: T
+  ): T => {
+    const canonical = canonicalByEvent.get(snapshot.scopeID)
+    return canonical
+      ? {
+          ...snapshot,
+          payload: applyCanonicalBlueprintFields(
+            snapshot.payload,
+            canonical.guides,
+            canonical.experienceConfiguration
+          ),
+        }
+      : snapshot
+  }
+
   // Both a root workspace and an admitted child planning scope are usable
   // planning experiences; neither should send an invitee through onboarding.
   const hasCompletedOnboarding =
@@ -637,11 +968,14 @@ export async function listNativeWorkspaceSnapshots(userId: string) {
       ...rows.map((snapshot) => ({
         scopeID: snapshot.scopeId,
         payloadSchemaVersion: 1 as const,
-        payload: snapshot.payload,
+        payload: projectCanonicalContent({ scopeID: snapshot.scopeId, payload: snapshot.payload })
+          .payload,
         serverVersion: snapshot.serverVersion,
         updatedAt: nativeISODate(snapshot.updatedAt),
       })),
-      ...childSnapshots.map(({ cursor: _cursor, ...snapshot }) => snapshot),
+      ...childSnapshots.map(({ cursor: _cursor, ...snapshot }) =>
+        projectCanonicalContent(snapshot)
+      ),
     ],
     entities: entities.map((entity) => ({
       scopeID: entity.scopeId,

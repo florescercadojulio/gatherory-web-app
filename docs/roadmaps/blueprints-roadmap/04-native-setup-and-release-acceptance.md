@@ -5,6 +5,11 @@
 **Depends on:** 02 and 03 for full delivery. Bring model/transport/import proof
 forward alongside 03, before completing authoring UI, as described in `00a`.
 
+The curated native milestone in [05](05-product-experience-and-billing-sequence.md)
+does not require `02`'s full authoring UI. Private-template selection/customization
+tests below still require `02` and remain necessary for full iteration completion.
+Curated use is free; later Event Pass purchase is separate from installation.
+
 ## What this is / why it exists
 
 Expose the templates where people already create their events. This completes

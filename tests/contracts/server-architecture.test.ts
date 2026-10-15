@@ -3,7 +3,16 @@ import { join, relative } from 'node:path'
 import { expect, test } from 'vitest'
 
 const root = process.cwd()
-const domains = ['events', 'media', 'moderation', 'workspaces', 'sync', 'auth', 'email']
+const domains = [
+  'events',
+  'media',
+  'moderation',
+  'workspaces',
+  'sync',
+  'auth',
+  'email',
+  'blueprints',
+]
 
 function sourceFiles(directory: string): string[] {
   return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {

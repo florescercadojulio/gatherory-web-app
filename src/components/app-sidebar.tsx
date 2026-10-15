@@ -1,6 +1,6 @@
 'use client'
 
-import { CalendarDays, LayoutDashboard, Settings } from 'lucide-react'
+import { CalendarDays, LayoutDashboard, LibraryBig, Settings } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 import { NavMain } from '@/components/nav-main.tsx'
@@ -44,6 +44,7 @@ export function AppSidebar({
           items={[
             { title: t('common.allEvents'), url: '/workspaces', icon: LayoutDashboard },
             { title: t('navigation.eventDetails'), url: workspaceUrl, icon: CalendarDays },
+            { title: t('navigation.templates'), url: '/blueprints', icon: LibraryBig },
             { title: t('common.account'), url: '/account', icon: Settings },
           ]}
         />

@@ -29,7 +29,7 @@ it.effect('injects NativeSyncRepo into bootstrap, push, and pull workflows', () 
       calls.push(`pull:${userId}:${scopeId}:${after}`)
       return Effect.succeed({ changes: [], nextCursor: String(after), hasMore: false })
     },
-    listWorkspaceSnapshots: (userId) => {
+    listWorkspaceSnapshots: ({ userId }) => {
       calls.push(`bootstrap:${userId}`)
       return Effect.succeed({
         account: { hasCompletedOnboarding: true },
@@ -54,9 +54,14 @@ it.effect('injects NativeSyncRepo into bootstrap, push, and pull workflows', () 
   return Effect.gen(function* () {
     const [bootstrap, push, pull] = yield* Effect.all(
       [
-        bootstrapNativeSync('user-1'),
-        pushNativeSync({ userId: 'user-1', mutations: [mutation] }),
-        pullNativeSync({ userId: 'user-1', scopeId: mutation.scopeID, after: 12 }),
+        bootstrapNativeSync({ userId: 'user-1', supportsBlueprintGuides: true }),
+        pushNativeSync({ userId: 'user-1', mutations: [mutation], supportsBlueprintGuides: true }),
+        pullNativeSync({
+          userId: 'user-1',
+          scopeId: mutation.scopeID,
+          after: 12,
+          supportsBlueprintGuides: true,
+        }),
       ],
       { concurrency: 'unbounded' }
     ).pipe(Effect.provide(repoLayer))

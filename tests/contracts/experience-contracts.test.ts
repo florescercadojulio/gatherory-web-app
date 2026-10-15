@@ -31,7 +31,9 @@ test('service packages reference an immutable blueprint revision', async () => {
     id: 'destination-wedding',
     revision: 1,
   })
-  expect(servicePackage.pricing.starting.amount).toBe('18500.00')
+  expect(servicePackage.pricing.starting.amountMinor).toBe('1850000')
+  expect(servicePackage.pricing.additionalGuest?.amountMinor).toBe('17500')
+  expect(servicePackage.addOns[0]?.starting?.amountMinor).toBe('350000')
 })
 
 test('service packages reject inconsistent capacity and pricing', async () => {

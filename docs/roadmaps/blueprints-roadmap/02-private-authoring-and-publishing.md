@@ -1,6 +1,6 @@
 # 02 — Private Authoring, Preview, and Publishing
 
-**Status:** Planned
+**Status:** Implemented locally October 15, 2026; deployment and manual visual acceptance remain open.
 **Priority:** P1
 **Depends on:** 01
 
@@ -8,10 +8,55 @@
 install-to-native path in `03`/`04` before completing this UI. See `00a`; preview
 and forms are not evidence that installation or native delivery works.
 
+The [October 15 assessment](05-product-experience-and-billing-sequence.md)
+recommends curated native setup before paid Event Pass rollout and completion of
+this authoring UI afterward. This remains planned first-iteration scope, not a
+new paid feature or a prerequisite for billing. The user subsequently selected this
+slice before billing to prove cottage reuse. Its private-template acceptance
+criteria still apply before declaring the whole blueprint iteration complete.
+
+## Implemented boundary
+
+`/blueprints` provides private draft creation, curated customization, editing,
+saved-draft preview, immutable publication, retirement and unpublished-draft
+deletion. The collection uses scoped search, source/status filters and pagination.
+The account route authenticates without provisioning or changing the active
+workspace. Only owners of the explicitly selected workspace can manage or
+install its private templates in this first slice; event-only guests,
+collaborators and ordinary organization members do not gain template access.
+Missing authoring workspace creation is an explicit, recoverable action.
+
+Supported content is names/descriptions, direct-child activities, optional
+`main_start` date proposals, undecided ideas and plain-text audience-scoped
+instructions. The editor uses TanStack Form and keyboard reorder controls.
+It prevents removing activities while ideas/instructions still target them.
+Each consumer still chooses activities/ideas and confirms dates in native setup.
+Preview dates are illustrative only and never create or schedule anything.
+
+`blueprint_template` holds mutable versioned drafts; `blueprint_revision`
+holds immutable publications. Save compares `expectedVersion`. Publish locks
+the draft and writes the snapshot and pointer in one Effect SQL transaction;
+the saved draft version is its idempotency key. Source access is checked for
+catalog, preview, schedule, new claims, pending retries and final completion.
+Completed installations retain independent copies and existing host checks,
+even when a source is retired. Existing Better Auth provisioning remains outside
+the canonical/native completion transaction.
+
+Apply the additive `20261015152051_loose_owl` migration after the initial
+blueprint migration. See [11 — Cottage authoring proof](11-private-cottage-proof.md)
+for seed fixtures, verification and exact deployment limits. No migration or seed
+has been applied to the user's development or production database by this task.
+
 ## What this is / why it exists
 
 A host configures a reusable template through ordinary controls. Saving a draft
 and publishing a reusable version are explicit, distinct actions.
+
+This web editor is also the future configuration surface for property stays,
+family cottages, and package recommendations. Keep template composition on the
+web rather than duplicating it in iOS. The initial editor still handles only
+supported modules; QR distribution, checklists, reminders and richer place
+configuration require separate slices. See [10](10-host-authored-experiences.md).
 
 ## Target behavior
 

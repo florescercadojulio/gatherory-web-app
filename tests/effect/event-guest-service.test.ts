@@ -34,6 +34,7 @@ const emptyProjection = {
   coverAsset: null,
   people: [],
   ideas: [],
+  guides: [],
   moments: [],
 } satisfies InvitationProjections[number]
 

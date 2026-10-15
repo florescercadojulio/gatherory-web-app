@@ -4,7 +4,10 @@
   "properties": {
     "$schema": {
       "type": "string",
-      "format": "uri"
+      "format": "uri",
+      "minLength": 1,
+      "maxLength": 2048,
+      "description": "1–2048 Unicode code points."
     },
     "kind": {
       "type": "string",
@@ -20,7 +23,8 @@
         "id": {
           "type": "string",
           "minLength": 1,
-          "maxLength": 160
+          "maxLength": 160,
+          "description": "1–160 Unicode code points; surrounding whitespace is trimmed before validation."
         },
         "revision": {
           "type": "integer",
@@ -30,7 +34,8 @@
         "name": {
           "type": "string",
           "minLength": 1,
-          "maxLength": 160
+          "maxLength": 160,
+          "description": "1–160 Unicode code points; surrounding whitespace is trimmed before validation."
         }
       },
       "required": [
@@ -52,7 +57,8 @@
         "timeZone": {
           "type": "string",
           "minLength": 1,
-          "maxLength": 100
+          "maxLength": 100,
+          "description": "1–100 Unicode code points; surrounding whitespace is trimmed before validation."
         }
       },
       "required": [
@@ -120,9 +126,14 @@
           "config": {
             "type": "object",
             "propertyNames": {
-              "type": "string"
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 160,
+              "description": "1–160 Unicode code points."
             },
-            "additionalProperties": {}
+            "additionalProperties": {
+              "$ref": "#/$defs/__schema0"
+            }
           }
         },
         "required": [
@@ -148,6 +159,8 @@
           "anyOf": [
             {
               "type": "string",
+              "minLength": 36,
+              "maxLength": 36,
               "format": "uuid",
               "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
             },
@@ -180,6 +193,45 @@
     "modules"
   ],
   "additionalProperties": false,
+  "$defs": {
+    "__schema0": {
+      "anyOf": [
+        {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 5000,
+          "description": "0–5000 Unicode code points."
+        },
+        {
+          "type": "number"
+        },
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        },
+        {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/__schema0"
+          }
+        },
+        {
+          "type": "object",
+          "propertyNames": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 160,
+            "description": "1–160 Unicode code points."
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/__schema0"
+          }
+        }
+      ]
+    }
+  },
   "$id": "https://schemas.gatherory.com/experience-blueprint/v1.json",
   "title": "Gatherory Experience Blueprint v1"
 }

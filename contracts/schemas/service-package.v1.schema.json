@@ -4,7 +4,10 @@
   "properties": {
     "$schema": {
       "type": "string",
-      "format": "uri"
+      "format": "uri",
+      "minLength": 1,
+      "maxLength": 2048,
+      "description": "1–2048 Unicode code points."
     },
     "kind": {
       "type": "string",
@@ -17,7 +20,8 @@
     "id": {
       "type": "string",
       "minLength": 1,
-      "maxLength": 160
+      "maxLength": 160,
+      "description": "1–160 Unicode code points; surrounding whitespace is trimmed before validation."
     },
     "revision": {
       "type": "integer",
@@ -27,12 +31,14 @@
     "businessId": {
       "type": "string",
       "minLength": 1,
-      "maxLength": 160
+      "maxLength": 160,
+      "description": "1–160 Unicode code points; surrounding whitespace is trimmed before validation."
     },
     "name": {
       "type": "string",
       "minLength": 1,
-      "maxLength": 160
+      "maxLength": 160,
+      "description": "1–160 Unicode code points; surrounding whitespace is trimmed before validation."
     },
     "blueprint": {
       "type": "object",
@@ -40,7 +46,8 @@
         "id": {
           "type": "string",
           "minLength": 1,
-          "maxLength": 160
+          "maxLength": 160,
+          "description": "1–160 Unicode code points; surrounding whitespace is trimmed before validation."
         },
         "revision": {
           "type": "integer",
@@ -59,22 +66,27 @@
       "properties": {
         "countryCode": {
           "type": "string",
+          "minLength": 2,
+          "maxLength": 2,
           "pattern": "^[A-Z]{2}$"
         },
         "region": {
           "type": "string",
           "minLength": 1,
-          "maxLength": 160
+          "maxLength": 160,
+          "description": "1–160 Unicode code points; surrounding whitespace is trimmed before validation."
         },
         "city": {
           "type": "string",
           "minLength": 1,
-          "maxLength": 160
+          "maxLength": 160,
+          "description": "1–160 Unicode code points; surrounding whitespace is trimmed before validation."
         },
         "timeZone": {
           "type": "string",
           "minLength": 1,
-          "maxLength": 100
+          "maxLength": 100,
+          "description": "1–100 Unicode code points; surrounding whitespace is trimmed before validation."
         }
       },
       "required": [
@@ -110,17 +122,29 @@
         "starting": {
           "type": "object",
           "properties": {
-            "amount": {
+            "amountMinor": {
               "type": "string",
-              "pattern": "^\\d+(\\.\\d+)?$"
+              "minLength": 1,
+              "maxLength": 20,
+              "pattern": "^(0|[1-9][0-9]*)$(?![\\s\\S])",
+              "description": "Nonnegative integer minor units as a canonical digit string. Never a decimal amount or JSON number. Interpret using the currency exponent.",
+              "examples": [
+                "0",
+                "1",
+                "100",
+                "10000"
+              ]
             },
             "currency": {
               "type": "string",
-              "pattern": "^[A-Z]{3}$"
+              "minLength": 3,
+              "maxLength": 3,
+              "pattern": "^[A-Z]{3}$",
+              "description": "Uppercase ISO 4217 currency code. Shape validation only; operations must validate supported currencies."
             }
           },
           "required": [
-            "amount",
+            "amountMinor",
             "currency"
           ],
           "additionalProperties": false
@@ -137,17 +161,29 @@
         "additionalGuest": {
           "type": "object",
           "properties": {
-            "amount": {
+            "amountMinor": {
               "type": "string",
-              "pattern": "^\\d+(\\.\\d+)?$"
+              "minLength": 1,
+              "maxLength": 20,
+              "pattern": "^(0|[1-9][0-9]*)$(?![\\s\\S])",
+              "description": "Nonnegative integer minor units as a canonical digit string. Never a decimal amount or JSON number. Interpret using the currency exponent.",
+              "examples": [
+                "0",
+                "1",
+                "100",
+                "10000"
+              ]
             },
             "currency": {
               "type": "string",
-              "pattern": "^[A-Z]{3}$"
+              "minLength": 3,
+              "maxLength": 3,
+              "pattern": "^[A-Z]{3}$",
+              "description": "Uppercase ISO 4217 currency code. Shape validation only; operations must validate supported currencies."
             }
           },
           "required": [
-            "amount",
+            "amountMinor",
             "currency"
           ],
           "additionalProperties": false
@@ -167,7 +203,8 @@
           "serviceId": {
             "type": "string",
             "minLength": 1,
-            "maxLength": 160
+            "maxLength": 160,
+            "description": "1–160 Unicode code points; surrounding whitespace is trimmed before validation."
           },
           "quantity": {
             "type": "number",
@@ -176,7 +213,8 @@
           "unit": {
             "type": "string",
             "minLength": 1,
-            "maxLength": 60
+            "maxLength": 60,
+            "description": "1–60 Unicode code points; surrounding whitespace is trimmed before validation."
           },
           "required": {
             "type": "boolean"
@@ -198,22 +236,35 @@
           "serviceId": {
             "type": "string",
             "minLength": 1,
-            "maxLength": 160
+            "maxLength": 160,
+            "description": "1–160 Unicode code points; surrounding whitespace is trimmed before validation."
           },
           "starting": {
             "type": "object",
             "properties": {
-              "amount": {
+              "amountMinor": {
                 "type": "string",
-                "pattern": "^\\d+(\\.\\d+)?$"
+                "minLength": 1,
+                "maxLength": 20,
+                "pattern": "^(0|[1-9][0-9]*)$(?![\\s\\S])",
+                "description": "Nonnegative integer minor units as a canonical digit string. Never a decimal amount or JSON number. Interpret using the currency exponent.",
+                "examples": [
+                  "0",
+                  "1",
+                  "100",
+                  "10000"
+                ]
               },
               "currency": {
                 "type": "string",
-                "pattern": "^[A-Z]{3}$"
+                "minLength": 3,
+                "maxLength": 3,
+                "pattern": "^[A-Z]{3}$",
+                "description": "Uppercase ISO 4217 currency code. Shape validation only; operations must validate supported currencies."
               }
             },
             "required": [
-              "amount",
+              "amountMinor",
               "currency"
             ],
             "additionalProperties": false

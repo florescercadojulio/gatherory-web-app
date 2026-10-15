@@ -1,6 +1,6 @@
 # 03 — Installation and Native Delivery
 
-**Status:** Planned
+**Status:** First Wedding proof implemented; broader acceptance remains open. See [06](06-wedding-installation-proof.md).
 **Priority:** P1
 **Depends on:** 01; share preview semantics with 02.
 

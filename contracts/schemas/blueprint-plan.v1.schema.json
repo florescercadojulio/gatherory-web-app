@@ -1,0 +1,449 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "plannerVersion": {
+      "type": "number",
+      "const": 1
+    },
+    "experienceType": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100,
+      "pattern": "^[a-z][a-z0-9_]*$"
+    },
+    "categoryOrder": {
+      "maxItems": 20,
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "event",
+          "registry",
+          "link",
+          "venue",
+          "attire",
+          "flowers",
+          "food",
+          "photography",
+          "decor",
+          "invitations",
+          "honeymoon",
+          "other"
+        ]
+      }
+    },
+    "main": {
+      "type": "object",
+      "properties": {
+        "sourceKey": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100,
+          "pattern": "^[a-z][a-z0-9_]*$"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120,
+          "description": "1–120 Unicode code points; surrounding whitespace is trimmed before validation."
+        },
+        "eventType": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100,
+          "pattern": "^[a-z][a-z0-9_]*$"
+        },
+        "startsAt": {
+          "type": "string",
+          "minLength": 20,
+          "maxLength": 29,
+          "allOf": [
+            {
+              "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+            },
+            {
+              "pattern": "^(?!.*-00:00$)\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,3})?(?:Z|[+-]\\d{2}:\\d{2})$"
+            }
+          ],
+          "description": "Confirmed RFC 3339 instant with seconds and Z or an explicit offset. At most three fractional digits; no floating local times. Send the event IANA time zone separately."
+        },
+        "timeZone": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100,
+          "description": "1–100 Unicode code points; surrounding whitespace is trimmed before validation."
+        },
+        "parentSourceKey": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 100,
+              "pattern": "^[a-z][a-z0-9_]*$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "purpose": {
+          "anyOf": [
+            {
+              "type": "string",
+              "enum": [
+                "planning_scouting",
+                "part_of_event"
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "category": {
+          "anyOf": [
+            {
+              "type": "string",
+              "enum": [
+                "venue",
+                "food_tasting",
+                "photography",
+                "honeymoon",
+                "attire_fitting",
+                "wedding_shower",
+                "bachelor_bachelorette",
+                "rehearsal",
+                "ceremony",
+                "reception",
+                "other"
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "planningStatus": {
+          "anyOf": [
+            {
+              "type": "string",
+              "const": "approved"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "sourceKey",
+        "name",
+        "eventType",
+        "startsAt",
+        "timeZone",
+        "parentSourceKey",
+        "purpose",
+        "category",
+        "planningStatus"
+      ],
+      "additionalProperties": false
+    },
+    "children": {
+      "maxItems": 50,
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "sourceKey": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "pattern": "^[a-z][a-z0-9_]*$"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120,
+            "description": "1–120 Unicode code points; surrounding whitespace is trimmed before validation."
+          },
+          "eventType": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "pattern": "^[a-z][a-z0-9_]*$"
+          },
+          "startsAt": {
+            "type": "string",
+            "minLength": 20,
+            "maxLength": 29,
+            "allOf": [
+              {
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+              },
+              {
+                "pattern": "^(?!.*-00:00$)\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,3})?(?:Z|[+-]\\d{2}:\\d{2})$"
+              }
+            ],
+            "description": "Confirmed RFC 3339 instant with seconds and Z or an explicit offset. At most three fractional digits; no floating local times. Send the event IANA time zone separately."
+          },
+          "timeZone": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "description": "1–100 Unicode code points; surrounding whitespace is trimmed before validation."
+          },
+          "parentSourceKey": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 100,
+                "pattern": "^[a-z][a-z0-9_]*$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "purpose": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "planning_scouting",
+                  "part_of_event"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "category": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "venue",
+                  "food_tasting",
+                  "photography",
+                  "honeymoon",
+                  "attire_fitting",
+                  "wedding_shower",
+                  "bachelor_bachelorette",
+                  "rehearsal",
+                  "ceremony",
+                  "reception",
+                  "other"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "planningStatus": {
+            "anyOf": [
+              {
+                "type": "string",
+                "const": "approved"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "sourceKey",
+          "name",
+          "eventType",
+          "startsAt",
+          "timeZone",
+          "parentSourceKey",
+          "purpose",
+          "category",
+          "planningStatus"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "ideas": {
+      "maxItems": 100,
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "sourceKey": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "pattern": "^[a-z][a-z0-9_]*$"
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120,
+            "description": "1–120 Unicode code points; surrounding whitespace is trimmed before validation."
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "event",
+              "registry",
+              "link",
+              "venue",
+              "attire",
+              "flowers",
+              "food",
+              "photography",
+              "decor",
+              "invitations",
+              "honeymoon",
+              "other"
+            ]
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 0,
+                "maxLength": 2000,
+                "description": "0–2000 Unicode code points; surrounding whitespace is trimmed before validation."
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "targetSourceKey": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "pattern": "^[a-z][a-z0-9_]*$"
+          },
+          "configuration": {
+            "default": {
+              "version": 1
+            },
+            "type": "object",
+            "properties": {
+              "version": {
+                "type": "number",
+                "const": 1
+              }
+            },
+            "required": [
+              "version"
+            ],
+            "additionalProperties": false
+          },
+          "status": {
+            "type": "string",
+            "const": "new"
+          }
+        },
+        "required": [
+          "sourceKey",
+          "title",
+          "category",
+          "notes",
+          "targetSourceKey",
+          "configuration",
+          "status"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "instructions": {
+      "maxItems": 30,
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "sourceKey": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "pattern": "^[a-z][a-z0-9_]*$"
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120,
+            "description": "1–120 Unicode code points; surrounding whitespace is trimmed before validation."
+          },
+          "body": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 5000,
+            "description": "1–5000 Unicode code points; surrounding whitespace is trimmed before validation."
+          },
+          "audience": {
+            "type": "string",
+            "enum": [
+              "planning_only",
+              "event_participants"
+            ]
+          },
+          "targetSourceKey": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "pattern": "^[a-z][a-z0-9_]*$"
+          }
+        },
+        "required": [
+          "sourceKey",
+          "title",
+          "body",
+          "audience",
+          "targetSourceKey"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "omissions": {
+      "maxItems": 200,
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "sourceKey": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "pattern": "^[a-z][a-z0-9_]*$"
+          },
+          "reason": {
+            "type": "string",
+            "enum": [
+              "child_not_selected",
+              "unsupported_optional_capability",
+              "unsupported_optional_module"
+            ]
+          }
+        },
+        "required": [
+          "sourceKey",
+          "reason"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "plannerVersion",
+    "experienceType",
+    "categoryOrder",
+    "main",
+    "children",
+    "ideas",
+    "instructions",
+    "omissions"
+  ],
+  "additionalProperties": false,
+  "$id": "https://schemas.gatherory.com/blueprint-plan/v1.json",
+  "title": "Gatherory Blueprint Plan v1"
+}

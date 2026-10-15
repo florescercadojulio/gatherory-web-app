@@ -2,6 +2,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { Effect } from 'effect'
 import { runServerResponse } from '@/server/effect-utils'
 import { requestUser } from '@/server/http-errors'
+import { hasBlueprintGuidesCapability } from '@/server/sync/native-sync-compatibility'
 import { bootstrapNativeSync } from '@/server/sync/workflows/native-sync.workflows.live'
 
 export const Route = createFileRoute('/api/sync/bootstrap')({
@@ -11,7 +12,10 @@ export const Route = createFileRoute('/api/sync/bootstrap')({
         runServerResponse(
           Effect.gen(function* () {
             const user = yield* requestUser(request)
-            return yield* bootstrapNativeSync(user.id)
+            return yield* bootstrapNativeSync({
+              userId: user.id,
+              supportsBlueprintGuides: hasBlueprintGuidesCapability(request.headers),
+            })
           }),
           {
             headers: request.headers,

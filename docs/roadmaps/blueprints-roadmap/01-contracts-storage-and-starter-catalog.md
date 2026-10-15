@@ -1,6 +1,6 @@
 # 01 — Contracts, Storage, and Starter Catalog
 
-**Status:** Planned
+**Status:** Curated three-starter subset implemented; private authoring/catalog work remains. See [09](09-curated-starters.md).
 **Priority:** P1
 **Depends on:** `00` and `00a`; inspect the current schema before generating migrations.
 
@@ -13,10 +13,33 @@ path.
 
 ## Current implementation
 
-The shared envelope and generic module configuration already exist. There are
-no blueprint tables or system catalog seeds. Current development seeding also
-imports reset utilities; it is not an appropriate deployment mechanism for a
-non-destructive starter catalog.
+The shared envelope now has a bounded executable subset, additive revision and
+installation storage, live event guidance/configuration, and system Wedding,
+Birthday Party, and Thanksgiving revisions. The separate `blueprints:seed` command is non-destructive and does not
+import development reset utilities. See [06](06-wedding-installation-proof.md)
+for original implementation evidence and [09](09-curated-starters.md) for the
+additional starters. Private catalog/authoring capabilities below are still planned.
+
+October 15 contract follow-up: character bounds now count Unicode code points
+and appear in generated JSON Schemas, including nested optional-module content.
+Known executable modules cannot bypass their tighter limits through the opaque
+fallback. Draft service-package prices now use `amountMinor` strings plus
+currency, without changing existing event budget or native sync units. Follow
+[API/MCP conventions](../../development/api-contract-conventions.md) when
+adding fields. The Wedding pinned definition/hash remains unchanged.
+Verification for this follow-up: typecheck, generated-schema checks and the full
+Vitest suite passed (242 tests; 14 environment/opt-in tests skipped). This
+contract-only change did not rerun native or UI tests and did not apply a database
+migration. Public OpenAPI/MCP delivery remains future work.
+
+Subsequent date follow-up: blueprint schedule validation now uses native Temporal
+behind a TanStack server-only boundary. Node engines and CI require 26+, while
+shared schemas remain usable without global Temporal. Confirmed timestamps have
+at most millisecond precision; named zones and explicit offsets must agree.
+Typecheck, generated-schema checks and all 268 web tests passed (14 opt-in tests
+skipped). The 35 focused scheduling/planner tests also passed independently under
+`TZ=Pacific/Honolulu` and `TZ=Asia/Tokyo`. No database, native archive, outbox or
+transaction behavior was migrated; native/UI tests were not rerun for this change.
 
 ## Target behavior
 

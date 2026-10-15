@@ -12,16 +12,19 @@ export type NativeSyncRepoShape = {
   readonly applyMutations: (input: {
     userId: string
     mutations: NativeMutation[]
+    supportsBlueprintGuides: boolean
   }) => Effect.Effect<{ results: NativePushResult[] }, DomainError>
   readonly pullChanges: (input: {
     userId: string
     scopeId: string
     after: number
+    supportsBlueprintGuides: boolean
     limit?: number
   }) => Effect.Effect<NativePullPage | null, DomainError>
-  readonly listWorkspaceSnapshots: (
+  readonly listWorkspaceSnapshots: (input: {
     userId: string
-  ) => Effect.Effect<NativeWorkspaceSnapshots, DomainError>
+    supportsBlueprintGuides: boolean
+  }) => Effect.Effect<NativeWorkspaceSnapshots, DomainError>
 }
 
 export class NativeSyncRepo extends Context.Service<NativeSyncRepo, NativeSyncRepoShape>()(

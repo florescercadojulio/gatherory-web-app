@@ -34,16 +34,20 @@ for the longer-term design.
 
 Read the product and data models first, then the relevant implementation guide.
 
-| Document                                                         | Scope                                                                          |
-| ---------------------------------------------------------------- | ------------------------------------------------------------------------------ |
-| [Product model](architecture/product-model.md)                   | Workspaces, events, participation, and release boundaries.                     |
-| [Data model](architecture/data-model.md)                         | Schema ownership, native mapping, replication, and invariants.                 |
-| [Server architecture](architecture/server-architecture.md)       | Effect boundaries, authorization, contracts, workflows, and repositories.      |
-| [Media system](architecture/media-system.md)                     | Uploads, signed URLs, access checks, storage, and cleanup.                     |
-| [Experience architecture](architecture/experience-blueprints.md) | Cross-platform design for reusable experiences, including future capabilities. |
+| Document                                                         | Scope                                                                                                       |
+| ---------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| [Product model](architecture/product-model.md)                   | Workspaces, events, participation, and release boundaries.                                                  |
+| [Monetization model](architecture/monetization-model.md)         | Free personal planning/RSVPs, Event Pass tree coverage, and deferred annual plans; not implemented billing. |
+| [Data model](architecture/data-model.md)                         | Schema ownership, native mapping, replication, and invariants.                                              |
+| [Server architecture](architecture/server-architecture.md)       | Effect boundaries, authorization, contracts, workflows, and repositories.                                   |
+| [Media system](architecture/media-system.md)                     | Uploads, signed URLs, access checks, storage, and cleanup.                                                  |
+| [Experience architecture](architecture/experience-blueprints.md) | Cross-platform design for reusable experiences, including future capabilities.                              |
 
 ## Development
 
+- [API and MCP contract conventions](development/api-contract-conventions.md):
+  explicit character limits, integer minor-unit money strings, timezone-safe
+  Temporal boundaries, shared schemas and compatibility rules for integrations.
 - [Server implementation guide](development/server-implementation-guide.md):
   practical code references, Effect layer composition, authorization choices,
   test organization, and handoff checks for contributors and future chats.
@@ -64,6 +68,12 @@ Read the product and data models first, then the relevant implementation guide.
 - [Experience blueprints roadmap](roadmaps/blueprints-roadmap/README.md): the
   template implementation sequence and stopping point. Follow its status
   labels; planned behavior is not released behavior.
+- [Monetization roadmap](roadmaps/monetization-roadmap/README.md): policy,
+  entitlement foundation, Event Pass purchase, lifecycle/offline safety and paid
+  rollout gates. Annual plans remain later work.
+- [Blueprint experience versus billing](roadmaps/blueprints-roadmap/05-product-experience-and-billing-sequence.md):
+  recommendation to prove curated native setup first, then billing, then finish
+  full private authoring. This does not remove the original blueprint scope.
 
 ## Documentation conventions
 

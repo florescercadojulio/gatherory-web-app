@@ -30,6 +30,12 @@ not choose one implicitly and break readers; define new module versions.
 Deliver the whole path: curated starter → private editable draft → preview →
 published revision → native selection/review → independent event.
 
+That describes the complete iteration, not a requirement to finish private
+authoring before any curated native milestone. System-published starter use can
+be proved first. The [October 15 sequencing assessment](05-product-experience-and-billing-sequence.md)
+recommends that bounded experience before paid Event Pass rollout; the full
+private-authoring scope above remains planned and is not itself an Event Pass gate.
+
 Curated starters are Wedding (`wedding`), Birthday Party (`birthday_party`), and
 Thanksgiving (`thanksgiving`). Experience types are stable strings, not a
 closed database enum. Display names are editable/localizable content. A custom

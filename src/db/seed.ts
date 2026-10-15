@@ -4,6 +4,7 @@ import { reset } from 'drizzle-seed'
 
 import { db, pool } from '@/db'
 import * as authSchema from '@/db/schema/auth.schema'
+import * as blueprintSchema from '@/db/schema/blueprint.schema'
 import { member, organization, team, teamMember, user } from '@/db/schema/auth.schema'
 import * as eventSchema from '@/db/schema/event.schema'
 import * as mediaSchema from '@/db/schema/media.schema'
@@ -14,54 +15,12 @@ import {
   createDevelopmentWorkspaceSeed,
   writeDevelopmentWorkspaceSeed,
 } from '@/db/development-workspace-seed'
+import { seedCuratedBlueprints } from '@/db/seeds/curated-blueprints'
+import { seedPrivateTemplates } from '@/db/seeds/private-templates'
 import { auth } from '@/lib/auth'
 import { materializeNativeMutation } from '@/server/sync/repos/native-materializer.persistence'
 import { createEventWorkspace } from '@/server/workspaces/handlers/workspace-provisioning.adapter'
-
-const developmentUsers = [
-  {
-    name: 'Alex Morgan',
-    email: 'planner@gatherory.test',
-    password: 'password',
-  },
-  {
-    name: 'Jordan Lee',
-    email: 'jordan@gatherory.test',
-    password: 'password',
-  },
-  {
-    name: 'Maya Chen',
-    email: 'coordinator@gatherory.test',
-    password: 'password',
-  },
-  {
-    name: 'Sam Rivera',
-    email: 'guest@gatherory.test',
-    password: 'password',
-  },
-  // This is intentionally a local review fixture. Keep the actual App Review
-  // credentials in App Store Connect; this seed always refuses production.
-  {
-    name: 'Gatherory App Review',
-    email: 'appreview@gatherory.test',
-    password: 'password',
-  },
-  {
-    name: 'Taylor Brooks',
-    email: 'reception-planner@gatherory.test',
-    password: 'password',
-  },
-  {
-    name: 'Casey Patel',
-    email: 'pending-collaborator@gatherory.test',
-    password: 'password',
-  },
-  {
-    name: 'Riley Kim',
-    email: 'latest-collaborator@gatherory.test',
-    password: 'password',
-  },
-] as const
+import { developmentUsers } from '../../scripts/seed/development-users'
 
 type SeedUser = { id: string; name: string; email: string }
 
@@ -95,7 +54,7 @@ function personalWorkspaceSlug(userId: string) {
   return `personal-${userId.toLowerCase().replaceAll(/[^a-z0-9]/g, '')}`
 }
 
-async function ensureWorkspace(owner: SeedUser) {
+async function ensureWorkspace(owner: SeedUser, workspaceName = "Alex & Jordan's Gatherory") {
   const slug = personalWorkspaceSlug(owner.id)
   let [workspace] = await db
     .select({ id: organization.id, name: organization.name })
@@ -105,14 +64,14 @@ async function ensureWorkspace(owner: SeedUser) {
 
   if (!workspace) {
     workspace = await createEventWorkspace({
-      name: "Alex & Jordan's Gatherory",
+      name: workspaceName,
       slug,
       userId: owner.id,
     })
-  } else if (workspace.name !== "Alex & Jordan's Gatherory") {
+  } else if (workspace.name !== workspaceName) {
     await db
       .update(organization)
-      .set({ name: "Alex & Jordan's Gatherory" })
+      .set({ name: workspaceName })
       .where(eq(organization.id, workspace.id))
   }
 
@@ -240,16 +199,22 @@ async function main() {
   console.log('Resetting database...')
   await reset(db, {
     ...authSchema,
+    ...blueprintSchema,
     ...eventSchema,
     ...mediaSchema,
     ...moderationSchema,
     ...planningSchema,
     ...syncSchema,
   })
+  const curatedBlueprints = await seedCuratedBlueprints()
 
   const users = await Promise.all(developmentUsers.map(ensureDevelopmentUser))
   const typedUsers = [users[0], users[1], users[2], users[3], users[4]] as const
   const { workspace, planningTeam } = await ensureWorkspace(typedUsers[0])
+  const { workspace: appReviewWorkspace } = await ensureWorkspace(
+    typedUsers[4],
+    "App Review's Personal Workspace"
+  )
   await ensureReviewAccess({
     workspaceId: workspace.id,
     planningTeamId: planningTeam.id,
@@ -267,6 +232,14 @@ async function main() {
   )
   await db.update(user).set({ hasCompletedOnboarding: true }).where(eq(user.id, typedUsers[0].id))
   await db.update(user).set({ hasCompletedOnboarding: true }).where(eq(user.id, typedUsers[4].id))
+  const privateTemplates = await seedPrivateTemplates(typedUsers[4].id, appReviewWorkspace.id)
+  const cottageStatus =
+    privateTemplates.publishedCottage.publishedRevision === null
+      ? 'draft'
+      : privateTemplates.publishedCottage.publishedDraftVersion ===
+          privateTemplates.publishedCottage.draftVersion
+        ? 'published'
+        : 'edited draft; prior published revision preserved'
 
   console.log("Seeded Alex & Jordan's event workspace.")
   console.log('Reception-only planner: reception-planner@gatherory.test')
@@ -275,6 +248,12 @@ async function main() {
   )
   console.log('All development accounts use password: password')
   console.log('App Review fixture: appreview@gatherory.test / password')
+  console.log(
+    `Curated blueprint catalog is ready (${curatedBlueprints.inserted} revisions inserted).`
+  )
+  console.log(
+    `App Review private templates: ${privateTemplates.publishedCottage.content.name} (${cottageStatus}) and ${privateTemplates.rapidTestDraft.content.name} (draft). Open Templates and filter Source to Private; use Published or Draft status to find each.`
+  )
   console.log(
     'The review fixture starts in the seeded workspace; contextual onboarding primers remain unseen on a clean app install.'
   )

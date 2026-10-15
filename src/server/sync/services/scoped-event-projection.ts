@@ -16,6 +16,22 @@ export type ScopedEventParticipation = JsonRecord & {
   memberId?: string
 }
 
+export type CanonicalEventGuide = {
+  id: string
+  eventID: string
+  key: string
+  title: string
+  body: string
+  sortOrder: number
+  visibility: 'planning_only' | 'event_participants'
+}
+
+export type CanonicalExperienceConfiguration = {
+  eventID: string
+  experienceType: string
+  categoryOrder: string[]
+}
+
 export type BuildScopedEventArchiveInput = {
   snapshotPayload: string
   entities: NativeProjectionEntity[]
@@ -25,6 +41,8 @@ export type BuildScopedEventArchiveInput = {
   /** Compatibility alias for callers that name the rows after the archive field. */
   eventParticipations?: ScopedEventParticipation[]
   childEvent?: Record<string, unknown>
+  guides?: CanonicalEventGuide[]
+  experienceConfiguration?: CanonicalExperienceConfiguration | null
 }
 
 const ENTITY_ARRAYS: Record<string, string> = {
@@ -77,6 +95,8 @@ const ARCHIVE_V1_FIELDS = [
   'requiresCollaboratorApproval',
   'defaultCollaboratorPermission',
   'isScopedEvent',
+  'guides',
+  'experienceConfiguration',
 ] as const
 
 function canonicalId(value: unknown): string | null {
@@ -463,6 +483,17 @@ export function buildScopedEventArchive(input: BuildScopedEventArchiveInput): st
   archive.eventMoments = scopedMoments
   archive.registry = scopedRegistry
   archive.ideaResponses = scopedResponses
+  archive.guides = (input.guides ?? []).filter(
+    (guide) => canonicalId(guide.eventID) === targetEventId
+  )
+  if (input.experienceConfiguration) {
+    archive.experienceConfiguration = {
+      experienceType: input.experienceConfiguration.experienceType,
+      categoryOrder: [...input.experienceConfiguration.categoryOrder],
+    }
+  } else {
+    delete archive.experienceConfiguration
+  }
 
   const archiveV1 = Object.fromEntries(
     ARCHIVE_V1_FIELDS.filter((field) => field in archive).map((field) => [field, archive[field]])

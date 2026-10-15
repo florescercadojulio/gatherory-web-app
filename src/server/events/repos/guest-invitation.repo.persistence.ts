@@ -14,6 +14,7 @@ import {
   nativeWorkspaceSnapshot,
   nativeSyncEntity,
   nativeSyncChange,
+  eventGuideSection,
 } from '@/db/schema'
 import { guestIdeaContent } from '@/lib/guest-invitation-content'
 import { ConflictError, ForbiddenError } from '@/server/effect'
@@ -126,6 +127,24 @@ export function listGuestEventInvitationProjections(userId: string) {
           )
         )
         .orderBy(asc(idea.createdAt))
+      const guides = yield* db
+        .select({
+          id: eventGuideSection.id,
+          eventID: eventGuideSection.eventId,
+          key: eventGuideSection.key,
+          title: eventGuideSection.title,
+          body: eventGuideSection.body,
+          sortOrder: eventGuideSection.sortOrder,
+          visibility: eventGuideSection.visibility,
+        })
+        .from(eventGuideSection)
+        .where(
+          and(
+            eq(eventGuideSection.eventId, row.id),
+            eq(eventGuideSection.visibility, 'event_participants')
+          )
+        )
+        .orderBy(asc(eventGuideSection.sortOrder), asc(eventGuideSection.id))
       const covers = yield* db
         .select({ id: mediaAsset.id, bucket: mediaAsset.bucket, storageKey: mediaAsset.storageKey })
         .from(eventMedia)
@@ -204,6 +223,7 @@ export function listGuestEventInvitationProjections(userId: string) {
         coverAsset: covers.at(0) ?? null,
         people,
         ideas,
+        guides,
         moments,
       })
     }

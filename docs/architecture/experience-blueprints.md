@@ -191,10 +191,22 @@ provider charges for a defined commercial scope.
 
 ## Resource stays and private family experiences
 
+Host-authored stays and package-based recommendations are an explicit product
+direction, including rental properties and privately lent family cottages.
+Fine-grained reusable configuration belongs in the web app; iOS remains the
+lightweight discovery, copy, and day-to-day participation surface. QR codes will
+open template previews, not join an owner's workspace. Each recipient creates
+an independent instance. These capabilities are planned, not implemented; see
+[host-authored experience direction](../roadmaps/blueprints-roadmap/10-host-authored-experiences.md)
+for sharing/privacy rules, checklist/reminder boundaries, and delivery gates.
+
 A cabin is modeled as a persistent resource. Each reserved week is a separate
 experience instance created from a cabin-stay blueprint. The blueprint may
 provide arrival directions, access information, rules, emergency contacts,
-arrival tasks, departure cleaning tasks, and optional shared media.
+arrival tasks, departure cleaning tasks, and optional shared media. Sensitive
+access information belongs in authorized stay-specific delivery, never public
+or unlisted template content. Checklist definitions are separate from per-stay
+completion; reminder delivery requires its own consent and lifecycle rules.
 
 Families participate through a stay-local participant group. Visitor content
 must declare one of the supported visibility policies:
@@ -238,11 +250,17 @@ show a semantic diff and require informed user approval.
 
 - IDs are UUIDs or opaque stable strings with one canonical representation.
 - Enum values use `snake_case`; clients preserve or tolerate unknown values.
-- Instants use RFC 3339 and calendar-only dates use `YYYY-MM-DD`.
+- Confirmed instants use RFC 3339 with explicit `Z`/offset and at most millisecond
+  precision; calendar-only dates use `YYYY-MM-DD` without an invented midnight.
 - Time zones use IANA identifiers such as `America/Detroit`.
-- Money uses a decimal string and ISO 4217 currency, for example
-  `{ "amount": "1250.00", "currency": "USD" }`; JSON floating-point values
-  are not money.
+  Server-only Temporal validates date/offset agreement; shared browser schemas
+  do not require Temporal. Never resolve event dates using the viewer's zone.
+- Text has explicit Unicode-code-point `minLength` / `maxLength` constraints;
+  formatting rules and serialized-byte limits are separate safeguards.
+- New blueprint-linked prices use integer minor-unit strings and currency:
+  `{ "amountMinor": "125000", "currency": "USD" }` represents USD $1,250.00.
+  Decimal-price strings, JSON numbers and ambiguous `amount` fields are rejected.
+  Existing budget/native-sync formats are not reinterpreted by this convention.
 - Media is referenced by stable asset ID and placement. Payloads do not contain
   image bytes or expiring signed URLs.
 - Polymorphic values always contain a discriminator and schema version.
@@ -250,6 +268,8 @@ show a semantic diff and require informed user approval.
 The checked-in JSON Schema and examples are the contract authority. TypeScript,
 Swift, and Kotlin representations must be verified against shared fixtures so
 one platform's encoder cannot silently become the protocol specification.
+See [API and MCP contract conventions](../development/api-contract-conventions.md)
+for exact limits, Unicode semantics, money validation and compatibility rules.
 
 ## API, native sync, and MCP boundaries
 
@@ -300,6 +320,22 @@ Likely post-release additions are:
 Names and exact normalization should be finalized with the contract and use
 cases. These tables are intentionally not added to the first-release migration
 only to reserve them speculatively.
+
+## Monetization and near-term delivery
+
+The [monetization model](monetization-model.md) is distinct from future paid
+template licensing or business packages. Curated starter use is free; an Event
+Pass later enables collaborative planning for an installed main event and its
+children, just as for a blank-created plan. It does not grant template authoring
+access or expose parent/sibling data to a child-only participant.
+
+The [product-experience assessment](../roadmaps/blueprints-roadmap/05-product-experience-and-billing-sequence.md)
+originally recommended curated native setup before paid billing and private
+authoring afterward. The subsequent explicit request moved private web authoring
+and cottage reuse before billing; see the [implemented local proof](../roadmaps/blueprints-roadmap/11-private-cottage-proof.md).
+Release acceptance, live guide editing and future distribution remain open.
+Billing and installation must remain separate
+recoverable operations; neither is a technical prerequisite for the other.
 
 ## Evolution strategy
 

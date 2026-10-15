@@ -2,6 +2,9 @@
   "name": "gatherory-web-app",
   "private": true,
   "type": "module",
+  "engines": {
+    "node": ">=26"
+  },
   "scripts": {
     "intent": "node ./node_modules/@tanstack/intent/dist/cli.mjs",
     "dev": "dotenv run -f .env.local -- sh -c \"NODE_OPTIONS='--import ./instrument.server.mjs' vite dev --port 3003\"",
@@ -28,6 +31,7 @@
     "db:reset": "dotenv run -f .env.local -- tsx scripts/reset-database.ts",
     "db:reset:neon": "tsx scripts/reset-neon-database.ts",
     "db:seed": "dotenv run -f .env.local -- tsx src/db/seed.ts",
+    "blueprints:seed": "tsx scripts/seed-blueprints.ts",
     "db:studio": "drizzle-kit studio",
     "email:dev": "email dev --dir src/emails --port 3004",
     "media:check": "tsx scripts/check-media-storage.ts",

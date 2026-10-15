@@ -4,6 +4,7 @@ import { db } from '@/db'
 import { event, eventParticipant, workspacePerson } from '@/db/schema/event.schema'
 import { idea, eventExpense, eventNote, registryItem } from '@/db/schema/planning.schema'
 import { eventMedia } from '@/db/schema/media.schema'
+import { eventExperienceConfiguration, eventGuideSection } from '@/db/schema/blueprint.schema'
 import {
   nativeSyncChange,
   nativeSyncEntity,
@@ -493,6 +494,30 @@ export async function scopedEventSnapshot(tx: Transaction, scopeId: string, user
           }
         : null,
   }
+  const guides = await tx
+    .select({
+      id: eventGuideSection.id,
+      eventID: eventGuideSection.eventId,
+      key: eventGuideSection.key,
+      title: eventGuideSection.title,
+      body: eventGuideSection.body,
+      sortOrder: eventGuideSection.sortOrder,
+      visibility: eventGuideSection.visibility,
+    })
+    .from(eventGuideSection)
+    .where(eq(eventGuideSection.eventId, scopeId))
+    .orderBy(eventGuideSection.sortOrder, eventGuideSection.id)
+  const experienceConfigurations = await tx
+    .select({
+      eventID: eventExperienceConfiguration.eventId,
+      experienceType: eventExperienceConfiguration.experienceType,
+      categoryOrder: eventExperienceConfiguration.categoryOrder,
+    })
+    .from(eventExperienceConfiguration)
+    .where(inArray(eventExperienceConfiguration.eventId, [scopeId, rootId]))
+  const experienceConfiguration =
+    experienceConfigurations.find((configuration) => configuration.eventID === scopeId) ??
+    experienceConfigurations.find((configuration) => configuration.eventID === rootId)
   const payload = buildScopedEventArchive({
     snapshotPayload: root.payload,
     entities,
@@ -500,6 +525,8 @@ export async function scopedEventSnapshot(tx: Transaction, scopeId: string, user
     members,
     eventParticipations,
     childEvent,
+    guides,
+    experienceConfiguration: experienceConfiguration ?? null,
   })
   if (!payload) return null
   const [latest] = await tx

@@ -23,8 +23,8 @@ export const NativeSyncRepoLive = Layer.succeed(NativeSyncRepo, {
     persist('SYNC_PUSH_FAILED', 'serverErrors.SYNC_PUSH_FAILED', () => applyNativeMutations(input)),
   pullChanges: (input) =>
     persist('SYNC_PULL_FAILED', 'serverErrors.SYNC_PULL_FAILED', () => pullNativeChanges(input)),
-  listWorkspaceSnapshots: (userId) =>
+  listWorkspaceSnapshots: (input) =>
     persist('SYNC_BOOTSTRAP_FAILED', 'serverErrors.SYNC_BOOTSTRAP_FAILED', () =>
-      listNativeWorkspaceSnapshots(userId)
+      listNativeWorkspaceSnapshots(input)
     ),
 })

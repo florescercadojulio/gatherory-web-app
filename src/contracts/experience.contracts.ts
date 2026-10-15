@@ -1,57 +1,53 @@
 import { z } from 'zod'
-
-const stableKeySchema = z
-  .string()
-  .trim()
-  .min(1)
-  .max(100)
-  .regex(/^[a-z][a-z0-9_]*$/)
-
-const permissionSchema = z
-  .string()
-  .trim()
-  .min(3)
-  .max(120)
-  .regex(/^[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*)+$/)
-
-const moduleConfigurationSchema = z.record(z.string(), z.unknown())
+import {
+  characterString,
+  ContentNameSchema,
+  ModuleConfigurationSchema,
+  MoneySchema,
+  OpaqueIdentifierSchema,
+  PermissionKeySchema,
+  SchemaUrlSchema,
+  StableKeySchema,
+  TimeZoneNameSchema,
+  UUIDSchema,
+} from './content-primitives'
 
 export const ExperienceModuleSchema = z.object({
-  key: stableKeySchema,
-  type: stableKeySchema,
+  key: StableKeySchema,
+  type: StableKeySchema,
   version: z.number().int().positive(),
   required: z.boolean().default(false),
-  config: moduleConfigurationSchema,
+  config: ModuleConfigurationSchema,
 })
 
 export const ExperienceBlueprintSchema = z
   .object({
-    $schema: z.url(),
+    $schema: SchemaUrlSchema,
     kind: z.literal('experience_blueprint'),
     schemaVersion: z.literal(1),
     blueprint: z.object({
-      id: z.string().trim().min(1).max(160),
+      id: OpaqueIdentifierSchema,
       revision: z.number().int().positive(),
-      name: z.string().trim().min(1).max(160),
+      name: ContentNameSchema,
     }),
     experienceDefaults: z.object({
-      type: stableKeySchema,
-      timeZone: z.string().trim().min(1).max(100).optional(),
+      type: StableKeySchema,
+      timeZone: TimeZoneNameSchema.optional(),
     }),
     roles: z
       .array(
         z.object({
-          key: stableKeySchema,
-          permissions: z.array(permissionSchema).max(100),
+          key: StableKeySchema,
+          permissions: z.array(PermissionKeySchema).max(100),
         })
       )
       .max(50),
     modules: z.array(ExperienceModuleSchema).max(100),
     presentation: z
       .object({
-        theme: stableKeySchema.optional(),
-        coverAssetId: z.uuid().nullable().optional(),
-        moduleOrder: z.array(stableKeySchema).max(100).optional(),
+        theme: StableKeySchema.optional(),
+        coverAssetId: UUIDSchema.nullable().optional(),
+        moduleOrder: z.array(StableKeySchema).max(100).optional(),
       })
       .optional(),
   })
@@ -82,7 +78,7 @@ export const ContributionVisibilitySchema = z.discriminatedUnion('scope', [
   z.object({ scope: z.literal('author_only') }),
   z.object({
     scope: z.literal('participant_group'),
-    groupId: z.string().trim().min(1).max(160),
+    groupId: OpaqueIdentifierSchema,
   }),
   z.object({ scope: z.literal('experience_participants') }),
   z.object({ scope: z.literal('experience_managers') }),
@@ -90,30 +86,28 @@ export const ContributionVisibilitySchema = z.discriminatedUnion('scope', [
   z.object({ scope: z.literal('external_public') }),
 ])
 
-const moneySchema = z.object({
-  amount: z.string().regex(/^\d+(\.\d+)?$/),
-  currency: z.string().regex(/^[A-Z]{3}$/),
-})
-
 export const ServicePackageSchema = z
   .object({
-    $schema: z.url(),
+    $schema: SchemaUrlSchema,
     kind: z.literal('service_package'),
     schemaVersion: z.literal(1),
-    id: z.string().trim().min(1).max(160),
+    id: OpaqueIdentifierSchema,
     revision: z.number().int().positive(),
-    businessId: z.string().trim().min(1).max(160),
-    name: z.string().trim().min(1).max(160),
+    businessId: OpaqueIdentifierSchema,
+    name: ContentNameSchema,
     blueprint: z.object({
-      id: z.string().trim().min(1).max(160),
+      id: OpaqueIdentifierSchema,
       revision: z.number().int().positive(),
     }),
     destination: z
       .object({
-        countryCode: z.string().regex(/^[A-Z]{2}$/),
-        region: z.string().trim().min(1).max(160).optional(),
-        city: z.string().trim().min(1).max(160).optional(),
-        timeZone: z.string().trim().min(1).max(100),
+        countryCode: z
+          .string()
+          .length(2)
+          .regex(/^[A-Z]{2}$/),
+        region: ContentNameSchema.optional(),
+        city: ContentNameSchema.optional(),
+        timeZone: TimeZoneNameSchema,
       })
       .optional(),
     capacity: z
@@ -124,22 +118,22 @@ export const ServicePackageSchema = z
       })
       .optional(),
     pricing: z.object({
-      starting: moneySchema,
+      starting: MoneySchema,
       model: z.enum(['fixed', 'starting_at', 'base_plus_guest', 'custom_quote']),
-      additionalGuest: moneySchema.optional(),
+      additionalGuest: MoneySchema.optional(),
     }),
     includedServices: z.array(
       z.object({
-        serviceId: z.string().trim().min(1).max(160),
+        serviceId: OpaqueIdentifierSchema,
         quantity: z.number().positive(),
-        unit: z.string().trim().min(1).max(60).optional(),
+        unit: characterString(1, 60).optional(),
         required: z.boolean(),
       })
     ),
     addOns: z.array(
       z.object({
-        serviceId: z.string().trim().min(1).max(160),
-        starting: moneySchema.optional(),
+        serviceId: OpaqueIdentifierSchema,
+        starting: MoneySchema.optional(),
       })
     ),
   })

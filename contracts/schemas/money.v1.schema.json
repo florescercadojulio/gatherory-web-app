@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "amountMinor": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 20,
+      "pattern": "^(0|[1-9][0-9]*)$(?![\\s\\S])",
+      "description": "Nonnegative integer minor units as a canonical digit string. Never a decimal amount or JSON number. Interpret using the currency exponent.",
+      "examples": [
+        "0",
+        "1",
+        "100",
+        "10000"
+      ]
+    },
+    "currency": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 3,
+      "pattern": "^[A-Z]{3}$",
+      "description": "Uppercase ISO 4217 currency code. Shape validation only; operations must validate supported currencies."
+    }
+  },
+  "required": [
+    "amountMinor",
+    "currency"
+  ],
+  "additionalProperties": false,
+  "$id": "https://schemas.gatherory.com/money/v1.json",
+  "title": "Gatherory Money v1 (Integer Minor Units)"
+}

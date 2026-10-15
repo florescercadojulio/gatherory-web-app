@@ -2,7 +2,7 @@
 
 import { Link } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
-import { LayoutDashboard, Settings } from 'lucide-react'
+import { LayoutDashboard, Settings, LibraryBig } from 'lucide-react'
 
 import { NavMain } from '@/components/nav-main'
 import { NavUser } from '@/components/nav-user'
@@ -62,6 +62,11 @@ export function AccountSidebar({
               title: t('common.account'),
               url: '/account',
               icon: Settings,
+            },
+            {
+              title: t('navigation.templates'),
+              url: '/blueprints',
+              icon: LibraryBig,
             },
           ]}
         />

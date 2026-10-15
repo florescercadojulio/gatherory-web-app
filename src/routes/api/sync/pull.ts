@@ -4,6 +4,7 @@ import { z } from 'zod'
 import { EntityNotFoundError, runServerResponse } from '@/server/effect-utils'
 import { requestUser, validateInput } from '@/server/http-errors'
 import { pullNativeSync } from '@/server/sync/workflows/native-sync.workflows.live'
+import { hasBlueprintGuidesCapability } from '@/server/sync/native-sync-compatibility'
 
 const querySchema = z.object({
   scopeID: z.uuid(),
@@ -26,6 +27,7 @@ export const Route = createFileRoute('/api/sync/pull')({
               userId: user.id,
               scopeId: input.scopeID,
               after: input.after,
+              supportsBlueprintGuides: hasBlueprintGuidesCapability(request.headers),
             })
             if (!page)
               return yield* Effect.fail(
