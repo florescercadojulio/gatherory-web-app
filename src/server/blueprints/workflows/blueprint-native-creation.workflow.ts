@@ -21,7 +21,7 @@ const sourceChanged = () =>
  * independently of the event's organization or the active session workspace.
  * Provisioning is explicit through Create & Share, never a source/review read.
  */
-const personalTemplateOwner = (actor: { id: string; name: string }) =>
+export const personalTemplateOwner = (actor: { id: string; name: string }) =>
   Effect.gen(function* () {
     const authoring = yield* BlueprintAuthoringRepo
     const current = yield* authoring.context(actor.id)

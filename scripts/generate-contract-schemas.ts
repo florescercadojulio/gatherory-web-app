@@ -13,6 +13,8 @@ import {
   BlueprintLinkManagementResponseSchema,
 } from '../src/contracts/blueprint-link-management.contracts'
 import { BlueprintCatalogResponseSchema } from '../src/contracts/blueprint-discovery.contracts'
+import { blueprintStarters } from '../src/server/blueprints/catalog/starters'
+import { buildBlueprintCatalog } from '../src/server/blueprints/services/blueprint-discovery'
 import {
   BlueprintShareCreateInputSchema,
   BlueprintShareRevokeInputSchema,
@@ -38,6 +40,7 @@ import {
   BlueprintInstallInputSchema,
   BlueprintExpandedPlanSchema,
 } from '../src/contracts/blueprint-install.contracts'
+import { BlueprintLibraryResponseSchema } from '../src/contracts/blueprint-library.contracts'
 
 import {
   ContributionVisibilitySchema,
@@ -159,6 +162,12 @@ const contracts = [
     schema: BlueprintCatalogResponseSchema,
   },
   {
+    file: 'blueprint-library.v1.schema.json',
+    id: 'https://schemas.gatherory.com/blueprint-library/v1.json',
+    title: 'Gatherory Used Blueprint Library Response v1',
+    schema: BlueprintLibraryResponseSchema,
+  },
+  {
     file: 'blueprint-starter.v1.schema.json',
     id: 'https://schemas.gatherory.com/blueprint-starter/v1.json',
     title: 'Gatherory Executable Starter v1',
@@ -221,6 +230,18 @@ for (const contract of contracts) {
   await mkdir(dirname(target), { recursive: true })
   await writeFile(target, contents)
   console.log(`Generated ${contract.file}`)
+}
+
+const exploreFixture = `${JSON.stringify(BlueprintCatalogResponseSchema.parse(buildBlueprintCatalog(blueprintStarters)), null, 2)}\n`
+const exploreFixturePath = resolve(repositoryRoot, 'contracts/examples/explore-catalog.v1.json')
+if (checkOnly) {
+  if ((await readFile(exploreFixturePath, 'utf8').catch(() => '')) !== exploreFixture) {
+    mismatch = true
+    console.error('explore-catalog.v1.json is not current. Run pnpm contracts:generate.')
+  }
+} else {
+  await mkdir(dirname(exploreFixturePath), { recursive: true })
+  await writeFile(exploreFixturePath, exploreFixture)
 }
 
 if (mismatch) process.exitCode = 1

@@ -31,6 +31,8 @@ export type BlueprintPlanningErrorCode =
   | 'unknown_idea'
   | 'unsupported_required_capability'
   | 'unsupported_required_module'
+  | 'invalid_customization'
+  | 'unsupported_customization'
   | 'invalid_schedule'
 
 export class BlueprintPlanningError extends Error {
@@ -75,7 +77,7 @@ export function expandBlueprintInstallation(
   if (!definitionResult.success) {
     throw new BlueprintPlanningError('invalid_catalog', definitionResult.error.message)
   }
-  const definition = definitionResult.data
+  const sourceDefinition = definitionResult.data
 
   if (input.catalogKey !== revision.catalogKey || input.revision !== revision.revision) {
     throw new BlueprintPlanningError(
@@ -85,13 +87,15 @@ export function expandBlueprintInstallation(
   }
   if (
     input.contentHash !== revision.contentHash ||
-    blueprintHash(definition) !== revision.contentHash
+    blueprintHash(sourceDefinition) !== revision.contentHash
   ) {
     throw new BlueprintPlanningError(
       'content_hash_mismatch',
       'The reviewed content hash does not match the immutable catalog revision.'
     )
   }
+
+  const definition = applyCustomizations(sourceDefinition, input)
 
   const experienceTree = findModule(definition, BlueprintExperienceTreeModuleSchema)
   const ideasModule = findModule(definition, BlueprintIdeasModuleSchema)
@@ -131,6 +135,19 @@ export function expandBlueprintInstallation(
       requiredCapabilities.every((capability) => availableCapabilities.has(capability))
     supportedModules.set(module.key, isSupported)
     if (isSupported) continue
+    const hasCustomization =
+      (module.type === 'experience_tree' &&
+        module.version === 2 &&
+        Boolean(input.customizations?.children.length)) ||
+      (module.type === 'ideas' &&
+        module.version === 2 &&
+        Boolean(input.customizations?.ideas.length))
+    if (hasCustomization) {
+      throw new BlueprintPlanningError(
+        'unsupported_customization',
+        `Customized ${module.type} records cannot be installed without the required client and server capabilities.`
+      )
+    }
     if (module.required) {
       const isKnownType = requiredCapabilities !== null
       const missing =
@@ -262,6 +279,85 @@ export function expandBlueprintInstallation(
     throw new BlueprintPlanningError('invalid_catalog', planResult.error.message)
   }
   return planResult.data
+}
+
+function applyCustomizations(
+  source: BlueprintCatalogDefinition,
+  input: BlueprintInstallInput
+): BlueprintCatalogDefinition {
+  const customizations = input.customizations
+  if (!customizations) return source
+
+  const hasIdeaModule = source.modules.some(
+    (module) => BlueprintIdeasModuleSchema.safeParse(module).success
+  )
+  if (customizations.ideas.length > 0 && !hasIdeaModule) {
+    throw new BlueprintPlanningError(
+      'invalid_customization',
+      'Idea customizations cannot be applied to a blueprint without an ideas module.'
+    )
+  }
+
+  const modules = source.modules.map((module) => {
+    const tree = BlueprintExperienceTreeModuleSchema.safeParse(module)
+    if (tree.success && customizations.children.length > 0) {
+      return {
+        ...tree.data,
+        config: {
+          ...tree.data.config,
+          children: upsertByKey(tree.data.config.children, customizations.children),
+        },
+      }
+    }
+
+    const ideas = BlueprintIdeasModuleSchema.safeParse(module)
+    if (ideas.success && customizations.ideas.length > 0) {
+      return {
+        ...ideas.data,
+        config: {
+          ...ideas.data.config,
+          categoryOrder: appendMissingCategories(
+            ideas.data.config.categoryOrder,
+            customizations.ideas.map(({ category }) => category)
+          ),
+          ideas: upsertByKey(ideas.data.config.ideas, customizations.ideas),
+        },
+      }
+    }
+    return module
+  })
+
+  const effective = BlueprintCatalogDefinitionSchema.safeParse({ ...source, modules })
+  if (!effective.success) {
+    throw new BlueprintPlanningError('invalid_customization', effective.error.message)
+  }
+  return effective.data
+}
+
+function appendMissingCategories(existing: string[], customized: string[]) {
+  const result = [...existing]
+  const included = new Set(existing)
+  for (const category of customized) {
+    if (included.has(category)) continue
+    included.add(category)
+    result.push(category)
+  }
+  return result
+}
+
+function upsertByKey<T extends { key: string }>(existing: T[], updates: T[]): T[] {
+  const merged = [...existing]
+  const indexes = new Map(merged.map((entry, index) => [entry.key, index]))
+  for (const update of updates) {
+    const index = indexes.get(update.key)
+    if (index === undefined) {
+      indexes.set(update.key, merged.length)
+      merged.push(update)
+    } else {
+      merged[index] = update
+    }
+  }
+  return merged
 }
 
 function findModule<

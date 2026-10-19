@@ -122,7 +122,11 @@ export type BlueprintDraft = {
   publishedRevision: number | null
   publishedDraftVersion: number | null
   retired: boolean
-  source: { catalogKey: string; revision: number } | BlueprintCaptureMetadata | null
+  source:
+    | { catalogKey: string; revision: number }
+    | BlueprintCaptureMetadata
+    | { kind: 'setup_copy' }
+    | null
 }
 export type BlueprintAuthoringRow = {
   id: string

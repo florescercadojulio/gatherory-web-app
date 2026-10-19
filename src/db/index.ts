@@ -7,8 +7,9 @@ import * as Redacted from 'effect/Redacted'
 import { Pool } from 'pg'
 
 import { databaseRelations } from '@/db/relations'
+import { env } from '@/env'
 
-const databaseUrl = process.env.DATABASE_URL
+const databaseUrl = env.DATABASE_URL
 
 if (!databaseUrl) {
   throw new ConfigurationError({

@@ -1,4 +1,5 @@
-import { blueprintStarters } from '@/server/blueprints/catalog/starters'
+// Keep the original cross-client proof fixture immutable as the live catalog expands.
+import { coreBlueprintStarters as blueprintStarters } from '@/server/blueprints/catalog/starters'
 import { BlueprintIdeasModuleSchema } from '@/contracts/blueprint-install.contracts'
 import { buildBlueprintCatalog } from '@/server/blueprints/services/blueprint-discovery'
 import { suggestBlueprintSchedule } from '@/server/blueprints/planning/suggest-blueprint-schedule.server'

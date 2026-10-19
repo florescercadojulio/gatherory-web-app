@@ -33,6 +33,64 @@ design constraints and future slices, not newly implemented capabilities.
 
 ## Current position and stopping point
 
+**Independent saved setup — October 19:** Saved native drafts are portable
+copies even before installation. They can be resumed after the original is
+changed, withdrawn or deleted. The next server setup operation privately
+publishes the saved snapshot under the recipient's ownership, using a separate
+durable copy UUID; frozen installation requests and workspace sync are unchanged.
+See [12 — Resumable setup](12-resumable-setup.md#independent-saved-copies--october-19).
+
+**Expanded Explore — October 16:** Eighteen populated discovery categories and
+seventeen deployable curated starters; the original three revisions remain
+unchanged. Preview Ideas no longer shows Install. The workspace is the editor
+and review; confirmed Install asks only for missing dates before installation.
+See [21 — Expanded Explore catalog and rollout](21-expanded-explore-catalog.md).
+
+**Focused preview editing — October 16:** Blueprints replaces its repeated title
+with Installed Templates / In Progress. Ideas swaps scope/exit placement; Decide
+shows the actual event context and inbox without exit/Customize controls.
+Personal editing now opens focused native sheets. Install uses a confirmation
+and date-only completion, without repeating setup or review forms. See
+[20 — Focused native preview editing](20-focused-native-preview-editing.md).
+
+**Preview workspace interaction — October 16:** Blueprints uses masonry tiles
+and the ordinary workspace opening, without an outer zoom. Preview Home shares
+the event rail and exit icon; event artwork descriptors remain consistent on
+opening details. Decide shares live swipes, but stages personal inclusion choices
+in memory until Save Draft. Save preserves setup dates/customizations and never
+casts live votes or changes sync transactions. See
+[19 — Native preview workspace interaction](19-native-preview-workspace-polish.md).
+
+**Blueprints library — October 16:** A root Blueprints tab now lists resumable
+setup drafts and recent used-template history, alongside Workspaces and
+Explore. History is read from the actor's completed receipts and cached per
+account; drafts retain the existing recovery/installation flow. Workspaces +
+returns to direct workspace creation. See
+[18 — Native Blueprints library](18-native-blueprints-library.md).
+
+**Native customization follow-up — October 16:** Customize now supports adding
+and editing supported ideas and sub-events using shared workspace editor
+presentations. Account-local overlays retain the source pin, confirmed dates
+and exact retry body. The server validates the merged plan before the existing
+installation transaction. This does not edit or publish the original template.
+See [17 — Native install customization](17-native-install-customization.md).
+The Blueprints library follow-up is recorded above.
+
+**Latest native slice — October 16:** Search/category tiles and shared links now
+open a read-only workspace-style session with Home, Ideas and Decide. Shared
+tab chrome, event heroes, masonry tiles, decision cards and detail renderers
+are used by live workspaces too. Live collaboration controls are absent;
+Decide initially only browsed ideas; the explicit-save swipe follow-up above
+supersedes that limitation without casting live votes.
+**Customize** opens the existing date-aware setup/review flow. No source event,
+outbox or installed copy is mutated by preview navigation. Draft writes require
+the explicit Save Draft action outside Customize. See the latest
+section of [07 — Native blueprint discovery](07-native-explore.md).
+Earlier preview layout notes below are historical and superseded by this slice.
+The **Blueprints** library and customization follow-ups above add saved activity
+and supported draft editing. This is presentation
+reuse, not the previously deferred broad native creation engine.
+
 The first system Wedding starter now has typed executable modules, immutable
 revision storage, preview, recoverable installation, atomic canonical/native
 writes, and a native import path. See [06 — Wedding installation proof](06-wedding-installation-proof.md)
@@ -45,6 +103,95 @@ account-local recently viewed blueprints and live search. See
 [07 — Native blueprint discovery](07-native-explore.md). Birthday Party and
 Thanksgiving now join Wedding through the same flow; see
 [09 — Curated starters](09-curated-starters.md). Device/release acceptance remains open.
+
+Native Search now opens a read-only, invitation-style template preview before
+setup: an artwork cover, activity cards, scoped ideas with full notes, and
+audience-labeled guidance. Use Template then opens the existing setup/review
+flow. Browsing does not create a workspace, persist a setup draft, confirm dates
+or enqueue sync work. Incoming shared links now resolve their token-pinned
+publication into the same preview before setup; they never fall back to public
+catalog access. Network loss may reuse an existing account/link-scoped saved
+setup for viewing, but server rejection cannot. Pending receipt recovery remains
+reachable even after link revocation. Workspaces saved-setup recovery retains
+its direct setup entry. Template media copying and a live guest invitation are
+not implied.
+October 15 local verification: 448 iOS non-UI tests passed, including four
+read-only preview projection regressions; English/Spanish localization checks
+passed. Physical-device visual acceptance remains manual.
+The shared-link preview follow-up passed 458 non-UI tests, including 10 new
+resolution, offline fallback, account isolation and dismissal regressions;
+English/Spanish localization coverage passed for 1,109 keys. UI tests were
+intentionally excluded. Server authorization, ordinary sync transactions and
+independent installed-copy behavior remain unchanged.
+The preview styling follow-up now uses a viewport-filling invitation cover,
+native scroll-edge blur and cards below the fold. The setup action is a
+compact native toolbar control rather than a full-width fixed bottom button.
+The Build 2 feedback follow-up adds invitation-style horizontal activity cards,
+adaptive toolbar/status contrast and floating-tab-bar clearance, checked through
+isolated simulator captures in light/dark appearance and larger text. The
+integrated native suite passed 466 non-UI tests; see the
+[feedback verification record](../../release/build-2-feedback-followup.md).
+The October 15 visual revision removed the extra dark cover gradient and painted
+status-band fade: artwork scrolls beneath the system blur, the title uses an
+adaptive surface, and the cover/content boundary is flush. Shared albums now
+lead with photos and open a three-column gallery before the paged photo viewer;
+permissions and ordinary offline mutation transactions are unchanged.
+
+October 16 preview layout: artwork fills the background, while the event header
+now reuses the idea detail's `IdeaSummaryContent` card: category label,
+left-aligned title and description on the shared material surface. Relative
+timing and saved-preview context appear inside that card. It respects the
+navigation safe area and keeps priorities/content immediately below, replacing
+the former floating centered title and full-screen opening layouts.
+The preview background now starts fully Glurred across its entire area, without
+scrolling. Reduce Motion keeps this static effect; Reduce Transparency uses the
+unblurred artwork/opaque card fallback.
+Summary and audience-scoped guidance (including planning priorities) appear
+before horizontally swipeable event pages (2×2) and idea columns (three compact
+rows each). Accessibility-sized event pages use two single-column entries.
+The horizontal scroll viewports now extend to the screen edges, with content
+margins only for resting alignment. The solid light/dark section backing is
+removed, leaving Glur artwork behind the entire preview. Cards reuse the native
+idea-detail material and its accessibility fallback, rather than opaque fills.
+Main and sub-event previews now use one native event presentation. Its scoped
+read-only projection gives only the main event a child carousel; sub-events
+retain their own guidance, ideas and suggested relative timing. Opening a
+template idea uses the same `IdeaDetailScreen` and `IdeaCategoryDetailContent` as
+workspace ideas, including the full-height opening layout and scroll-driven
+artwork treatment. Only live actions are gated; there is no preview-specific
+layout or blur variant. The surrounding main/sub-event preview retains full
+static Glur. Portable v1 currently provides title/category/notes, not typed venue,
+dress-code or other category facts; missing facts, currency and source media are
+not invented. Browsing never creates a workspace or exposes live votes/editing.
+Presentation grouping preserves authored order and partial last pages; it does
+not change catalog grants, setup dates/selections, drafts, installed copies or
+offline transactions. The compact Use Template action is unchanged.
+Local verification passed 469 non-UI native tests (551 executions including parameterized cases),
+including three new page-grouping regressions, plus the app build and 1,122-key
+English/Spanish localization check. Fixture captures covered the clear cover,
+scrolled Glur, priority ordering, compact pages, dark/light and larger text.
+Device swipe acceptance remains manual; simulator input automation did not
+reliably forward horizontal gestures. UI test targets were not run.
+The subsequent content-first/shared-presentation revision passed the app build,
+471 non-UI tests (553 executions including parameterized cases), and the same
+1,122-key localization check. Two new regressions cover root-only carousels and
+child-scoped guidance/ideas without selecting dates or mutating the catalog.
+Isolated simulator checks covered initial content visibility, a leaf event's
+matching presentation, a workspace-style idea detail, and long titles at larger
+text sizes. No live account, setup, permissions or sync transaction was changed.
+The full-Glur/shared-screen correction passed the app build and 474 non-UI
+tests (556 executions). Three new display-content regressions retain full
+authored notes, empty notes and future-category fallback without live identity
+or workspace state. Localization now covers 1,123 English/Spanish keys, including
+the shared About This Idea card. Light and larger-text dark simulator captures
+checked the initial full-area Glur and the control-free shared idea screen.
+The subsequent layout-parity correction removes the idea screen's preview-only
+opening-height and full-Glur flags. Workspace and preview callers now also use
+the same category-card renderer, with live controls enabled only by an explicit
+live-idea binding. The app build and 477 non-UI tests passed (583 executions),
+including all-category native configuration preservation and read-only preview
+coverage. English/Spanish localization remains complete for 1,123 keys. UI test
+targets were excluded; sync/storage and installation transactions are unchanged.
 
 Date-aware setup now offers server-calculated Temporal suggestions with explicit
 native confirmation and preserved user-edited dates. See
@@ -104,6 +251,14 @@ No broader custom-RBAC product or whole-server sync migration is a prerequisite.
 
 **Decision recorded:** October 15, 2026. **Broad creation engine: Deferred.**
 This is a docs-only decision; no native creation or sync behavior changes.
+
+Blueprint/workspace copies are independent. A blueprint-to-workspace copy uses
+the latest saved personal blueprint edits when its install request is created;
+workspace-to-blueprint copying requires an explicit snapshot/capture. Neither
+direction has a live binding or automatic propagation. Saving a blueprint does
+not change existing workspaces, and pending installs retain their frozen
+request. These boundaries are also recorded in the
+[experience architecture](../../architecture/experience-blueprints.md#copy-boundaries).
 
 Keep ordinary native workspace, event, and idea creation independent of
 blueprints. Template installation supplies starting content and creates an
@@ -204,6 +359,8 @@ the broad architecture docs to reflect what actually ships, not anticipated
 completion.
 
 ## Sources and continuation
+
+- [Expanded Explore categories, curated starters and rollout](21-expanded-explore-catalog.md)
 
 - [Roadmap guide](../../development/roadmap-guide.md)
 - [Product model](../../architecture/product-model.md)

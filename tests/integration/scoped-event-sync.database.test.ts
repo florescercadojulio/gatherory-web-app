@@ -384,7 +384,14 @@ async function withFixture(
 function mutation(input: {
   scopeID: string
   entityType:
-    'idea' | 'event' | 'note' | 'expense' | 'idea_response' | 'workspace' | 'event_participation'
+    | 'idea'
+    | 'event'
+    | 'note'
+    | 'moment'
+    | 'expense'
+    | 'idea_response'
+    | 'workspace'
+    | 'event_participation'
   entityID: string
   payload: Record<string, unknown>
   id?: string
@@ -404,6 +411,287 @@ function mutation(input: {
     payload: Buffer.from(JSON.stringify(input.payload)).toString('base64'),
   }
 }
+
+test(
+  'moment tombstones require the uploader in the exact writable event scope',
+  { skip: !enabled, timeout: 30_000 },
+  async () => {
+    await withFixture(async (fixture) => {
+      const { applyNativeMutations, pullNativeChanges } = await import('@/server/sync/native-sync')
+      const { eventMedia, mediaAsset } = await import('@/db/schema/media.schema')
+      const { eq } = await import('drizzle-orm')
+      const {
+        db,
+        organizationID,
+        rootID,
+        childID,
+        siblingID,
+        contributorID,
+        managerID,
+        viewerID,
+        guestID,
+        personIDs,
+        eventDeparture,
+        eventParticipant,
+        nativeWorkspaceSnapshot,
+      } = fixture
+
+      // Root-scope contributor to exercise the legacy root persistence path.
+      await db.insert(eventParticipant).values({
+        id: crypto.randomUUID(),
+        eventId: rootID,
+        personId: personIDs[1]!,
+        role: 'collaborator',
+        planningPermission: 'contribute',
+      })
+
+      async function makeMoment(
+        eventId: string,
+        uploader: string,
+        role: 'gallery' | 'cover' = 'gallery'
+      ) {
+        const mediaAssetId = crypto.randomUUID()
+        const momentId = crypto.randomUUID()
+        await db.insert(mediaAsset).values({
+          id: mediaAssetId,
+          organizationId: organizationID,
+          uploadedByUserId: uploader,
+          kind: 'image',
+          status: 'ready',
+          visibility: 'private',
+          bucket: 'native-sync-test',
+          storageKey: `native-sync-test/${mediaAssetId}`,
+          originalFilename: 'moment.jpg',
+          contentType: 'image/jpeg',
+          byteSize: 1,
+        })
+        await db.insert(eventMedia).values({
+          id: momentId,
+          organizationId: organizationID,
+          eventId,
+          mediaAssetId,
+          role,
+        })
+        return momentId
+      }
+
+      const contributorMoment = await makeMoment(childID, contributorID)
+      const managerMoment = await makeMoment(childID, managerID)
+      const managedMoment = await makeMoment(childID, contributorID)
+      const rootMoment = await makeMoment(rootID, contributorID)
+      const rootChildMoment = await makeMoment(childID, contributorID)
+      const siblingMoment = await makeMoment(siblingID, contributorID)
+      const viewerMoment = await makeMoment(childID, viewerID)
+      const guestMoment = await makeMoment(childID, guestID)
+      const coverMoment = await makeMoment(childID, contributorID, 'cover')
+
+      const remove = (scopeID: string, entityID: string, payload: Record<string, unknown> = {}) =>
+        mutation({ scopeID, entityType: 'moment', entityID, operation: 'delete', payload })
+      const apply = async (userId: string, item: ReturnType<typeof mutation>) =>
+        (await applyNativeMutations({ userId, mutations: [item] })).results[0]!
+
+      const ownChildDelete = remove(childID, contributorMoment)
+      expect(await apply(contributorID, ownChildDelete)).toMatchObject({
+        disposition: 'applied',
+      })
+      expect(await apply(contributorID, ownChildDelete)).toMatchObject({
+        disposition: 'duplicate',
+      })
+      expect(await apply(contributorID, remove(rootID, rootMoment))).toMatchObject({
+        disposition: 'applied',
+      })
+      expect(await apply(contributorID, remove(rootID, rootChildMoment))).toMatchObject({
+        disposition: 'applied',
+      })
+      const rootChanges = await pullNativeChanges({
+        userId: contributorID,
+        scopeId: rootID,
+        after: 0,
+      })
+      expect(rootChanges?.changes).toContainEqual(
+        expect.objectContaining({
+          scopeID: rootID,
+          entityType: 'moment',
+          entityID: rootChildMoment,
+          operation: 'delete',
+          payload: '',
+        })
+      )
+      const [rootSnapshot] = await db
+        .select()
+        .from(nativeWorkspaceSnapshot)
+        .where(eq(nativeWorkspaceSnapshot.scopeId, rootID))
+      expect(
+        JSON.parse(Buffer.from(rootSnapshot.payload, 'base64').toString('utf8')).mainEventID
+      ).toBe(rootID)
+
+      const departedMoment = await makeMoment(childID, contributorID)
+      await db.insert(eventDeparture).values({ eventId: childID, userId: contributorID })
+      expect(await apply(contributorID, remove(rootID, departedMoment))).toMatchObject({
+        disposition: 'rejected',
+      })
+      await db.delete(eventDeparture).where(eq(eventDeparture.eventId, childID))
+
+      const spoofed = await apply(
+        contributorID,
+        remove(childID, managerMoment, {
+          id: managerMoment,
+          eventID: childID,
+          uploadedByUserID: contributorID,
+          mediaAssetID: crypto.randomUUID(),
+        })
+      )
+      expect(spoofed).toMatchObject({ disposition: 'rejected' })
+      expect(
+        (await db.select().from(eventMedia).where(eq(eventMedia.id, managerMoment))).length
+      ).toBe(1)
+      expect(await apply(contributorID, remove(childID, rootMoment))).toMatchObject({
+        disposition: 'rejected',
+      })
+      expect(await apply(contributorID, remove(childID, coverMoment))).toMatchObject({
+        disposition: 'rejected',
+      })
+      expect(await apply(contributorID, remove(rootID, siblingMoment))).toMatchObject({
+        disposition: 'rejected',
+      })
+      expect(await apply('', remove(childID, managerMoment))).toMatchObject({
+        disposition: 'rejected',
+      })
+      expect(await apply(guestID, remove(childID, guestMoment))).toMatchObject({
+        disposition: 'rejected',
+      })
+      expect(await apply(viewerID, remove(childID, viewerMoment))).toMatchObject({
+        disposition: 'rejected',
+      })
+
+      // Existing management authority to remove another uploader's scoped photo remains intact.
+      expect(await apply(managerID, remove(childID, managedMoment))).toMatchObject({
+        disposition: 'applied',
+      })
+      expect(
+        (await db.select().from(eventMedia).where(eq(eventMedia.id, managedMoment))).length
+      ).toBe(0)
+
+      const staleActorMoment = await makeMoment(childID, contributorID)
+      await db
+        .delete(eventParticipant)
+        .where(eq(eventParticipant.id, fixture.childParticipationIDs[0]!))
+      expect(await apply(contributorID, remove(rootID, staleActorMoment))).toMatchObject({
+        disposition: 'rejected',
+      })
+      await db.insert(eventParticipant).values({
+        id: fixture.childParticipationIDs[0]!,
+        eventId: childID,
+        personId: personIDs[1]!,
+        role: 'collaborator',
+        planningPermission: 'contribute',
+        attendanceStatus: 'going',
+      })
+
+      const deferredAssetId = crypto.randomUUID()
+      const deferredScopedId = crypto.randomUUID()
+      const deferredScopedCreate = mutation({
+        scopeID: childID,
+        entityType: 'moment',
+        entityID: deferredScopedId,
+        payload: {
+          id: deferredScopedId,
+          eventID: childID,
+          mediaAssetID: deferredAssetId,
+        },
+      })
+      expect(await apply(contributorID, deferredScopedCreate)).toMatchObject({
+        disposition: 'applied',
+      })
+      expect(
+        await apply(
+          managerID,
+          mutation({
+            scopeID: childID,
+            entityType: 'moment',
+            entityID: deferredScopedId,
+            operation: 'update',
+            payload: {
+              id: deferredScopedId,
+              eventID: childID,
+              mediaAssetID: deferredAssetId,
+              uploadedByUserID: managerID,
+            },
+          })
+        )
+      ).toMatchObject({ disposition: 'applied' })
+      const deferredScopedDelete = remove(childID, deferredScopedId)
+      expect(await apply(contributorID, deferredScopedDelete)).toMatchObject({
+        disposition: 'applied',
+      })
+      expect(await apply(contributorID, remove(childID, deferredScopedId))).toMatchObject({
+        disposition: 'applied',
+      })
+
+      const deferredRootAssetId = crypto.randomUUID()
+      const deferredRootId = crypto.randomUUID()
+      expect(
+        await apply(
+          contributorID,
+          mutation({
+            scopeID: rootID,
+            entityType: 'moment',
+            entityID: deferredRootId,
+            payload: {
+              id: deferredRootId,
+              eventID: childID,
+              mediaAssetID: deferredRootAssetId,
+            },
+          })
+        )
+      ).toMatchObject({ disposition: 'applied' })
+      expect(await apply(contributorID, remove(rootID, deferredRootId))).toMatchObject({
+        disposition: 'applied',
+      })
+
+      const deferredLegacyRootId = crypto.randomUUID()
+      const deferredLegacyAssetId = crypto.randomUUID()
+      expect(
+        await apply(
+          contributorID,
+          mutation({
+            scopeID: rootID,
+            entityType: 'moment',
+            entityID: deferredLegacyRootId,
+            payload: {
+              id: deferredLegacyRootId,
+              eventID: null,
+              mediaAssetID: deferredLegacyAssetId,
+            },
+          })
+        )
+      ).toMatchObject({ disposition: 'applied' })
+      expect(await apply(contributorID, remove(rootID, deferredLegacyRootId))).toMatchObject({
+        disposition: 'applied',
+      })
+
+      const malformedLegacyRootId = crypto.randomUUID()
+      expect(
+        await apply(
+          contributorID,
+          mutation({
+            scopeID: rootID,
+            entityType: 'moment',
+            entityID: malformedLegacyRootId,
+            payload: {
+              id: malformedLegacyRootId,
+              eventID: 'not-a-uuid',
+              mediaAssetID: crypto.randomUUID(),
+            },
+          })
+        )
+      ).toMatchObject({ disposition: 'applied' })
+      expect(await apply(contributorID, remove(rootID, malformedLegacyRootId))).toMatchObject({
+        disposition: 'rejected',
+      })
+    })
+  }
+)
 
 test(
   'child collaborators get an isolated, Swift-decodable workspace snapshot without organization membership',

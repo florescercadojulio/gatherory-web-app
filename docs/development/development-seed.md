@@ -12,6 +12,29 @@ migrated by this seed.
 
 ## Fixtures
 
+The development catalog contains **25 searchable templates**: seventeen
+production starters plus eight synthetic `dev_` templates: Lakeside Cottage
+Weekend, Garden Wedding Weekend, City Hall and Rooftop Celebration, Backyard
+Birthday Adventure, Milestone Birthday Dinner, Cozy Friendsgiving Potluck, Winter
+Holiday Open House, and Creative Team Retreat. Each development template has six
+sub-events, twelve ideas across multiple categories, and seven guidance sections.
+They cover all four browse categories, main/child idea filtering, long notes,
+multi-day date suggestions, masonry previews and larger Decide queues.
+
+The eight additional development fixtures live in `src/db/seeds/development-blueprints.ts` and are included only by
+the development reset seed—not `pnpm blueprints:seed` or the production starter
+registry. They contain no real guest data, source-event access, votes, uploads,
+or preconfirmed dates. Existing private cottage publications stay private.
+The seed does not fabricate native setup drafts or installation history; create
+those through the app to exercise In Progress and Installed Templates normally.
+
+The production catalog now covers eighteen Explore categories. The original
+Wedding/Birthday/Thanksgiving revisions remain unchanged; fourteen new curated
+starters each provide four activities, six ideas and five guidance sections.
+See [expanded Explore](../roadmaps/blueprints-roadmap/21-expanded-explore-catalog.md).
+`pnpm blueprints:seed` is the additive deployment tool for those seventeen
+production entries; unlike `pnpm db:seed`, it does not reset the database.
+
 The wedding workspace has six child events, all thirteen idea categories,
 individual Decide preferences, RSVP variants, a pending email invitation,
 registry content, and estimated/committed/paid expenses. Root and reception
@@ -61,6 +84,7 @@ Run the DB-free regression checks with:
 
 ```sh
 pnpm exec vitest run tests/unit/development-workspace-seed.test.ts tests/unit/review-workspace-fixture.test.ts tests/unit/scoped-event-projection.test.ts
+pnpm exec vitest run tests/unit/development-blueprints-seed.test.ts tests/unit/development-catalog-seed-wiring.test.ts tests/unit/seed-modules.test.ts tests/unit/private-templates-seed.test.ts
 pnpm typecheck
 ```
 

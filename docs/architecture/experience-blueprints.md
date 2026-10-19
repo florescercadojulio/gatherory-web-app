@@ -245,6 +245,42 @@ and never copies the previous family's participants or contributions.
 
 ## Instantiation and revision behavior
 
+### Copy boundaries
+
+Copying a personal blueprint into a workspace uses the latest saved blueprint
+edits available when the install request is created. The workspace receives an
+independent copy. Copying workspace content back into a blueprint requires an
+explicit snapshot/capture. There is no live binding or automatic propagation in
+either direction: saving a blueprint never changes an existing workspace, and
+workspace edits never update a blueprint. A pending install keeps its frozen
+request, so later blueprint saves apply only to a later copy.
+
+Native personal authoring uses a distinct owner record, not an installation
+receipt. Save Blueprint explicitly captures supported event content privately;
+publishing that record adds it to search without minting a second personal
+blueprint. An explicit saved content change advances the author's immutable
+publication and search pointer when listed. Suggested/confirmed installation
+dates are excluded from publication content. Native screens currently have no
+web-editor affordance.
+
+Deleting the author's record withdraws search access and revokes distribution
+links without deleting immutable revisions or completed copies. Completed
+installations retain exact-source reuse authority scoped to their actor,
+revision, and stored snapshot, not catalog discovery or continued use of an
+entry token. Revoked-token requests remain denied; reusable copies detach the
+entry token. Saved setup drafts are also independent portable snapshots. Before
+their next server suggestion/preview/install, `/api/blueprints/copies` privately
+publishes the saved content under the recipient's personal ownership, without
+reading or claiming authority over the original. A separate durable copy UUID
+and content hash make lost-response retries idempotent. The endpoint accepts
+validated user-authored portable content, not arbitrary installation plans or
+original event permissions. Setup copies stay unlisted and do not add another
+author-library card. Local selections, edits and confirmed instants remain
+separate from the copied base document. Offline saves need no source access;
+new incoming links without a saved snapshot still require current access.
+Author publication operations are explicit online actions; workspace outbox and
+installation transaction/retry boundaries remain separate.
+
 ### Decision: defer a broad creation engine
 
 Recorded October 15, 2026. Do not make ordinary native workspace, event, or idea

@@ -130,6 +130,17 @@ export const BlueprintRepoLive = Layer.effect(
             and m.user_id = ${actorId} and m.role = 'owner'
         ))
     ))`
+    // A completed install pins an immutable source document. This authority is
+    // deliberately used only by exact revision lookup, never catalog discovery.
+    const installedCopy = (actorId: string) => sql`exists (
+      select 1 from ${blueprintInstallation} i
+      where i.actor_user_id = ${actorId}
+        and i.state = 'completed'
+        and i.revision_id = ${blueprintRevision.id}
+        and i.source_snapshot = ${blueprintRevision.document}
+        and i.source_snapshot->'blueprint'->>'id' = ${blueprintRevision.catalogKey}
+        and (i.source_snapshot->'blueprint'->>'revision')::integer = ${blueprintRevision.revision}
+    )`
     const sourceVisible = (actorId: string, shareTokenHash?: string | null) =>
       shareTokenHash
         ? sql`exists (
@@ -137,7 +148,7 @@ export const BlueprintRepoLive = Layer.effect(
           where l.revision_id = ${blueprintRevision.id} and l.token_hash = ${shareTokenHash}
             and l.revoked_at is null and t.retired_at is null
         )`
-        : visible(actorId)
+        : sql`(${visible(actorId)} or ${installedCopy(actorId)})`
     const sourceAuthority = (
       actorId: string,
       source: typeof blueprintRevision.$inferSelect,
@@ -153,8 +164,9 @@ export const BlueprintRepoLive = Layer.effect(
           .from(blueprintTemplate)
           .where(eq(blueprintTemplate.id, source.templateId))
           .for('share')
-        if (!template || template.retiredAt) return yield* Effect.fail(missing())
+        if (!template) return yield* Effect.fail(missing())
         if (shareTokenHash) {
+          if (template.retiredAt) return yield* Effect.fail(missing())
           // Held until commit: revocation and completion serialize on this row.
           const [link] = yield* db
             .select({ id: blueprintShareLink.id })
@@ -170,6 +182,22 @@ export const BlueprintRepoLive = Layer.effect(
           if (!link) return yield* Effect.fail(missing())
           return
         }
+        const [installedCopy] = yield* db
+          .select({ id: blueprintInstallation.id })
+          .from(blueprintInstallation)
+          .where(
+            and(
+              eq(blueprintInstallation.actorUserId, actorId),
+              eq(blueprintInstallation.state, 'completed'),
+              eq(blueprintInstallation.revisionId, source.id),
+              sql`${blueprintInstallation.sourceSnapshot} = ${JSON.stringify(source.document)}::jsonb`,
+              sql`${blueprintInstallation.sourceSnapshot}->'blueprint'->>'id' = ${source.catalogKey}`,
+              sql`(${blueprintInstallation.sourceSnapshot}->'blueprint'->>'revision')::integer = ${source.revision}`
+            )
+          )
+          .limit(1)
+        if (installedCopy) return
+        if (template.retiredAt) return yield* Effect.fail(missing())
         if (template.listedRevision === source.revision) return
         const [access] = yield* db
           .select({ id: member.id })

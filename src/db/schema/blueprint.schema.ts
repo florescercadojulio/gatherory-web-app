@@ -34,7 +34,7 @@ export const blueprintTemplate = pgTable(
     listedRevision: integer('listed_revision'),
     publishedDraftVersion: integer('published_draft_version'),
     source: jsonb('source').$type<
-      { catalogKey: string; revision: number } | BlueprintCaptureMetadata
+      { catalogKey: string; revision: number } | BlueprintCaptureMetadata | { kind: 'setup_copy' }
     >(),
     retiredAt: timestamp('retired_at', { withTimezone: true }),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),

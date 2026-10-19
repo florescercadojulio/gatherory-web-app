@@ -160,9 +160,16 @@ Paths in inline code are relative to their owning repository.
   for migration/explicit catalog seeding, compatibility gates, tests, and limits.
   Preserve ordinary sync transactions and account-isolated install intents.
 - Native pre-install setup now has device-local account/template drafts with an
-  exact source pin, selections and confirmed dates. The Workspaces + menu resumes
-  them offline; Search has no resume banner. Pending installation recovery takes priority, and matching drafts
-  clear only after canonical import. Preview/install remain server-authorized.
+  exact source pin, selections and confirmed dates. The Blueprints tab resumes
+  them offline and lists account-cached used-template history; Search has no resume banner.
+  Pending installation recovery takes priority, and matching drafts
+  clear only after canonical import. Saved drafts are independent snapshots:
+  `/api/blueprints/copies` privately publishes their validated portable content
+  under recipient ownership before server suggestions/preview/install. A separate
+  durable copy UUID/private pin preserves retries; local account/link identity,
+  dates and edits remain unchanged. Original source access is no longer needed
+  for saved drafts, but fresh links still require it. Do not rewrite existing
+  installation intents or auto-list setup copies in search/the author library.
   See [resumable setup](../roadmaps/blueprints-roadmap/12-resumable-setup.md).
 - Blank native events remain ordinary offline-created instances. Event-to-template
   capture is separate and explicit: long-press an iOS Workspaces card, choose
@@ -188,8 +195,10 @@ Paths in inline code are relative to their owning repository.
   unpublished editing draft. The seed remains destructive; never run it casually.
 - Unlisted template links now grant preview/install access to one pinned published
   revision. Owner-only create/list/revoke never changes source-event or workspace
-  permissions. Revocation blocks new installations but preserves authorized
-  completed-receipt recovery and independent copies. Native setup retains the
+  permissions. Revocation blocks new source acquisition but cannot remove saved
+  snapshots or completed copies. Saved setups install through their own private
+  snapshot publication. Already-frozen legacy link-based requests retain their
+  existing authorization/recovery behavior and are never rewritten. Native setup retains the
   credential in account/link-scoped drafts and exact installation intents; do
   not move it into ordinary discovery or sync payloads. See
   [unlisted links](../roadmaps/blueprints-roadmap/14-unlisted-template-links.md)

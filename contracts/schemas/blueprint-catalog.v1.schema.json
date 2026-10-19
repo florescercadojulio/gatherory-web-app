@@ -698,6 +698,20 @@
                     "weddings",
                     "birthdays",
                     "holidays",
+                    "engagements",
+                    "showers",
+                    "bachelor_parties",
+                    "anniversaries",
+                    "graduations",
+                    "reunions",
+                    "dinner_parties",
+                    "picnics",
+                    "game_nights",
+                    "trips",
+                    "cottage_stays",
+                    "guest_stays",
+                    "retreats",
+                    "community",
                     "events"
                   ]
                 }

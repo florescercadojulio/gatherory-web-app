@@ -24,8 +24,11 @@ import { Route as ApiAdminReportsRouteImport } from './routes/api/admin/reports'
 import { Route as ApiAuthSplatRouteRouteImport } from './routes/api/auth/$/route'
 import { Route as ApiAuthAppleTokenRouteImport } from './routes/api/auth/apple-token'
 import { Route as ApiBlueprintsCatalogRouteImport } from './routes/api/blueprints/catalog'
+import { Route as ApiBlueprintsCopiesRouteImport } from './routes/api/blueprints/copies'
 import { Route as ApiBlueprintsCreateTemplateRouteImport } from './routes/api/blueprints/create-template'
 import { Route as ApiBlueprintsInstallRouteImport } from './routes/api/blueprints/install'
+import { Route as ApiBlueprintsLibraryRouteImport } from './routes/api/blueprints/library'
+import { Route as ApiBlueprintsPersonalRouteImport } from './routes/api/blueprints/personal'
 import { Route as ApiBlueprintsPreviewRouteImport } from './routes/api/blueprints/preview'
 import { Route as ApiBlueprintsScheduleRouteImport } from './routes/api/blueprints/schedule'
 import { Route as ApiBlueprintsSharingRouteImport } from './routes/api/blueprints/sharing'
@@ -128,6 +131,11 @@ const ApiBlueprintsCatalogRoute = ApiBlueprintsCatalogRouteImport.update({
   path: '/api/blueprints/catalog',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiBlueprintsCopiesRoute = ApiBlueprintsCopiesRouteImport.update({
+  id: '/api/blueprints/copies',
+  path: '/api/blueprints/copies',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiBlueprintsCreateTemplateRoute =
   ApiBlueprintsCreateTemplateRouteImport.update({
     id: '/api/blueprints/create-template',
@@ -137,6 +145,16 @@ const ApiBlueprintsCreateTemplateRoute =
 const ApiBlueprintsInstallRoute = ApiBlueprintsInstallRouteImport.update({
   id: '/api/blueprints/install',
   path: '/api/blueprints/install',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiBlueprintsLibraryRoute = ApiBlueprintsLibraryRouteImport.update({
+  id: '/api/blueprints/library',
+  path: '/api/blueprints/library',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiBlueprintsPersonalRoute = ApiBlueprintsPersonalRouteImport.update({
+  id: '/api/blueprints/personal',
+  path: '/api/blueprints/personal',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiBlueprintsPreviewRoute = ApiBlueprintsPreviewRouteImport.update({
@@ -274,8 +292,11 @@ export interface FileRoutesByFullPath {
   '/api/admin/reports': typeof ApiAdminReportsRoute
   '/api/auth/apple-token': typeof ApiAuthAppleTokenRoute
   '/api/blueprints/catalog': typeof ApiBlueprintsCatalogRoute
+  '/api/blueprints/copies': typeof ApiBlueprintsCopiesRoute
   '/api/blueprints/create-template': typeof ApiBlueprintsCreateTemplateRoute
   '/api/blueprints/install': typeof ApiBlueprintsInstallRoute
+  '/api/blueprints/library': typeof ApiBlueprintsLibraryRoute
+  '/api/blueprints/personal': typeof ApiBlueprintsPersonalRoute
   '/api/blueprints/preview': typeof ApiBlueprintsPreviewRoute
   '/api/blueprints/schedule': typeof ApiBlueprintsScheduleRoute
   '/api/blueprints/sharing': typeof ApiBlueprintsSharingRoute
@@ -314,8 +335,11 @@ export interface FileRoutesByTo {
   '/api/admin/reports': typeof ApiAdminReportsRoute
   '/api/auth/apple-token': typeof ApiAuthAppleTokenRoute
   '/api/blueprints/catalog': typeof ApiBlueprintsCatalogRoute
+  '/api/blueprints/copies': typeof ApiBlueprintsCopiesRoute
   '/api/blueprints/create-template': typeof ApiBlueprintsCreateTemplateRoute
   '/api/blueprints/install': typeof ApiBlueprintsInstallRoute
+  '/api/blueprints/library': typeof ApiBlueprintsLibraryRoute
+  '/api/blueprints/personal': typeof ApiBlueprintsPersonalRoute
   '/api/blueprints/preview': typeof ApiBlueprintsPreviewRoute
   '/api/blueprints/schedule': typeof ApiBlueprintsScheduleRoute
   '/api/blueprints/sharing': typeof ApiBlueprintsSharingRoute
@@ -357,8 +381,11 @@ export interface FileRoutesById {
   '/api/admin/reports': typeof ApiAdminReportsRoute
   '/api/auth/apple-token': typeof ApiAuthAppleTokenRoute
   '/api/blueprints/catalog': typeof ApiBlueprintsCatalogRoute
+  '/api/blueprints/copies': typeof ApiBlueprintsCopiesRoute
   '/api/blueprints/create-template': typeof ApiBlueprintsCreateTemplateRoute
   '/api/blueprints/install': typeof ApiBlueprintsInstallRoute
+  '/api/blueprints/library': typeof ApiBlueprintsLibraryRoute
+  '/api/blueprints/personal': typeof ApiBlueprintsPersonalRoute
   '/api/blueprints/preview': typeof ApiBlueprintsPreviewRoute
   '/api/blueprints/schedule': typeof ApiBlueprintsScheduleRoute
   '/api/blueprints/sharing': typeof ApiBlueprintsSharingRoute
@@ -400,8 +427,11 @@ export interface FileRouteTypes {
     | '/api/admin/reports'
     | '/api/auth/apple-token'
     | '/api/blueprints/catalog'
+    | '/api/blueprints/copies'
     | '/api/blueprints/create-template'
     | '/api/blueprints/install'
+    | '/api/blueprints/library'
+    | '/api/blueprints/personal'
     | '/api/blueprints/preview'
     | '/api/blueprints/schedule'
     | '/api/blueprints/sharing'
@@ -440,8 +470,11 @@ export interface FileRouteTypes {
     | '/api/admin/reports'
     | '/api/auth/apple-token'
     | '/api/blueprints/catalog'
+    | '/api/blueprints/copies'
     | '/api/blueprints/create-template'
     | '/api/blueprints/install'
+    | '/api/blueprints/library'
+    | '/api/blueprints/personal'
     | '/api/blueprints/preview'
     | '/api/blueprints/schedule'
     | '/api/blueprints/sharing'
@@ -482,8 +515,11 @@ export interface FileRouteTypes {
     | '/api/admin/reports'
     | '/api/auth/apple-token'
     | '/api/blueprints/catalog'
+    | '/api/blueprints/copies'
     | '/api/blueprints/create-template'
     | '/api/blueprints/install'
+    | '/api/blueprints/library'
+    | '/api/blueprints/personal'
     | '/api/blueprints/preview'
     | '/api/blueprints/schedule'
     | '/api/blueprints/sharing'
@@ -524,8 +560,11 @@ export interface RootRouteChildren {
   ApiAdminReportsRoute: typeof ApiAdminReportsRoute
   ApiAuthAppleTokenRoute: typeof ApiAuthAppleTokenRoute
   ApiBlueprintsCatalogRoute: typeof ApiBlueprintsCatalogRoute
+  ApiBlueprintsCopiesRoute: typeof ApiBlueprintsCopiesRoute
   ApiBlueprintsCreateTemplateRoute: typeof ApiBlueprintsCreateTemplateRoute
   ApiBlueprintsInstallRoute: typeof ApiBlueprintsInstallRoute
+  ApiBlueprintsLibraryRoute: typeof ApiBlueprintsLibraryRoute
+  ApiBlueprintsPersonalRoute: typeof ApiBlueprintsPersonalRoute
   ApiBlueprintsPreviewRoute: typeof ApiBlueprintsPreviewRoute
   ApiBlueprintsScheduleRoute: typeof ApiBlueprintsScheduleRoute
   ApiBlueprintsSharingRoute: typeof ApiBlueprintsSharingRoute
@@ -652,6 +691,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiBlueprintsCatalogRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/blueprints/copies': {
+      id: '/api/blueprints/copies'
+      path: '/api/blueprints/copies'
+      fullPath: '/api/blueprints/copies'
+      preLoaderRoute: typeof ApiBlueprintsCopiesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/blueprints/create-template': {
       id: '/api/blueprints/create-template'
       path: '/api/blueprints/create-template'
@@ -664,6 +710,20 @@ declare module '@tanstack/react-router' {
       path: '/api/blueprints/install'
       fullPath: '/api/blueprints/install'
       preLoaderRoute: typeof ApiBlueprintsInstallRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/blueprints/library': {
+      id: '/api/blueprints/library'
+      path: '/api/blueprints/library'
+      fullPath: '/api/blueprints/library'
+      preLoaderRoute: typeof ApiBlueprintsLibraryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/blueprints/personal': {
+      id: '/api/blueprints/personal'
+      path: '/api/blueprints/personal'
+      fullPath: '/api/blueprints/personal'
+      preLoaderRoute: typeof ApiBlueprintsPersonalRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/blueprints/preview': {
@@ -898,8 +958,11 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAdminReportsRoute: ApiAdminReportsRoute,
   ApiAuthAppleTokenRoute: ApiAuthAppleTokenRoute,
   ApiBlueprintsCatalogRoute: ApiBlueprintsCatalogRoute,
+  ApiBlueprintsCopiesRoute: ApiBlueprintsCopiesRoute,
   ApiBlueprintsCreateTemplateRoute: ApiBlueprintsCreateTemplateRoute,
   ApiBlueprintsInstallRoute: ApiBlueprintsInstallRoute,
+  ApiBlueprintsLibraryRoute: ApiBlueprintsLibraryRoute,
+  ApiBlueprintsPersonalRoute: ApiBlueprintsPersonalRoute,
   ApiBlueprintsPreviewRoute: ApiBlueprintsPreviewRoute,
   ApiBlueprintsScheduleRoute: ApiBlueprintsScheduleRoute,
   ApiBlueprintsSharingRoute: ApiBlueprintsSharingRoute,

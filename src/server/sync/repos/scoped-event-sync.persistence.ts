@@ -3,7 +3,7 @@ import { and, eq, inArray, isNotNull, sql } from 'drizzle-orm'
 import { db } from '@/db'
 import { event, eventParticipant, workspacePerson } from '@/db/schema/event.schema'
 import { idea, eventExpense, eventNote, registryItem } from '@/db/schema/planning.schema'
-import { eventMedia } from '@/db/schema/media.schema'
+import { eventMedia, mediaAsset } from '@/db/schema/media.schema'
 import { eventExperienceConfiguration, eventGuideSection } from '@/db/schema/blueprint.schema'
 import {
   nativeSyncChange,
@@ -24,6 +24,7 @@ import {
 import { buildScopedEventArchive } from '../services/scoped-event-projection'
 import { nativeIdentityWriteAllowed } from '../services/native-identity-access'
 import { deletedAccountTombstone } from '../contracts/native-tombstones'
+import { canDeleteNativeMoment } from './native-moment-authorization.persistence'
 
 type Transaction = Parameters<Parameters<typeof db.transaction>[0]>[0]
 const encode = (value: unknown) => Buffer.from(JSON.stringify(value)).toString('base64')
@@ -167,7 +168,21 @@ async function authorizeMutation(
       .where(eq(table.id, mutation.entityID))
       .limit(1)
     if (existing && existing.eventId !== scopeId) forbidden()
-    if (mutation.operation === 'delete' && (!existing || !manager)) forbidden()
+    if (mutation.operation === 'delete' && !existing && mutation.entityType !== 'moment')
+      forbidden()
+    if (mutation.operation === 'delete' && mutation.entityType === 'moment') {
+      const authorized = await canDeleteNativeMoment(tx, {
+        rootEventId: actor.event.parentEventId!,
+        targetScopeId: scopeId,
+        allowRootChildren: false,
+        entityId: mutation.entityID,
+        organizationId: actor.event.organizationId,
+        userId,
+      })
+      if (!authorized) forbidden('EVENT_PERMISSION_REQUIRED')
+    } else if (mutation.operation === 'delete' && !manager) {
+      forbidden()
+    }
     if (mutation.operation !== 'delete') {
       if (payload.eventID != null && uuid(payload.eventID) !== scopeId) forbidden()
       payload.eventID = scopeId
@@ -191,8 +206,9 @@ async function authorizeMutation(
       }
     }
   }
-  // Assets must belong to this scoped upload or already be placed in this
-  // exact event. An older upload in a now-inaccessible sibling is not a grant.
+  // Registered assets must belong to this scoped upload or already be placed
+  // in this exact event. Unregistered moment assets stay deferred until upload
+  // registration; the first accepted native create records their trusted owner.
   if (payload.mediaAssetID != null) {
     const assetId = uuid(payload.mediaAssetID)
     if (!assetId) forbidden()
@@ -207,7 +223,19 @@ async function authorizeMutation(
           or exists (select 1 from registry_item_media m join registry_item r on r.id = m.registry_item_id where m.media_asset_id = a.id and r.event_id = ${scopeId}::uuid)
         )`
     )
-    if (!allowed.rows.length) forbidden()
+    if (!allowed.rows.length) {
+      const [asset] = await tx
+        .select({ id: mediaAsset.id })
+        .from(mediaAsset)
+        .where(eq(mediaAsset.id, assetId))
+        .limit(1)
+      const deferredMoment =
+        mutation.entityType === 'moment' &&
+        mutation.operation !== 'delete' &&
+        !asset &&
+        uuid(payload.eventID) === scopeId
+      if (!deferredMoment) forbidden()
+    }
   }
   return payload
 }

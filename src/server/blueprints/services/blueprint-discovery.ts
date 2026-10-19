@@ -1,8 +1,11 @@
 import type { BlueprintCatalogRevision } from '@/contracts/blueprint-install.contracts'
 import type { BlueprintDiscovery } from '@/contracts/blueprint-discovery.contracts'
+import { exploreCollections } from '../catalog/explore-collections'
 
 /** Discovery copy is editable independently of the immutable installation source. */
 export function blueprintDiscovery(entry: BlueprintCatalogRevision): BlueprintDiscovery {
+  const collection = exploreCollections.find(({ key }) => key === entry.catalogKey)
+  if (collection) return collection.discovery
   if (entry.catalogKey === 'birthday') {
     return {
       categories: ['birthdays'],

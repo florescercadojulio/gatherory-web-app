@@ -70,7 +70,7 @@ export const BlueprintTargetSchema = z.discriminatedUnion('kind', [
   z.object({ kind: z.literal('child'), key: BlueprintStableKeySchema }).strict(),
 ])
 
-const childDefinitionSchema = z
+export const BlueprintChildDefinitionSchema = z
   .object({
     key: BlueprintStableKeySchema.refine(
       (key) => key !== 'main',
@@ -100,7 +100,7 @@ export const PortableIdeaConfigurationSchema = z
   .strict()
   .default({ version: 1 })
 
-const ideaDefinitionSchema = z
+export const BlueprintIdeaDefinitionSchema = z
   .object({
     key: BlueprintStableKeySchema,
     title: titleSchema,
@@ -124,14 +124,14 @@ const instructionDefinitionSchema = z
 const experienceTreeConfigSchema = z
   .object({
     mainEventType: BlueprintStableKeySchema,
-    children: z.array(childDefinitionSchema).max(BLUEPRINT_LIMITS.children).default([]),
+    children: z.array(BlueprintChildDefinitionSchema).max(BLUEPRINT_LIMITS.children).default([]),
   })
   .strict()
 
 const ideasConfigSchema = z
   .object({
     categoryOrder: z.array(BlueprintIdeaCategorySchema).max(20).default([]),
-    ideas: z.array(ideaDefinitionSchema).max(BLUEPRINT_LIMITS.ideas).default([]),
+    ideas: z.array(BlueprintIdeaDefinitionSchema).max(BLUEPRINT_LIMITS.ideas).default([]),
   })
   .strict()
 
@@ -401,6 +401,14 @@ export const BlueprintInstallInputSchema = z
       .max(BLUEPRINT_LIMITS.children),
     selectedIdeaKeys: z.array(BlueprintStableKeySchema).max(BLUEPRINT_LIMITS.ideas),
     capabilities: z.array(BlueprintCapabilityKeySchema).max(100),
+    customizations: z
+      .object({
+        version: z.literal(1),
+        children: z.array(BlueprintChildDefinitionSchema).max(BLUEPRINT_LIMITS.children),
+        ideas: z.array(BlueprintIdeaDefinitionSchema).max(BLUEPRINT_LIMITS.ideas),
+      })
+      .strict()
+      .optional(),
   })
   .strict()
   .superRefine((input, context) => {
@@ -411,6 +419,25 @@ export const BlueprintInstallInputSchema = z
     )
     addDuplicateIssues(input.selectedIdeaKeys, ['selectedIdeaKeys'], context)
     addDuplicateIssues(input.capabilities, ['capabilities'], context)
+    if (input.customizations) {
+      addDuplicateIssues(
+        input.customizations.children.map(({ key }) => key),
+        ['customizations', 'children'],
+        context
+      )
+      addDuplicateIssues(
+        input.customizations.ideas.map(({ key }) => key),
+        ['customizations', 'ideas'],
+        context
+      )
+    }
+    if (serializedByteLength(input) > BLUEPRINT_LIMITS.serializedBytes) {
+      context.addIssue({
+        code: 'custom',
+        message: `Blueprint install request exceeds ${BLUEPRINT_LIMITS.serializedBytes} serialized bytes.`,
+        path: [],
+      })
+    }
   })
 
 export const BlueprintPlannedEventSchema = z
@@ -478,6 +505,8 @@ export const BlueprintExpandedPlanSchema = z
 export type BlueprintCatalogDefinition = z.infer<typeof BlueprintCatalogDefinitionSchema>
 export type BlueprintCatalogRevision = z.infer<typeof BlueprintCatalogRevisionSchema>
 export type BlueprintInstallInput = z.infer<typeof BlueprintInstallInputSchema>
+export type BlueprintChildDefinition = z.infer<typeof BlueprintChildDefinitionSchema>
+export type BlueprintIdeaDefinition = z.infer<typeof BlueprintIdeaDefinitionSchema>
 export type BlueprintExpandedPlan = z.infer<typeof BlueprintExpandedPlanSchema>
 export type BlueprintInstallPlan = BlueprintExpandedPlan
 export type BlueprintIdeaConfiguration = z.infer<typeof PortableIdeaConfigurationSchema>

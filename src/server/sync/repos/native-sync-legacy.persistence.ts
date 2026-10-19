@@ -25,6 +25,7 @@ import { compareNativeMutationOrder } from '../workflows/native-sync-ordering'
 import { deletedAccountTombstone } from '../contracts/native-tombstones'
 import { blueprintUpgradeRequired } from '../native-sync-compatibility'
 import { nativeIdentityWriteAllowed } from '../services/native-identity-access'
+import { canDeleteNativeMoment } from './native-moment-authorization.persistence'
 import {
   applyScopedEventMutation,
   pullScopedEventChanges,
@@ -332,6 +333,19 @@ export async function applyNativeMutations(input: {
   mutations: NativeMutation[]
   supportsBlueprintGuides?: boolean
 }) {
+  if (!input.userId.trim()) {
+    return {
+      results: input.mutations.map(
+        (mutation) =>
+          ({
+            mutationID: mutation.id,
+            disposition: 'rejected',
+            serverVersion: null,
+            failureCode: 'SCOPE_WRITE_FORBIDDEN',
+          }) satisfies NativePushResult
+      ),
+    }
+  }
   await assertBlueprintCapabilityForScopes({
     userId: input.userId,
     scopeIds: input.mutations.map((mutation) => mutation.scopeID),
@@ -562,6 +576,24 @@ export async function applyNativeMutations(input: {
                 mutation,
                 serverVersion: entity.serverVersion,
               })
+            }
+
+            if (mutation.entityType === 'moment' && mutation.operation === 'delete') {
+              const authorized = await canDeleteNativeMoment(transaction, {
+                rootEventId: mutation.scopeID,
+                targetScopeId: mutation.scopeID,
+                allowRootChildren: true,
+                entityId: mutation.entityID,
+                organizationId: snapshot.organizationId,
+                userId: input.userId,
+              })
+              if (!authorized) {
+                return recordRejectedMutation(transaction, {
+                  userId: input.userId,
+                  mutation,
+                  failureCode: 'EVENT_PERMISSION_REQUIRED',
+                })
+              }
             }
 
             serverVersion = (entity?.serverVersion ?? 0) + 1
