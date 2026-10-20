@@ -21,8 +21,18 @@ export const BlueprintLinkManagementInputSchema = z.discriminatedUnion('action',
       action: z.literal('listing'),
       ...templateScope,
       revision: z.number().int().positive().nullable(),
+      creatorName: characterString(1, 80).optional(),
     })
-    .strict(),
+    .strict()
+    .superRefine((input, context) => {
+      if (input.revision === null && input.creatorName !== undefined) {
+        context.addIssue({
+          code: 'custom',
+          message: 'A creator name can only be set while listing a blueprint.',
+          path: ['creatorName'],
+        })
+      }
+    }),
   z.object({ action: z.literal('revoke'), ...templateScope, linkId: UUIDSchema }).strict(),
 ])
 export const BlueprintManagedTemplateSchema = z
@@ -31,6 +41,8 @@ export const BlueprintManagedTemplateSchema = z
     title: characterString(1, 120),
     publishedRevision: z.number().int().positive().nullable(),
     listedRevision: z.number().int().positive().nullable().optional(),
+    creatorName: characterString(1, 80).nullable(),
+    activeShareLinkCount: z.number().int().nonnegative(),
     retired: z.boolean(),
   })
   .strict()
@@ -47,7 +59,12 @@ export const BlueprintLinkManagementResponseSchema = z.union([
   z.object({ links: z.array(BlueprintManagedShareLinkSchema) }).strict(),
   z.object({ link: BlueprintManagedShareLinkSchema, token: BlueprintShareTokenSchema }).strict(),
   z.object({ revoked: z.literal(true) }).strict(),
-  z.object({ listedRevision: z.number().int().positive().nullable() }).strict(),
+  z
+    .object({
+      listedRevision: z.number().int().positive().nullable(),
+      creatorName: characterString(1, 80).nullable().optional(),
+    })
+    .strict(),
 ])
 export type BlueprintLinkManagementInput = z.infer<typeof BlueprintLinkManagementInputSchema>
 export type BlueprintLinkManagementResponse = z.infer<typeof BlueprintLinkManagementResponseSchema>

@@ -46,6 +46,24 @@
                   }
                 ]
               },
+              "creatorName": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 80,
+                    "description": "1–80 Unicode code points; surrounding whitespace is trimmed before validation."
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "activeShareLinkCount": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
               "retired": {
                 "type": "boolean"
               }
@@ -54,6 +72,8 @@
               "id",
               "title",
               "publishedRevision",
+              "creatorName",
+              "activeShareLinkCount",
               "retired"
             ],
             "additionalProperties": false
@@ -201,6 +221,19 @@
               "type": "integer",
               "exclusiveMinimum": 0,
               "maximum": 9007199254740991
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "creatorName": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 80,
+              "description": "1–80 Unicode code points; surrounding whitespace is trimmed before validation."
             },
             {
               "type": "null"

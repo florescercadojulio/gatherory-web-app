@@ -87,6 +87,7 @@ test.skipIf(!enabled)(
         createRequestId: crypto.randomUUID(),
         createRequestHash: 'b'.repeat(64),
         content,
+        creatorName: listed ? 'Garden Hosts' : null,
         draftVersion: 1,
         publishedRevision: 1,
         listedRevision: listed ? 1 : null,
@@ -213,6 +214,7 @@ test.skipIf(!enabled)(
           return yield* service.publish(actorId, {
             id: unlistedRevision.templateId!,
             expectedVersion: 2,
+            creatorName: 'Garden Hosts',
           })
         }).pipe(Effect.provide(live))
       )
@@ -221,8 +223,11 @@ test.skipIf(!enabled)(
         draftVersion: 2,
         publishedRevision: 2,
         listedRevision: 2,
+        creatorName: 'Garden Hosts',
+        activeShareLinkCount: 0,
         catalogEntry: { catalogKey: unlistedRevision.catalogKey, revision: 2 },
       })
+      expect(uploaded.catalogEntry.creator).toEqual({ displayName: 'Garden Hosts' })
       const uploadedAgain = await Effect.runPromise(
         Effect.gen(function* () {
           const service = yield* personalRepoModule.BlueprintPersonalRepo
@@ -233,6 +238,26 @@ test.skipIf(!enabled)(
         }).pipe(Effect.provide(live))
       )
       expect(uploadedAgain).toEqual(uploaded)
+      const personalTemplates = await Effect.runPromise(
+        Effect.gen(function* () {
+          const service = yield* personalRepoModule.BlueprintPersonalRepo
+          return yield* service.list(actorId)
+        }).pipe(Effect.provide(live))
+      )
+      expect(personalTemplates.templates).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            id: unlistedRevision.templateId,
+            creatorName: 'Garden Hosts',
+            activeShareLinkCount: 0,
+          }),
+          expect.objectContaining({
+            id: templateId,
+            creatorName: 'Garden Hosts',
+            activeShareLinkCount: 0,
+          }),
+        ])
+      )
       const uploadedRows = await db
         .select()
         .from(blueprintRevision)
@@ -289,14 +314,139 @@ test.skipIf(!enabled)(
         tokenHash: linkTokenHash,
         createdByUserId: actorId,
       })
+      const personalTemplatesWithLink = await Effect.runPromise(
+        Effect.gen(function* () {
+          const service = yield* personalRepoModule.BlueprintPersonalRepo
+          return yield* service.list(actorId)
+        }).pipe(Effect.provide(live))
+      )
+      expect(personalTemplatesWithLink.templates).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            id: templateId,
+            creatorName: 'Garden Hosts',
+            activeShareLinkCount: 1,
+          }),
+        ])
+      )
 
-      const recipientRevision = await Effect.runPromise(
+      const unauthorizedUnlist = await Effect.runPromiseExit(
+        Effect.gen(function* () {
+          const service = yield* personalRepoModule.BlueprintPersonalRepo
+          return yield* service.unlist(strangerId, {
+            id: templateId,
+            expectedVersion: 2,
+            expectedListedRevision: 2,
+          })
+        }).pipe(Effect.provide(live))
+      )
+      expect(
+        Exit.match(unauthorizedUnlist, {
+          onFailure: (cause) => Cause.squash(cause),
+          onSuccess: () => null,
+        })
+      ).toMatchObject({ code: 'BLUEPRINT_NOT_FOUND' })
+
+      const staleUnlistVersion = await Effect.runPromiseExit(
+        Effect.gen(function* () {
+          const service = yield* personalRepoModule.BlueprintPersonalRepo
+          return yield* service.unlist(actorId, {
+            id: templateId,
+            expectedVersion: 1,
+            expectedListedRevision: 2,
+          })
+        }).pipe(Effect.provide(live))
+      )
+      expect(
+        Exit.match(staleUnlistVersion, {
+          onFailure: (cause) => Cause.squash(cause),
+          onSuccess: () => null,
+        })
+      ).toMatchObject({ code: 'BLUEPRINT_DRAFT_VERSION_CONFLICT' })
+
+      const staleListedRevision = await Effect.runPromiseExit(
+        Effect.gen(function* () {
+          const service = yield* personalRepoModule.BlueprintPersonalRepo
+          return yield* service.unlist(actorId, {
+            id: templateId,
+            expectedVersion: 2,
+            expectedListedRevision: 1,
+          })
+        }).pipe(Effect.provide(live))
+      )
+      expect(
+        Exit.match(staleListedRevision, {
+          onFailure: (cause) => Cause.squash(cause),
+          onSuccess: () => null,
+        })
+      ).toMatchObject({ code: 'BLUEPRINT_LISTED_REVISION_CONFLICT' })
+
+      const unlisted = await Effect.runPromise(
+        Effect.gen(function* () {
+          const service = yield* personalRepoModule.BlueprintPersonalRepo
+          return yield* service.unlist(actorId, {
+            id: templateId,
+            expectedVersion: 2,
+            expectedListedRevision: 2,
+          })
+        }).pipe(Effect.provide(live))
+      )
+      expect(unlisted).toMatchObject({
+        id: templateId,
+        draftVersion: 2,
+        publishedRevision: 2,
+        listedRevision: null,
+        creatorName: 'Garden Hosts',
+        activeShareLinkCount: 1,
+        catalogEntry: { catalogKey, revision: 2, creator: { displayName: 'Garden Hosts' } },
+      })
+      const unlistRetry = await Effect.runPromise(
+        Effect.gen(function* () {
+          const service = yield* personalRepoModule.BlueprintPersonalRepo
+          return yield* service.unlist(actorId, {
+            id: templateId,
+            expectedVersion: 2,
+            expectedListedRevision: 2,
+          })
+        }).pipe(Effect.provide(live))
+      )
+      expect(unlistRetry).toEqual(unlisted)
+      const [linkAfterUnlist] = await db
+        .select()
+        .from(blueprintShareLink)
+        .where((await import('drizzle-orm')).eq(blueprintShareLink.revisionId, listedV2!.id))
+      expect(linkAfterUnlist?.revokedAt).toBe(null)
+
+      const linkedPreviewAfterUnlist = await Effect.runPromise(
+        Effect.gen(function* () {
+          const service = yield* blueprintRuntime.BlueprintRepo
+          return yield* service.revision(catalogKey, 2, recipientId, linkToken)
+        }).pipe(Effect.provide(catalogLayer))
+      )
+      expect(linkedPreviewAfterUnlist.contentHash).toBe(updatedListed.catalogEntry.contentHash)
+      const unlistedCatalogs = await Promise.all(
+        [actorId, recipientId].map((userId) =>
+          Effect.runPromise(
+            Effect.gen(function* () {
+              const service = yield* blueprintRuntime.BlueprintRepo
+              return yield* service.catalog(userId)
+            }).pipe(Effect.provide(catalogLayer))
+          )
+        )
+      )
+      expect(
+        unlistedCatalogs.every((entries) =>
+          entries.every(({ catalogKey: key }) => key !== catalogKey)
+        )
+      ).toBe(true)
+
+      const recipientRevisionWithoutLink = await Effect.runPromiseExit(
         Effect.gen(function* () {
           const service = yield* blueprintRuntime.BlueprintRepo
           return yield* service.revision(catalogKey, 2, recipientId)
         }).pipe(Effect.provide(catalogLayer))
       )
-      expect(recipientRevision.contentHash).toBe(updatedListed.catalogEntry.contentHash)
+      expect(Exit.isFailure(recipientRevisionWithoutLink)).toBe(true)
       const deniedOwnerOperation = await Effect.runPromiseExit(
         Effect.gen(function* () {
           const service = yield* personalRepoModule.BlueprintPersonalRepo

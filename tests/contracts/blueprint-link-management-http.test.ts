@@ -43,7 +43,19 @@ test('anonymous native management is denied before reading private state or muta
 test.each([
   [
     { action: 'templates', eventId },
-    { templates: [{ id: templateId, title: 'Cottage', publishedRevision: 2, retired: false }] },
+    {
+      templates: [
+        {
+          id: templateId,
+          title: 'Cottage',
+          publishedRevision: 2,
+          listedRevision: null,
+          creatorName: null,
+          activeShareLinkCount: 0,
+          retired: false,
+        },
+      ],
+    },
   ],
   [{ action: 'list', eventId, templateId }, { links: [link] }],
   [

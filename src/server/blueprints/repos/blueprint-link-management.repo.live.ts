@@ -41,7 +41,17 @@ export const BlueprintLinkManagementRepoLive = Layer.effect(
               if (input.action === 'templates') {
                 const templates = yield* pg<BlueprintManagedTemplate>`
             SELECT t.id, COALESCE(r.document #>> '{blueprint,name}', t.content->>'name') AS title,
-              r.revision AS "publishedRevision", t.listed_revision AS "listedRevision",
+              r.revision AS "publishedRevision",
+              CASE WHEN t.retired_at IS NULL AND EXISTS (
+                SELECT 1 FROM blueprint_revision lr
+                WHERE lr.template_id = t.id AND lr.revision = t.listed_revision AND lr.retired_at IS NULL
+              ) THEN t.listed_revision ELSE NULL END AS "listedRevision",
+              t.creator_name AS "creatorName",
+              CASE WHEN t.retired_at IS NOT NULL THEN 0 ELSE (
+                SELECT count(*)::int FROM blueprint_share_link l
+                JOIN blueprint_revision lr ON lr.id = l.revision_id
+                WHERE lr.template_id = t.id AND l.revoked_at IS NULL AND lr.retired_at IS NULL
+              ) END AS "activeShareLinkCount",
               (t.retired_at IS NOT NULL) AS retired
             FROM blueprint_template t JOIN member m ON m.organization_id = t.organization_id
             LEFT JOIN blueprint_revision r ON r.template_id = t.id AND r.revision = t.published_revision AND r.retired_at IS NULL
@@ -75,11 +85,18 @@ export const BlueprintLinkManagementRepoLive = Layer.effect(
                       })
                     )
                 }
-                const [updated] = yield* pg<{ listedRevision: number | null }>`
-            UPDATE blueprint_template SET listed_revision = ${input.revision}
+                const [updated] = yield* pg<{
+                  listedRevision: number | null
+                  creatorName: string | null
+                }>`
+            UPDATE blueprint_template SET listed_revision = ${input.revision},
+              creator_name = COALESCE(${input.creatorName ?? null}, creator_name)
             WHERE id = ${input.templateId}
-            RETURNING listed_revision AS "listedRevision"`
-                return { listedRevision: updated!.listedRevision }
+            RETURNING listed_revision AS "listedRevision", creator_name AS "creatorName"`
+                return {
+                  listedRevision: updated!.listedRevision,
+                  creatorName: updated!.creatorName,
+                }
               }
 
               const owned = yield* pg`

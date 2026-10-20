@@ -1,0 +1,2 @@
+ALTER TABLE "blueprint_template" ADD COLUMN "creator_name" text;--> statement-breakpoint
+ALTER TABLE "blueprint_template" ADD CONSTRAINT "blueprint_template_creator_name_check" CHECK ("creator_name" is null or (char_length("creator_name") between 1 and 80 and btrim("creator_name") <> ''));

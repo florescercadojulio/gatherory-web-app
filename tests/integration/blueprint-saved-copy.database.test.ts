@@ -150,6 +150,7 @@ test.skipIf(!enabled)(
         createRequestId: crypto.randomUUID(),
         createRequestHash: 'a'.repeat(64),
         content,
+        creatorName: 'Source Host',
         draftVersion: 1,
         publishedRevision: 1,
         publishedDraftVersion: 1,
@@ -197,9 +198,12 @@ test.skipIf(!enabled)(
         draftVersion: 1,
         publishedRevision: 1,
         listedRevision: null,
+        creatorName: null,
+        activeShareLinkCount: 0,
         catalogEntry: { revision: 1, definition: { blueprint: { name: content.name } } },
       })
       expect(copied.catalogEntry.catalogKey).not.toBe(sourceCatalogKey)
+      expect(copied.catalogEntry.creator).toBeUndefined()
 
       const repeated = await run(
         copyWorkflow.createBlueprintCopyWorkflow(actor, { requestId, content }),

@@ -73,13 +73,21 @@ export const BlueprintRepoLive = Layer.effect(
           })
         )
       )
-    const catalogRow = (row: typeof blueprintRevision.$inferSelect): CatalogRevision => ({
+    const catalogRow = (
+      row: typeof blueprintRevision.$inferSelect,
+      creatorName: string | null
+    ): CatalogRevision => ({
       id: row.id,
       catalogKey: row.catalogKey,
       revision: row.revision,
       contentHash: row.contentHash,
       definition: BlueprintCatalogDefinitionSchema.parse(row.document),
       description: row.description,
+      ...(row.templateId === null
+        ? { creator: { displayName: 'Gatherory' } }
+        : creatorName
+          ? { creator: { displayName: creatorName } }
+          : {}),
     })
     const record = (row: typeof blueprintInstallation.$inferSelect): InstallationRecord => ({
       id: row.id,
@@ -129,6 +137,13 @@ export const BlueprintRepoLive = Layer.effect(
           select 1 from member m where m.organization_id = t.organization_id
             and m.user_id = ${actorId} and m.role = 'owner'
         ))
+    ))`
+    // Search is the public catalog even for an owner. Private author access
+    // belongs to exact revision lookup and the personal library, not discovery.
+    const listedInCatalog = sql`(${blueprintRevision.templateId} is null or exists (
+      select 1 from blueprint_template t
+      where t.id = ${blueprintRevision.templateId} and t.retired_at is null
+        and t.listed_revision = ${blueprintRevision.revision}
     ))`
     // A completed install pins an immutable source document. This authority is
     // deliberately used only by exact revision lookup, never catalog discovery.
@@ -263,20 +278,26 @@ export const BlueprintRepoLive = Layer.effect(
         return record(row)
       })
     return {
-      catalog: (actorId) =>
+      catalog: (_actorId) =>
         bind(
           db
-            .select()
+            .select({ revision: blueprintRevision, creatorName: blueprintTemplate.creatorName })
             .from(blueprintRevision)
-            .where(and(isNull(blueprintRevision.retiredAt), visible(actorId)))
-            .pipe(Effect.map((rows) => rows.map(catalogRow)))
+            .leftJoin(blueprintTemplate, eq(blueprintTemplate.id, blueprintRevision.templateId))
+            .where(and(isNull(blueprintRevision.retiredAt), listedInCatalog))
+            .pipe(
+              Effect.map((rows) =>
+                rows.map(({ revision, creatorName }) => catalogRow(revision, creatorName))
+              )
+            )
         ),
       revision: (catalogKey, revision, actorId, shareToken) =>
         bind(
           Effect.gen(function* () {
             const [row] = yield* db
-              .select()
+              .select({ revision: blueprintRevision, creatorName: blueprintTemplate.creatorName })
               .from(blueprintRevision)
+              .leftJoin(blueprintTemplate, eq(blueprintTemplate.id, blueprintRevision.templateId))
               .where(
                 and(
                   eq(blueprintRevision.catalogKey, catalogKey),
@@ -287,7 +308,7 @@ export const BlueprintRepoLive = Layer.effect(
               )
               .limit(1)
             if (!row) return yield* Effect.fail(missing())
-            return catalogRow(row)
+            return catalogRow(row.revision, row.creatorName)
           })
         ),
       status: (actorId, requestId) =>

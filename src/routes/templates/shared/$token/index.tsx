@@ -38,6 +38,7 @@ function SharedTemplatePage() {
   const { t } = useTranslation()
   const { token } = Route.useParams()
   const { entry } = Route.useLoaderData()
+  const creatorName = entry?.creator?.displayName.trim()
   const parsed = entry ? BlueprintCatalogDefinitionSchema.safeParse(entry.definition) : null
   const definition = parsed?.success ? parsed.data : null
   const tree = definition?.modules
@@ -72,6 +73,11 @@ function SharedTemplatePage() {
         <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
           {definition.blueprint.name}
         </h1>
+        {creatorName ? (
+          <p className="text-sm text-muted-foreground">
+            {t('blueprints.creatorByline', { name: creatorName })}
+          </p>
+        ) : null}
         <p className="text-muted-foreground">{t('blueprints.sharedTemplatePrivacy')}</p>
       </header>
 

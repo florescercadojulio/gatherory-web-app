@@ -19,6 +19,8 @@ const copied = {
   draftVersion: 1,
   publishedRevision: 1,
   listedRevision: null,
+  creatorName: null,
+  activeShareLinkCount: 0,
   catalogEntry: {
     catalogKey: 'private_abc',
     revision: 1,
@@ -35,6 +37,7 @@ it.effect('validates snapshot before provisioning and creates a personal copy', 
     list: () => Effect.succeed({ templates: [] }),
     save: () => Effect.die('unused'),
     publish: () => Effect.die('unused'),
+    unlist: () => Effect.die('unused'),
     delete: () => Effect.die('unused'),
   }
   const context = vi.fn(() =>
@@ -94,6 +97,13 @@ it.effect('validates snapshot before provisioning and creates a personal copy', 
       { requestId: '10000000-0000-4000-8000-000000000002', content }
     ).pipe(Effect.provide(layer))
     expect(result.id).toBe('10000000-0000-4000-8000-000000000001')
+    expect(result).toMatchObject({
+      listedRevision: null,
+      creatorName: null,
+      activeShareLinkCount: 0,
+      catalogEntry: { catalogKey: 'private_abc' },
+    })
+    expect(result.catalogEntry).not.toHaveProperty('creator')
     expect(copy).toHaveBeenCalledTimes(1)
     expect(copy).toHaveBeenCalledWith('actor', {
       requestId: '10000000-0000-4000-8000-000000000002',

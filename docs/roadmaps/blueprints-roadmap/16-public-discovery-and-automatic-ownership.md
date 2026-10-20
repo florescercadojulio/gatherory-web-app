@@ -29,20 +29,29 @@ Advanced web authoring can still explicitly select an owned destination.
 `blueprint_template.listed_revision` is nullable and identifies exactly one
 immutable publication offered through the catalog. All existing templates
 default to NULL, so private drafts, unlisted links and old publications do not
-silently become public. New native requests explicitly send `discoverable: true`;
-legacy requests without that flag remain unlisted.
+silently become public. Current native sharing requests use `discoverable: false`;
+Search publication is a separate explicit action. The earlier opt-in
+`discoverable: true` command remains compatible; omitted flags default false.
 
 The existing catalog projection supplies the template name, browse category and
 summary to native Search. A viewer needs no membership or planning grant in the
 author's organization or source event. Catalog/revision/preview/schedule/install
-access checks recognize only the listed revision, while owner and bearer-link
-access retain their separate existing rules. Drafts, capture metadata, private
+access checks recognize only the listed revision, while exact owner and bearer-link
+access retain their separate existing rules. Catalog browsing never uses the
+owner-access exception: owners see the same public entries and revision as other
+viewers. Drafts, capture metadata, private
 source records, participants and costs are never added to catalog responses.
 
 Manage Links includes Search visibility controls, using a source-scoped,
 owner-authorized `listing` command. Owners can remove a template from Search
 without deleting independent copies. Listing another revision is explicit;
 editing/publishing a draft never silently replaces an existing public version.
+The personal Blueprints library also offers Publish to Search / Remove from
+Search in its long-press menu. Removal uses personal ownership and optimistic
+draft/listing checks, without requiring continued access to the captured event.
+It preserves links, the creator label and publication history. Personal blueprint
+saves may update an already-listed entry under its stable catalog key; saving
+an unlisted blueprint does not list it.
 
 Public visibility and bearer links are independent. Revoking a link does not
 remove a listed template from Search. Removing a Search listing does not revoke

@@ -29,6 +29,7 @@ export const blueprintTemplate = pgTable(
     createRequestId: uuid('create_request_id').notNull(),
     createRequestHash: text('create_request_hash').notNull(),
     content: jsonb('content').notNull(),
+    creatorName: text('creator_name'),
     draftVersion: integer('draft_version').default(1).notNull(),
     publishedRevision: integer('published_revision'),
     listedRevision: integer('listed_revision'),
@@ -49,6 +50,10 @@ export const blueprintTemplate = pgTable(
     check(
       'blueprint_template_listed_revision_positive',
       sql`${table.listedRevision} is null or ${table.listedRevision} > 0`
+    ),
+    check(
+      'blueprint_template_creator_name_check',
+      sql`${table.creatorName} is null or (char_length(${table.creatorName}) between 1 and 80 and btrim(${table.creatorName}) <> '')`
     ),
   ]
 )

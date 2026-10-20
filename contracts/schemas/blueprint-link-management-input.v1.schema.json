@@ -118,6 +118,12 @@
               "type": "null"
             }
           ]
+        },
+        "creatorName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80,
+          "description": "1–80 Unicode code points; surrounding whitespace is trimmed before validation."
         }
       },
       "required": [

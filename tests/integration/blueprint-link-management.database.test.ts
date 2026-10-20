@@ -367,6 +367,8 @@ test.skipIf(!enabled)(
             id: ids.published,
             publishedRevision: 1,
             listedRevision: null,
+            creatorName: null,
+            activeShareLinkCount: 0,
             retired: false,
           }),
           expect.objectContaining({ id: ids.draft, publishedRevision: null, retired: false }),
@@ -394,6 +396,14 @@ test.skipIf(!enabled)(
       })
       const linkId = parsedCreated.link.id
       const rawToken = parsedCreated.token
+      const templatesWithLink = await run(
+        manage(ids.eventOwner, { action: 'templates', eventId: ids.root })
+      )
+      expect(templatesWithLink).toMatchObject({
+        templates: expect.arrayContaining([
+          expect.objectContaining({ id: ids.published, activeShareLinkCount: 1 }),
+        ]),
+      })
       const linkList = await run(
         manage(ids.eventOwner, { action: 'list', eventId: ids.root, templateId: ids.published })
       )
@@ -419,9 +429,10 @@ test.skipIf(!enabled)(
             eventId: ids.root,
             templateId: ids.published,
             revision: 1,
+            creatorName: 'Garden Hosts',
           })
         )
-      ).toEqual({ listedRevision: 1 })
+      ).toEqual({ listedRevision: 1, creatorName: 'Garden Hosts' })
       const [listedTemplate] = await db
         .select()
         .from(blueprintTemplate)
@@ -436,7 +447,41 @@ test.skipIf(!enabled)(
             revision: null,
           })
         )
-      ).toEqual({ listedRevision: null })
+      ).toEqual({ listedRevision: null, creatorName: 'Garden Hosts' })
+      const [unlistedTemplate] = await db
+        .select()
+        .from(blueprintTemplate)
+        .where(eq(blueprintTemplate.id, ids.published))
+      expect(unlistedTemplate?.listedRevision).toBe(null)
+      expect(unlistedTemplate?.creatorName).toBe('Garden Hosts')
+      const templatesAfterUnlisting = await run(
+        manage(ids.eventOwner, { action: 'templates', eventId: ids.root })
+      )
+      expect(templatesAfterUnlisting).toMatchObject({
+        templates: expect.arrayContaining([
+          expect.objectContaining({
+            id: ids.published,
+            creatorName: 'Garden Hosts',
+            activeShareLinkCount: 1,
+          }),
+        ]),
+      })
+      await run(
+        manage(ids.eventOwner, {
+          action: 'revoke',
+          eventId: ids.root,
+          templateId: ids.published,
+          linkId,
+        })
+      )
+      const templatesAfterPublishedRevoke = await run(
+        manage(ids.eventOwner, { action: 'templates', eventId: ids.root })
+      )
+      expect(templatesAfterPublishedRevoke).toMatchObject({
+        templates: expect.arrayContaining([
+          expect.objectContaining({ id: ids.published, activeShareLinkCount: 0 }),
+        ]),
+      })
       await denied(
         ids.eventOwner,
         { action: 'listing', eventId: ids.root, templateId: ids.draft, revision: 1 },
@@ -579,6 +624,14 @@ test.skipIf(!enabled)(
         .update(blueprintTemplate)
         .set({ retiredAt: now })
         .where(eq(blueprintTemplate.id, ids.retired))
+      const templatesAfterRetire = await run(
+        manage(ids.eventOwner, { action: 'templates', eventId: ids.root })
+      )
+      expect(templatesAfterRetire).toMatchObject({
+        templates: expect.arrayContaining([
+          expect.objectContaining({ id: ids.retired, activeShareLinkCount: 0 }),
+        ]),
+      })
       expect(
         await run(
           manage(ids.eventOwner, {
@@ -588,7 +641,7 @@ test.skipIf(!enabled)(
             revision: null,
           })
         )
-      ).toEqual({ listedRevision: null })
+      ).toEqual({ listedRevision: null, creatorName: null })
       await denied(
         ids.eventOwner,
         { action: 'listing', eventId: ids.root, templateId: ids.retired, revision: 1 },
@@ -634,6 +687,14 @@ test.skipIf(!enabled)(
           expect.objectContaining({ id: parsedRetiredLink.link.id, revokedAt: expect.any(String) }),
         ])
       )
+      const templatesAfterRevoke = await run(
+        manage(ids.eventOwner, { action: 'templates', eventId: ids.root })
+      )
+      expect(templatesAfterRevoke).toMatchObject({
+        templates: expect.arrayContaining([
+          expect.objectContaining({ id: ids.retired, activeShareLinkCount: 0 }),
+        ]),
+      })
       await denied(
         ids.eventOwner,
         {

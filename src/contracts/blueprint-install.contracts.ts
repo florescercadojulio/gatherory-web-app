@@ -351,12 +351,15 @@ export const BlueprintContentHashSchema = z
   .length(64)
   .regex(/^[a-f0-9]{64}$/)
 
+export const BlueprintCreatorSchema = z.object({ displayName: characterString(1, 80) }).strict()
+
 export const BlueprintCatalogRevisionSchema = z
   .object({
     catalogKey: BlueprintStableKeySchema,
     revision: z.number().int().positive(),
     contentHash: BlueprintContentHashSchema,
     definition: BlueprintCatalogDefinitionSchema,
+    creator: BlueprintCreatorSchema.optional(),
   })
   .superRefine((revision, context) => {
     if (revision.catalogKey !== revision.definition.blueprint.id) {

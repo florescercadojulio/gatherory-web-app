@@ -1,4 +1,4 @@
-import { and, eq, isNull, sql } from 'drizzle-orm'
+import { and, eq, inArray, isNull, sql } from 'drizzle-orm'
 import { PgClient } from '@effect/sql-pg/PgClient'
 import { Effect, Layer } from 'effect'
 import { DB } from '@/db'
@@ -23,10 +23,10 @@ const missing = () =>
     code: 'BLUEPRINT_NOT_FOUND',
     userMessageKey: 'serverErrors.NOT_FOUND',
   })
-const conflict = () =>
+const conflict = (code = 'BLUEPRINT_DRAFT_VERSION_CONFLICT') =>
   new ConflictError({
     category: 'conflict',
-    code: 'BLUEPRINT_DRAFT_VERSION_CONFLICT',
+    code,
     userMessageKey: 'serverErrors.CONFLICT',
   })
 
@@ -91,13 +91,41 @@ export const BlueprintPersonalRepoLive = Layer.effect(
         contentHash: blueprintHash(definition),
         definition,
         description: content.description,
+        ...(row.creatorName ? { creator: { displayName: row.creatorName } } : {}),
       }
     }
-    const shape = (row: typeof blueprintTemplate.$inferSelect): PersonalBlueprint => ({
+    const activeLinkCounts = (templateIds: string[]) =>
+      Effect.gen(function* () {
+        if (!templateIds.length) return new Map<string, number>()
+        const rows = yield* db
+          .select({
+            templateId: blueprintRevision.templateId,
+            count: sql<number>`count(*)::int`,
+          })
+          .from(blueprintShareLink)
+          .innerJoin(blueprintRevision, eq(blueprintRevision.id, blueprintShareLink.revisionId))
+          .innerJoin(blueprintTemplate, eq(blueprintTemplate.id, blueprintRevision.templateId))
+          .where(
+            and(
+              inArray(blueprintRevision.templateId, templateIds),
+              isNull(blueprintShareLink.revokedAt),
+              isNull(blueprintRevision.retiredAt),
+              isNull(blueprintTemplate.retiredAt)
+            )
+          )
+          .groupBy(blueprintRevision.templateId)
+        return new Map(rows.map(({ templateId, count }) => [templateId!, count]))
+      })
+    const shape = (
+      row: typeof blueprintTemplate.$inferSelect,
+      activeShareLinkCount = 0
+    ): PersonalBlueprint => ({
       id: row.id,
       draftVersion: row.draftVersion,
       publishedRevision: row.publishedRevision,
       listedRevision: row.listedRevision,
+      creatorName: row.creatorName,
+      activeShareLinkCount,
       catalogEntry: entry(row, row.publishedRevision ?? 1),
     })
     return {
@@ -153,6 +181,7 @@ export const BlueprintPersonalRepoLive = Layer.effect(
                   existing.publishedRevision !== 1 ||
                   existing.publishedDraftVersion !== existing.draftVersion ||
                   existing.listedRevision !== null ||
+                  existing.creatorName !== null ||
                   !sameContent ||
                   !samePublication
                 )
@@ -163,7 +192,10 @@ export const BlueprintPersonalRepoLive = Layer.effect(
                       userMessageKey: 'serverErrors.CONFLICT',
                     })
                   )
-                return shape(existing)
+                return shape(
+                  existing,
+                  (yield* activeLinkCounts([existing.id])).get(existing.id) ?? 0
+                )
               }
               const id = crypto.randomUUID()
               const catalogKey = `private_${id.replaceAll('-', '')}`
@@ -181,6 +213,7 @@ export const BlueprintPersonalRepoLive = Layer.effect(
                   createRequestId: input.requestId,
                   createRequestHash: requestHash,
                   content: input.content,
+                  creatorName: null,
                   draftVersion: 1,
                   publishedRevision: 1,
                   publishedDraftVersion: 1,
@@ -218,7 +251,8 @@ export const BlueprintPersonalRepoLive = Layer.effect(
                 )
               )
               .orderBy(blueprintTemplate.updatedAt, blueprintTemplate.id)
-            return { templates: rows.map(shape) }
+            const counts = yield* activeLinkCounts(rows.map((row) => row.id))
+            return { templates: rows.map((row) => shape(row, counts.get(row.id) ?? 0)) }
           })
         ),
       save: (actorId, input) =>
@@ -229,7 +263,7 @@ export const BlueprintPersonalRepoLive = Layer.effect(
               if (current.draftVersion !== input.expectedVersion)
                 return yield* Effect.fail(conflict())
               if (blueprintHash(current.content) === blueprintHash(input.content))
-                return shape(current)
+                return shape(current, (yield* activeLinkCounts([current.id])).get(current.id) ?? 0)
               const nextVersion = current.draftVersion + 1
               let publishedRevision = current.publishedRevision
               let listedRevision = current.listedRevision
@@ -264,7 +298,7 @@ export const BlueprintPersonalRepoLive = Layer.effect(
                 })
                 .where(eq(blueprintTemplate.id, input.id))
                 .returning()
-              return shape(row!)
+              return shape(row!, (yield* activeLinkCounts([row!.id])).get(row!.id) ?? 0)
             })
           )
         ),
@@ -275,12 +309,15 @@ export const BlueprintPersonalRepoLive = Layer.effect(
               const current = yield* owned(actorId, input.id)
               if (current.draftVersion !== input.expectedVersion)
                 return yield* Effect.fail(conflict())
-              if (
+              const samePublication =
                 current.publishedRevision !== null &&
                 current.publishedDraftVersion === current.draftVersion &&
                 current.listedRevision === current.publishedRevision
+              if (
+                samePublication &&
+                (input.creatorName === undefined || input.creatorName === current.creatorName)
               )
-                return shape(current)
+                return shape(current, (yield* activeLinkCounts([current.id])).get(current.id) ?? 0)
 
               let revision = current.publishedRevision
               if (revision === null || current.publishedDraftVersion !== current.draftVersion) {
@@ -306,11 +343,33 @@ export const BlueprintPersonalRepoLive = Layer.effect(
                   publishedRevision: revision,
                   publishedDraftVersion: current.draftVersion,
                   listedRevision: revision,
+                  ...(input.creatorName !== undefined ? { creatorName: input.creatorName } : {}),
                   updatedAt: new Date(),
                 })
                 .where(eq(blueprintTemplate.id, current.id))
                 .returning()
-              return shape(row!)
+              return shape(row!, (yield* activeLinkCounts([row!.id])).get(row!.id) ?? 0)
+            })
+          )
+        ),
+      unlist: (actorId, input) =>
+        bind(
+          pg.withTransaction(
+            Effect.gen(function* () {
+              const current = yield* owned(actorId, input.id)
+              if (current.draftVersion !== input.expectedVersion)
+                return yield* Effect.fail(conflict())
+              if (current.listedRevision === null)
+                return shape(current, (yield* activeLinkCounts([current.id])).get(current.id) ?? 0)
+              if (current.listedRevision !== input.expectedListedRevision)
+                return yield* Effect.fail(conflict('BLUEPRINT_LISTED_REVISION_CONFLICT'))
+
+              const [row] = yield* db
+                .update(blueprintTemplate)
+                .set({ listedRevision: null, updatedAt: new Date() })
+                .where(eq(blueprintTemplate.id, current.id))
+                .returning()
+              return shape(row!, (yield* activeLinkCounts([row!.id])).get(row!.id) ?? 0)
             })
           )
         ),

@@ -409,6 +409,14 @@ test.skipIf(!enabled)('unlisted blueprint links stay scoped, pinned, and revocab
     )
     expect(installerCatalog.map(({ catalogKey }) => catalogKey)).not.toContain(catalogKeyA)
     expect(installerCatalog.map(({ catalogKey }) => catalogKey)).not.toContain(catalogKeyB)
+    const ownerCatalog = await run(
+      Effect.gen(function* () {
+        const repo = yield* BlueprintRepo
+        return yield* repo.catalog(ids.owner)
+      })
+    )
+    expect(ownerCatalog.map(({ catalogKey }) => catalogKey)).not.toContain(catalogKeyA)
+    expect(ownerCatalog.map(({ catalogKey }) => catalogKey)).not.toContain(catalogKeyB)
     expect(Exit.isFailure(await runExit(getRevision(catalogKeyA, 1, ids.installer)))).toBe(true)
 
     phase = 'link grants only its pinned revision to preview and scheduling'

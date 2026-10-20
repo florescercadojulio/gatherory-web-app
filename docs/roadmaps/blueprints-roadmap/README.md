@@ -3,7 +3,8 @@
 **Status:** In progress — first Wedding installation slice implemented; full iteration remains open.
 **Priority:** P1, explicitly requested on 2026-10-13.
 **Owner area:** `src/server/blueprints/`, protected `/blueprints` pages, and native new-event setup.
-**Last reviewed:** 2026-10-15, against web/server `ef57f6a` and iOS `9e3a70e`.
+**Last reviewed:** 2026-10-20, against web/server `69e28f0`, iOS `dd28ba8`,
+and the uncommitted native QR slice described in `22`.
 October 14 implementation evidence in `00`/`00a` remains dated to that review;
 the subsequent October 15 implementation adds the Wedding proving slice described below.
 
@@ -14,10 +15,11 @@ template with suggested activities, starter ideas, and instructions, preview
 it, and publish a version for reuse. Creating an event from a version produces
 independent planning records that the host can change normally.
 
-Use **Templates**, **New template**, and **Use template** in the product.
-**Blueprint** is the shared contract and implementation term. A template's
-suggestions are offered for review; they are not attendance responses or final
-planning decisions.
+Use **Blueprints**, **New blueprint**, and **Use blueprint** in the product.
+As of October 19, Blueprint is the product term as well as the shared contract
+and implementation term. Existing route, storage and localization identifiers
+remain compatible. Blueprint suggestions are offered for review; they are not
+attendance responses or final planning decisions.
 
 The same configuration model must later support a host's Airbnb-style stay or
 experience: arrival instructions, recommended activities, local ideas, and
@@ -32,6 +34,39 @@ web-first; keep iOS lightweight. See
 design constraints and future slices, not newly implemented capabilities.
 
 ## Current position and stopping point
+
+**Native QR distribution — October 19:** Owner sharing controls can display and
+share a PNG for the current authorized template URL. Codes use the existing
+preview and explicit independent-copy flow, with no server or sync change.
+New owner links are retained in device-only, account-scoped Keychain storage
+and reused after fresh ownership/active-link checks. Older unsaved URLs remain
+unrecoverable; replacement creation and revocation stay explicit.
+Share Blueprint opens existing owned blueprints and restores their saved QR
+after authorization. First-time sharing offers an explicit Create Share Link
+action after read-only preparation; workspace/blueprint editing is the content
+verification step, with no repeated review in sharing or saving. Manage Sharing
+keeps the QR and link visible, with replacement, revocation and Search visibility
+in its toolbar menu. New sharing is unlisted by default; Search publication
+is a separate confirmed action and is never required for a link or QR.
+The native creation screen leads with the plan name and a short explanation;
+link creation has a full-width bottom action. Private Save Blueprint from Home
+and Workspaces uses the same compact screen and an explicit Save Blueprint action.
+The rest of the native flow uses Use Blueprint → confirm dates → Create
+Workspace, with no extra pre-setup confirmation. Library cards omit internal
+versions, collections say Blueprints / Drafts, and setup/recovery copy uses plain
+language while keeping date consent and exact-retry boundaries.
+Owner badges now distinguish Link active, In Search and Private using fresh
+metadata. First native Search publication asks for a chosen public creator name;
+public discovery and shared previews show it without exposing account data.
+Titles remain flexible, republishing retains one catalog entry, and saved copies
+start private without inheriting attribution. No social features are added.
+The additive creator-name migration and server release are still undeployed.
+**October 20 follow-up:** Search no longer includes private owned revisions.
+Creating a first link remains unlisted; catalog access now uses the same public
+listing rule for owners and other viewers. Personal blueprint menus provide both
+Publish to Search and Remove from Search, independently of link revocation.
+Device scanning, system sharing and deployed universal links still need manual
+acceptance. See [22 — QR distribution](22-qr-distribution-handoff.md).
 
 **Independent saved setup — October 19:** Saved native drafts are portable
 copies even before installation. They can be resumed after the original is
@@ -225,10 +260,12 @@ the listed version without changing installed copies. See
 
 **Next slice:** finish manual/device acceptance and deployment of private
 authoring, and add live guide editing. The user explicitly moved private authoring ahead of the earlier
-billing-first recommendation in `05`; billing remains unimplemented. Future
-QR generation remains a follow-up to the URL flow in `14`; native public
-discovery is implemented in `16`. Templates do not require payment. Do not
-describe the full feature as shipped until its remaining slices are complete.
+billing-first recommendation in `05`; billing remains unimplemented. Native
+QR display and system image sharing are implemented locally in
+[22](22-qr-distribution-handoff.md), reusing the URL flow in `14`; physical-device
+scanning and deployed universal-link acceptance remain open. Web QR authoring
+and print-layout tooling remain deferred. Native public discovery is implemented
+in `16`. Templates do not require payment. Do not describe the full feature as shipped until its remaining slices are complete.
 
 ## Evaluation summary
 
@@ -314,6 +351,7 @@ and [selective capture](13-event-to-template-capture.md).
 14. [12 — Resumable native setup](12-resumable-setup.md)
 15. [13 — Selective event-to-template capture](13-event-to-template-capture.md)
 16. [14 — Unlisted template links and revocation](14-unlisted-template-links.md)
+17. [22 — QR distribution implementation handoff](22-qr-distribution-handoff.md)
 
 Each numbered slice is a usable boundary. Contract/storage completion is not
 authoring completion; authoring completion is not installation completion.

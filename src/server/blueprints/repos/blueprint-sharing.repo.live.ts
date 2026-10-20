@@ -161,7 +161,7 @@ export const BlueprintSharingRepoLive = Layer.effect(
         bind(
           Effect.gen(function* () {
             const [row] = yield* db
-              .select({ revision: blueprintRevision })
+              .select({ revision: blueprintRevision, creatorName: blueprintTemplate.creatorName })
               .from(blueprintShareLink)
               .innerJoin(blueprintRevision, eq(blueprintRevision.id, blueprintShareLink.revisionId))
               .innerJoin(blueprintTemplate, eq(blueprintTemplate.id, blueprintRevision.templateId))
@@ -183,6 +183,7 @@ export const BlueprintSharingRepoLive = Layer.effect(
               contentHash: revision.contentHash,
               definition: BlueprintCatalogDefinitionSchema.parse(revision.document),
               description: revision.description,
+              ...(row.creatorName ? { creator: { displayName: row.creatorName } } : {}),
             }
           })
         ),

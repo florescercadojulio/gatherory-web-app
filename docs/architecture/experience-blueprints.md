@@ -263,6 +263,17 @@ publication and search pointer when listed. Suggested/confirmed installation
 dates are excluded from publication content. Native screens currently have no
 web-editor affordance.
 
+Search is the public catalog for every viewer, including the blueprint owner.
+It includes curated starters and only the exact `listed_revision` of an active
+authored blueprint. Ownership permits direct preview/edit/copy access through
+the personal library and exact revision APIs; it does not insert private or
+link-only blueprints into Search. Creating a sharing link does not list it.
+The personal blueprint long-press menu offers Publish to Search or Remove from
+Search according to the current server listing state. Link/QR management keeps
+its separate Search and link-revocation controls. Personal withdrawal checks
+ownership, draft version and the confirmed listed revision; it changes listing
+metadata only, preserving creator name, immutable publications and links.
+
 Deleting the author's record withdraws search access and revokes distribution
 links without deleting immutable revisions or completed copies. Completed
 installations retain exact-source reuse authority scoped to their actor,

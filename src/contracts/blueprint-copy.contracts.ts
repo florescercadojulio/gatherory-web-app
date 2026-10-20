@@ -13,6 +13,8 @@ export const BlueprintCopyResponseSchema = z
     draftVersion: z.number().int().positive(),
     publishedRevision: z.number().int().positive().nullable(),
     listedRevision: z.null(),
+    creatorName: z.null(),
+    activeShareLinkCount: z.number().int().nonnegative(),
     catalogEntry: z
       .object({
         catalogKey: StableKeySchema,

@@ -26,6 +26,8 @@ test.skipIf(!enabled)(
       captureRepo,
       nativeCreationRepo,
       sharingRepo,
+      runtimeContracts,
+      blueprintRepoModule,
       workflow,
       sharingWorkflow,
       authContracts,
@@ -40,6 +42,8 @@ test.skipIf(!enabled)(
       import('@/server/blueprints/repos/blueprint-capture.repo.live'),
       import('@/server/blueprints/repos/blueprint-native-creation.repo.live'),
       import('@/server/blueprints/repos/blueprint-sharing.repo.live'),
+      import('@/server/blueprints/contracts/blueprint-runtime.contracts'),
+      import('@/server/blueprints/repos/blueprint.repo.live'),
       import('@/server/blueprints/workflows/blueprint-native-creation.workflow'),
       import('@/server/blueprints/workflows/blueprint-sharing.workflow'),
       import('@/server/workspaces/connectors/better-auth.con'),
@@ -125,6 +129,12 @@ test.skipIf(!enabled)(
       Layer.provide(Layer.mergeAll(authoringLayer, captureLayer, PgClientLive))
     )
     const sharingLayer = sharingRepo.BlueprintSharingRepoLive.pipe(Layer.provide(PgClientLive))
+    const installCheckpoint = Layer.succeed(runtimeContracts.BlueprintInstallCheckpoint, {
+      afterProjection: () => Effect.void,
+    })
+    const blueprintLayer = blueprintRepoModule.BlueprintRepoLive.pipe(
+      Layer.provide(Layer.mergeAll(PgClientLive, installCheckpoint))
+    )
     const noExternalWorkspaceProvisioning = Layer.succeed(authContracts.BetterAuthWorkspaceCon, {
       listOrganizations: () => Effect.succeed([]),
       createOrganization: () => Effect.die('unexpected workspace provisioning'),
@@ -139,6 +149,7 @@ test.skipIf(!enabled)(
       captureLayer,
       creationLayer,
       sharingLayer,
+      blueprintLayer,
       noExternalWorkspaceProvisioning
     )
     type Dependencies = Layer.Success<typeof layer>
@@ -648,6 +659,24 @@ test.skipIf(!enabled)(
           templateId: created.templateId,
           revision: created.revision,
         })
+      )
+      const ownerCatalogAfterFirstLink = await run(
+        Effect.gen(function* () {
+          const repo = yield* runtimeContracts.BlueprintRepo
+          return yield* repo.catalog(ids.host)
+        })
+      )
+      const viewerCatalogAfterFirstLink = await run(
+        Effect.gen(function* () {
+          const repo = yield* runtimeContracts.BlueprintRepo
+          return yield* repo.catalog(ids.guest)
+        })
+      )
+      expect(ownerCatalogAfterFirstLink.map(({ catalogKey }) => catalogKey)).not.toContain(
+        createdRows[0]!.catalogKey
+      )
+      expect(viewerCatalogAfterFirstLink.map(({ catalogKey }) => catalogKey)).not.toContain(
+        createdRows[0]!.catalogKey
       )
       const resolved = await run(
         sharingWorkflow.resolveBlueprintShareLinkWorkflow({ token: sharingLink.token })

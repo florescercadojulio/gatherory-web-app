@@ -27,6 +27,7 @@ export type CatalogRevision = {
   contentHash: string
   definition: BlueprintCatalogDefinition
   description?: string
+  creator?: { displayName: string }
 }
 export type InstallationRecord = {
   id: string

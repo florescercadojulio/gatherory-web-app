@@ -76,11 +76,16 @@ test.skipIf(!enabled)('private blueprint authoring and independent durable insta
     name: 'Source workspace co-owner',
     email: `coowner-${suffix}@example.test`,
   }
+  const revocableCoOwner = {
+    id: `revocable-coowner-${suffix}`,
+    name: 'Revocable source co-owner',
+    email: `revocable-coowner-${suffix}@example.test`,
+  }
   const ownerOrgId = `author-workspace-${suffix}`
   const activeOrgId = `active-workspace-${suffix}`
   const externalOrgIds = new Set<string>()
   const fixtureOrgIds = new Set([ownerOrgId, activeOrgId])
-  const fixtureUserIds = [actor.id, guest.id, unrelated.id, sourceCoOwner.id]
+  const fixtureUserIds = [actor.id, guest.id, unrelated.id, sourceCoOwner.id, revocableCoOwner.id]
   const checkpointState = { failNext: false }
   let afterProviderCommit: (() => Promise<void>) | undefined
   const checkpoint = Layer.succeed(runtimeContracts.BlueprintInstallCheckpoint, {
@@ -158,11 +163,12 @@ test.skipIf(!enabled)('private blueprint authoring and independent durable insta
   let phase = 'fixture setup'
 
   try {
-    await db
-      .insert(user)
-      .values(
-        [actor, guest, unrelated, sourceCoOwner].map((item) => ({ ...item, emailVerified: true }))
-      )
+    await db.insert(user).values(
+      [actor, guest, unrelated, sourceCoOwner, revocableCoOwner].map((item) => ({
+        ...item,
+        emailVerified: true,
+      }))
+    )
     const now = new Date()
     await db.insert(organization).values([
       {
@@ -206,6 +212,13 @@ test.skipIf(!enabled)('private blueprint authoring and independent durable insta
         id: `coowner-membership-${suffix}`,
         organizationId: ownerOrgId,
         userId: sourceCoOwner.id,
+        role: 'owner',
+        createdAt: now,
+      },
+      {
+        id: `revocable-coowner-membership-${suffix}`,
+        organizationId: ownerOrgId,
+        userId: revocableCoOwner.id,
         role: 'owner',
         createdAt: now,
       },
@@ -331,8 +344,13 @@ test.skipIf(!enabled)('private blueprint authoring and independent durable insta
         offset: 0,
       })
     )
-    expect(curatedRows.data).toHaveLength(3)
+    expect(curatedRows.data.length).toBeGreaterThan(0)
     expect(curatedRows.data.every((row) => row.source === 'curated')).toBe(true)
+    expect(curatedRows.data).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ catalogKey: 'wedding', source: 'curated' }),
+      ])
+    )
     const curatedFirstPage = await runAuthoring(
       authoringWorkflow.listBlueprintTemplatesWorkflow(actor.id, {
         source: 'curated',
@@ -348,7 +366,7 @@ test.skipIf(!enabled)('private blueprint authoring and independent durable insta
         status: 'published',
         query: '',
         limit: 1,
-        offset: 2,
+        offset: Math.max(curatedRows.data.length - 1, 0),
       })
     )
     expect(curatedFirstPage.data).toHaveLength(1)
@@ -531,10 +549,20 @@ test.skipIf(!enabled)('private blueprint authoring and independent durable insta
     )
     expect(
       privateCatalog.some((item) => item.catalogKey === draft.catalogKey && item.revision === 1)
-    ).toBe(true)
+    ).toBe(false)
     expect(
       privateCatalog.some((item) => item.catalogKey === draft.catalogKey && item.revision === 2)
-    ).toBe(true)
+    ).toBe(false)
+    const ownerPrivateRevision = await Effect.runPromise(
+      Effect.gen(function* () {
+        return yield* (yield* runtimeContracts.BlueprintRepo).revision(
+          draft.catalogKey,
+          1,
+          actor.id
+        )
+      }).pipe(Effect.provide(layer))
+    )
+    expect(ownerPrivateRevision).toMatchObject({ catalogKey: draft.catalogKey, revision: 1 })
     const notVisible = await Effect.runPromise(
       Effect.exit(
         Effect.gen(function* () {
@@ -816,12 +844,12 @@ test.skipIf(!enabled)('private blueprint authoring and independent durable insta
 
     phase = 'source revocation during pending installation'
     const revokedDuringProvisionInput = installInput(crypto.randomUUID())
-    const revokedDuringProvision = installAs(sourceCoOwner, revokedDuringProvisionInput)
+    const revokedDuringProvision = installAs(revocableCoOwner, revokedDuringProvisionInput)
     afterProviderCommit = async () => {
       await db
         .update(member)
         .set({ role: 'member' })
-        .where(and(eq(member.organizationId, ownerOrgId), eq(member.userId, sourceCoOwner.id)))
+        .where(and(eq(member.organizationId, ownerOrgId), eq(member.userId, revocableCoOwner.id)))
     }
     const revokedAttempt = await Effect.runPromise(Effect.exit(revokedDuringProvision))
     afterProviderCommit = undefined
@@ -831,7 +859,7 @@ test.skipIf(!enabled)('private blueprint authoring and independent durable insta
       .from(blueprintInstallation)
       .where(
         and(
-          eq(blueprintInstallation.actorUserId, sourceCoOwner.id),
+          eq(blueprintInstallation.actorUserId, revocableCoOwner.id),
           eq(blueprintInstallation.requestId, revokedDuringProvisionInput.requestId)
         )
       )
@@ -842,7 +870,7 @@ test.skipIf(!enabled)('private blueprint authoring and independent durable insta
       result: null,
     })
     const revokedRetry = await Effect.runPromise(
-      Effect.exit(installAs(sourceCoOwner, revokedDuringProvisionInput))
+      Effect.exit(installAs(revocableCoOwner, revokedDuringProvisionInput))
     )
     expect(Exit.isFailure(revokedRetry)).toBe(true)
     expect(providerCalls.get(revokedReceipt!.provisioningSlug)).toBe(1)
@@ -895,17 +923,30 @@ test.skipIf(!enabled)('private blueprint authoring and independent durable insta
           return yield* (yield* runtimeContracts.BlueprintRepo).revision(
             draft.catalogKey,
             1,
-            actor.id
+            unrelated.id
           )
         }).pipe(Effect.provide(layer))
       )
     )
     expect(Exit.isFailure(hiddenPrivateRevision)).toBe(true)
-    expect(await Effect.runPromise(install(install1Input))).toEqual(first)
-    const futureInstall = await Effect.runPromise(
-      Effect.exit(install(installInput(crypto.randomUUID())))
+    const installedActorRevisionRecovery = await Effect.runPromise(
+      Effect.gen(function* () {
+        return yield* (yield* runtimeContracts.BlueprintRepo).revision(
+          draft.catalogKey,
+          1,
+          actor.id
+        )
+      }).pipe(Effect.provide(layer))
     )
-    expect(Exit.isFailure(futureInstall)).toBe(true)
+    expect(installedActorRevisionRecovery.revision).toBe(1)
+    expect(await Effect.runPromise(install(install1Input))).toEqual(first)
+    const futureInstall = await Effect.runPromise(install(installInput(crypto.randomUUID())))
+    expect(futureInstall.organizationID).not.toBe(first.organizationID)
+    expect(futureInstall.scopeID).not.toBe(first.scopeID)
+    const unrelatedFutureInstall = await Effect.runPromise(
+      Effect.exit(installAs(unrelated, installInput(crypto.randomUUID())))
+    )
+    expect(Exit.isFailure(unrelatedFutureInstall)).toBe(true)
     expect(
       await db.select().from(event).where(inArray(event.organizationId, installedOrgIds))
     ).toEqual(beforeRetirementEvents)

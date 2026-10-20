@@ -25,7 +25,7 @@ beforeEach(() => {
   calls.user.mockResolvedValue({ id: 'actor' })
 })
 
-test('personal lifecycle dispatches authenticated list, save, publish, and delete commands', async () => {
+test('personal lifecycle dispatches authenticated list, save, publish, unlist, and delete commands', async () => {
   for (const [input, output] of [
     [{ action: 'list' }, { templates: [] }],
     [
@@ -45,6 +45,15 @@ test('personal lifecycle dispatches authenticated list, save, publish, and delet
       },
       { id: 'template' },
     ],
+    [
+      {
+        action: 'unlist',
+        id: '10000000-0000-4000-8000-000000000001',
+        expectedVersion: 3,
+        expectedListedRevision: 2,
+      },
+      { id: 'template', listedRevision: null },
+    ],
     [{ action: 'delete', id: '10000000-0000-4000-8000-000000000001' }, { deleted: true }],
   ] as const) {
     calls.execute.mockReturnValue(Effect.succeed(output))
@@ -60,7 +69,12 @@ test('personal lifecycle dispatches authenticated list, save, publish, and delet
 test('anonymous callers cannot list or mutate personal blueprints', async () => {
   calls.user.mockResolvedValue(null)
   const response = await handlePersonalBlueprintRequest(
-    request({ action: 'delete', id: '10000000-0000-4000-8000-000000000001' })
+    request({
+      action: 'unlist',
+      id: '10000000-0000-4000-8000-000000000001',
+      expectedVersion: 3,
+      expectedListedRevision: 2,
+    })
   )
   expect(response.status).toBe(401)
   expect(calls.execute).not.toHaveBeenCalled()

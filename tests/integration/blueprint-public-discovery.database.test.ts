@@ -76,11 +76,12 @@ test.skipIf(!enabled)(
     const ids = {
       owner: `public-blueprint-owner-${suffix}`,
       installer: `public-blueprint-installer-${suffix}`,
+      stranger: `public-blueprint-stranger-${suffix}`,
       sourceOrganization: `public-blueprint-source-${suffix}`,
       sourceEvent: crypto.randomUUID(),
       sourcePerson: crypto.randomUUID(),
     }
-    const users = [ids.owner, ids.installer].map((id) => ({
+    const users = [ids.owner, ids.installer, ids.stranger].map((id) => ({
       id,
       name: id,
       email: `${id}@example.test`,
@@ -179,10 +180,15 @@ test.skipIf(!enabled)(
           return discovery.buildBlueprintCatalog(yield* repo.catalog(actorId))
         })
       )
-    const revisionFor = (catalogKey: string, revision: number, shareToken?: string) =>
+    const revisionFor = (
+      catalogKey: string,
+      revision: number,
+      shareToken?: string,
+      actorId = ids.installer
+    ) =>
       Effect.gen(function* () {
         const repo = yield* runtimeContracts.BlueprintRepo
-        return yield* repo.revision(catalogKey, revision, ids.installer, shareToken)
+        return yield* repo.revision(catalogKey, revision, actorId, shareToken)
       })
     const installInput = (
       catalogKey: string,
@@ -373,6 +379,16 @@ test.skipIf(!enabled)(
         .where(eq(member.userId, ids.installer))
       expect(installerMemberships).toEqual([])
       const initialCatalog = (await catalogFor(ids.installer)).entries
+      const ownerCatalog = await catalogFor(ids.owner)
+      expect(ownerCatalog.entries.map(({ catalogKey }) => catalogKey)).toContain(
+        template!.catalogKey
+      )
+      expect(ownerCatalog.entries.map(({ catalogKey }) => catalogKey)).not.toContain(
+        privateDraft.catalogKey
+      )
+      expect(ownerCatalog.entries.map(({ catalogKey }) => catalogKey)).not.toContain(
+        unpublishedDraft.catalogKey
+      )
       const searchMatches = initialCatalog.filter(({ definition }) =>
         definition.blueprint.name.toLowerCase().includes('public garden celebration')
       )
@@ -383,6 +399,24 @@ test.skipIf(!enabled)(
         revision: 1,
         discovery: { categories: ['events'], tags: [], summary: '' },
       })
+      expect(publicEntry.creator).toBeUndefined()
+      const firstCreatorListing = await run(
+        linkManagementWorkflow.manageBlueprintLinksWorkflow(ids.owner, {
+          action: 'listing',
+          eventId: ids.sourceEvent,
+          templateId: created.templateId,
+          revision: 1,
+          creatorName: 'Garden Hosts',
+        })
+      )
+      expect(firstCreatorListing).toEqual({ listedRevision: 1, creatorName: 'Garden Hosts' })
+      const attributedCatalog = await catalogFor(ids.installer)
+      const attributedEntry = attributedCatalog.entries.find(
+        ({ catalogKey }) => catalogKey === template!.catalogKey
+      )!
+      expect(attributedEntry.creator).toEqual({ displayName: 'Garden Hosts' })
+      expect(JSON.stringify(attributedCatalog)).not.toContain(ids.owner)
+      expect(JSON.stringify(attributedCatalog)).not.toContain(`${ids.owner}@example.test`)
       expect(initialCatalog).toEqual(
         expect.arrayContaining([
           expect.objectContaining({
@@ -517,6 +551,13 @@ test.skipIf(!enabled)(
       expect(
         stillPinned.entries.map(({ catalogKey, revision }) => [catalogKey, revision])
       ).toContainEqual([template!.catalogKey, 1])
+      const ownerStillPinned = await catalogFor(ids.owner)
+      expect(
+        ownerStillPinned.entries.map(({ catalogKey, revision }) => [catalogKey, revision])
+      ).toContainEqual([template!.catalogKey, 1])
+      expect(
+        ownerStillPinned.entries.map(({ catalogKey, revision }) => [catalogKey, revision])
+      ).not.toContainEqual([template!.catalogKey, 2])
       expect(Exit.isFailure(await runExit(revisionFor(template!.catalogKey, 2)))).toBe(true)
 
       const listedSecond = await run(
@@ -527,8 +568,14 @@ test.skipIf(!enabled)(
           revision: 2,
         })
       )
-      expect(listedSecond).toEqual({ listedRevision: 2 })
-      expect(Exit.isFailure(await runExit(revisionFor(template!.catalogKey, 1)))).toBe(true)
+      expect(listedSecond).toEqual({ listedRevision: 2, creatorName: 'Garden Hosts' })
+      // An installed recipient keeps access to the immutable revision used by
+      // their receipt, while an unrelated account cannot fetch the replaced
+      // catalog revision once Search advances.
+      expect((await run(revisionFor(template!.catalogKey, 1))).revision).toBe(1)
+      expect(
+        Exit.isFailure(await runExit(revisionFor(template!.catalogKey, 1, undefined, ids.stranger)))
+      ).toBe(true)
       const revisionTwoCatalog = await catalogFor(ids.installer)
       expect(
         revisionTwoCatalog.entries.map(({ catalogKey, revision }) => [catalogKey, revision])
@@ -543,6 +590,10 @@ test.skipIf(!enabled)(
         ({ catalogKey }) => catalogKey === template!.catalogKey
       )!.contentHash
       expect((await run(revisionFor(template!.catalogKey, 2))).contentHash).toBe(secondHash)
+      const ownerRevisionTwoCatalog = await catalogFor(ids.owner)
+      expect(
+        ownerRevisionTwoCatalog.entries.map(({ catalogKey, revision }) => [catalogKey, revision])
+      ).toContainEqual([template!.catalogKey, 2])
 
       phase = 'revoked bearer token remains denied while the publication is public'
       const share = await run(
@@ -563,6 +614,12 @@ test.skipIf(!enabled)(
       expect((await run(revisionFor(template!.catalogKey, 2))).revision).toBe(2)
 
       phase = 'unlisting blocks new installs while completed receipts remain recoverable'
+      const linkAfterUnlisting = await run(
+        sharingWorkflow.createBlueprintShareLinkWorkflow(ids.owner, {
+          templateId: created.templateId,
+          revision: 2,
+        })
+      )
       expect(
         await run(
           linkManagementWorkflow.manageBlueprintLinksWorkflow(ids.owner, {
@@ -572,10 +629,16 @@ test.skipIf(!enabled)(
             revision: null,
           })
         )
-      ).toEqual({ listedRevision: null })
+      ).toEqual({ listedRevision: null, creatorName: 'Garden Hosts' })
       expect(
         (await catalogFor(ids.installer)).entries.map(({ catalogKey }) => catalogKey)
       ).not.toContain(template!.catalogKey)
+      expect(
+        (await catalogFor(ids.owner)).entries.map(({ catalogKey }) => catalogKey)
+      ).not.toContain(template!.catalogKey)
+      expect(
+        (await run(revisionFor(template!.catalogKey, 2, linkAfterUnlisting.token))).revision
+      ).toBe(2)
       const newAfterUnlist = installInput(
         template!.catalogKey,
         2,

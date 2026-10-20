@@ -7,12 +7,15 @@ export type PersonalBlueprint = {
   draftVersion: number
   publishedRevision: number | null
   listedRevision: number | null
+  creatorName: string | null
+  activeShareLinkCount: number
   catalogEntry: {
     catalogKey: string
     revision: number
     contentHash: string
     definition: unknown
     description: string
+    creator?: { displayName: string }
   }
 }
 
@@ -30,7 +33,11 @@ export class BlueprintPersonalRepo extends Context.Service<
     ) => Effect.Effect<PersonalBlueprint, DomainError>
     publish: (
       actorId: string,
-      input: { id: string; expectedVersion: number }
+      input: { id: string; expectedVersion: number; creatorName?: string }
+    ) => Effect.Effect<PersonalBlueprint, DomainError>
+    unlist: (
+      actorId: string,
+      input: { id: string; expectedVersion: number; expectedListedRevision: number }
     ) => Effect.Effect<PersonalBlueprint, DomainError>
     delete: (actorId: string, id: string) => Effect.Effect<{ deleted: true }, DomainError>
   }

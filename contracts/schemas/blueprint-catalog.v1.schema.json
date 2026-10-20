@@ -686,6 +686,21 @@
             ],
             "additionalProperties": false
           },
+          "creator": {
+            "type": "object",
+            "properties": {
+              "displayName": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 80,
+                "description": "1–80 Unicode code points; surrounding whitespace is trimmed before validation."
+              }
+            },
+            "required": [
+              "displayName"
+            ],
+            "additionalProperties": false
+          },
           "discovery": {
             "type": "object",
             "properties": {

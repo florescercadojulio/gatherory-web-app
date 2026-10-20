@@ -1,6 +1,6 @@
 # Start here: Gatherory across projects
 
-Last reviewed: October 15, 2026. Read this guide when starting a fresh AI
+Last reviewed: October 20, 2026. Read this guide when starting a fresh AI
 conversation, then inspect the repositories relevant to the requested task.
 
 ## Product and project map
@@ -49,6 +49,11 @@ replacement.
 
 ## Where to read for a task
 
+For QR template distribution, start with the
+[implementation handoff](../roadmaps/blueprints-roadmap/22-qr-distribution-handoff.md).
+It records the native QR implementation, existing sharing/copy boundaries and
+remaining physical-device/deployment acceptance checks.
+
 | Task                                     | Read first                                                                                                                                                                                                                                    |
 | ---------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Backend behavior and authorization       | [Server implementation guide](server-implementation-guide.md), [server architecture](../architecture/server-architecture.md), [data model](../architecture/data-model.md), then the owning code under `src/server/`.                          |
@@ -66,6 +71,11 @@ Paths in inline code are relative to their owning repository.
 
 ## Decisions to preserve
 
+- Product wording is **Blueprint / Blueprints** across native and web UI
+  (Spanish: **plano / planos**), per the October 19 terminology decision.
+  Older documents may say template; stable localization keys, API fields and
+  `/templates/shared/<token>` links retain their existing identifiers.
+
 - Future host-authored experiences include rental stays, family cottages, and
   wedding-package recommendations. Fine-grained business configuration belongs
   in the web app; consumer template selection, review, creation and sharing also
@@ -74,8 +84,8 @@ Paths in inline code are relative to their owning repository.
   Each copy is independent; checklists reset per instance and reminders require
   separate consent/delivery handling. See the
   [recorded direction](../roadmaps/blueprints-roadmap/10-host-authored-experiences.md).
-  This is a planning constraint, not implemented QR/checklist/reminder support
-  or authorization to build those features incidentally.
+  Native QR display/image sharing is implemented locally; checklists and
+  reminders remain planned and must not be built incidentally.
 
 - New API/MCP contracts use explicit Unicode character limits and monetary
   envelopes `{ amountMinor: "100", currency: "USD" }` (one USD dollar).
@@ -173,12 +183,14 @@ Paths in inline code are relative to their owning repository.
   See [resumable setup](../roadmaps/blueprints-roadmap/12-resumable-setup.md).
 - Blank native events remain ordinary offline-created instances. Event-to-template
   capture is separate and explicit: long-press an iOS Workspaces card, choose
-  Share Template, select supported content, review, then Create & Share. Web
-  capture and advanced draft editing/refresh remain available. Capture
+  Share Blueprint, then create a template when needed, select supported content,
+  review, then Create & Share. Existing owned templates open their explicit link
+  creation and QR sharing controls directly. Web capture and advanced draft editing/refresh remain available. Capture
   only selected supported content, preserve manual template edits on reviewed
   refresh, and keep publication separate. Source-event permissions and destination
   template ownership are independent. See [capture](../roadmaps/blueprints-roadmap/13-event-to-template-capture.md).
-  Playlist copying, inclusion defaults and QR distribution remain future work.
+  Native QR display/image sharing now reuses the generated URL; playlist
+  copying remains future work. See [QR distribution](../roadmaps/blueprints-roadmap/22-qr-distribution-handoff.md).
 - A broad shared creation engine is deliberately deferred. Do not route ordinary
   native workspace/event/idea creation through blueprints. Extract small shared
   rules only when actual duplication is demonstrated; keep existing local
@@ -202,18 +214,45 @@ Paths in inline code are relative to their owning repository.
   credential in account/link-scoped drafts and exact installation intents; do
   not move it into ordinary discovery or sync payloads. See
   [unlisted links](../roadmaps/blueprints-roadmap/14-unlisted-template-links.md)
-  for the migration and deployment boundary. QR generation remains deferred.
-- Native Workspaces card menus offer Share Template and Manage Links for templates
-  explicitly captured from that event and owned by the current user. Do not infer
-  template ownership from installed-copy provenance or source-event management.
+  for the migration and deployment boundary. Native QR generation uses these
+  exact URLs without changing their pinned-revision or access semantics.
+- Native Workspaces card menus offer Share Blueprint for templates explicitly
+  captured from that event and owned by the current user. Manage Sharing keeps
+  the link and QR visible; its toolbar menu contains replacement, active-link
+  revocation and Search visibility, with explicit confirmations;
+  QR and two system-sharing actions appear after explicit creation or authorized
+  reopening of a saved link. Do not infer template ownership from installed-copy provenance or source-event management.
   The native management endpoint checks both grants, uses online-only requests,
   and never enqueues link mutations into offline sync. Advanced authoring remains
-  on the web; native Create & Share also publishes explicitly reviewed consumer
-  captures. Raw generated URLs are transient sheet state. See
+  on the web; native Create & Share also publishes authorized consumer
+  captures. New owner credentials are retained in device-only Keychain storage,
+  scoped to account/origin/event/template. Displayed URL/code clears on dismissal;
+  reopening requires fresh ownership/active-link reads. Replacement and revocation
+  are explicit; older unsaved URLs remain unrecoverable from server hashes. See
   [native creation](../roadmaps/blueprints-roadmap/15-native-create-and-share.md)
   for atomic capture/publication, exact retry and account isolation.
-- New native Create & Share requests omit destination ownership and explicitly
-  publish to Search. The server uses/provisions the actor's personal owner only
+- Owner blueprints now show **Link active**, **In Search**, or **Private** from
+  fresh sharing metadata; unknown/offline state must not imply Private. First
+  native Search publication asks for a chosen public creator name, never an
+  account-name/email fallback. The display label is per blueprint, outside the
+  immutable content hash. Discovery and shared previews show the byline; legacy
+  owner entries without a chosen name omit it. Curated starters say Gatherory.
+  Titles remain flexible and duplicate titles are allowed. Republish retains the
+  same catalog key; independent saved copies start private with no inherited
+  public creator label. No public account IDs or social features are added.
+  Search shows only curated or explicitly listed revisions, even to the owner;
+  direct owner access belongs to the private library/exact revision APIs. A link
+  must never add its private blueprint to Search. Personal blueprint menus offer
+  both Publish to Search and Remove from Search; withdrawal preserves links.
+  The additive `20261019201829_lively_steel_serpent` migration must precede the
+  updated server release; only a disposable test database has received it.
+- New native sharing requests omit destination ownership and create an unlisted
+  immutable publication and share link after an explicit creation action. Source
+  authorization and review-hash reads still run behind the scenes. Users verify
+  content by editing their workspace/blueprint, with no repeated review UI here. Search
+  publication is optional through a separate confirmed management action; it
+  neither replaces the link nor changes its QR. Private Save Blueprint creates
+  no link and no Search listing. The server uses/provisions the actor's personal owner only
   on creation, never on source/review reads; event permissions remain separate.
   A nullable listed revision grants catalog/install access to that exact
   publication. Existing private/unlisted templates remain private. Search
