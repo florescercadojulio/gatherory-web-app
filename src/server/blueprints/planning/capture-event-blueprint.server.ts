@@ -9,7 +9,10 @@ import {
   BlueprintDraftContentSchema,
   type BlueprintDraftContent,
 } from '@/contracts/blueprint-authoring.contracts'
-import { BlueprintStableKeySchema } from '@/contracts/blueprint-install.contracts'
+import {
+  BlueprintStableKeySchema,
+  normalizeBlueprintTodoWebsiteURL,
+} from '@/contracts/blueprint-install.contracts'
 
 type CaptureSelectionInput = Parameters<typeof BlueprintCaptureSelectionSchema.parse>[0]
 
@@ -25,6 +28,7 @@ export function captureEventBlueprint(
   const selectedChildIds = new Set(selection.childIds)
   const selectedIdeaIds = new Set(selection.ideaIds)
   const selectedInstructionIds = new Set(selection.instructionIds)
+  const selectedTodoIds = new Set(selection.todoIds)
 
   assertSelectedIdsExist(selection.childIds, childrenById, 'child')
   assertSelectedIdsExist(
@@ -36,6 +40,11 @@ export function captureEventBlueprint(
     selection.instructionIds,
     new Map(source.instructions.map((instruction) => [instruction.id, instruction])),
     'instruction'
+  )
+  assertSelectedIdsExist(
+    selection.todoIds,
+    new Map(source.todos.map((todo) => [todo.id, todo])),
+    'to-do'
   )
 
   const childKeys = new Map(
@@ -86,6 +95,15 @@ export function captureEventBlueprint(
       target: targetForEventId(instruction.eventId, source.event.id, childKeys, 'instruction'),
     }))
 
+  const todos = source.todos
+    .filter(({ id }) => selectedTodoIds.has(id))
+    .map((todo) => ({
+      key: stableKey('todo', todo.id),
+      title: todo.title,
+      ...(todo.websiteURL ? { websiteURL: normalizeBlueprintTodoWebsiteURL(todo.websiteURL) } : {}),
+      target: targetForEventId(todo.eventId, source.event.id, childKeys, 'todo'),
+    }))
+
   return BlueprintDraftContentSchema.parse({
     name: name ?? source.event.title,
     description: '',
@@ -93,6 +111,7 @@ export function captureEventBlueprint(
     children,
     ideas,
     instructions,
+    todos,
   })
 }
 
@@ -138,13 +157,14 @@ export function mergeCapturedBlueprint(
     current.instructions,
     conflicts
   )
+  let todos = mergeGroup(previous.todos, next.todos, current.todos, conflicts)
 
-  const retainedTargets = [...ideas, ...instructions]
+  const retainedTargets = [...ideas, ...instructions, ...todos]
     .filter((item) => item.target.kind === 'child')
     .map((item) => (item.target.kind === 'child' ? item.target.key : ''))
   const presentChildKeys = new Set(children.map(({ key }) => key))
   const currentReferences = new Set(
-    [...current.ideas, ...current.instructions]
+    [...current.ideas, ...current.instructions, ...current.todos]
       .filter((item) => item.target.kind === 'child')
       .map((item) => (item.target.kind === 'child' ? item.target.key : ''))
   )
@@ -169,6 +189,7 @@ export function mergeCapturedBlueprint(
       key,
       conflicts
     )
+    todos = preserveCurrentItemsForMissingTarget(todos, current.todos, key, conflicts)
   }
 
   const content = BlueprintDraftContentSchema.parse({
@@ -176,11 +197,12 @@ export function mergeCapturedBlueprint(
     children,
     ideas,
     instructions,
+    todos,
   })
   return { content, conflicts: [...conflicts].sort() }
 }
 
-function stableKey(prefix: 'event' | 'idea' | 'guide', id: string): string {
+function stableKey(prefix: 'event' | 'idea' | 'guide' | 'todo', id: string): string {
   return BlueprintStableKeySchema.parse(`${prefix}_${id.replaceAll('-', '')}`)
 }
 
@@ -188,7 +210,7 @@ function targetForEventId(
   eventId: string,
   rootEventId: string,
   childKeys: Map<string, string>,
-  recordKind: 'idea' | 'instruction'
+  recordKind: 'idea' | 'instruction' | 'todo'
 ) {
   if (eventId === rootEventId) return { kind: 'main' as const }
   const key = childKeys.get(eventId)

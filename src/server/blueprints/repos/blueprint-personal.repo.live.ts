@@ -13,7 +13,7 @@ import {
   draftDefinition,
 } from '@/contracts/blueprint-authoring.contracts'
 import { BlueprintCatalogDefinitionSchema } from '@/contracts/blueprint-install.contracts'
-import { blueprintHash } from '../planning/blueprint-hash'
+import { blueprintDraftContentHash, blueprintHash } from '../planning/blueprint-hash'
 import { ConflictError, EntityNotFoundError, serverOperationError } from '@/lib/domain-errors'
 import { BlueprintPersonalRepo, type PersonalBlueprint } from './blueprint-personal.repo'
 
@@ -135,7 +135,7 @@ export const BlueprintPersonalRepoLive = Layer.effect(
             Effect.gen(function* () {
               const organizationId = yield* personalOrganizationId(actorId)
               if (!organizationId) return yield* Effect.fail(missing())
-              const requestHash = blueprintHash(input.content)
+              const requestHash = blueprintDraftContentHash(input.content)
               yield* db.execute(
                 sql`select pg_advisory_xact_lock(hashtextextended(${`blueprint-create:${actorId}:${input.requestId.toLowerCase()}`}, 0))`
               )
@@ -151,7 +151,8 @@ export const BlueprintPersonalRepoLive = Layer.effect(
               if (existing) {
                 const savedContent = BlueprintDraftContentSchema.safeParse(existing.content)
                 const sameContent =
-                  savedContent.success && blueprintHash(savedContent.data) === requestHash
+                  savedContent.success &&
+                  blueprintDraftContentHash(savedContent.data) === requestHash
                 const source = existing.source as { kind?: string } | null
                 const [published] = yield* db
                   .select()

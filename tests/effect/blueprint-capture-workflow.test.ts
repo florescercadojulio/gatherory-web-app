@@ -29,6 +29,7 @@ const ids = {
 }
 
 const source: BlueprintEventCaptureSource = {
+  todos: [],
   event: {
     id: ids.event,
     title: 'Capture workflow fixture',
@@ -66,6 +67,7 @@ const source: BlueprintEventCaptureSource = {
 }
 
 const selection: BlueprintCaptureSelection = {
+  todoIds: [],
   childIds: [ids.child],
   ideaIds: [ids.idea],
   instructionIds: [ids.instruction],

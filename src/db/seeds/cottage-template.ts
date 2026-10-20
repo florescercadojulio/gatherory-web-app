@@ -6,6 +6,7 @@ import { BlueprintCatalogDefinitionSchema } from '@/contracts/blueprint-install.
 
 /** Content fixture for private cottage authoring and independent-copy testing. */
 export const cottageDraftContent: BlueprintDraftContent = {
+  todos: [],
   name: 'Family Cottage Stay',
   description:
     'A flexible plan for coordinating a family stay, shared activities, and useful guest guidance.',

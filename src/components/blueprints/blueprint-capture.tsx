@@ -60,6 +60,7 @@ const blankSelection: BlueprintCaptureSelection = {
   childIds: [],
   ideaIds: [],
   instructionIds: [],
+  todoIds: [],
   includeIdeaNotes: false,
 }
 
@@ -279,6 +280,9 @@ export function BlueprintCapture({
         instructionIds: current.instructionIds.filter(
           (instructionId) => !childInstructionIds.has(instructionId)
         ),
+        todoIds: current.todoIds.filter(
+          (todoId) => !source?.todos.some((todo) => todo.id === todoId && todo.eventId === id)
+        ),
       }
     })
   }
@@ -322,6 +326,7 @@ export function BlueprintCapture({
         childIds: [...selection.childIds],
         ideaIds: [...selection.ideaIds],
         instructionIds: [...selection.instructionIds],
+        todoIds: [...selection.todoIds],
       },
       expectedSourceHash: preview.sourceHash,
       ...(templateId ? { templateId } : {}),
@@ -818,5 +823,9 @@ function reconcileSelection(
       )
     }),
     includeIdeaNotes: selection.includeIdeaNotes,
+    todoIds: (selection.todoIds ?? []).filter((id) => {
+      const todo = source.todos.find((item) => item.id === id)
+      return todo && (todo.eventId === source.event.id || selectedChildren.has(todo.eventId))
+    }),
   }
 }

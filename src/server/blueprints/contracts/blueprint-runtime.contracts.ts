@@ -11,6 +11,8 @@ export type BlueprintManifest = {
   events: Record<string, string>
   ideas: Record<string, string>
   guides: Record<string, string>
+  /** Missing on receipts created before portable to-dos were supported. */
+  todos?: Record<string, string>
   personID: string
   participations: Record<string, string>
 }

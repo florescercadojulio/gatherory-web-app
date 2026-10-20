@@ -23,7 +23,16 @@ import {
 } from '../contracts/native-sync.contracts'
 import { compareNativeMutationOrder } from '../workflows/native-sync-ordering'
 import { deletedAccountTombstone } from '../contracts/native-tombstones'
-import { blueprintUpgradeRequired } from '../native-sync-compatibility'
+import { blueprintUpgradeRequired, todoUpgradeRequired } from '../native-sync-compatibility'
+import {
+  assertTodoCapabilityForScopes,
+  canonicalTodoForSync,
+  canonicalTodos,
+  encodeNativeTodo,
+  projectTodos,
+  readableTodoEventIDs,
+  todoEventID,
+} from './native-todo-projection.persistence'
 import { nativeIdentityWriteAllowed } from '../services/native-identity-access'
 import { canDeleteNativeMoment } from './native-moment-authorization.persistence'
 import {
@@ -31,6 +40,7 @@ import {
   pullScopedEventChanges,
   scopedEventActor,
   scopedEventSnapshot,
+  scopedChildTodoEntities,
 } from './scoped-event-sync.persistence'
 
 type NativeSyncTransaction = Parameters<Parameters<typeof db.transaction>[0]>[0]
@@ -332,6 +342,7 @@ export async function applyNativeMutations(input: {
   userId: string
   mutations: NativeMutation[]
   supportsBlueprintGuides?: boolean
+  supportsTodos?: boolean
 }) {
   if (!input.userId.trim()) {
     return {
@@ -350,6 +361,16 @@ export async function applyNativeMutations(input: {
     userId: input.userId,
     scopeIds: input.mutations.map((mutation) => mutation.scopeID),
     supportsBlueprintGuides: input.supportsBlueprintGuides === true,
+  })
+  if (!input.supportsTodos && input.mutations.some((mutation) => mutation.entityType === 'todo'))
+    throw todoUpgradeRequired(
+      input.mutations
+        .filter((mutation) => mutation.entityType === 'todo')
+        .map((mutation) => mutation.scopeID)
+    )
+  await assertTodoCapabilityForScopes({
+    ...input,
+    scopeIds: input.mutations.map((mutation) => mutation.scopeID),
   })
   const resultsByMutationId = new Map<string, NativePushResult>()
 
@@ -372,6 +393,7 @@ export async function applyNativeMutations(input: {
       )
       // Match canonical RSVP/lifecycle lock order: event before snapshot.
       await locked.select({ id: event.id }).from(event).where(eq(event.id, rootId)).for('update')
+      await assertTodoCapabilityForScopes({ ...input, scopeIds: [mutation.scopeID] }, locked)
       if (targetEvent?.parentId) {
         await locked
           .select({ id: event.id })
@@ -496,9 +518,20 @@ export async function applyNativeMutations(input: {
             }
 
             serverVersion = (snapshot?.serverVersion ?? 0) + 1
-            const canonicalMutation = snapshot
+            const blueprintMutation = snapshot
               ? await canonicalizeBlueprintWorkspaceMutation(transaction, mutation)
               : mutation
+            // Full archives cannot manufacture tasks or overwrite canonical
+            // task state. Dedicated versioned entity mutations own task writes.
+            const canonicalMutation = isDeleted
+              ? blueprintMutation
+              : {
+                  ...blueprintMutation,
+                  payload: projectTodos(
+                    blueprintMutation.payload,
+                    await canonicalTodos(transaction, input.userId, [mutation.scopeID])
+                  ),
+                }
             payload = canonicalMutation.payload
             const materialized = await materializeNativeMutation(transaction, {
               userId: input.userId,
@@ -566,6 +599,32 @@ export async function applyNativeMutations(input: {
                 failureCode: 'PARTICIPANT_ACCOUNT_DELETED',
               })
             }
+            if (mutation.entityType === 'todo') {
+              if (!entity && mutation.operation !== 'create')
+                return recordRejectedMutation(transaction, {
+                  userId: input.userId,
+                  mutation,
+                  failureCode: 'TODO_NOT_FOUND',
+                })
+              if (entity?.isDeleted)
+                return recordRejectedMutation(transaction, {
+                  userId: input.userId,
+                  mutation,
+                  failureCode: 'TODO_DELETED',
+                })
+              if (mutation.operation !== 'create' && mutation.baseVersion == null)
+                return recordRejectedMutation(transaction, {
+                  userId: input.userId,
+                  mutation,
+                  failureCode: 'TODO_VERSION_REQUIRED',
+                })
+              if (entity && mutation.operation === 'create')
+                return recordConflictingMutation(transaction, {
+                  userId: input.userId,
+                  mutation,
+                  serverVersion: entity.serverVersion,
+                })
+            }
             if (
               entity &&
               mutation.baseVersion != null &&
@@ -602,6 +661,23 @@ export async function applyNativeMutations(input: {
               mutation,
               organizationId: snapshot.organizationId,
             })
+            if (mutation.entityType === 'todo' && !isDeleted) {
+              const canonicalTodo = await canonicalTodoForSync(
+                transaction,
+                snapshot.organizationId,
+                mutation.entityID
+              )
+              if (!canonicalTodo)
+                throw new Error('Materialized todo is missing from canonical storage')
+              payload = encodeNativeTodo(canonicalTodo)
+            }
+            if (mutation.entityType === 'todo' && isDeleted) {
+              const eventID = entity ? todoEventID(entity.payload) : null
+              if (eventID)
+                payload = Buffer.from(JSON.stringify({ id: mutation.entityID, eventID })).toString(
+                  'base64'
+                )
+            }
             // Notes are displayed with an author on native clients. Mirror the
             // canonical table: never trust a client-supplied author's identity.
             // Materialization above has already validated this JSON payload.
@@ -742,6 +818,7 @@ export async function pullNativeChanges(input: {
   scopeId: string
   after: number
   supportsBlueprintGuides?: boolean
+  supportsTodos?: boolean
   limit?: number
 }) {
   const [targetEvent] = await db
@@ -755,7 +832,12 @@ export async function pullNativeChanges(input: {
       scopeIds: [input.scopeId],
       supportsBlueprintGuides: input.supportsBlueprintGuides === true,
     })
-    return pullScopedEventChanges({ ...input, rootId: targetEvent.parentId })
+    await assertTodoCapabilityForScopes({ ...input, scopeIds: [input.scopeId] })
+    const page = await pullScopedEventChanges({ ...input, rootId: targetEvent.parentId })
+    // Recheck after reading, so a concurrent first task cannot cross an old
+    // client's enum decoder or advance its cursor past an unsupported record.
+    await assertTodoCapabilityForScopes({ ...input, scopeIds: [input.scopeId] })
+    return page
   }
   const limit = Math.min(Math.max(input.limit ?? 100, 1), 250)
   const [scopeSnapshot] = await db
@@ -798,6 +880,7 @@ export async function pullNativeChanges(input: {
   })
 
   if (!access) return null
+  await assertTodoCapabilityForScopes({ ...input, scopeIds: [input.scopeId] })
 
   const rows = await db
     .select()
@@ -815,9 +898,20 @@ export async function pullNativeChanges(input: {
   const canonical = canonicalScopeIds.length
     ? (await canonicalBlueprintContent(canonicalScopeIds)).get(input.scopeId)
     : undefined
+  const readableTodoEvents = await readableTodoEventIDs(db, input.userId, [input.scopeId])
+  const todos = await canonicalTodos(db, input.userId, [input.scopeId])
+  const visiblePage = page.filter(
+    (change) =>
+      change.entityType !== 'todo' || readableTodoEvents.has(todoEventID(change.payload) ?? '')
+  )
+  if (
+    !input.supportsTodos &&
+    (todos.length || visiblePage.some((change) => change.entityType === 'todo'))
+  )
+    throw todoUpgradeRequired([input.scopeId])
 
   return {
-    changes: page.map((change) => ({
+    changes: visiblePage.map((change) => ({
       id: change.id,
       scopeID: change.scopeId,
       payloadSchemaVersion: 1 as const,
@@ -827,11 +921,16 @@ export async function pullNativeChanges(input: {
       // resetting accounts or advancing clients past unapplied records.
       operation: nativePullOperation(change.operation),
       payload:
-        canonical && change.entityType === 'workspace' && change.operation !== 'delete'
-          ? applyCanonicalBlueprintFields(
-              change.payload,
-              canonical.guides,
-              canonical.experienceConfiguration
+        change.entityType === 'workspace' && change.operation !== 'delete'
+          ? projectTodos(
+              canonical
+                ? applyCanonicalBlueprintFields(
+                    change.payload,
+                    canonical.guides,
+                    canonical.experienceConfiguration
+                  )
+                : change.payload,
+              todos
             )
           : change.payload,
       serverVersion: change.serverVersion,
@@ -848,11 +947,13 @@ export async function listNativeWorkspaceSnapshots(
     | {
         userId: string
         supportsBlueprintGuides?: boolean
+        supportsTodos?: boolean
       }
 ) {
   const userId = typeof input === 'string' ? input : input.userId
   const supportsBlueprintGuides =
     typeof input !== 'string' && input.supportsBlueprintGuides === true
+  const supportsTodos = typeof input !== 'string' && input.supportsTodos === true
   const [memberships, [account]] = await Promise.all([
     db
       .select({ scopeId: nativeSyncScopeMember.scopeId })
@@ -925,18 +1026,25 @@ export async function listNativeWorkspaceSnapshots(
     )
   const rootScopes = new Set(rows.map((row) => row.scopeId))
   const childSnapshots = []
+  const childTodoEntities = []
   for (const child of childEvents) {
     if (rootScopes.has(child.parentId!)) continue
-    const snapshot = await db.transaction(async (tx) => {
+    const projection = await db.transaction(async (tx) => {
       await tx
         .select({ id: event.id })
         .from(event)
         .where(eq(event.id, child.parentId!))
         .for('share')
       await tx.select({ id: event.id }).from(event).where(eq(event.id, child.id)).for('share')
-      return scopedEventSnapshot(tx, child.id, userId)
+      const snapshot = await scopedEventSnapshot(tx, child.id, userId)
+      return snapshot
+        ? { snapshot, todos: await scopedChildTodoEntities(tx, child.id, userId) }
+        : null
     })
-    if (snapshot) childSnapshots.push(snapshot)
+    if (projection) {
+      childSnapshots.push(projection.snapshot)
+      childTodoEntities.push(...projection.todos)
+    }
   }
 
   const bootstrapScopeIds = [
@@ -948,6 +1056,7 @@ export async function listNativeWorkspaceSnapshots(
     : await blueprintBackedScopeIds(bootstrapScopeIds)
   if (incompatibleBlueprintScopes.length)
     throw blueprintUpgradeRequired(incompatibleBlueprintScopes)
+  await assertTodoCapabilityForScopes({ userId, scopeIds: bootstrapScopeIds, supportsTodos })
 
   // Backfill pre-membership snapshots only after compatibility has been checked.
   const legacyOwnedScopes = rows
@@ -970,11 +1079,21 @@ export async function listNativeWorkspaceSnapshots(
 
   const canonicalEventIds = [...new Set(bootstrapScopeIds)]
   const canonicalByEvent = await canonicalBlueprintContent(canonicalEventIds)
+  const todosByScope = new Map(
+    await Promise.all(
+      bootstrapScopeIds.map(
+        async (scopeID) => [scopeID, await canonicalTodos(db, userId, [scopeID])] as const
+      )
+    )
+  )
+  const allTodos = [...todosByScope.values()].flat()
+  const canonicalTodoByID = new Map(allTodos.map((todo) => [todo.id, todo]))
+  if (!supportsTodos && allTodos.length) throw todoUpgradeRequired(bootstrapScopeIds)
   const projectCanonicalContent = <T extends { scopeID: string; payload: string }>(
     snapshot: T
   ): T => {
     const canonical = canonicalByEvent.get(snapshot.scopeID)
-    return canonical
+    const projected = canonical
       ? {
           ...snapshot,
           payload: applyCanonicalBlueprintFields(
@@ -984,6 +1103,10 @@ export async function listNativeWorkspaceSnapshots(
           ),
         }
       : snapshot
+    return {
+      ...projected,
+      payload: projectTodos(projected.payload, todosByScope.get(snapshot.scopeID) ?? []),
+    }
   }
 
   // Both a root workspace and an admitted child planning scope are usable
@@ -1009,14 +1132,22 @@ export async function listNativeWorkspaceSnapshots(
         projectCanonicalContent(snapshot)
       ),
     ],
-    entities: entities.map((entity) => ({
-      scopeID: entity.scopeId,
-      payloadSchemaVersion: 1 as const,
-      entityType: entity.entityType,
-      entityID: entity.entityId,
-      payload: entity.payload,
-      serverVersion: entity.serverVersion,
-      updatedAt: nativeISODate(entity.updatedAt),
-    })),
+    entities: [
+      ...entities
+        .filter((entity) => entity.entityType !== 'todo' || canonicalTodoByID.has(entity.entityId))
+        .map((entity) => ({
+          scopeID: entity.scopeId,
+          payloadSchemaVersion: 1 as const,
+          entityType: entity.entityType,
+          entityID: entity.entityId,
+          // Preserve the payload/version pair from the same sync-entity read.
+          // New writes store canonical task values; older v1 values simply lack
+          // the optional v2 fields and decode with their null defaults.
+          payload: entity.payload,
+          serverVersion: entity.serverVersion,
+          updatedAt: nativeISODate(entity.updatedAt),
+        })),
+      ...childTodoEntities,
+    ],
   }
 }

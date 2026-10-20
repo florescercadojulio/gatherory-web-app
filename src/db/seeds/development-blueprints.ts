@@ -277,6 +277,7 @@ export const developmentBlueprintContents = scenarios.map((scenario) => {
     'other',
   ] as const
   const content: BlueprintDraftContent = {
+    todos: [],
     name: scenario.name,
     description: scenario.description,
     experienceType: scenario.type,

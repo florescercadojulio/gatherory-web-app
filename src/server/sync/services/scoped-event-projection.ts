@@ -32,6 +32,17 @@ export type CanonicalExperienceConfiguration = {
   categoryOrder: string[]
 }
 
+export type CanonicalTodo = {
+  id: string
+  eventID: string
+  title: string
+  dueDate: string | null
+  websiteURL: string | null
+  assigneePersonID: string | null
+  isCompleted: boolean
+  createdAt: number
+}
+
 export type BuildScopedEventArchiveInput = {
   snapshotPayload: string
   entities: NativeProjectionEntity[]
@@ -43,6 +54,7 @@ export type BuildScopedEventArchiveInput = {
   childEvent?: Record<string, unknown>
   guides?: CanonicalEventGuide[]
   experienceConfiguration?: CanonicalExperienceConfiguration | null
+  todos?: CanonicalTodo[]
 }
 
 const ENTITY_ARRAYS: Record<string, string> = {
@@ -52,6 +64,7 @@ const ENTITY_ARRAYS: Record<string, string> = {
   event: 'timeline',
   expense: 'eventExpenses',
   note: 'notes',
+  todo: 'todos',
   idea_response: 'ideaResponses',
   attendance: 'eventParticipations',
   moment: 'eventMoments',
@@ -83,6 +96,7 @@ const ARCHIVE_V1_FIELDS = [
   'currencyCode',
   'mainEventBudgetCap',
   'notes',
+  'todos',
   'ideaResponses',
   'mainEventStatus',
   'mainEventResponse',
@@ -483,6 +497,8 @@ export function buildScopedEventArchive(input: BuildScopedEventArchiveInput): st
   archive.eventMoments = scopedMoments
   archive.registry = scopedRegistry
   archive.ideaResponses = scopedResponses
+  archive.todos =
+    input.todos ?? array(archive.todos).filter((item) => eventReference(item) === targetEventId)
   archive.guides = (input.guides ?? []).filter(
     (guide) => canonicalId(guide.eventID) === targetEventId
   )

@@ -64,6 +64,51 @@ export const registryCommitmentStatus = pgEnum('registry_commitment_status', [
   'cancelled',
 ])
 
+/** A live, event-scoped to-do. Personal reminder state intentionally lives on device. */
+export const eventTodo = pgTable(
+  'event_todo',
+  {
+    id: uuid('id').primaryKey(),
+    organizationId: text('organization_id')
+      .notNull()
+      .references(() => organization.id, { onDelete: 'cascade' }),
+    eventId: uuid('event_id').notNull(),
+    title: text('title').notNull(),
+    dueDate: text('due_date'),
+    websiteUrl: text('website_url'),
+    assigneePersonId: uuid('assignee_person_id'),
+    isCompleted: boolean('is_completed').default(false).notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex('event_todo_organization_event_id_uidx').on(
+      table.organizationId,
+      table.eventId,
+      table.id
+    ),
+    foreignKey({
+      name: 'event_todo_event_same_workspace_fk',
+      columns: [table.organizationId, table.eventId],
+      foreignColumns: [event.organizationId, event.id],
+    }).onDelete('cascade'),
+    index('event_todo_event_created_idx').on(table.eventId, table.createdAt, table.id),
+    index('event_todo_assignee_idx').on(table.assigneePersonId),
+    check(
+      'event_todo_title_check',
+      sql`char_length(${table.title}) between 1 and 200 and ${table.title} = btrim(${table.title})`
+    ),
+    check(
+      'event_todo_due_date_check',
+      sql`${table.dueDate} is null or ${table.dueDate} ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}$'`
+    ),
+    check(
+      'event_todo_website_url_check',
+      sql`${table.websiteUrl} is null or (char_length(${table.websiteUrl}) <= 2048 and ${table.websiteUrl} = btrim(${table.websiteUrl}) and ${table.websiteUrl} !~ '[[:space:][:cntrl:]]')`
+    ),
+  ]
+)
+
 export const expenseStatus = pgEnum('expense_status', ['estimated', 'committed', 'paid'])
 
 export const expenseCategory = pgEnum('expense_category', [

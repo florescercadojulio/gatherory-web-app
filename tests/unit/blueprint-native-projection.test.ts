@@ -93,6 +93,7 @@ const plan = {
       audience: 'event_participants',
     },
   ],
+  todos: [],
   omissions: [{ sourceKey: 'unselected_child_item', reason: 'child_not_selected' }],
 } satisfies BlueprintExpandedPlan
 
@@ -141,6 +142,44 @@ const actualWeddingManifest: BlueprintManifest = {
 }
 
 describe('buildBlueprintNativeProjection', () => {
+  test('materializes selected portable to-dos as fresh private incomplete event tasks', () => {
+    const todoID = '90000000-0000-4000-8000-000000000001'
+    const projection = buildBlueprintNativeProjection({
+      plan: {
+        ...plan,
+        todos: [
+          {
+            sourceKey: 'book_photographer',
+            title: 'Book the photographer',
+            websiteURL: 'https://example.test/vendors',
+            targetSourceKey: 'ceremony',
+          },
+        ],
+      },
+      manifest: { ...manifest, todos: { book_photographer: todoID } },
+      actor,
+      createdAt: new Date('2026-10-15T12:00:00.000Z'),
+    })
+
+    expect(projection.archive.todos).toEqual([
+      {
+        id: todoID,
+        eventID: manifest.events.ceremony,
+        title: 'Book the photographer',
+        dueDate: null,
+        websiteURL: 'https://example.test/vendors',
+        assigneePersonID: null,
+        isCompleted: false,
+        createdAt: Date.parse('2026-10-15T12:00:00.000Z') / 1_000 - 978_307_200,
+      },
+    ])
+    expect(projection.entities).toContainEqual({
+      entityType: 'todo',
+      entityId: todoID,
+      payload: projection.archive.todos[0],
+    })
+  })
+
   test('matches the catalog and preview wire fixtures decoded by Swift', () => {
     expect(buildBlueprintCatalog([weddingBlueprintV1])).toEqual(
       JSON.parse(readFileSync('contracts/examples/wedding-catalog.v1.json', 'utf8'))

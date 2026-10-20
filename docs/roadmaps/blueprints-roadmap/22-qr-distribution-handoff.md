@@ -1,5 +1,11 @@
 # 22 — QR distribution: AI implementation handoff
 
+October 20 subsequent scope: the user authorized
+[optional blueprint To-dos](../to-dos-reminders-roadmap/02-blueprint-to-dos.md).
+They start excluded during capture; explicit inclusion creates fresh independent
+tasks in workspace copies. This supersedes the original To-do deferral only;
+QR/link pinning, explicit actions and release gates below remain in force.
+
 **Status:** First native slice implemented locally, October 19, 2026.
 Physical-device and deployment acceptance remain open. The original handoff
 and required reading below are retained for future work.

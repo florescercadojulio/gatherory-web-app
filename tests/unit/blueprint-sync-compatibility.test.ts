@@ -4,8 +4,12 @@ import { expect, test } from 'vitest'
 import {
   BLUEPRINT_GUIDES_CAPABILITY,
   BLUEPRINT_UPGRADE_REQUIRED_CODE,
+  TODOS_CAPABILITY,
+  TODOS_UPGRADE_REQUIRED_CODE,
   blueprintUpgradeRequired,
   hasBlueprintGuidesCapability,
+  hasTodosCapability,
+  todoUpgradeRequired,
 } from '@/server/sync/native-sync-compatibility'
 import { buildScopedEventArchive } from '@/server/sync/services/scoped-event-projection'
 import { runServerResponse } from '@/server/effect-utils'
@@ -50,6 +54,45 @@ test('upgrade errors remain structured at the native sync HTTP boundary', async 
     error: BLUEPRINT_UPGRADE_REQUIRED_CODE,
     messageParams: {
       requiredCapabilities: BLUEPRINT_GUIDES_CAPABILITY,
+      recoverable: 'true',
+      scopeIDs: childID,
+    },
+  })
+})
+
+test('recognizes the shared to-do capability without accepting partial names', () => {
+  expect(TODOS_CAPABILITY).toBe('event-todos-v2')
+  expect(
+    hasTodosCapability(new Headers({ 'X-Gatherory-Capabilities': `other-v2, ${TODOS_CAPABILITY}` }))
+  ).toBe(true)
+  expect(hasTodosCapability(new Headers())).toBe(false)
+  expect(hasTodosCapability(new Headers({ 'X-Gatherory-Capabilities': 'event-todos-v10' }))).toBe(
+    false
+  )
+  expect(hasTodosCapability(new Headers({ 'X-Gatherory-Capabilities': 'event-todos-v1' }))).toBe(
+    false
+  )
+})
+
+test('to-do upgrade response remains a recoverable 426 with affected exact scopes', async () => {
+  const error = todoUpgradeRequired([childID, childID, siblingID])
+  expect(error.code).toBe(TODOS_UPGRADE_REQUIRED_CODE)
+  expect(error.httpStatus).toBe(426)
+  expect(error.messageParams).toEqual({
+    requiredCapabilities: TODOS_CAPABILITY,
+    recoverable: 'true',
+    scopeIDs: `${childID},${siblingID}`,
+  })
+
+  const response = await runServerResponse(Effect.fail(todoUpgradeRequired([childID])), {
+    successEnvelope: false,
+    legacyErrorCode: true,
+  })
+  expect(response.status).toBe(426)
+  expect(await response.json()).toMatchObject({
+    error: TODOS_UPGRADE_REQUIRED_CODE,
+    messageParams: {
+      requiredCapabilities: TODOS_CAPABILITY,
       recoverable: 'true',
       scopeIDs: childID,
     },

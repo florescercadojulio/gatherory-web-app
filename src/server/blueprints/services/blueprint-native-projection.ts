@@ -115,6 +115,17 @@ export function buildBlueprintNativeProjection(input: {
     visibility: instruction.audience === 'planning_only' ? 'planning_only' : 'event_participants',
   }))
 
+  const todos = plan.todos.map((todo) => ({
+    id: requiredID(manifest.todos ?? {}, todo.sourceKey),
+    eventID: eventIDFor(todo.targetSourceKey),
+    title: todo.title,
+    dueDate: null,
+    websiteURL: todo.websiteURL,
+    assigneePersonID: null,
+    isCompleted: false,
+    createdAt: createdAtValue,
+  }))
+
   const archive = {
     mainEventID,
     title: plan.main.name,
@@ -153,6 +164,7 @@ export function buildBlueprintNativeProjection(input: {
     mainEventResponse: null,
     eventMoments: [],
     guides,
+    todos,
     experienceConfiguration: {
       experienceType: plan.experienceType,
       categoryOrder: plan.categoryOrder,
@@ -177,6 +189,7 @@ export function buildBlueprintNativeProjection(input: {
       payload,
     })),
     ...ideas.map((payload) => ({ entityType: 'idea', entityId: payload.id, payload })),
+    ...todos.map((payload) => ({ entityType: 'todo', entityId: payload.id, payload })),
   ]
 
   return { archive, entities }

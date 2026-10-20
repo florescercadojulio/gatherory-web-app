@@ -4,7 +4,7 @@ import { Effect, Layer } from 'effect'
 import { DB } from '@/db'
 import { member, organization, user } from '@/db/schema/auth.schema'
 import { event, eventParticipant, workspacePerson } from '@/db/schema/event.schema'
-import { idea, workspacePlanningSettings } from '@/db/schema/planning.schema'
+import { eventTodo, idea, workspacePlanningSettings } from '@/db/schema/planning.schema'
 import {
   blueprintInstallation,
   blueprintRevision,
@@ -487,6 +487,7 @@ export const BlueprintRepoLive = Layer.effect(
                 events: ids(eventPlans),
                 ideas: ids(plan.ideas),
                 guides: ids(plan.instructions),
+                todos: ids(plan.todos),
                 personID: crypto.randomUUID(),
                 participations: ids(eventPlans),
               }
@@ -573,6 +574,21 @@ export const BlueprintRepoLive = Layer.effect(
                     body: item.body,
                     visibility: item.audience,
                     sortOrder,
+                  }))
+                )
+              if (plan.todos.length)
+                yield* db.insert(eventTodo).values(
+                  plan.todos.map((item) => ({
+                    id: manifest.todos![item.sourceKey],
+                    organizationId,
+                    eventId: manifest.events[item.targetSourceKey],
+                    title: item.title,
+                    websiteUrl: item.websiteURL,
+                    assigneePersonId: null,
+                    dueDate: null,
+                    isCompleted: false,
+                    createdAt: now,
+                    updatedAt: now,
                   }))
                 )
               const payload = encode(projection.archive)

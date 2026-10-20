@@ -26,11 +26,13 @@ export function ActivityFields({
   children,
   ideas,
   instructions,
+  todos,
   onChildrenChange,
 }: {
   children: BlueprintDraftContent['children']
   ideas: BlueprintDraftContent['ideas']
   instructions: BlueprintDraftContent['instructions']
+  todos: BlueprintDraftContent['todos']
   onChildrenChange: (children: BlueprintDraftContent['children']) => void
 }) {
   const { t } = useTranslation()
@@ -70,10 +72,19 @@ export function ActivityFields({
       </header>
       {children.map((child, index) => {
         const dependency = dependentsForChild(
-          { name: '', description: '', experienceType: 'custom', children, ideas, instructions },
+          {
+            name: '',
+            description: '',
+            experienceType: 'custom',
+            children,
+            ideas,
+            instructions,
+            todos,
+          },
           child.key
         )
-        const dependencyCount = dependency.ideas.length + dependency.instructions.length
+        const dependencyCount =
+          dependency.ideas.length + dependency.instructions.length + dependency.todos.length
         return (
           <fieldset
             key={child.key}
@@ -111,10 +122,7 @@ export function ActivityFields({
             </div>
             {dependencyCount > 0 ? (
               <p className="text-sm text-amber-700 dark:text-amber-400 sm:col-span-2">
-                {t('blueprints.activityDependencies', {
-                  ideas: dependency.ideas.length,
-                  instructions: dependency.instructions.length,
-                })}
+                {t('blueprints.activityDependencyCount', { count: dependencyCount })}
               </p>
             ) : null}
             <div className="space-y-2">

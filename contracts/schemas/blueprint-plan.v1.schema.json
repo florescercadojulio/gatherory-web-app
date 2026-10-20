@@ -404,6 +404,53 @@
         "additionalProperties": false
       }
     },
+    "todos": {
+      "default": [],
+      "maxItems": 100,
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "sourceKey": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "pattern": "^[a-z][a-z0-9_]*$"
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "1–200 Unicode code points; surrounding whitespace is trimmed before validation."
+          },
+          "websiteURL": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 2048
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "targetSourceKey": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "pattern": "^[a-z][a-z0-9_]*$"
+          }
+        },
+        "required": [
+          "sourceKey",
+          "title",
+          "websiteURL",
+          "targetSourceKey"
+        ],
+        "additionalProperties": false
+      }
+    },
     "omissions": {
       "maxItems": 200,
       "type": "array",
@@ -441,6 +488,7 @@
     "children",
     "ideas",
     "instructions",
+    "todos",
     "omissions"
   ],
   "additionalProperties": false,

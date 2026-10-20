@@ -387,6 +387,7 @@ function mutation(input: {
     | 'idea'
     | 'event'
     | 'note'
+    | 'todo'
     | 'moment'
     | 'expense'
     | 'idea_response'
@@ -689,6 +690,600 @@ test(
       expect(await apply(contributorID, remove(rootID, malformedLegacyRootId))).toMatchObject({
         disposition: 'rejected',
       })
+    })
+  }
+)
+
+test(
+  'shared to-dos enforce exact child-event access, validation, retries, versions, and tombstones',
+  { skip: !enabled, timeout: 30_000 },
+  async () => {
+    await withFixture(async (fixture) => {
+      const { applyNativeMutations, listNativeWorkspaceSnapshots, pullNativeChanges } =
+        await import('@/server/sync/native-sync')
+      const { TODOS_CAPABILITY, TODOS_UPGRADE_REQUIRED_CODE } =
+        await import('@/server/sync/native-sync-compatibility')
+      const { eventTodo } = await import('@/db/schema/planning.schema')
+      const { db, rootID, childID, siblingID, contributorID, managerID, viewerID, guestID, eq } =
+        fixture
+
+      const todoID = crypto.randomUUID()
+      const payload = {
+        id: todoID,
+        eventID: childID,
+        title: '  Confirm the cake  '.trim(),
+        dueDate: '2032-02-29',
+        websiteURL: null,
+        assigneePersonID: null,
+        isCompleted: false,
+        // Native Date uses Foundation seconds since 2001-01-01.
+        createdAt: 1_000_000_000,
+      }
+      const create = mutation({ scopeID: childID, entityType: 'todo', entityID: todoID, payload })
+      const apply = async (userId: string, item: ReturnType<typeof mutation>) =>
+        (
+          await applyNativeMutations({
+            userId,
+            mutations: [item],
+            supportsTodos: item.entityType === 'todo',
+          })
+        ).results[0]!
+
+      await expect(
+        applyNativeMutations({ userId: contributorID, mutations: [create] })
+      ).rejects.toMatchObject({
+        code: TODOS_UPGRADE_REQUIRED_CODE,
+        httpStatus: 426,
+        messageParams: {
+          requiredCapabilities: TODOS_CAPABILITY,
+          recoverable: 'true',
+          scopeIDs: childID,
+        },
+      })
+      expect(await db.select().from(eventTodo).where(eq(eventTodo.id, todoID))).toHaveLength(0)
+
+      expect(await apply(contributorID, create)).toMatchObject({
+        disposition: 'applied',
+        serverVersion: 1,
+      })
+      expect(await apply(contributorID, create)).toMatchObject({
+        disposition: 'duplicate',
+        serverVersion: 1,
+      })
+      const [stored] = await db.select().from(eventTodo).where(eq(eventTodo.id, todoID))
+      expect(stored).toMatchObject({
+        id: todoID,
+        organizationId: fixture.organizationID,
+        eventId: childID,
+        title: 'Confirm the cake',
+        dueDate: '2032-02-29',
+        isCompleted: false,
+      })
+
+      const duplicateCreate = mutation({
+        scopeID: childID,
+        entityType: 'todo',
+        entityID: todoID,
+        payload: { ...payload, title: 'Duplicate create' },
+      })
+      expect(await apply(contributorID, duplicateCreate)).toMatchObject({ disposition: 'rejected' })
+      const missingUpdateID = crypto.randomUUID()
+      expect(
+        await apply(
+          contributorID,
+          mutation({
+            scopeID: childID,
+            entityType: 'todo',
+            entityID: missingUpdateID,
+            baseVersion: 0,
+            operation: 'update',
+            payload: { ...payload, id: missingUpdateID },
+          })
+        )
+      ).toMatchObject({ disposition: 'rejected' })
+
+      await expect(
+        pullNativeChanges({ userId: viewerID, scopeId: childID, after: 0 })
+      ).rejects.toMatchObject({
+        code: TODOS_UPGRADE_REQUIRED_CODE,
+        httpStatus: 426,
+        messageParams: { scopeIDs: childID, recoverable: 'true' },
+      })
+      await expect(
+        listNativeWorkspaceSnapshots({ userId: viewerID, supportsTodos: false })
+      ).rejects.toMatchObject({
+        code: TODOS_UPGRADE_REQUIRED_CODE,
+        httpStatus: 426,
+      })
+
+      const viewerPage = await pullNativeChanges({
+        userId: viewerID,
+        scopeId: childID,
+        after: 0,
+        supportsTodos: true,
+      })
+      expect(viewerPage?.nextCursor).toBeDefined()
+      const workspaceChange = viewerPage?.changes.find(
+        (change) => change.entityType === 'workspace'
+      )
+      expect(workspaceChange).toBeDefined()
+      const pulledArchive = JSON.parse(
+        Buffer.from(workspaceChange!.payload, 'base64').toString('utf8')
+      )
+      expect(pulledArchive.todos).toEqual([payload])
+      const pulledTodoEntity = viewerPage?.changes.find(
+        (change) => change.entityType === 'todo' && change.entityID === todoID
+      )
+      expect(pulledTodoEntity).toMatchObject({
+        scopeID: childID,
+        operation: 'update',
+        serverVersion: 1,
+      })
+      expect(JSON.parse(Buffer.from(pulledTodoEntity!.payload, 'base64').toString('utf8'))).toEqual(
+        payload
+      )
+      const viewerSnapshots = await listNativeWorkspaceSnapshots({
+        userId: viewerID,
+        supportsTodos: true,
+      })
+      const childSnapshot = viewerSnapshots.snapshots.find((item) => item.scopeID === childID)
+      expect(childSnapshot).toBeDefined()
+      const childArchive = JSON.parse(
+        Buffer.from(childSnapshot!.payload, 'base64').toString('utf8')
+      )
+      expect(childArchive.todos).toEqual([payload])
+      expect(childArchive.todos).not.toContainEqual(expect.objectContaining({ eventID: rootID }))
+      expect(childArchive.todos).not.toContainEqual(expect.objectContaining({ eventID: siblingID }))
+      const childTodoEntity = viewerSnapshots.entities.find(
+        (entity) => entity.scopeID === childID && entity.entityType === 'todo'
+      )
+      expect(childTodoEntity).toMatchObject({ entityID: todoID, serverVersion: 1 })
+      expect(JSON.parse(Buffer.from(childTodoEntity!.payload, 'base64').toString('utf8'))).toEqual(
+        payload
+      )
+      expect(viewerSnapshots.entities.some((entity) => entity.scopeID === siblingID)).toBe(false)
+      const guestSnapshots = await listNativeWorkspaceSnapshots({
+        userId: guestID,
+        supportsTodos: true,
+      })
+      expect(guestSnapshots.snapshots).toHaveLength(0)
+      const guestPage = await pullNativeChanges({
+        userId: guestID,
+        scopeId: childID,
+        after: 0,
+        supportsTodos: true,
+      })
+      expect(guestPage?.changes).not.toContainEqual(
+        expect.objectContaining({ entityType: 'todo', entityID: todoID })
+      )
+
+      for (const userId of [viewerID, guestID]) {
+        const denied = await apply(
+          userId,
+          mutation({
+            scopeID: childID,
+            entityType: 'todo',
+            entityID: crypto.randomUUID(),
+            payload: { ...payload, id: crypto.randomUUID() },
+          })
+        )
+        expect(denied.disposition).toBe('rejected')
+      }
+
+      const invalidTitleID = crypto.randomUUID()
+      expect(
+        await apply(
+          contributorID,
+          mutation({
+            scopeID: childID,
+            entityType: 'todo',
+            entityID: invalidTitleID,
+            payload: { ...payload, id: invalidTitleID, title: '   ' },
+          })
+        )
+      ).toMatchObject({ disposition: 'rejected', failureCode: 'TODO_TITLE_INVALID' })
+      const invalidDateID = crypto.randomUUID()
+      expect(
+        await apply(
+          contributorID,
+          mutation({
+            scopeID: childID,
+            entityType: 'todo',
+            entityID: invalidDateID,
+            payload: { ...payload, id: invalidDateID, dueDate: '2031-02-29' },
+          })
+        )
+      ).toMatchObject({ disposition: 'rejected', failureCode: 'TODO_DUE_DATE_INVALID' })
+      const yearZeroID = crypto.randomUUID()
+      expect(
+        await apply(
+          contributorID,
+          mutation({
+            scopeID: childID,
+            entityType: 'todo',
+            entityID: yearZeroID,
+            payload: { ...payload, id: yearZeroID, dueDate: '0000-01-01' },
+          })
+        )
+      ).toMatchObject({ disposition: 'rejected', failureCode: 'TODO_DUE_DATE_INVALID' })
+      const forgedScopeID = crypto.randomUUID()
+      expect(
+        await apply(
+          contributorID,
+          mutation({
+            scopeID: childID,
+            entityType: 'todo',
+            entityID: forgedScopeID,
+            payload: { ...payload, id: forgedScopeID, eventID: siblingID },
+          })
+        )
+      ).toMatchObject({ disposition: 'rejected' })
+
+      const staleUpdate = mutation({
+        scopeID: childID,
+        entityType: 'todo',
+        entityID: todoID,
+        baseVersion: 0,
+        operation: 'update',
+        payload: { ...payload, title: 'Stale edit' },
+      })
+      expect(await apply(contributorID, staleUpdate)).toMatchObject({
+        disposition: 'conflict',
+        serverVersion: 1,
+      })
+      const movedUpdate = mutation({
+        scopeID: childID,
+        entityType: 'todo',
+        entityID: todoID,
+        baseVersion: 1,
+        operation: 'update',
+        payload: { ...payload, eventID: siblingID, title: 'Move to sibling' },
+      })
+      expect(await apply(contributorID, movedUpdate).then((result) => result.disposition)).toBe(
+        'rejected'
+      )
+
+      const update = mutation({
+        scopeID: childID,
+        entityType: 'todo',
+        entityID: todoID,
+        baseVersion: 1,
+        operation: 'update',
+        payload: { ...payload, title: 'Confirm the cake', isCompleted: true },
+      })
+      expect(await apply(managerID, update)).toMatchObject({
+        disposition: 'applied',
+        serverVersion: 2,
+      })
+      const [completed] = await db.select().from(eventTodo).where(eq(eventTodo.id, todoID))
+      expect(completed?.isCompleted).toBe(true)
+      const changedCreatedAt = mutation({
+        scopeID: childID,
+        entityType: 'todo',
+        entityID: todoID,
+        baseVersion: 2,
+        operation: 'update',
+        payload: { ...payload, createdAt: payload.createdAt + 1 },
+      })
+      expect(await apply(managerID, changedCreatedAt)).toMatchObject({ disposition: 'rejected' })
+
+      const remove = mutation({
+        scopeID: childID,
+        entityType: 'todo',
+        entityID: todoID,
+        baseVersion: 2,
+        operation: 'delete',
+        payload: {},
+      })
+      expect(await apply(contributorID, remove)).toMatchObject({
+        disposition: 'applied',
+        serverVersion: 3,
+      })
+      expect(await db.select().from(eventTodo).where(eq(eventTodo.id, todoID))).toHaveLength(0)
+      const deletionPage = await pullNativeChanges({
+        userId: viewerID,
+        scopeId: childID,
+        after: 0,
+        supportsTodos: true,
+      })
+      const deletionWorkspace = deletionPage?.changes.find(
+        (change) => change.entityType === 'workspace'
+      )
+      expect(deletionWorkspace).toBeDefined()
+      const deletedProjection = JSON.parse(
+        Buffer.from(deletionWorkspace!.payload, 'base64').toString('utf8')
+      )
+      expect(deletedProjection.todos).toEqual([])
+      expect(
+        deletionPage?.changes.some(
+          (change) => change.entityType === 'todo' && change.entityID === todoID
+        )
+      ).toBe(false)
+    })
+  }
+)
+
+test(
+  'root-event to-dos require the root event ID and accept the initial version zero',
+  { skip: !enabled, timeout: 30_000 },
+  async () => {
+    await withFixture(async (fixture) => {
+      const { applyNativeMutations } = await import('@/server/sync/native-sync')
+      const { eventTodo } = await import('@/db/schema/planning.schema')
+      const { db, rootID, childID, rootHostID, personIDs, eq } = fixture
+      const createdAt = 1_000_000_000
+      const allowedID = crypto.randomUUID()
+      const allowedPayload = {
+        id: allowedID,
+        eventID: rootID,
+        title: 'Confirm the venue',
+        dueDate: null,
+        websiteURL: 'https://example.test/root-venue',
+        assigneePersonID: personIDs[0],
+        isCompleted: false,
+        createdAt,
+      }
+      const allowed = mutation({
+        scopeID: rootID,
+        entityType: 'todo',
+        entityID: allowedID,
+        baseVersion: 0,
+        payload: allowedPayload,
+      })
+      const result = await applyNativeMutations({
+        userId: rootHostID,
+        mutations: [allowed],
+        supportsTodos: true,
+      })
+      expect(result.results[0]).toMatchObject({ disposition: 'applied', serverVersion: 1 })
+      const [rootStored] = await db.select().from(eventTodo).where(eq(eventTodo.id, allowedID))
+      expect(rootStored).toMatchObject({
+        eventId: rootID,
+        websiteUrl: 'https://example.test/root-venue',
+        assigneePersonId: personIDs[0],
+      })
+
+      const forgedID = crypto.randomUUID()
+      const forged = mutation({
+        scopeID: rootID,
+        entityType: 'todo',
+        entityID: forgedID,
+        baseVersion: 0,
+        payload: { ...allowedPayload, id: forgedID, eventID: childID },
+      })
+      const denied = await applyNativeMutations({
+        userId: rootHostID,
+        mutations: [forged],
+        supportsTodos: true,
+      })
+      expect(denied.results[0]?.disposition).toBe('rejected')
+      expect(await db.select().from(eventTodo).where(eq(eventTodo.id, forgedID))).toHaveLength(0)
+      expect(await db.select().from(eventTodo).where(eq(eventTodo.id, allowedID))).toHaveLength(1)
+    })
+  }
+)
+
+test(
+  'to-do links and assignees are validated, and exact-event self-claims use CAS',
+  { skip: !enabled, timeout: 30_000 },
+  async () => {
+    await withFixture(async (fixture) => {
+      const { applyNativeMutations } = await import('@/server/sync/native-sync')
+      const { eventTodo } = await import('@/db/schema/planning.schema')
+      const { eventParticipant } = await import('@/db/schema/event.schema')
+      const {
+        db,
+        childID,
+        contributorID,
+        managerID,
+        viewerID,
+        personIDs,
+        childParticipationIDs,
+        organizationID,
+        eq,
+      } = fixture
+      const apply = async (userId: string, item: ReturnType<typeof mutation>) =>
+        (await applyNativeMutations({ userId, mutations: [item], supportsTodos: true })).results[0]!
+      const makeTodo = (overrides: Record<string, unknown> = {}) => {
+        const id = crypto.randomUUID()
+        return mutation({
+          scopeID: childID,
+          entityType: 'todo',
+          entityID: id,
+          baseVersion: 0,
+          payload: {
+            id,
+            eventID: childID,
+            title: 'Confirm the cake',
+            dueDate: null,
+            websiteURL: null,
+            assigneePersonID: null,
+            isCompleted: false,
+            createdAt: 1_000_000_000,
+            ...overrides,
+          },
+        })
+      }
+
+      const valid = makeTodo({
+        websiteURL: '  https://example.test/vendor  ',
+        assigneePersonID: personIDs[1],
+      })
+      const validResult = await apply(contributorID, valid)
+      expect(validResult).toMatchObject({ disposition: 'applied', serverVersion: 1 })
+      const [stored] = await db.select().from(eventTodo).where(eq(eventTodo.id, valid.entityID))
+      expect(stored).toMatchObject({
+        organizationId: organizationID,
+        eventId: childID,
+        websiteUrl: 'https://example.test/vendor',
+        assigneePersonId: personIDs[1],
+      })
+
+      const invalidURLs = [
+        'ftp://example.test/item',
+        'https:example.test/item',
+        'https:///example.test/item',
+        'https://example.test:65536/item',
+        'https://user:secret@example.test/item',
+        'https://example.test/a b',
+        'https://example.test/line\nfeed',
+        `https://example.test/${'x'.repeat(2040)}`,
+      ]
+      for (const websiteURL of invalidURLs) {
+        const invalid = makeTodo({ websiteURL })
+        expect(await apply(contributorID, invalid)).toMatchObject({
+          disposition: 'rejected',
+          failureCode: 'TODO_WEBSITE_URL_INVALID',
+        })
+      }
+      const wrongEventAssignee = makeTodo({ assigneePersonID: personIDs[0] })
+      expect(await apply(contributorID, wrongEventAssignee)).toMatchObject({
+        disposition: 'rejected',
+        failureCode: 'TODO_ASSIGNEE_INELIGIBLE',
+      })
+
+      // A server-side permission change can make an existing assignment stale;
+      // unchanged metadata remains editable by a current manager.
+      await db.delete(eventParticipant).where(eq(eventParticipant.id, childParticipationIDs[0]!))
+      const keepStaleAssignment = mutation({
+        scopeID: childID,
+        entityType: 'todo',
+        entityID: valid.entityID,
+        baseVersion: 1,
+        operation: 'update',
+        payload: {
+          id: valid.entityID,
+          eventID: childID,
+          title: 'Confirm the cake with the vendor',
+          dueDate: null,
+          isCompleted: false,
+          createdAt: 1_000_000_000,
+        },
+      })
+      expect(await apply(managerID, keepStaleAssignment)).toMatchObject({
+        disposition: 'applied',
+        serverVersion: 2,
+      })
+      const [unchangedMetadata] = await db
+        .select()
+        .from(eventTodo)
+        .where(eq(eventTodo.id, valid.entityID))
+      expect(unchangedMetadata).toMatchObject({
+        websiteUrl: 'https://example.test/vendor',
+        assigneePersonId: personIDs[1],
+      })
+      await db.insert(eventParticipant).values({
+        id: childParticipationIDs[0]!,
+        eventId: childID,
+        personId: personIDs[1]!,
+        role: 'collaborator',
+        planningPermission: 'contribute',
+        attendanceStatus: 'going',
+      })
+      const reassign = mutation({
+        scopeID: childID,
+        entityType: 'todo',
+        entityID: valid.entityID,
+        baseVersion: 2,
+        operation: 'update',
+        payload: {
+          id: valid.entityID,
+          eventID: childID,
+          title: 'Confirm the cake with the vendor',
+          dueDate: null,
+          websiteURL: 'https://example.test/vendor',
+          assigneePersonID: personIDs[2],
+          isCompleted: false,
+          createdAt: 1_000_000_000,
+        },
+      })
+      expect(await apply(managerID, reassign)).toMatchObject({
+        disposition: 'applied',
+        serverVersion: 3,
+      })
+      const clear = mutation({
+        scopeID: childID,
+        entityType: 'todo',
+        entityID: valid.entityID,
+        baseVersion: 3,
+        operation: 'update',
+        payload: {
+          id: valid.entityID,
+          eventID: childID,
+          title: 'Confirm the cake with the vendor',
+          dueDate: null,
+          websiteURL: 'https://example.test/vendor',
+          assigneePersonID: null,
+          isCompleted: false,
+          createdAt: 1_000_000_000,
+        },
+      })
+      expect(await apply(managerID, clear)).toMatchObject({
+        disposition: 'applied',
+        serverVersion: 4,
+      })
+      const [cleared] = await db.select().from(eventTodo).where(eq(eventTodo.id, valid.entityID))
+      expect(cleared).toMatchObject({
+        websiteUrl: 'https://example.test/vendor',
+        assigneePersonId: null,
+      })
+
+      const unassigned = makeTodo()
+      expect(await apply(managerID, unassigned)).toMatchObject({
+        disposition: 'applied',
+        serverVersion: 1,
+      })
+      const claim = (userPersonID: string) =>
+        mutation({
+          scopeID: childID,
+          entityType: 'todo',
+          entityID: unassigned.entityID,
+          baseVersion: 1,
+          operation: 'update',
+          payload: {
+            id: unassigned.entityID,
+            eventID: childID,
+            title: 'Confirm the cake',
+            dueDate: null,
+            websiteURL: null,
+            assigneePersonID: userPersonID,
+            isCompleted: false,
+            createdAt: 1_000_000_000,
+          },
+        })
+      const [contributorClaim, managerClaim] = await Promise.all([
+        apply(contributorID, claim(personIDs[1]!)),
+        apply(managerID, claim(personIDs[2]!)),
+      ])
+      expect([contributorClaim.disposition, managerClaim.disposition].sort()).toEqual(
+        ['applied', 'conflict'].sort()
+      )
+      const [claimed] = await db
+        .select()
+        .from(eventTodo)
+        .where(eq(eventTodo.id, unassigned.entityID))
+      expect([personIDs[1], personIDs[2]]).toContain(claimed?.assigneePersonId)
+
+      const readOnlyClaim = makeTodo()
+      expect(await apply(managerID, readOnlyClaim)).toMatchObject({ disposition: 'applied' })
+      const deniedClaim = mutation({
+        scopeID: childID,
+        entityType: 'todo',
+        entityID: readOnlyClaim.entityID,
+        baseVersion: 1,
+        operation: 'update',
+        payload: {
+          id: readOnlyClaim.entityID,
+          eventID: childID,
+          title: 'Confirm the cake',
+          dueDate: null,
+          websiteURL: null,
+          assigneePersonID: personIDs[3],
+          isCompleted: false,
+          createdAt: 1_000_000_000,
+        },
+      })
+      expect(await apply(viewerID, deniedClaim)).toMatchObject({ disposition: 'rejected' })
     })
   }
 )

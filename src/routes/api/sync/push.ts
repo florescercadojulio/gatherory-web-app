@@ -4,7 +4,10 @@ import { InvalidInputError, runServerResponse } from '@/server/effect-utils'
 import { requestJson, requestUser } from '@/server/http-errors'
 import { pushRequestSchema } from '@/server/sync/contracts/native-sync.contracts'
 import { pushNativeSync } from '@/server/sync/workflows/native-sync.workflows.live'
-import { hasBlueprintGuidesCapability } from '@/server/sync/native-sync-compatibility'
+import {
+  hasBlueprintGuidesCapability,
+  hasTodosCapability,
+} from '@/server/sync/native-sync-compatibility'
 
 export const Route = createFileRoute('/api/sync/push')({
   server: {
@@ -34,6 +37,7 @@ export const Route = createFileRoute('/api/sync/push')({
               userId: user.id,
               mutations: parsed.data.mutations,
               supportsBlueprintGuides: hasBlueprintGuidesCapability(request.headers),
+              supportsTodos: hasTodosCapability(request.headers),
             })
           }),
           {

@@ -29,6 +29,7 @@ export function emptyBlueprintContent(): BlueprintDraftContent {
     children: [],
     ideas: [],
     instructions: [],
+    todos: [],
   }
 }
 
@@ -49,6 +50,9 @@ export function dependentsForChild(content: BlueprintDraftContent, childKey: str
     ),
     instructions: content.instructions.filter(
       (instruction) => instruction.target.kind === 'child' && instruction.target.key === childKey
+    ),
+    todos: (content.todos ?? []).filter(
+      (todo) => todo.target.kind === 'child' && todo.target.key === childKey
     ),
   }
 }

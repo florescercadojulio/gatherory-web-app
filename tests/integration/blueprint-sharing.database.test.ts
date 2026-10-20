@@ -233,6 +233,7 @@ test.skipIf(!enabled)('unlisted blueprint links stay scoped, pinned, and revocab
           childIds: [],
           ideaIds: [],
           instructionIds: [],
+          todoIds: [],
           includeIdeaNotes: false,
         },
         capturedContent: content,

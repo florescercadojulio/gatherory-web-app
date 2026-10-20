@@ -3,8 +3,8 @@
 **Status:** In progress — first Wedding installation slice implemented; full iteration remains open.
 **Priority:** P1, explicitly requested on 2026-10-13.
 **Owner area:** `src/server/blueprints/`, protected `/blueprints` pages, and native new-event setup.
-**Last reviewed:** 2026-10-20, against web/server `69e28f0`, iOS `dd28ba8`,
-and the uncommitted native QR slice described in `22`.
+**Last reviewed:** 2026-10-20, against web/server `4806dad`, iOS `e1bdab6`,
+the committed QR/sharing checkpoint described in `22`.
 October 14 implementation evidence in `00`/`00a` remains dated to that review;
 the subsequent October 15 implementation adds the Wedding proving slice described below.
 
@@ -34,6 +34,19 @@ web-first; keep iOS lightweight. See
 design constraints and future slices, not newly implemented capabilities.
 
 ## Current position and stopping point
+
+October 20 follow-up: [optional blueprint To-dos](../to-dos-reminders-roadmap/02-blueprint-to-dos.md)
+are implemented locally. Capture starts excluded; explicit inclusion carries
+title/website definitions and creates independent, unfinished, unassigned tasks.
+Old dates and people stay out. Release evidence and pending device/deployment
+checks are recorded in that handoff; personal reminders remain deferred.
+
+**Shared To-dos — October 20:** The first [shared event list](../to-dos-reminders-roadmap/01-shared-event-to-dos.md)
+is implemented locally in native Manage with title, optional due date,
+completion, exact-event permissions and offline sync. The additive migration
+and app/backend changes are not deployed. Personal reminders, the Home preview
+and reusable blueprint task definitions remain deferred. QR deployment and
+physical-device acceptance remain separate outstanding work.
 
 **Native QR distribution — October 19:** Owner sharing controls can display and
 share a PNG for the current authorized template URL. Codes use the existing

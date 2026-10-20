@@ -5,7 +5,10 @@ import type { BlueprintEventCaptureSource } from '@/contracts/blueprint-capture.
 import { BlueprintAuthoringRepo } from '@/server/blueprints/repos/blueprint-authoring.repo'
 import { BlueprintCaptureRepo } from '@/server/blueprints/repos/blueprint-capture.repo'
 import { BlueprintNativeCreationRepo } from '@/server/blueprints/repos/blueprint-native-creation.repo'
-import { blueprintHash } from '@/server/blueprints/planning/blueprint-hash'
+import {
+  blueprintDraftContentHash,
+  blueprintHash,
+} from '@/server/blueprints/planning/blueprint-hash'
 import { captureEventBlueprint } from '@/server/blueprints/planning/capture-event-blueprint.server'
 import { blueprintNativeCreationWorkflow } from '@/server/blueprints/workflows/blueprint-native-creation.workflow'
 import { BetterAuthWorkspaceCon } from '@/server/workspaces/connectors/better-auth.con'
@@ -19,6 +22,7 @@ const childId = '20000000-0000-4000-8000-000000000002'
 const ideaId = '30000000-0000-4000-8000-000000000003'
 const instructionId = '40000000-0000-4000-8000-000000000004'
 const source: BlueprintEventCaptureSource = {
+  todos: [],
   event: {
     id: eventId,
     title: 'Source event',
@@ -50,6 +54,7 @@ const selection = {
   childIds: [childId],
   ideaIds: [ideaId],
   instructionIds: [instructionId],
+  todoIds: [],
   includeIdeaNotes: false,
 }
 const sourceHash = blueprintHash(source)
@@ -128,11 +133,14 @@ it.effect(
         }
       )
       const expectedContent = captureEventBlueprint(source, selection, name)
+      const expectedReviewHash = blueprintDraftContentHash(expectedContent)
       expect(result).toEqual({
         content: expectedContent,
         sourceHash,
-        reviewHash: blueprintHash(expectedContent),
+        reviewHash: expectedReviewHash,
       })
+      const { todos: _todos, ...legacyContent } = expectedContent
+      expect(expectedReviewHash).toBe(blueprintHash(legacyContent))
       expect(fake.capture.source).toHaveBeenCalledWith('actor', eventId)
       expect(fake.capture.save).not.toHaveBeenCalled()
       expect(fake.native.create).not.toHaveBeenCalled()
@@ -152,7 +160,7 @@ it.effect('create dispatches the reviewed payload to the atomic native creation 
     name,
     organizationId: 'workspace-1',
     requestId: '70000000-0000-4000-8000-000000000007',
-    expectedReviewHash: blueprintHash(content),
+    expectedReviewHash: blueprintDraftContentHash(content),
     discoverable: false,
   }
   return Effect.gen(function* () {
@@ -180,7 +188,7 @@ it.effect(
       expectedSourceHash: sourceHash,
       name: 'Searchable wedding',
       requestId: crypto.randomUUID(),
-      expectedReviewHash: blueprintHash(
+      expectedReviewHash: blueprintDraftContentHash(
         captureEventBlueprint(source, selection, 'Searchable wedding')
       ),
       discoverable: true,

@@ -11,6 +11,7 @@ import {
   BlueprintExperienceTreeModuleSchema,
   BlueprintIdeasModuleSchema,
   BlueprintInstructionsModuleSchema,
+  BlueprintTodosModuleSchema,
 } from './blueprint-install.contracts'
 
 /** The editor deliberately exposes only executable, portable content—not permissions. */
@@ -22,6 +23,7 @@ export const BlueprintDraftContentSchema = z
     children: BlueprintExperienceTreeModuleSchema.shape.config.shape.children,
     ideas: BlueprintIdeasModuleSchema.shape.config.shape.ideas,
     instructions: BlueprintInstructionsModuleSchema.shape.config.shape.sections,
+    todos: BlueprintTodosModuleSchema.shape.config.shape.todos,
   })
   .strict()
   .superRefine((content, context) => {
@@ -69,6 +71,17 @@ export function draftDefinition(
         required: true,
         config: { sections: content.instructions },
       },
+      ...(content.todos.length > 0
+        ? [
+            {
+              key: 'starter_todos',
+              type: 'todos' as const,
+              version: 1 as const,
+              required: false,
+              config: { todos: content.todos },
+            },
+          ]
+        : []),
     ],
   }
 }

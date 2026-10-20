@@ -173,6 +173,7 @@ test.skipIf(!enabled)(
             // association comparison must normalize it before matching.
             eventId: row.id === ids.published ? row.sourceEventId.toUpperCase() : row.sourceEventId,
             selection: {
+              todoIds: [],
               childIds: [],
               ideaIds: [],
               instructionIds: [],

@@ -6,6 +6,7 @@ import type { NativeMutation } from '../contracts/native-sync.contracts'
 export function pushNativeSync(input: {
   userId: string
   mutations: NativeMutation[]
+  supportsTodos?: boolean
   supportsBlueprintGuides: boolean
 }) {
   return Effect.gen(function* () {

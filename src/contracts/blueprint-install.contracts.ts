@@ -15,6 +15,7 @@ export const BLUEPRINT_LIMITS = {
   children: 50,
   ideas: 100,
   instructionSections: 30,
+  todos: 100,
   titleChars: 120,
   descriptionChars: 2_000,
   instructionBodyChars: 5_000,
@@ -174,10 +175,66 @@ export const BlueprintInstructionsModuleSchema = z
   })
   .strict()
 
+export const BlueprintTodoWebsiteURLSchema = z
+  .string()
+  .min(1)
+  .max(2_048)
+  .superRefine((value, context) => {
+    if (!value || Array.from(value).length > 2_048 || /[\\\s\p{Cc}\p{Cf}]/u.test(value)) {
+      context.addIssue({ code: 'custom', message: 'To-do website URL is invalid.' })
+      return
+    }
+    try {
+      const parsed = new URL(value)
+      const authority = value.match(/^[a-z][a-z\d+.-]*:\/\/([^/?#]*)/i)?.[1]
+      if (
+        !['http:', 'https:'].includes(parsed.protocol.toLowerCase()) ||
+        !authority ||
+        !parsed.hostname ||
+        parsed.username ||
+        parsed.password ||
+        authority.includes('@') ||
+        Array.from(parsed.toString()).length > 2_048
+      ) {
+        context.addIssue({ code: 'custom', message: 'To-do website URL is invalid.' })
+      }
+    } catch {
+      context.addIssue({ code: 'custom', message: 'To-do website URL is invalid.' })
+    }
+  })
+
+export function normalizeBlueprintTodoWebsiteURL(value: string): string {
+  return new URL(value).toString()
+}
+
+export const BlueprintTodoDefinitionSchema = z
+  .object({
+    key: BlueprintStableKeySchema,
+    title: characterString(1, 200),
+    websiteURL: BlueprintTodoWebsiteURLSchema.optional(),
+    target: BlueprintTargetSchema,
+  })
+  .strict()
+
+const todosConfigSchema = z
+  .object({ todos: z.array(BlueprintTodoDefinitionSchema).max(BLUEPRINT_LIMITS.todos).default([]) })
+  .strict()
+
+export const BlueprintTodosModuleSchema = z
+  .object({
+    key: BlueprintStableKeySchema,
+    type: z.literal('todos'),
+    version: z.literal(1),
+    required: z.boolean().default(false),
+    config: todosConfigSchema,
+  })
+  .strict()
+
 const executableModuleIdentities = [
   { type: 'experience_tree', version: 2 },
   { type: 'ideas', version: 2 },
   { type: 'instructions', version: 1 },
+  { type: 'todos', version: 1 },
 ] as const
 
 // A known module must satisfy its typed limits, not fall through to opaque JSON.
@@ -201,6 +258,7 @@ export const BlueprintExecutableModuleSchema = z.union([
   BlueprintExperienceTreeModuleSchema,
   BlueprintIdeasModuleSchema,
   BlueprintInstructionsModuleSchema,
+  BlueprintTodosModuleSchema,
   opaqueModuleSchema,
 ])
 
@@ -210,17 +268,20 @@ export const BlueprintCatalogDefinitionSchema = ExperienceBlueprintSchema.safeEx
   const childKeys = new Set<string>()
   const ideaKeys = new Set<string>()
   const sectionKeys = new Set<string>()
+  const todoKeys = new Set<string>()
   const executableTypes = new Set<string>()
   let experienceTreeFound = false
   for (const [moduleIndex, module] of document.modules.entries()) {
     const tree = BlueprintExperienceTreeModuleSchema.safeParse(module)
     const ideas = BlueprintIdeasModuleSchema.safeParse(module)
     const instructions = BlueprintInstructionsModuleSchema.safeParse(module)
+    const todos = BlueprintTodosModuleSchema.safeParse(module)
     const moduleIdentity = `${module.type}@${module.version}`
     if (
       (module.type === 'experience_tree' && module.version === 2) ||
       (module.type === 'ideas' && module.version === 2) ||
-      (module.type === 'instructions' && module.version === 1)
+      (module.type === 'instructions' && module.version === 1) ||
+      (module.type === 'todos' && module.version === 1)
     ) {
       if (executableTypes.has(moduleIdentity)) {
         context.addIssue({
@@ -248,6 +309,13 @@ export const BlueprintCatalogDefinitionSchema = ExperienceBlueprintSchema.safeEx
         context.addIssue({
           code: 'custom',
           message: 'Invalid instructions v1 configuration.',
+          path: ['modules', moduleIndex, 'config'],
+        })
+      }
+      if (!todos.success && module.type === 'todos') {
+        context.addIssue({
+          code: 'custom',
+          message: 'Invalid todos v1 configuration.',
           path: ['modules', moduleIndex, 'config'],
         })
       }
@@ -307,6 +375,18 @@ export const BlueprintCatalogDefinitionSchema = ExperienceBlueprintSchema.safeEx
         sectionKeys.add(section.key)
       })
     }
+    if (todos.success) {
+      todos.data.config.todos.forEach((todo, todoIndex) => {
+        if (todoKeys.has(todo.key)) {
+          context.addIssue({
+            code: 'custom',
+            message: `Duplicate to-do source key: ${todo.key}`,
+            path: ['modules', moduleIndex, 'config', 'todos', todoIndex, 'key'],
+          })
+        }
+        todoKeys.add(todo.key)
+      })
+    }
   }
 
   if (!experienceTreeFound) {
@@ -320,11 +400,14 @@ export const BlueprintCatalogDefinitionSchema = ExperienceBlueprintSchema.safeEx
   for (const [moduleIndex, module] of document.modules.entries()) {
     const parsedIdeas = BlueprintIdeasModuleSchema.safeParse(module)
     const parsedInstructions = BlueprintInstructionsModuleSchema.safeParse(module)
+    const parsedTodos = BlueprintTodosModuleSchema.safeParse(module)
     const typedEntries = parsedIdeas.success
       ? { name: 'ideas' as const, entries: parsedIdeas.data.config.ideas }
       : parsedInstructions.success
         ? { name: 'sections' as const, entries: parsedInstructions.data.config.sections }
-        : null
+        : parsedTodos.success
+          ? { name: 'todos' as const, entries: parsedTodos.data.config.todos }
+          : null
     if (!typedEntries) continue
     for (const [entryIndex, entry] of typedEntries.entries.entries()) {
       if (entry.target.kind === 'child' && !childKeys.has(entry.target.key)) {
@@ -479,6 +562,15 @@ export const BlueprintPlannedInstructionSchema = z
   })
   .strict()
 
+export const BlueprintPlannedTodoSchema = z
+  .object({
+    sourceKey: BlueprintStableKeySchema,
+    title: characterString(1, 200),
+    websiteURL: BlueprintTodoWebsiteURLSchema.nullable(),
+    targetSourceKey: BlueprintStableKeySchema,
+  })
+  .strict()
+
 export const BlueprintPlanOmissionSchema = z
   .object({
     sourceKey: BlueprintStableKeySchema,
@@ -501,6 +593,7 @@ export const BlueprintExpandedPlanSchema = z
     instructions: z
       .array(BlueprintPlannedInstructionSchema)
       .max(BLUEPRINT_LIMITS.instructionSections),
+    todos: z.array(BlueprintPlannedTodoSchema).max(BLUEPRINT_LIMITS.todos).default([]),
     omissions: z.array(BlueprintPlanOmissionSchema).max(200),
   })
   .strict()
@@ -510,6 +603,7 @@ export type BlueprintCatalogRevision = z.infer<typeof BlueprintCatalogRevisionSc
 export type BlueprintInstallInput = z.infer<typeof BlueprintInstallInputSchema>
 export type BlueprintChildDefinition = z.infer<typeof BlueprintChildDefinitionSchema>
 export type BlueprintIdeaDefinition = z.infer<typeof BlueprintIdeaDefinitionSchema>
+export type BlueprintTodoDefinition = z.infer<typeof BlueprintTodoDefinitionSchema>
 export type BlueprintExpandedPlan = z.infer<typeof BlueprintExpandedPlanSchema>
 export type BlueprintInstallPlan = BlueprintExpandedPlan
 export type BlueprintIdeaConfiguration = z.infer<typeof PortableIdeaConfigurationSchema>

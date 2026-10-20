@@ -14,6 +14,7 @@ import {
   BlueprintExperienceTreeModuleSchema,
   BlueprintIdeasModuleSchema,
   BlueprintInstructionsModuleSchema,
+  BlueprintTodosModuleSchema,
 } from '@/contracts/blueprint-install.contracts'
 import { ConflictError, InvalidInputError } from '@/lib/domain-errors'
 import { validateInput } from '@/server/validation'
@@ -62,6 +63,9 @@ export const getBlueprintStarterWorkflow = (actorId: string, input: unknown) =>
     const instructions = document.modules
       .map((module) => BlueprintInstructionsModuleSchema.safeParse(module))
       .find((item) => item.success)
+    const todos = document.modules
+      .map((module) => BlueprintTodosModuleSchema.safeParse(module))
+      .find((item) => item.success)
     return yield* validateInput(BlueprintDraftContentSchema, {
       name: document.blueprint.name,
       description: revision.description ?? '',
@@ -69,6 +73,7 @@ export const getBlueprintStarterWorkflow = (actorId: string, input: unknown) =>
       children: tree?.data?.config.children ?? [],
       ideas: ideas?.data?.config.ideas ?? [],
       instructions: instructions?.data?.config.sections ?? [],
+      todos: todos?.data?.config.todos ?? [],
     })
   })
 export const createBlueprintDraftWorkflow = (actorId: string, input: unknown) =>

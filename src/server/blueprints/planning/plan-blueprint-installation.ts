@@ -7,6 +7,8 @@ import {
   BlueprintExperienceTreeModuleSchema,
   BlueprintIdeasModuleSchema,
   BlueprintInstructionsModuleSchema,
+  BlueprintTodosModuleSchema,
+  normalizeBlueprintTodoWebsiteURL,
   type BlueprintCatalogDefinition,
   type BlueprintExpandedPlan,
   type BlueprintInstallInput,
@@ -20,6 +22,7 @@ export const BLUEPRINT_SERVER_CAPABILITIES = [
   'planning.ideas_v2',
   'planning.instructions_v1',
   'planning.portable_idea_config_v1',
+  'planning.todos_v1',
 ] as const
 
 export type BlueprintPlanningErrorCode =
@@ -100,6 +103,7 @@ export function expandBlueprintInstallation(
   const experienceTree = findModule(definition, BlueprintExperienceTreeModuleSchema)
   const ideasModule = findModule(definition, BlueprintIdeasModuleSchema)
   const instructionsModule = findModule(definition, BlueprintInstructionsModuleSchema)
+  const todosModule = findModule(definition, BlueprintTodosModuleSchema)
   const inputChildren = new Map(input.selectedChildren.map((child) => [child.key, child]))
   const declaredChildren = new Map(
     (experienceTree?.config.children ?? []).map((child) => [child.key, child])
@@ -173,6 +177,7 @@ export function expandBlueprintInstallation(
   const instructionsIncluded = Boolean(
     instructionsModule && supportedModules.get(instructionsModule.key)
   )
+  const todosIncluded = Boolean(todosModule && supportedModules.get(todosModule.key))
   const omittedChildKeys = new Set<string>()
   const children: BlueprintExpandedPlan['children'] = []
   if (experienceTree && treeIncluded) {
@@ -253,6 +258,32 @@ export function expandBlueprintInstallation(
     }
   }
 
+  const todos: BlueprintExpandedPlan['todos'] = []
+  if (todosModule && todosIncluded) {
+    for (const todo of todosModule.config.todos) {
+      const targetSourceKey = todo.target.kind === 'main' ? 'main' : todo.target.key
+      if (todo.target.kind === 'child' && !includedChildKeys.has(todo.target.key)) {
+        omissions.push({
+          sourceKey: todo.key,
+          reason: omittedChildKeys.has(todo.target.key)
+            ? 'unsupported_optional_capability'
+            : 'child_not_selected',
+        })
+        continue
+      }
+      todos.push({
+        sourceKey: todo.key,
+        title: todo.title,
+        websiteURL: todo.websiteURL ? normalizeBlueprintTodoWebsiteURL(todo.websiteURL) : null,
+        targetSourceKey,
+      })
+    }
+  } else {
+    for (const todo of todosModule?.config.todos ?? []) {
+      omissions.push({ sourceKey: todo.key, reason: 'unsupported_optional_capability' })
+    }
+  }
+
   const plan = {
     plannerVersion: BLUEPRINT_PLANNER_VERSION,
     experienceType: definition.experienceDefaults.type,
@@ -271,6 +302,7 @@ export function expandBlueprintInstallation(
     children,
     ideas,
     instructions,
+    todos,
     omissions: deduplicateOmissions(omissions),
   }
 
@@ -364,7 +396,8 @@ function findModule<
   S extends
     | typeof BlueprintExperienceTreeModuleSchema
     | typeof BlueprintIdeasModuleSchema
-    | typeof BlueprintInstructionsModuleSchema,
+    | typeof BlueprintInstructionsModuleSchema
+    | typeof BlueprintTodosModuleSchema,
 >(definition: BlueprintCatalogDefinition, schema: S): z.infer<S> | undefined {
   const matches = definition.modules
     .map((module) => schema.safeParse(module))
@@ -385,6 +418,7 @@ function capabilitiesForModule(type: string, version: number): string[] | null {
     return ['planning.ideas_v2', 'planning.portable_idea_config_v1']
   }
   if (type === 'instructions' && version === 1) return ['planning.instructions_v1']
+  if (type === 'todos' && version === 1) return ['planning.todos_v1']
   return null
 }
 

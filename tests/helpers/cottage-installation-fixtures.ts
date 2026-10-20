@@ -77,7 +77,10 @@ export function buildCottageInstallationFixtures() {
           startsAt: copy.childStartsAt[index],
         })),
         selectedIdeaKeys: ideas.config.ideas.map((idea) => idea.key),
-        capabilities: [...BLUEPRINT_SERVER_CAPABILITIES],
+        // These persisted requests predate optional To-do installation support.
+        capabilities: BLUEPRINT_SERVER_CAPABILITIES.filter(
+          (value) => value !== 'planning.todos_v1'
+        ),
       }
       const plan = expandBlueprintInstallation(input, {
         catalogKey,

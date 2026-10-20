@@ -52,6 +52,86 @@ test('parses the typed envelope revision and strict install request', () => {
   ).toBe(false)
 })
 
+test('installs portable to-dos only for capable clients and follows selected child targets', () => {
+  const definition = BlueprintCatalogDefinitionSchema.parse({
+    ...weddingBlueprintV1.definition,
+    modules: [
+      ...weddingBlueprintV1.definition.modules,
+      {
+        key: 'starter_todos',
+        type: 'todos',
+        version: 1,
+        config: {
+          todos: [
+            {
+              key: 'book_photographer',
+              title: 'Book the photographer',
+              websiteURL: 'https://example.test/vendors',
+              target: { kind: 'main' },
+            },
+            {
+              key: 'confirm_readings',
+              title: 'Confirm the readings',
+              target: { kind: 'child', key: 'ceremony' },
+            },
+          ],
+        },
+      },
+    ],
+  })
+  const revision = {
+    ...weddingBlueprintV1,
+    definition,
+    contentHash: blueprintHash(definition),
+  }
+  const capable = expandBlueprintInstallation(
+    { ...request, contentHash: revision.contentHash },
+    revision
+  )
+  expect(capable.todos).toEqual([
+    {
+      sourceKey: 'book_photographer',
+      title: 'Book the photographer',
+      websiteURL: 'https://example.test/vendors',
+      targetSourceKey: 'main',
+    },
+    {
+      sourceKey: 'confirm_readings',
+      title: 'Confirm the readings',
+      websiteURL: null,
+      targetSourceKey: 'ceremony',
+    },
+  ])
+
+  const unsupported = expandBlueprintInstallation(
+    {
+      ...request,
+      contentHash: revision.contentHash,
+      capabilities: request.capabilities.filter((key) => key !== 'planning.todos_v1'),
+    },
+    revision
+  )
+  expect(unsupported.todos).toEqual([])
+  expect(unsupported.omissions).toContainEqual({
+    sourceKey: 'starter_todos',
+    reason: 'unsupported_optional_capability',
+  })
+  expect(unsupported.omissions).toContainEqual({
+    sourceKey: 'book_photographer',
+    reason: 'unsupported_optional_capability',
+  })
+
+  const withoutChild = expandBlueprintInstallation(
+    { ...request, contentHash: revision.contentHash, selectedChildren: [] },
+    revision
+  )
+  expect(withoutChild.todos.map(({ sourceKey }) => sourceKey)).toEqual(['book_photographer'])
+  expect(withoutChild.omissions).toContainEqual({
+    sourceKey: 'confirm_readings',
+    reason: 'child_not_selected',
+  })
+})
+
 test('expands a deterministic ID-free plan with approved children and new ideas', () => {
   const first = expandBlueprintInstallation(request, weddingBlueprintV1)
   const second = expandBlueprintInstallation(

@@ -13,6 +13,7 @@ const content = {
   children: [],
   ideas: [],
   instructions: [],
+  todos: [],
 }
 const copied = {
   id: '10000000-0000-4000-8000-000000000001',

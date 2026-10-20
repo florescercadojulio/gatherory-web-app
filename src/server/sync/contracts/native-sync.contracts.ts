@@ -17,6 +17,7 @@ export const nativeEntityTypeSchema = z.enum([
   'expense',
   'registry_item',
   'note',
+  'todo',
   'moment',
 ])
 

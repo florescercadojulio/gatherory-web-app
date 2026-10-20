@@ -17,7 +17,7 @@ import {
   ForbiddenError,
   serverOperationError,
 } from '@/lib/domain-errors'
-import { blueprintHash } from '../planning/blueprint-hash'
+import { blueprintDraftContentForHash, blueprintHash } from '../planning/blueprint-hash'
 import { BlueprintAuthoringRepo } from './blueprint-authoring.repo'
 
 const conflict = (code: string) =>
@@ -144,6 +144,7 @@ export const BlueprintAuthoringRepoLive = Layer.effect(
               const requestHash = blueprintHash({
                 ...input,
                 requestId: input.requestId.toLowerCase(),
+                content: blueprintDraftContentForHash(input.content),
               })
               // Serialize the actor/request pair, including concurrent first attempts.
               yield* db.execute(

@@ -289,6 +289,76 @@
         ],
         "additionalProperties": false
       }
+    },
+    "todos": {
+      "default": [],
+      "maxItems": 100,
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "pattern": "^[a-z][a-z0-9_]*$"
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "1–200 Unicode code points; surrounding whitespace is trimmed before validation."
+          },
+          "websiteURL": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2048
+          },
+          "target": {
+            "oneOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "kind": {
+                    "type": "string",
+                    "const": "main"
+                  }
+                },
+                "required": [
+                  "kind"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "kind": {
+                    "type": "string",
+                    "const": "child"
+                  },
+                  "key": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100,
+                    "pattern": "^[a-z][a-z0-9_]*$"
+                  }
+                },
+                "required": [
+                  "kind",
+                  "key"
+                ],
+                "additionalProperties": false
+              }
+            ]
+          }
+        },
+        "required": [
+          "key",
+          "title",
+          "target"
+        ],
+        "additionalProperties": false
+      }
     }
   },
   "required": [
@@ -297,7 +367,8 @@
     "experienceType",
     "children",
     "ideas",
-    "instructions"
+    "instructions",
+    "todos"
   ],
   "additionalProperties": false,
   "$id": "https://schemas.gatherory.com/blueprint-draft/v1.json",

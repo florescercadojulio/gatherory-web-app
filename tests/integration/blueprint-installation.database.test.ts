@@ -37,7 +37,7 @@ async function verifyBlueprintInstallationDatabase() {
     import('@/server/sync/native-sync'),
   ])
   const { db, PgClientLive } = database
-  const { user, organization, member, event, eventParticipant, workspacePerson, idea } =
+  const { user, organization, member, event, eventParticipant, workspacePerson, idea, eventTodo } =
     await import('@/db/schema')
   const {
     blueprintInstallation,
@@ -209,6 +209,30 @@ async function verifyBlueprintInstallationDatabase() {
         id: customCatalogKey,
         name: 'Blueprint database fixture',
       },
+      modules: [
+        ...catalog.weddingBlueprintV1.definition.modules,
+        {
+          key: 'starter_todos',
+          type: 'todos',
+          version: 1,
+          required: false,
+          config: {
+            todos: [
+              {
+                key: 'todo_pack',
+                title: 'Pack your bags',
+                websiteURL: 'https://example.test/packing',
+                target: { kind: 'main' },
+              },
+              {
+                key: 'todo_ceremony',
+                title: 'Confirm ceremony setup',
+                target: { kind: 'child', key: 'ceremony' },
+              },
+            ],
+          },
+        },
+      ],
     })
     const customHash = hashing.blueprintHash(customDefinition)
     const [customRevision] = await db
@@ -227,10 +251,12 @@ async function verifyBlueprintInstallationDatabase() {
       'planning.ideas_v2',
       'planning.instructions_v1',
       'planning.portable_idea_config_v1',
+      'planning.todos_v1',
     ]
     const makeInput = (
       requestId = crypto.randomUUID(),
-      overrides: Record<string, unknown> = {}
+      overrides: Record<string, unknown> = {},
+      capabilities = supportedCapabilities
     ) => ({
       requestId,
       catalogKey: customCatalogKey,
@@ -246,7 +272,7 @@ async function verifyBlueprintInstallationDatabase() {
         { key: 'reception', startsAt: '2030-08-17T18:00:00.000Z' },
       ],
       selectedIdeaKeys: ['venue', 'attire'],
-      capabilities: supportedCapabilities,
+      capabilities,
       ...overrides,
     })
     const getReceipt = async (userId: string, requestId: string) => {
@@ -285,6 +311,9 @@ async function verifyBlueprintInstallationDatabase() {
       0
     )
     expect(
+      await db.select().from(eventTodo).where(eq(eventTodo.organizationId, retainedOrgId))
+    ).toEqual([])
+    expect(
       await db
         .select()
         .from(eventExperienceConfiguration)
@@ -308,6 +337,14 @@ async function verifyBlueprintInstallationDatabase() {
     expect(
       await db.select().from(nativeSyncChange).where(eq(nativeSyncChange.ownerUserId, actor.id))
     ).toHaveLength(0)
+    expect(
+      await db
+        .select()
+        .from(nativeSyncEntity)
+        .where(
+          and(eq(nativeSyncEntity.ownerUserId, actor.id), eq(nativeSyncEntity.entityType, 'todo'))
+        )
+    ).toEqual([])
 
     const retry = await Effect.runPromise(Effect.exit(install(actor, retryInput)))
     expect(Exit.isSuccess(retry)).toBe(true)
@@ -327,6 +364,49 @@ async function verifyBlueprintInstallationDatabase() {
     expect(await db.select().from(idea).where(eq(idea.organizationId, retainedOrgId))).toHaveLength(
       2
     )
+
+    const installedTodoIDs = Object.values(retryResult.manifest.todos ?? {})
+    expect(installedTodoIDs).toHaveLength(2)
+    expect(new Set(installedTodoIDs).size).toBe(2)
+    expect(installedTodoIDs).not.toContain('todo_pack')
+    expect(installedTodoIDs).not.toContain('todo_ceremony')
+    const installedTodos = await db
+      .select()
+      .from(eventTodo)
+      .where(eq(eventTodo.organizationId, retainedOrgId))
+    expect(installedTodos).toHaveLength(2)
+    expect(
+      installedTodos.map(
+        ({ id, eventId, title, websiteUrl, dueDate, assigneePersonId, isCompleted }) => ({
+          id,
+          eventId,
+          title,
+          websiteUrl,
+          dueDate,
+          assigneePersonId,
+          isCompleted,
+        })
+      )
+    ).toEqual([
+      {
+        id: retryResult.manifest.todos!.todo_pack,
+        eventId: retryResult.scopeID,
+        title: 'Pack your bags',
+        websiteUrl: 'https://example.test/packing',
+        dueDate: null,
+        assigneePersonId: null,
+        isCompleted: false,
+      },
+      {
+        id: retryResult.manifest.todos!.todo_ceremony,
+        eventId: retryResult.manifest.events.ceremony,
+        title: 'Confirm ceremony setup',
+        websiteUrl: null,
+        dueDate: null,
+        assigneePersonId: null,
+        isCompleted: false,
+      },
+    ])
 
     const ceremonyScopeID = retryResult.manifest.events.ceremony
     const [childPlannerPerson] = await db
@@ -356,11 +436,14 @@ async function verifyBlueprintInstallationDatabase() {
           eq(nativeSyncScopeMember.userId, actor.id)
         )
       )
-    const expectCompatibilityRejection = async (operation: Promise<unknown>) => {
+    const expectCompatibilityRejection = async (
+      operation: Promise<unknown>,
+      expectedCode = 'blueprint_client_upgrade_required'
+    ) => {
       try {
         await operation
       } catch (error) {
-        expect(JSON.stringify(error)).toContain('blueprint_client_upgrade_required')
+        expect(JSON.stringify(error)).toContain(expectedCode)
         return
       }
       throw new Error('Expected the legacy client to be rejected for this blueprint scope')
@@ -383,6 +466,7 @@ async function verifyBlueprintInstallationDatabase() {
       sync.listNativeWorkspaceSnapshots({
         userId: childPlanner.id,
         supportsBlueprintGuides: false,
+        supportsTodos: true,
       })
     )
     await expectCompatibilityRejection(
@@ -391,6 +475,7 @@ async function verifyBlueprintInstallationDatabase() {
         scopeId: retryResult.manifest.events.ceremony,
         after: 0,
         supportsBlueprintGuides: false,
+        supportsTodos: true,
       })
     )
     expect(
@@ -409,6 +494,7 @@ async function verifyBlueprintInstallationDatabase() {
         scopeId: retryResult.scopeID,
         after: 0,
         supportsBlueprintGuides: false,
+        supportsTodos: true,
       })
     )
     const legacyPushId = crypto.randomUUID()
@@ -416,6 +502,7 @@ async function verifyBlueprintInstallationDatabase() {
       sync.applyNativeMutations({
         userId: actor.id,
         supportsBlueprintGuides: false,
+        supportsTodos: true,
         mutations: [
           {
             id: legacyPushId,
@@ -449,6 +536,7 @@ async function verifyBlueprintInstallationDatabase() {
     const snapshots = await sync.listNativeWorkspaceSnapshots({
       userId: actor.id,
       supportsBlueprintGuides: true,
+      supportsTodos: true,
     })
     expect(
       await db
@@ -464,6 +552,59 @@ async function verifyBlueprintInstallationDatabase() {
     const snapshot = snapshots.snapshots.find((item) => item.scopeID === retryResult.scopeID)
     expect(snapshot).toBeDefined()
     const archive = JSON.parse(Buffer.from(snapshot!.payload, 'base64').toString('utf8'))
+    expect(archive.todos).toHaveLength(2)
+    expect([...archive.todos].sort((left, right) => left.title.localeCompare(right.title))).toEqual(
+      [
+        {
+          id: retryResult.manifest.todos!.todo_ceremony,
+          eventID: retryResult.manifest.events.ceremony,
+          title: 'Confirm ceremony setup',
+          dueDate: null,
+          websiteURL: null,
+          assigneePersonID: null,
+          isCompleted: false,
+          createdAt: expect.any(Number),
+        },
+        {
+          id: retryResult.manifest.todos!.todo_pack,
+          eventID: retryResult.scopeID,
+          title: 'Pack your bags',
+          dueDate: null,
+          websiteURL: 'https://example.test/packing',
+          assigneePersonID: null,
+          isCompleted: false,
+          createdAt: expect.any(Number),
+        },
+      ]
+    )
+    const todoEntities = await db
+      .select()
+      .from(nativeSyncEntity)
+      .where(
+        and(
+          eq(nativeSyncEntity.scopeId, retryResult.scopeID),
+          eq(nativeSyncEntity.entityType, 'todo')
+        )
+      )
+    expect(todoEntities).toHaveLength(2)
+    expect(todoEntities.map((entity) => entity.serverVersion)).toEqual([1, 1])
+    expect(
+      todoEntities
+        .map((entity) => JSON.parse(Buffer.from(entity.payload, 'base64').toString('utf8')))
+        .sort((left, right) => left.title.localeCompare(right.title))
+    ).toEqual([...archive.todos].sort((left, right) => left.title.localeCompare(right.title)))
+    const todoCreates = await db
+      .select()
+      .from(nativeSyncChange)
+      .where(
+        and(
+          eq(nativeSyncChange.scopeId, retryResult.scopeID),
+          eq(nativeSyncChange.entityType, 'todo')
+        )
+      )
+    expect(todoCreates).toHaveLength(2)
+    expect(todoCreates.map(({ operation }) => operation)).toEqual(['create', 'create'])
+    expect(JSON.stringify(archive.todos)).not.toMatch(/todo_pack|todo_ceremony|2027-06-/)
     const canonicalIdeas = await db
       .select()
       .from(idea)
@@ -477,6 +618,80 @@ async function verifyBlueprintInstallationDatabase() {
     expect(canonicalIdeas.find((item) => item.category === 'attire')?.guestVisibility).toBe(
       'shown_to_guests'
     )
+
+    // A second installation creates independent task identities and resets all
+    // task state even though the source definitions are identical.
+    const secondInstall = await Effect.runPromise(
+      Effect.exit(install(actor, makeInput(crypto.randomUUID())))
+    )
+    expect(Exit.isSuccess(secondInstall)).toBe(true)
+    if (Exit.isFailure(secondInstall)) throw new Error(Cause.pretty(secondInstall.cause))
+    const secondTodoIDs = Object.values(secondInstall.value.manifest.todos ?? {})
+    expect(secondTodoIDs).toHaveLength(2)
+    expect(secondTodoIDs.every((id) => !installedTodoIDs.includes(id))).toBe(true)
+    const secondTodos = await db
+      .select()
+      .from(eventTodo)
+      .where(eq(eventTodo.organizationId, secondInstall.value.organizationID))
+    expect(secondTodos).toHaveLength(2)
+    expect(
+      secondTodos.every(
+        (todo) => todo.dueDate === null && todo.assigneePersonId === null && !todo.isCompleted
+      )
+    ).toBe(true)
+
+    // A client that predates the optional module cannot accidentally install
+    // its task data. The persisted plan records omission and creates no rows.
+    const legacyRequestId = crypto.randomUUID()
+    const legacyInstall = await Effect.runPromise(
+      Effect.exit(
+        install(
+          actor,
+          makeInput(
+            legacyRequestId,
+            {},
+            supportedCapabilities.filter((capability) => capability !== 'planning.todos_v1')
+          )
+        )
+      )
+    )
+    expect(Exit.isSuccess(legacyInstall)).toBe(true)
+    if (Exit.isFailure(legacyInstall)) throw new Error(Cause.pretty(legacyInstall.cause))
+    const [legacyReceipt] = await db
+      .select()
+      .from(blueprintInstallation)
+      .where(eq(blueprintInstallation.requestId, legacyRequestId))
+    const legacyPlan = blueprintContracts.BlueprintExpandedPlanSchema.parse(legacyReceipt?.plan)
+    expect(legacyPlan.todos).toEqual([])
+    expect(legacyPlan.omissions).toContainEqual({
+      sourceKey: 'todo_pack',
+      reason: 'unsupported_optional_capability',
+    })
+    expect(Object.keys(legacyInstall.value.manifest.todos ?? {})).toEqual([])
+    expect(
+      await db
+        .select()
+        .from(eventTodo)
+        .where(eq(eventTodo.organizationId, legacyInstall.value.organizationID))
+    ).toEqual([])
+    const legacySnapshot = await sync.listNativeWorkspaceSnapshots({
+      userId: actor.id,
+      supportsBlueprintGuides: true,
+      supportsTodos: true,
+    })
+    const legacyRoot = legacySnapshot.snapshots.find(
+      (item) => item.scopeID === legacyInstall.value.scopeID
+    )
+    expect(JSON.parse(Buffer.from(legacyRoot!.payload, 'base64').toString('utf8')).todos).toEqual(
+      []
+    )
+
+    // Even a current client is rejected from todo-bearing sync scopes when it
+    // omits the todo capability.
+    await expectCompatibilityRejection(
+      sync.listNativeWorkspaceSnapshots({ userId: actor.id, supportsBlueprintGuides: true }),
+      'todos_client_upgrade_required'
+    )
     const canonicalGuides = await db
       .select()
       .from(eventGuideSection)
@@ -488,6 +703,7 @@ async function verifyBlueprintInstallationDatabase() {
     const childPlannerBootstrap = await sync.listNativeWorkspaceSnapshots({
       userId: childPlanner.id,
       supportsBlueprintGuides: true,
+      supportsTodos: true,
     })
     const ceremonySnapshot = childPlannerBootstrap.snapshots.find(
       (item) => item.scopeID === ceremonyScopeID
@@ -554,6 +770,7 @@ async function verifyBlueprintInstallationDatabase() {
       scopeId: retryResult.scopeID,
       after: 0,
       supportsBlueprintGuides: true,
+      supportsTodos: true,
     })
     expect(
       initialPull?.changes.some(
@@ -586,6 +803,7 @@ async function verifyBlueprintInstallationDatabase() {
       userId: actor.id,
       mutations: [nativeEdit],
       supportsBlueprintGuides: true,
+      supportsTodos: true,
     })
     expect(nativeEditResult.results[0]?.disposition).toBe('applied')
     const [canonicalEditedIdea] = await db.select().from(idea).where(eq(idea.id, installedIdeaId))
@@ -598,6 +816,7 @@ async function verifyBlueprintInstallationDatabase() {
     const workspaceWrite = await sync.applyNativeMutations({
       userId: actor.id,
       supportsBlueprintGuides: true,
+      supportsTodos: true,
       mutations: [
         {
           id: workspaceMutationId,
@@ -675,6 +894,7 @@ async function verifyBlueprintInstallationDatabase() {
       scopeId: retryResult.scopeID,
       after: Number(initialPull?.nextCursor ?? 0),
       supportsBlueprintGuides: true,
+      supportsTodos: true,
     })
     expect(
       afterEditPull?.changes.filter(
@@ -745,6 +965,7 @@ async function verifyBlueprintInstallationDatabase() {
     const afterReceiptDeletion = await sync.listNativeWorkspaceSnapshots({
       userId: actor.id,
       supportsBlueprintGuides: true,
+      supportsTodos: true,
     })
     const receiptlessSnapshot = afterReceiptDeletion.snapshots.find(
       (item) => item.scopeID === lostResponse.value.scopeID

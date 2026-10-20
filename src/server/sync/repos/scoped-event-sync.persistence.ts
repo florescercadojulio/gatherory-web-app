@@ -1,8 +1,8 @@
 import { createHash } from 'node:crypto'
-import { and, eq, inArray, isNotNull, sql } from 'drizzle-orm'
+import { and, asc, eq, inArray, isNotNull, sql } from 'drizzle-orm'
 import { db } from '@/db'
 import { event, eventParticipant, workspacePerson } from '@/db/schema/event.schema'
-import { idea, eventExpense, eventNote, registryItem } from '@/db/schema/planning.schema'
+import { idea, eventExpense, eventNote, eventTodo, registryItem } from '@/db/schema/planning.schema'
 import { eventMedia, mediaAsset } from '@/db/schema/media.schema'
 import { eventExperienceConfiguration, eventGuideSection } from '@/db/schema/blueprint.schema'
 import {
@@ -25,6 +25,7 @@ import { buildScopedEventArchive } from '../services/scoped-event-projection'
 import { nativeIdentityWriteAllowed } from '../services/native-identity-access'
 import { deletedAccountTombstone } from '../contracts/native-tombstones'
 import { canDeleteNativeMoment } from './native-moment-authorization.persistence'
+import { canonicalTodoForSync, encodeNativeTodo } from './native-todo-projection.persistence'
 
 type Transaction = Parameters<Parameters<typeof db.transaction>[0]>[0]
 const encode = (value: unknown) => Buffer.from(JSON.stringify(value)).toString('base64')
@@ -88,7 +89,11 @@ async function authorizeMutation(
   userId: string
 ) {
   const scopeId = actor.event.id
-  if (actor.planningPermission === 'view_only') forbidden('SCOPE_READ_ONLY')
+  if (
+    actor.planningPermission === 'view_only' &&
+    !(mutation.entityType === 'todo' && actor.role === 'host')
+  )
+    forbidden('SCOPE_READ_ONLY')
   if (
     ['archived', 'cancelled'].includes(actor.event.planningStatus ?? '') ||
     actor.event.completionStatus === 'complete'
@@ -98,6 +103,13 @@ async function authorizeMutation(
   const payload = mutation.operation === 'delete' ? {} : decode(mutation.payload)
   if (mutation.operation !== 'delete' && uuid(payload.id) !== mutation.entityID) forbidden()
   const manager = actor.role === 'host' || actor.planningPermission === 'manage'
+  if (
+    mutation.entityType === 'todo' &&
+    actor.role !== 'host' &&
+    (actor.role !== 'collaborator' || !['manage', 'contribute'].includes(actor.planningPermission))
+  ) {
+    forbidden('EVENT_PERMISSION_REQUIRED')
+  }
   if (mutation.entityType === 'registry_item' && !manager) forbidden('EVENT_PERMISSION_REQUIRED')
 
   if (mutation.entityType === 'event') {
@@ -161,7 +173,9 @@ async function authorizeMutation(
             ? registryItem
             : mutation.entityType === 'note'
               ? eventNote
-              : eventMedia
+              : mutation.entityType === 'todo'
+                ? eventTodo
+                : eventMedia
     const [existing] = await tx
       .select({ eventId: table.eventId })
       .from(table)
@@ -180,10 +194,11 @@ async function authorizeMutation(
         userId,
       })
       if (!authorized) forbidden('EVENT_PERMISSION_REQUIRED')
-    } else if (mutation.operation === 'delete' && !manager) {
+    } else if (mutation.operation === 'delete' && !manager && mutation.entityType !== 'todo') {
       forbidden()
     }
     if (mutation.operation !== 'delete') {
+      if (mutation.entityType === 'todo' && uuid(payload.eventID) !== scopeId) forbidden()
       if (payload.eventID != null && uuid(payload.eventID) !== scopeId) forbidden()
       payload.eventID = scopeId
       if (payload.sourceIdeaID != null) {
@@ -295,6 +310,19 @@ export async function applyScopedEventMutation(
         .limit(1)
       if (existing?.isDeleted && existing.payload === deletedAccountTombstone)
         forbidden('PARTICIPANT_ACCOUNT_DELETED')
+      if (mutation.entityType === 'todo') {
+        if (mutation.operation !== 'create' && mutation.baseVersion == null) {
+          forbidden('TODO_VERSION_REQUIRED')
+        }
+        if (existing?.isDeleted && mutation.operation !== 'delete') forbidden('ENTITY_DELETED')
+        if (!existing && mutation.operation !== 'create') forbidden('TODO_NOT_FOUND')
+        if (existing && !existing.isDeleted && mutation.operation === 'create')
+          forbidden('TODO_ID_ALREADY_EXISTS')
+        if (existing && !existing.isDeleted) {
+          const existingEventId = uuid(decode(existing.payload).eventID)
+          if (existingEventId !== mutation.scopeID) forbidden('EVENT_SCOPE_FORBIDDEN')
+        }
+      }
       // Deleted canonical rows no longer prove which event owned the ID.
       // Scoped writers cannot resurrect tombstoned IDs into a different event.
       if (existing?.isDeleted && mutation.operation !== 'delete') forbidden('ENTITY_DELETED')
@@ -333,13 +361,27 @@ export async function applyScopedEventMutation(
         })
       }
       if (mutation.entityType === 'note') payload.authorUserID = userId
-      const storedPayload = mutation.operation === 'delete' ? '' : encode(payload)
+      let storedPayload =
+        mutation.operation === 'delete'
+          ? mutation.entityType === 'todo' && existing && !existing.isDeleted
+            ? encode({ id: mutation.entityID, eventID: mutation.scopeID })
+            : ''
+          : encode(payload)
       const storedMutation = { ...mutation, scopeID: input.rootId, payload: storedPayload }
       await materializeNativeMutation(tx, {
         userId,
         organizationId: snapshot.organizationId,
         mutation: storedMutation,
       })
+      if (mutation.entityType === 'todo' && mutation.operation !== 'delete') {
+        const canonicalTodo = await canonicalTodoForSync(
+          tx,
+          snapshot.organizationId,
+          mutation.entityID
+        )
+        if (!canonicalTodo) throw new Error('Materialized todo is missing from canonical storage')
+        storedPayload = encodeNativeTodo(canonicalTodo)
+      }
       const serverVersion = (existing?.serverVersion ?? 0) + 1
       await tx
         .insert(nativeSyncEntity)
@@ -429,6 +471,12 @@ export async function scopedEventSnapshot(tx: Transaction, scopeId: string, user
     .select()
     .from(nativeSyncEntity)
     .where(eq(nativeSyncEntity.scopeId, rootId))
+  const todoRows = await tx
+    .select()
+    .from(eventTodo)
+    .where(
+      and(eq(eventTodo.organizationId, actor.event.organizationId), eq(eventTodo.eventId, scopeId))
+    )
   const participants = await tx
     .select({ person: workspacePerson, participation: eventParticipant })
     .from(eventParticipant)
@@ -555,6 +603,16 @@ export async function scopedEventSnapshot(tx: Transaction, scopeId: string, user
     childEvent,
     guides,
     experienceConfiguration: experienceConfiguration ?? null,
+    todos: todoRows.map((todo) => ({
+      id: todo.id,
+      eventID: todo.eventId,
+      title: todo.title,
+      dueDate: todo.dueDate,
+      websiteURL: todo.websiteUrl,
+      assigneePersonID: todo.assigneePersonId,
+      isCompleted: todo.isCompleted,
+      createdAt: todo.createdAt.getTime() / 1_000 - 978_307_200,
+    })),
   })
   if (!payload) return null
   const [latest] = await tx
@@ -569,6 +627,56 @@ export async function scopedEventSnapshot(tx: Transaction, scopeId: string, user
     updatedAt: iso(new Date()),
     cursor: Number(latest.cursor),
   }
+}
+
+/**
+ * Child snapshots carry canonical todos in the archive for display, while
+ * native clients also need per-record versions to safely edit them. These
+ * records use versions from the shared root sync log, where child mutations
+ * are durably versioned, and require the exact child grant.
+ */
+export async function scopedChildTodoEntities(tx: Transaction, scopeId: string, userId: string) {
+  const actor = await scopedEventActor(tx, scopeId, userId)
+  if (!actor) return []
+  const rootId = actor.event.parentEventId!
+  const rows = await tx
+    .select({
+      todo: eventTodo,
+      serverVersion: nativeSyncEntity.serverVersion,
+      updatedAt: nativeSyncEntity.updatedAt,
+    })
+    .from(eventTodo)
+    .innerJoin(
+      nativeSyncEntity,
+      and(
+        eq(nativeSyncEntity.scopeId, rootId),
+        eq(nativeSyncEntity.entityType, 'todo'),
+        eq(nativeSyncEntity.entityId, eventTodo.id),
+        eq(nativeSyncEntity.isDeleted, false)
+      )
+    )
+    .where(
+      and(eq(eventTodo.organizationId, actor.event.organizationId), eq(eventTodo.eventId, scopeId))
+    )
+    .orderBy(asc(eventTodo.createdAt), asc(eventTodo.id))
+  return rows.map(({ todo, serverVersion, updatedAt }) => ({
+    scopeID: scopeId,
+    payloadSchemaVersion: 1 as const,
+    entityType: 'todo' as const,
+    entityID: todo.id,
+    payload: encode({
+      id: todo.id,
+      eventID: todo.eventId,
+      title: todo.title,
+      dueDate: todo.dueDate,
+      websiteURL: todo.websiteUrl,
+      assigneePersonID: todo.assigneePersonId,
+      isCompleted: todo.isCompleted,
+      createdAt: todo.createdAt.getTime() / 1_000 - 978_307_200,
+    }),
+    serverVersion,
+    updatedAt: iso(updatedAt),
+  }))
 }
 
 /** A complete authorized projection uses a root-log high-water mark. This
@@ -606,6 +714,7 @@ export async function pullScopedEventChanges(input: {
     // without inventing a cursor or reapplying an unchanged archive.
     const cursor = String(Math.max(snapshot.cursor, input.after))
     const digest = createHash('sha256').update(snapshot.payload).digest('hex')
+    const todoEntities = await scopedChildTodoEntities(tx, input.scopeId, input.userId)
     return {
       changes: [
         {
@@ -619,6 +728,17 @@ export async function pullScopedEventChanges(input: {
           serverVersion: snapshot.serverVersion,
           occurredAt: snapshot.updatedAt,
         },
+        ...todoEntities.map((entity) => ({
+          id: envelopeID(input.scopeId, `${entity.entityID}:${entity.serverVersion}`, 'todo'),
+          scopeID: input.scopeId,
+          payloadSchemaVersion: 1 as const,
+          entityType: 'todo',
+          entityID: entity.entityID,
+          operation: 'update' as const,
+          payload: entity.payload,
+          serverVersion: entity.serverVersion,
+          occurredAt: entity.updatedAt,
+        })),
       ],
       nextCursor: cursor,
       hasMore: false,

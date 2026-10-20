@@ -48,6 +48,7 @@ test.skipIf(!enabled)(
       event,
       idea,
       eventExpense,
+      eventTodo,
     } = schema
     const { blueprintRevision, eventExperienceConfiguration, eventGuideSection } = blueprintSchema
     const { eventDeparture } = eventSchema
@@ -79,6 +80,9 @@ test.skipIf(!enabled)(
       siblingIdea: crypto.randomUUID(),
       childGuide: crypto.randomUUID(),
       siblingGuide: crypto.randomUUID(),
+      rootTodo: crypto.randomUUID(),
+      childTodo: crypto.randomUUID(),
+      siblingTodo: crypto.randomUUID(),
     }
     const users = [
       { id: ids.owner, name: 'Capture Owner', email: `${ids.owner}@example.test` },
@@ -113,6 +117,7 @@ test.skipIf(!enabled)(
       childIds: [ids.child],
       ideaIds: [ids.childIdea],
       instructionIds: [ids.childGuide],
+      todoIds: [ids.childTodo],
       includeIdeaNotes: false,
     }
     let phase = 'fixture setup'
@@ -302,6 +307,41 @@ test.skipIf(!enabled)(
           visibility: 'planning_only',
         },
       ])
+      await db.insert(eventTodo).values([
+        {
+          id: ids.rootTodo,
+          organizationId: ids.organization,
+          eventId: ids.root,
+          title: 'Root packing reminder',
+          websiteUrl: 'https://example.test/packing',
+          dueDate: '2027-06-10',
+          assigneePersonId: ids.rootPerson,
+          isCompleted: true,
+          createdAt: now,
+        },
+        {
+          id: ids.childTodo,
+          organizationId: ids.organization,
+          eventId: ids.child,
+          title: 'Confirm ceremony setup',
+          websiteUrl: 'https://example.test/ceremony',
+          dueDate: '2027-06-11',
+          assigneePersonId: ids.childPerson,
+          isCompleted: true,
+          createdAt: new Date(now.getTime() + 1),
+        },
+        {
+          id: ids.siblingTodo,
+          organizationId: ids.organization,
+          eventId: ids.sibling,
+          title: 'Sibling-only secret task',
+          websiteUrl: 'https://secret.example.test/sibling',
+          dueDate: '2027-06-12',
+          assigneePersonId: ids.guestPerson,
+          isCompleted: true,
+          createdAt: new Date(now.getTime() + 2),
+        },
+      ])
 
       phase = 'child scoped source reads and authorization'
       const childSource = await run(
@@ -314,6 +354,17 @@ test.skipIf(!enabled)(
       expect(childSource.source.children).toEqual([])
       expect(childSource.source.ideas.map(({ title }) => title)).toEqual(['Child Flowers'])
       expect(childSource.source.instructions.map(({ title }) => title)).toEqual(['Child Arrival'])
+      expect(childSource.source.todos).toEqual([
+        {
+          id: ids.childTodo,
+          eventId: ids.child,
+          title: 'Confirm ceremony setup',
+          websiteURL: 'https://example.test/ceremony',
+        },
+      ])
+      expect(Object.keys(childSource.source.todos[0]!).sort()).toEqual(
+        ['eventId', 'id', 'title', 'websiteURL'].sort()
+      )
       const childSerialized = JSON.stringify(childSource.source)
       for (const secret of [
         ids.root,
@@ -327,6 +378,12 @@ test.skipIf(!enabled)(
         'Guest Secret Name',
         'private-configuration-secret',
         'idea-config-secret',
+        ids.rootTodo,
+        ids.siblingTodo,
+        'Root packing reminder',
+        'Sibling-only secret task',
+        '2027-06-11',
+        ids.childPerson,
       ])
         expect(childSerialized).not.toContain(secret)
       expect(childSource.source.ideas[0]).not.toHaveProperty('estimatedCost')
@@ -362,6 +419,7 @@ test.skipIf(!enabled)(
           childIds: [ids.child],
           ideaIds: [ids.rootIdea, ids.childIdea],
           instructionIds: [ids.childGuide],
+          todoIds: [ids.rootTodo, ids.childTodo],
         },
         expectedSourceHash: initialSource.sourceHash,
       }
@@ -375,6 +433,21 @@ test.skipIf(!enabled)(
         requestId: createInput.requestId,
       })
       expect(created.content.ideas).toHaveLength(2)
+      expect(created.content.todos).toHaveLength(2)
+      expect(created.content.todos[0]).toMatchObject({
+        key: expect.stringMatching(/^todo_[a-f0-9]+$/),
+        title: 'Root packing reminder',
+        websiteURL: 'https://example.test/packing',
+        target: { kind: 'main' },
+      })
+      expect(created.content.todos[1]).toMatchObject({
+        key: expect.stringMatching(/^todo_[a-f0-9]+$/),
+        title: 'Confirm ceremony setup',
+        websiteURL: 'https://example.test/ceremony',
+        target: { kind: 'child', key: created.content.children[0]?.key },
+      })
+      expect(created.content.todos.map(({ key }) => key)).not.toContain(ids.rootTodo)
+      expect(created.content.todos.map(({ key }) => key)).not.toContain(ids.childTodo)
 
       await db
         .update(event)

@@ -9,6 +9,7 @@ export type NativeSyncEntityType =
   | 'expense'
   | 'registry_item'
   | 'note'
+  | 'todo'
   | 'moment'
 
 type OrderedNativeMutation = {
@@ -27,6 +28,7 @@ const mutationDependencyOrder: Record<NativeSyncEntityType, number> = {
   expense: 6,
   registry_item: 7,
   note: 8,
+  todo: 8,
   moment: 9,
 }
 

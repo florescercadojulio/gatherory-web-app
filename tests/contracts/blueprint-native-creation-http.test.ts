@@ -3,7 +3,10 @@ import { beforeEach, expect, test, vi } from 'vitest'
 import { BlueprintEventCaptureSourceSchema } from '@/contracts/blueprint-capture.contracts'
 import { BlueprintNativeCreationReviewResponseSchema } from '@/contracts/blueprint-native-creation.contracts'
 import { captureEventBlueprint } from '@/server/blueprints/planning/capture-event-blueprint.server'
-import { blueprintHash } from '@/server/blueprints/planning/blueprint-hash'
+import {
+  blueprintDraftContentHash,
+  blueprintHash,
+} from '@/server/blueprints/planning/blueprint-hash'
 
 const calls = vi.hoisted(() => ({ native: vi.fn(), user: vi.fn() }))
 vi.mock('@/db', () => ({ PgClientLive: Layer.empty }))
@@ -50,6 +53,7 @@ const selection = {
   childIds: [childId],
   ideaIds: [ideaId],
   instructionIds: [instructionId],
+  todoIds: [],
   includeIdeaNotes: false,
 }
 beforeEach(() => {
@@ -71,7 +75,7 @@ test('review HTTP boundary canonicalizes all UUIDs and validates its response', 
   const expected = BlueprintNativeCreationReviewResponseSchema.parse({
     content,
     sourceHash: blueprintHash(source),
-    reviewHash: blueprintHash(content),
+    reviewHash: blueprintDraftContentHash(content),
   })
   calls.native.mockReturnValue(Effect.succeed(expected))
   const response = await handleBlueprintNativeCreationRequest(
@@ -180,7 +184,7 @@ test('public creation sends no user-selected ownership and review exposes visibi
   const review = {
     content,
     sourceHash: blueprintHash(source),
-    reviewHash: blueprintHash(content),
+    reviewHash: blueprintDraftContentHash(content),
     discoverable: true,
   }
   calls.native.mockReturnValue(Effect.succeed(review))

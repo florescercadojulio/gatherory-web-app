@@ -529,6 +529,116 @@
               },
               "type": {
                 "type": "string",
+                "const": "todos"
+              },
+              "version": {
+                "type": "number",
+                "const": 1
+              },
+              "required": {
+                "default": false,
+                "type": "boolean"
+              },
+              "config": {
+                "type": "object",
+                "properties": {
+                  "todos": {
+                    "default": [],
+                    "maxItems": 100,
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "key": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 100,
+                          "pattern": "^[a-z][a-z0-9_]*$"
+                        },
+                        "title": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 200,
+                          "description": "1–200 Unicode code points; surrounding whitespace is trimmed before validation."
+                        },
+                        "websiteURL": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 2048
+                        },
+                        "target": {
+                          "oneOf": [
+                            {
+                              "type": "object",
+                              "properties": {
+                                "kind": {
+                                  "type": "string",
+                                  "const": "main"
+                                }
+                              },
+                              "required": [
+                                "kind"
+                              ],
+                              "additionalProperties": false
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "kind": {
+                                  "type": "string",
+                                  "const": "child"
+                                },
+                                "key": {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 100,
+                                  "pattern": "^[a-z][a-z0-9_]*$"
+                                }
+                              },
+                              "required": [
+                                "kind",
+                                "key"
+                              ],
+                              "additionalProperties": false
+                            }
+                          ]
+                        }
+                      },
+                      "required": [
+                        "key",
+                        "title",
+                        "target"
+                      ],
+                      "additionalProperties": false
+                    }
+                  }
+                },
+                "required": [
+                  "todos"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "key",
+              "type",
+              "version",
+              "required",
+              "config"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "key": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 100,
+                "pattern": "^[a-z][a-z0-9_]*$"
+              },
+              "type": {
+                "type": "string",
                 "minLength": 1,
                 "maxLength": 100,
                 "pattern": "^[a-z][a-z0-9_]*$"
@@ -597,6 +707,20 @@
                   "properties": {
                     "type": {
                       "const": "instructions"
+                    },
+                    "version": {
+                      "const": 1
+                    }
+                  },
+                  "required": [
+                    "type",
+                    "version"
+                  ]
+                },
+                {
+                  "properties": {
+                    "type": {
+                      "const": "todos"
                     },
                     "version": {
                       "const": 1

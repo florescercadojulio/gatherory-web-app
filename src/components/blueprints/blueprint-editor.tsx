@@ -461,6 +461,7 @@ export function BlueprintEditor({
             children={values.children}
             ideas={values.ideas}
             instructions={values.instructions}
+            todos={values.todos}
             onChildrenChange={(children) => form.setFieldValue('children', children)}
           />
           <IdeaFields
@@ -585,6 +586,7 @@ function emptyContent(): BlueprintDraftContent {
     children: [],
     ideas: [],
     instructions: [],
+    todos: [],
   }
 }
 

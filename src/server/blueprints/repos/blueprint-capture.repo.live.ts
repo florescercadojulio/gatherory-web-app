@@ -14,7 +14,7 @@ import {
 } from '@/lib/domain-errors'
 import { BlueprintCaptureRepo } from './blueprint-capture.repo'
 import { BlueprintAuthoringRepo } from './blueprint-authoring.repo'
-import { blueprintHash } from '../planning/blueprint-hash'
+import { blueprintHash, legacyCompatibleCaptureSelection } from '../planning/blueprint-hash'
 import {
   captureEventBlueprint,
   mergeCapturedBlueprint,
@@ -96,10 +96,21 @@ export const BlueprintCaptureRepoLive = Layer.effect(
       SELECT g.id, g.event_id AS "eventId", g.title, g.body, g.visibility AS audience FROM event_guide_section g
       WHERE g.organization_id = ${root.organizationId} AND g.event_id = ANY(${eventIds}::uuid[])
       ORDER BY g.sort_order, g.id FOR SHARE`
+        const todos = yield* pg<BlueprintEventCaptureSource['todos'][number]>`
+      SELECT t.id, t.event_id AS "eventId", t.title, t.website_url AS "websiteURL"
+      FROM event_todo t
+      WHERE t.organization_id = ${root.organizationId} AND t.event_id = ANY(${eventIds}::uuid[])
+      ORDER BY t.created_at, t.id FOR SHARE`
         const { organizationId: _, ...event } = root
         const captured = yield* Effect.try({
           try: () =>
-            BlueprintEventCaptureSourceSchema.parse({ event, children, ideas, instructions }),
+            BlueprintEventCaptureSourceSchema.parse({
+              event,
+              children,
+              ideas,
+              instructions,
+              todos,
+            }),
           catch: invalid,
         })
         return { source: captured, sourceHash: blueprintHash(captured) }
@@ -127,6 +138,7 @@ export const BlueprintCaptureRepoLive = Layer.effect(
               const requestHash = blueprintHash({
                 ...input,
                 requestId: input.requestId.toLowerCase(),
+                selection: legacyCompatibleCaptureSelection(input.selection),
               })
               const current = input.templateId
                 ? yield* authoring.get(actorId, input.templateId)

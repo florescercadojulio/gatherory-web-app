@@ -5,7 +5,7 @@ import { validateInput } from '@/server/validation'
 import { BlueprintAuthoringRepo } from '../repos/blueprint-authoring.repo'
 import { BlueprintCaptureRepo } from '../repos/blueprint-capture.repo'
 import { BlueprintNativeCreationRepo } from '../repos/blueprint-native-creation.repo'
-import { blueprintHash } from '../planning/blueprint-hash'
+import { blueprintDraftContentHash } from '../planning/blueprint-hash'
 import { captureEventBlueprint } from '../planning/capture-event-blueprint.server'
 import { createBlueprintAuthoringWorkspaceWorkflow } from './blueprint-authoring.workflow'
 import { BetterAuthWorkspaceCon } from '@/server/workspaces/connectors/better-auth.con'
@@ -91,7 +91,7 @@ export const blueprintNativeCreationWorkflow = (
         return {
           content,
           sourceHash: result.sourceHash,
-          reviewHash: blueprintHash(content),
+          reviewHash: blueprintDraftContentHash(content),
           ...(request.discoverable ? { discoverable: true } : {}),
         }
       }

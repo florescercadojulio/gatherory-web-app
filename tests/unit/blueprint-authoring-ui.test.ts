@@ -19,6 +19,7 @@ describe('blueprint authoring UI helpers', () => {
       children: [],
       ideas: [],
       instructions: [],
+      todos: [],
     })
   })
 
@@ -50,12 +51,22 @@ describe('blueprint authoring UI helpers', () => {
       audience: 'planning_only',
       target: { kind: 'child', key: 'venue_visit' },
     })
+    content.todos.push({
+      key: 'confirm_venue',
+      title: 'Confirm the venue',
+      target: { kind: 'child', key: 'venue_visit' },
+    })
 
     expect(dependentsForChild(content, 'venue_visit')).toEqual({
       ideas: [content.ideas[0]],
       instructions: [content.instructions[0]],
+      todos: [content.todos[0]],
     })
-    expect(dependentsForChild(content, 'other_activity')).toEqual({ ideas: [], instructions: [] })
+    expect(dependentsForChild(content, 'other_activity')).toEqual({
+      ideas: [],
+      instructions: [],
+      todos: [],
+    })
   })
 
   it('creates stable portable keys and converts target controls to contract values', () => {

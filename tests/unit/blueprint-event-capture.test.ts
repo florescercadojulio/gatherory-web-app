@@ -9,6 +9,11 @@ import {
   type BlueprintEventCaptureSource,
 } from '@/contracts/blueprint-capture.contracts'
 import { BlueprintDraftContentSchema } from '@/contracts/blueprint-authoring.contracts'
+import { BlueprintTodoDefinitionSchema } from '@/contracts/blueprint-install.contracts'
+import {
+  blueprintDraftContentHash,
+  blueprintHash,
+} from '@/server/blueprints/planning/blueprint-hash'
 import {
   captureEventBlueprint,
   mergeCapturedBlueprint,
@@ -20,6 +25,8 @@ const ids = {
   idea: '30000000-0000-4000-8000-000000000003',
   guide: '40000000-0000-4000-8000-000000000004',
   extraIdea: '50000000-0000-4000-8000-000000000005',
+  todo: '60000000-0000-4000-8000-000000000006',
+  childTodo: '70000000-0000-4000-8000-000000000007',
 }
 
 const source = (
@@ -66,6 +73,20 @@ const source = (
       audience: 'event_participants',
     },
   ],
+  todos: [
+    {
+      id: ids.todo,
+      eventId: ids.event,
+      title: 'Book the photographer',
+      websiteURL: 'https://example.test/photography',
+    },
+    {
+      id: ids.childTodo,
+      eventId: ids.child,
+      title: 'Confirm ceremony readings',
+      websiteURL: null,
+    },
+  ],
   ...overrides,
 })
 
@@ -73,6 +94,7 @@ const selection = {
   childIds: [ids.child],
   ideaIds: [ids.idea],
   instructionIds: [ids.guide],
+  todoIds: [ids.todo],
 }
 
 function captured(
@@ -81,6 +103,7 @@ function captured(
     childIds: string[]
     ideaIds: string[]
     instructionIds: string[]
+    todoIds?: string[]
     includeIdeaNotes?: boolean
   } = selection
 ) {
@@ -94,7 +117,13 @@ test('capture input contracts are strict, bounded, unique, and default notes to 
       ideaIds: [],
       instructionIds: [],
     })
-  ).toEqual({ childIds: [], ideaIds: [], instructionIds: [], includeIdeaNotes: false })
+  ).toEqual({
+    childIds: [],
+    ideaIds: [],
+    instructionIds: [],
+    todoIds: [],
+    includeIdeaNotes: false,
+  })
   expect(
     BlueprintCaptureSelectionSchema.safeParse({
       childIds: [ids.child, ids.child],
@@ -181,6 +210,14 @@ test('capture includes only selected records and opts into idea notes explicitly
   ])
   expect(withoutNotes.ideas[0]).not.toHaveProperty('notes')
   expect(withoutNotes.instructions).toHaveLength(1)
+  expect(withoutNotes.todos).toEqual([
+    {
+      key: 'todo_60000000000040008000000000000006',
+      title: 'Book the photographer',
+      websiteURL: 'https://example.test/photography',
+      target: { kind: 'main' },
+    },
+  ])
 
   const withNotes = captured(source(), { ...selection, includeIdeaNotes: true })
   expect(withNotes.ideas[0]?.notes).toBe('Use seasonal flowers')
@@ -199,6 +236,7 @@ test('empty selections create an empty portable draft and selections must exist'
   expect(empty.children).toEqual([])
   expect(empty.ideas).toEqual([])
   expect(empty.instructions).toEqual([])
+  expect(empty.todos).toEqual([])
 
   expect(() =>
     captured(source(), {
@@ -212,6 +250,52 @@ test('empty selections create an empty portable draft and selections must exist'
       childIds: ['60000000-0000-4000-8000-000000000006'],
     })
   ).toThrow(/does not exist/)
+  expect(() =>
+    captured(source(), { ...selection, todoIds: ['80000000-0000-4000-8000-000000000008'] })
+  ).toThrow(/does not exist/)
+})
+
+test('captures only explicitly selected to-dos and maps child targets without runtime state', () => {
+  const selected = captured(source(), { ...selection, todoIds: [ids.childTodo] })
+  expect(selected.todos).toEqual([
+    {
+      key: 'todo_70000000000040008000000000000007',
+      title: 'Confirm ceremony readings',
+      target: { kind: 'child', key: 'event_20000000000040008000000000000002' },
+    },
+  ])
+  expect(JSON.stringify(selected.todos)).not.toMatch(/assignee|complete|dueDate|eventID/i)
+})
+
+test('validates portable to-do URLs and preserves pre-to-do hashes for empty lists', () => {
+  const definition = {
+    key: 'book_photographer',
+    title: 'Book the photographer',
+    target: { kind: 'main' },
+  }
+  expect(
+    BlueprintTodoDefinitionSchema.parse({ ...definition, websiteURL: 'HTTPS://example.test/a' })
+      .websiteURL
+  ).toBe('HTTPS://example.test/a')
+  for (const websiteURL of [
+    'javascript:alert(1)',
+    'https://user:pass@example.test/',
+    'https://example.test/a b',
+    ' https://example.test/a ',
+    `https://example.test/${'a'.repeat(2_050)}`,
+  ]) {
+    expect(BlueprintTodoDefinitionSchema.safeParse({ ...definition, websiteURL }).success).toBe(
+      false
+    )
+  }
+  expect(
+    BlueprintTodoDefinitionSchema.safeParse({ ...definition, title: 'a'.repeat(201) }).success
+  ).toBe(false)
+
+  const emptyContent = captured(source(), { ...selection, todoIds: [] })
+  const legacyContent = { ...emptyContent }
+  delete (legacyContent as Partial<typeof emptyContent>).todos
+  expect(blueprintDraftContentHash(emptyContent)).toBe(blueprintHash(legacyContent))
 })
 
 test('generated content uses opaque keys and resets runtime state through a content whitelist', () => {

@@ -84,8 +84,17 @@ Paths in inline code are relative to their owning repository.
   Each copy is independent; checklists reset per instance and reminders require
   separate consent/delivery handling. See the
   [recorded direction](../roadmaps/blueprints-roadmap/10-host-authored-experiences.md).
-  Native QR display/image sharing is implemented locally; checklists and
-  reminders remain planned and must not be built incidentally.
+  Native QR display/image sharing is implemented locally. On October 20 the
+  user authorized the first [shared To-dos slice](../roadmaps/to-dos-reminders-roadmap/01-shared-event-to-dos.md):
+  one list per exact event in Manage, with optional due dates, websites,
+  exact-event planner assignment/self-claim, a next-item preview and completion,
+  permissions and offline sync. Its additive migration and native/server changes
+  are local, not deployed. The
+  [optional blueprint task definitions](../roadmaps/to-dos-reminders-roadmap/02-blueprint-to-dos.md)
+  are also implemented locally: capture starts excluded, portable title/website
+  definitions create fresh unfinished/unassigned tasks in each copy. Personal
+  reminders and the Home preview remain planned; due dates do not schedule
+  notifications. Keep these separate from the QR release gates.
 
 - New API/MCP contracts use explicit Unicode character limits and monetary
   envelopes `{ amountMinor: "100", currency: "USD" }` (one USD dollar).

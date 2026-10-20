@@ -5,7 +5,11 @@ import { ConflictError, serverOperationError } from '@/lib/domain-errors'
 import { BlueprintAuthoringRepo } from './blueprint-authoring.repo'
 import { BlueprintCaptureRepo } from './blueprint-capture.repo'
 import { BlueprintNativeCreationRepo } from './blueprint-native-creation.repo'
-import { blueprintHash } from '../planning/blueprint-hash'
+import {
+  blueprintDraftContentHash,
+  blueprintHash,
+  legacyCompatibleCaptureSelection,
+} from '../planning/blueprint-hash'
 
 const conflict = (code: string) =>
   new ConflictError({ category: 'conflict', code, userMessageKey: 'serverErrors.CONFLICT' })
@@ -34,10 +38,16 @@ export const BlueprintNativeCreationRepoLive = Layer.effect(
               draft.source && 'eventId' in draft.source && draft.source.eventId === input.eventId
                 ? BlueprintDraftContentSchema.parse(draft.source.capturedContent)
                 : undefined
-            if (!capturedContent || blueprintHash(capturedContent) !== input.expectedReviewHash)
+            if (
+              !capturedContent ||
+              blueprintDraftContentHash(capturedContent) !== input.expectedReviewHash
+            )
               return yield* Effect.fail(conflict('BLUEPRINT_NATIVE_REVIEW_CHANGED'))
 
-            const nativeRequestHash = blueprintHash(input)
+            const nativeRequestHash = blueprintHash({
+              ...input,
+              selection: legacyCompatibleCaptureSelection(input.selection),
+            })
             const priorNativeHash =
               draft.source && 'eventId' in draft.source
                 ? draft.source.nativeCreationRequestHash

@@ -28,6 +28,7 @@ export const BlueprintCaptureSelectionSchema = z
     childIds: uniqueUuidArray(50),
     ideaIds: uniqueUuidArray(100),
     instructionIds: uniqueUuidArray(30),
+    todoIds: uniqueUuidArray(100).default([]),
     includeIdeaNotes: z.boolean().default(false),
   })
   .strict()
@@ -84,6 +85,21 @@ export const BlueprintEventCaptureSourceSchema = z
           .strict()
       )
       .max(30),
+    todos: z
+      .array(
+        z
+          .object({
+            id: UUIDSchema,
+            eventId: UUIDSchema,
+            title: characterString(1, 200),
+            // Preserve source readability even if a legacy row contains a URL
+            // that cannot be copied; selected portable definitions validate it.
+            websiteURL: z.string().max(2_048).nullable(),
+          })
+          .strict()
+      )
+      .max(100)
+      .default([]),
   })
   .strict()
   .superRefine((source, context) => {
@@ -92,6 +108,7 @@ export const BlueprintEventCaptureSourceSchema = z
       ...source.children.map(({ id }) => id),
       ...source.ideas.map(({ id }) => id),
       ...source.instructions.map(({ id }) => id),
+      ...source.todos.map(({ id }) => id),
     ]
     if (new Set(ids).size !== ids.length) {
       context.addIssue({ code: 'custom', message: 'Source record IDs must be unique.' })
@@ -101,6 +118,7 @@ export const BlueprintEventCaptureSourceSchema = z
     for (const [group, records] of [
       ['ideas', source.ideas],
       ['instructions', source.instructions],
+      ['todos', source.todos],
     ] as const) {
       records.forEach((record, index) => {
         if (!validEventIds.has(record.eventId)) {

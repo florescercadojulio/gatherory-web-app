@@ -52,7 +52,10 @@ export function buildCuratedStarterFixtures() {
           }
         }),
         selectedIdeaKeys: ideas.config.ideas.map((idea) => idea.key),
-        capabilities: [...BLUEPRINT_SERVER_CAPABILITIES],
+        // Keep these historical cross-client requests frozen across capability additions.
+        capabilities: BLUEPRINT_SERVER_CAPABILITIES.filter(
+          (value) => value !== 'planning.todos_v1'
+        ),
       }
       const plan = expandBlueprintInstallation(input, entry)
       const manifest = {

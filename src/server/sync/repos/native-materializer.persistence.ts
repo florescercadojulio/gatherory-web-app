@@ -1,4 +1,4 @@
-import { and, eq, sql } from 'drizzle-orm'
+import { and, eq, inArray, isNotNull, isNull, sql } from 'drizzle-orm'
 import { Data } from 'effect'
 import type { DomainErrorShape } from '@/lib/domain-errors'
 
@@ -15,6 +15,7 @@ import { eventMedia, ideaMedia, mediaAsset, registryItemMedia } from '@/db/schem
 import {
   eventExpense,
   eventNote,
+  eventTodo,
   idea,
   ideaDecision,
   registryItem,
@@ -24,6 +25,7 @@ import { nativeSyncEntity } from '@/db/schema/sync.schema'
 
 import type { NativeMutation } from '../contracts/native-sync.contracts'
 import { ideaResponseID } from '../contracts/idea-response'
+import { retainedEventAccess } from '@/server/events/repos/event-departure.repo'
 
 type NativeTransaction = Parameters<Parameters<typeof db.transaction>[0]>[0]
 
@@ -35,7 +37,7 @@ export class NativeMaterializationError extends Data.TaggedError('NativeMaterial
 
 function nativeMaterializationFailure(code: string) {
   return new NativeMaterializationError({
-    category: /SCOPE_MISMATCH/.test(code)
+    category: /SCOPE_MISMATCH|TODO_EVENT_PERMISSION_REQUIRED/.test(code)
       ? 'authorization'
       : code === 'EVENT_DEPTH_EXCEEDED'
         ? 'conflict'
@@ -85,6 +87,15 @@ export async function materializeNativeMutation(
     // Reject bare ID deletes, which do not carry the idea/account ownership key.
     if (mutation.entityType === 'idea_response')
       throw nativeMaterializationFailure('IDEA_RESPONSE_DELETE_FORBIDDEN')
+    if (mutation.entityType === 'todo') {
+      await deleteTodo(transaction, {
+        userId: input.userId,
+        organizationId,
+        scopeId: mutation.scopeID,
+        entityId: mutation.entityID,
+      })
+      return { organizationId }
+    }
     await deleteCanonicalEntity(transaction, {
       organizationId,
       entityType: mutation.entityType,
@@ -210,6 +221,16 @@ export async function materializeNativeMutation(
         actorUserId: input.userId,
         scopeId: mutation.scopeID,
         entityId: mutation.entityID,
+        payload,
+      })
+      break
+    case 'todo':
+      await materializeTodo(transaction, {
+        userId: input.userId,
+        organizationId,
+        scopeId: mutation.scopeID,
+        entityId: mutation.entityID,
+        operation: mutation.operation,
         payload,
       })
       break
@@ -915,6 +936,288 @@ async function materializeNote(
     })
 }
 
+async function materializeTodo(
+  transaction: NativeTransaction,
+  input: {
+    userId: string
+    organizationId: string
+    scopeId: string
+    entityId: string
+    operation: 'create' | 'update'
+    payload: Record<string, unknown>
+  }
+) {
+  assertPayloadId(input.entityId, input.payload.id)
+  const eventId = requiredUUID(input.payload.eventID, 'TODO_EVENT_ID_MISSING')
+  const [target] = await transaction
+    .select({
+      id: event.id,
+      parentEventId: event.parentEventId,
+      planningStatus: event.planningStatus,
+      completionStatus: event.completionStatus,
+    })
+    .from(event)
+    .where(and(eq(event.id, eventId), eq(event.organizationId, input.organizationId)))
+    .limit(1)
+  if (
+    !target ||
+    (target.id !== input.scopeId && target.parentEventId !== input.scopeId) ||
+    ['archived', 'cancelled'].includes(target.planningStatus ?? '') ||
+    target.completionStatus === 'complete'
+  ) {
+    throw nativeMaterializationFailure('TODO_EVENT_SCOPE_MISMATCH')
+  }
+  await requireTodoPlanner(transaction, {
+    userId: input.userId,
+    organizationId: input.organizationId,
+    eventId,
+  })
+
+  const [existing] = await transaction
+    .select({
+      eventId: eventTodo.eventId,
+      createdAt: eventTodo.createdAt,
+      websiteUrl: eventTodo.websiteUrl,
+      assigneePersonId: eventTodo.assigneePersonId,
+    })
+    .from(eventTodo)
+    .where(
+      and(eq(eventTodo.id, input.entityId), eq(eventTodo.organizationId, input.organizationId))
+    )
+    .limit(1)
+  if ((input.operation === 'create' && existing) || (input.operation === 'update' && !existing)) {
+    throw nativeMaterializationFailure(
+      input.operation === 'create' ? 'TODO_ALREADY_EXISTS' : 'TODO_NOT_FOUND'
+    )
+  }
+  if (existing && existing.eventId !== eventId) {
+    throw nativeMaterializationFailure('TODO_EVENT_SCOPE_MISMATCH')
+  }
+
+  const websiteUrl =
+    input.payload.websiteURL === undefined
+      ? (existing?.websiteUrl ?? null)
+      : normalizeTodoWebsiteURL(input.payload.websiteURL)
+  const assigneePersonId =
+    input.payload.assigneePersonID === undefined
+      ? (existing?.assigneePersonId ?? null)
+      : input.payload.assigneePersonID === null
+        ? null
+        : requiredUUID(input.payload.assigneePersonID, 'TODO_ASSIGNEE_INVALID')
+  if (
+    assigneePersonId &&
+    assigneePersonId !== (existing?.assigneePersonId ?? null) &&
+    !(await isEligibleTodoAssignee(transaction, {
+      organizationId: input.organizationId,
+      eventId,
+      personId: assigneePersonId,
+    }))
+  ) {
+    throw nativeMaterializationFailure('TODO_ASSIGNEE_INELIGIBLE')
+  }
+
+  const rawTitle = input.payload.title
+  const title = typeof rawTitle === 'string' ? rawTitle.trim() : ''
+  if (!title || Array.from(title).length > 200 || title !== rawTitle) {
+    throw nativeMaterializationFailure('TODO_TITLE_INVALID')
+  }
+  const rawDueDate = input.payload.dueDate ?? null
+  let dueDate: string | null = null
+  if (rawDueDate !== null) {
+    if (typeof rawDueDate !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(rawDueDate)) {
+      throw nativeMaterializationFailure('TODO_DUE_DATE_INVALID')
+    }
+    if (Number(rawDueDate.slice(0, 4)) < 1) {
+      throw nativeMaterializationFailure('TODO_DUE_DATE_INVALID')
+    }
+    const parsedDueDate = new Date(`${rawDueDate}T00:00:00.000Z`)
+    if (
+      Number.isNaN(parsedDueDate.valueOf()) ||
+      parsedDueDate.toISOString().slice(0, 10) !== rawDueDate
+    ) {
+      throw nativeMaterializationFailure('TODO_DUE_DATE_INVALID')
+    }
+    dueDate = rawDueDate
+  }
+  if (typeof input.payload.isCompleted !== 'boolean') {
+    throw nativeMaterializationFailure('TODO_COMPLETION_INVALID')
+  }
+  if (typeof input.payload.createdAt !== 'number' || !Number.isFinite(input.payload.createdAt)) {
+    throw nativeMaterializationFailure('TODO_CREATED_AT_INVALID')
+  }
+  const createdAt = nativeDate(input.payload.createdAt, 'TODO_CREATED_AT_INVALID')
+  if (!Number.isFinite(createdAt.valueOf())) {
+    throw nativeMaterializationFailure('TODO_CREATED_AT_INVALID')
+  }
+
+  // createdAt defines stable ordering and is immutable after creation. Reject
+  // altered payloads so the sync log cannot disagree with canonical storage.
+  if (existing && existing.createdAt.getTime() !== createdAt.getTime()) {
+    throw nativeMaterializationFailure('TODO_CREATED_AT_IMMUTABLE')
+  }
+
+  await transaction
+    .insert(eventTodo)
+    .values({
+      id: input.entityId,
+      organizationId: input.organizationId,
+      eventId,
+      title,
+      dueDate,
+      websiteUrl,
+      assigneePersonId,
+      isCompleted: input.payload.isCompleted,
+      createdAt,
+      updatedAt: new Date(),
+    })
+    .onConflictDoUpdate({
+      target: eventTodo.id,
+      set: {
+        title,
+        dueDate,
+        websiteUrl,
+        assigneePersonId,
+        isCompleted: input.payload.isCompleted,
+        updatedAt: new Date(),
+      },
+    })
+}
+
+function normalizeTodoWebsiteURL(value: unknown): string | null {
+  if (value === null) return null
+  if (typeof value !== 'string') throw nativeMaterializationFailure('TODO_WEBSITE_URL_INVALID')
+  const trimmed = value.trim()
+  if (!trimmed) return null
+  if (Array.from(trimmed).length > 2048 || /[\\\s\p{Cc}\p{Cf}]/u.test(trimmed)) {
+    throw nativeMaterializationFailure('TODO_WEBSITE_URL_INVALID')
+  }
+  let parsed: URL
+  try {
+    parsed = new URL(trimmed)
+  } catch {
+    throw nativeMaterializationFailure('TODO_WEBSITE_URL_INVALID')
+  }
+  const authority = trimmed.match(/^[a-z][a-z\d+.-]*:\/\/([^/?#]*)/i)?.[1]
+  if (
+    !['http:', 'https:'].includes(parsed.protocol.toLowerCase()) ||
+    !authority ||
+    !parsed.hostname ||
+    parsed.username ||
+    parsed.password ||
+    authority?.includes('@') ||
+    Array.from(parsed.toString()).length > 2048
+  ) {
+    throw nativeMaterializationFailure('TODO_WEBSITE_URL_INVALID')
+  }
+  return parsed.toString()
+}
+
+async function isEligibleTodoAssignee(
+  transaction: NativeTransaction,
+  input: { organizationId: string; eventId: string; personId: string }
+) {
+  const [person] = await transaction
+    .select({ id: workspacePerson.id })
+    .from(workspacePerson)
+    .innerJoin(eventParticipant, eq(eventParticipant.personId, workspacePerson.id))
+    .innerJoin(
+      event,
+      and(
+        eq(event.id, eventParticipant.eventId),
+        eq(event.organizationId, workspacePerson.organizationId)
+      )
+    )
+    .leftJoin(
+      eventDeparture,
+      and(
+        eq(eventDeparture.eventId, eventParticipant.eventId),
+        eq(eventDeparture.userId, workspacePerson.userId)
+      )
+    )
+    .where(
+      and(
+        eq(workspacePerson.id, input.personId),
+        eq(workspacePerson.organizationId, input.organizationId),
+        isNotNull(workspacePerson.userId),
+        eq(eventParticipant.eventId, input.eventId),
+        inArray(eventParticipant.role, ['host', 'collaborator']),
+        sql`(${eventParticipant.role} = 'host' or ${eventParticipant.planningPermission} in ('manage', 'contribute'))`,
+        isNull(eventDeparture.userId)
+      )
+    )
+    .limit(1)
+  return Boolean(person)
+}
+
+async function deleteTodo(
+  transaction: NativeTransaction,
+  input: { userId: string; organizationId: string; scopeId: string; entityId: string }
+) {
+  const [todo] = await transaction
+    .select({ eventId: eventTodo.eventId })
+    .from(eventTodo)
+    .where(
+      and(eq(eventTodo.id, input.entityId), eq(eventTodo.organizationId, input.organizationId))
+    )
+    .limit(1)
+  if (!todo) throw nativeMaterializationFailure('TODO_NOT_FOUND')
+  const [target] = await transaction
+    .select({
+      id: event.id,
+      parentEventId: event.parentEventId,
+      planningStatus: event.planningStatus,
+      completionStatus: event.completionStatus,
+    })
+    .from(event)
+    .where(and(eq(event.id, todo.eventId), eq(event.organizationId, input.organizationId)))
+    .limit(1)
+  if (
+    !target ||
+    (target.id !== input.scopeId && target.parentEventId !== input.scopeId) ||
+    ['archived', 'cancelled'].includes(target.planningStatus ?? '') ||
+    target.completionStatus === 'complete'
+  ) {
+    throw nativeMaterializationFailure('TODO_EVENT_SCOPE_MISMATCH')
+  }
+  await requireTodoPlanner(transaction, {
+    userId: input.userId,
+    organizationId: input.organizationId,
+    eventId: todo.eventId,
+  })
+  await transaction
+    .delete(eventTodo)
+    .where(
+      and(eq(eventTodo.id, input.entityId), eq(eventTodo.organizationId, input.organizationId))
+    )
+}
+
+async function requireTodoPlanner(
+  transaction: NativeTransaction,
+  input: { userId: string; organizationId: string; eventId: string }
+) {
+  const [actor] = await transaction
+    .select({
+      role: eventParticipant.role,
+      planningPermission: eventParticipant.planningPermission,
+    })
+    .from(eventParticipant)
+    .innerJoin(workspacePerson, eq(workspacePerson.id, eventParticipant.personId))
+    .innerJoin(event, eq(event.id, eventParticipant.eventId))
+    .where(
+      and(
+        eq(eventParticipant.eventId, input.eventId),
+        eq(workspacePerson.userId, input.userId),
+        eq(workspacePerson.organizationId, input.organizationId),
+        eq(event.organizationId, input.organizationId),
+        inArray(eventParticipant.role, ['host', 'collaborator']),
+        retainedEventAccess(input.userId, event.id),
+        sql`(${eventParticipant.role} = 'host' or ${eventParticipant.planningPermission} in ('manage', 'contribute'))`
+      )
+    )
+    .limit(1)
+  if (!actor) throw nativeMaterializationFailure('TODO_EVENT_PERMISSION_REQUIRED')
+}
+
 async function materializeMoment(
   transaction: NativeTransaction,
   input: {
@@ -1100,6 +1403,13 @@ async function deleteCanonicalEntity(
         .delete(eventNote)
         .where(
           and(eq(eventNote.id, input.entityId), eq(eventNote.organizationId, input.organizationId))
+        )
+      break
+    case 'todo':
+      await transaction
+        .delete(eventTodo)
+        .where(
+          and(eq(eventTodo.id, input.entityId), eq(eventTodo.organizationId, input.organizationId))
         )
       break
     case 'moment':
