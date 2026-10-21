@@ -404,6 +404,11 @@ Keep secrets and reviewer passwords out of docs and tool output.
 
 ## Release context and known documentation gaps
 
+The [October 21 mobile V1 guest/invitation audit](../release/mobile-v1-guest-invitation-audit.md)
+records current recovery fixes and distinguishes source test evidence from
+remaining physical-device, migration, configuration, and submission checks.
+Use it instead of copying dated blocker tables into a current release status.
+
 As of October 14, 2026, version 1.0 build 2 was successfully uploaded to
 TestFlight, and the user reported sending tester links. The archived Release
 configuration used `https://app.gatherory.com`, `APP_ENVIRONMENT=production`,

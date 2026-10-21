@@ -1,6 +1,9 @@
 # V1 guest release candidate
 
-**Status:** Implemented first slice — local non-UI checks pass; physical-device and deployment acceptance remain.  
+**Status:** Implemented; October 21 guest/invitation recovery audit is recorded in
+[the current mobile V1 release checkpoint](../../release/mobile-v1-guest-invitation-audit.md).
+Physical-device and deployment acceptance remain.
+
 **Priority:** P0 for the V1 candidate.  
 **Owner areas:** iOS authentication/local persistence/invitations; server `/api/guest/*`.
 
@@ -30,10 +33,11 @@ physical-device/deployment acceptance. No production migration, deployment,
 build upload, commit, or push is authorized by this implementation task.
 
 The browser invitation page still uses its existing account-based journey.
-Browser-only/Android RSVP, dependable event announcements, personal reminders,
-and practical exports remain later slices; none is implied by this native guest
-implementation. A web planning editor, social features and billing are outside
-this slice.
+Browser-only/Android RSVP and personal reminders remain deferred. Mobile event
+announcements and best-effort notification delivery, reusable audience-specific
+invitation QR links, and schedule/guest-list CSV exports are implemented locally;
+their device and rollout checks remain separate. A web planning editor, social
+features and billing are outside this mobile candidate.
 
 ## Constraints
 

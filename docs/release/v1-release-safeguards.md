@@ -1,5 +1,10 @@
 # v1 safeguards — implementation and remaining release checks
 
+The current guest/invitation release checkpoint is the
+[October 21 mobile V1 audit](mobile-v1-guest-invitation-audit.md). Use it for the
+latest source fixes and pending device/deployment evidence. This document's
+older verification snapshot remains historical.
+
 > Verification snapshot: October 13, 2026. The checks below describe that
 > implementation pass, not a live audit of production or the current TestFlight
 > build. Revalidate against the target environment before marking a check done.

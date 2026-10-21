@@ -1,10 +1,11 @@
 import { PgClient } from '@effect/sql-pg/PgClient'
-import { and, asc, eq, sql } from 'drizzle-orm'
+import { and, asc, eq, exists, isNull, sql } from 'drizzle-orm'
 import { Effect } from 'effect'
 import { DB } from '@/db'
 import {
   event,
   eventParticipant,
+  eventGuestProfile,
   workspacePerson,
   user,
   idea,
@@ -61,7 +62,22 @@ function listGuestEventInvitationProjectionsFor(input: {
       : input.guestProfileId
         ? and(
             eq(workspacePerson.guestProfileId, input.guestProfileId),
-            eq(eventParticipant.role, 'guest')
+            eq(eventParticipant.role, 'guest'),
+            isNull(workspacePerson.userId),
+            // A request may verify its device proof immediately before a claim
+            // commits. Recheck the identity boundary at the projection read too.
+            exists(
+              db
+                .select({ id: eventGuestProfile.id })
+                .from(eventGuestProfile)
+                .where(
+                  and(
+                    eq(eventGuestProfile.id, input.guestProfileId),
+                    isNull(eventGuestProfile.claimedAt),
+                    isNull(eventGuestProfile.claimedByUserId)
+                  )
+                )
+            )
           )
         : sql`false`
     const rows = yield* db
