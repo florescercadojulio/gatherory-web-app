@@ -32,8 +32,9 @@ Vitest suite passed (242 tests; 14 environment/opt-in tests skipped). This
 contract-only change did not rerun native or UI tests and did not apply a database
 migration. Public OpenAPI/MCP delivery remains future work.
 
-Subsequent date follow-up: blueprint schedule validation now uses native Temporal
-behind a TanStack server-only boundary. Node engines and CI require 26+, while
+Subsequent date follow-up: blueprint schedule validation uses Temporal
+behind a TanStack server-only boundary. The Node 24 migration replaces the
+native-only dependency with an explicit server polyfill; engines and CI use 24.x, while
 shared schemas remain usable without global Temporal. Confirmed timestamps have
 at most millisecond precision; named zones and explicit offsets must agree.
 Typecheck, generated-schema checks and all 268 web tests passed (14 opt-in tests

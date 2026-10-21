@@ -1,4 +1,5 @@
 // Keep the original cross-client proof fixture immutable as the live catalog expands.
+import { Temporal } from '@/server/temporal.server'
 import { coreBlueprintStarters as blueprintStarters } from '@/server/blueprints/catalog/starters'
 import { BlueprintIdeasModuleSchema } from '@/contracts/blueprint-install.contracts'
 import { buildBlueprintCatalog } from '@/server/blueprints/services/blueprint-discovery'

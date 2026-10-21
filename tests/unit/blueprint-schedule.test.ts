@@ -5,6 +5,8 @@ import { BlueprintInstallInputSchema } from '@/contracts/blueprint-install.contr
 import { assertConfirmedSchedule } from '@/server/blueprints/planning/confirmed-schedule.server'
 import { expandBlueprintInstallation } from '@/server/blueprints/planning/plan-blueprint-installation'
 import { weddingBlueprintV1 } from '@/server/blueprints/catalog/wedding.v1'
+import { suggestBlueprintSchedule } from '@/server/blueprints/planning/suggest-blueprint-schedule.server'
+import { captureEventBlueprint } from '@/server/blueprints/planning/capture-event-blueprint.server'
 
 afterEach(() => vi.unstubAllGlobals())
 
@@ -48,16 +50,62 @@ test.each([
   expect(ConfirmedInstantSchema.safeParse(value).success).toBe(false)
 })
 
-test('shared contracts work without Temporal, while server scheduling fails explicitly', () => {
+test('contracts, scheduling, and capture work without reading or modifying global Temporal', () => {
   vi.stubGlobal('Temporal', undefined)
   expect(ConfirmedInstantSchema.parse('2027-06-15T19:00:00Z')).toBe('2027-06-15T19:00:00Z')
   expect(BlueprintInstallInputSchema.safeParse(input()).success).toBe(true)
-  expect(() => assertConfirmedSchedule('2027-06-15T19:00:00Z', 'UTC')).toThrow(
-    'requires native Temporal'
+  expect(() => assertConfirmedSchedule('2027-06-15T19:00:00Z', 'UTC')).not.toThrow()
+  const request = input()
+  expect(expandBlueprintInstallation(request, weddingBlueprintV1).main.startsAt).toBe(
+    request.mainEvent.startsAt
   )
   expect(
-    readFileSync('src/server/blueprints/planning/confirmed-schedule.server.ts', 'utf8')
-  ).toContain("import '@tanstack/react-start/server-only'")
+    suggestBlueprintSchedule(
+      {
+        catalogKey: request.catalogKey,
+        revision: request.revision,
+        contentHash: request.contentHash,
+        mainEvent: {
+          startsAt: request.mainEvent.startsAt,
+          timeZone: request.mainEvent.timeZone,
+        },
+      },
+      weddingBlueprintV1.definition
+    ).suggestions.length
+  ).toBeGreaterThan(0)
+  const captured = captureEventBlueprint(
+    {
+      event: {
+        id: '10000000-0000-4000-8000-000000000001',
+        title: 'Wedding',
+        startsAt: '2027-03-13T17:00:00Z',
+        timeZone: 'America/Detroit',
+        experienceType: 'wedding',
+      },
+      children: [
+        {
+          id: '20000000-0000-4000-8000-000000000002',
+          title: 'Ceremony',
+          purpose: 'part_of_event',
+          category: 'ceremony',
+          startsAt: '2027-03-14T16:00:00Z',
+        },
+      ],
+      ideas: [],
+      instructions: [],
+      todos: [],
+    },
+    { childIds: ['20000000-0000-4000-8000-000000000002'], ideaIds: [], instructionIds: [] }
+  )
+  expect(captured.children[0]?.scheduleProposal).toEqual({
+    anchor: 'main_start',
+    dayOffset: 1,
+    localTime: '12:00',
+  })
+  expect(globalThis).toHaveProperty('Temporal', undefined)
+  expect(readFileSync('src/server/temporal.server.ts', 'utf8')).toContain(
+    "import '@tanstack/react-start/server-only'"
+  )
 })
 
 test('planning retains reviewed strings and validates child schedules with the event zone', () => {

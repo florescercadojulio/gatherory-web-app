@@ -10,7 +10,7 @@ Wedding setup, not automatic rescheduling or a new sync engine.
 - The Effect workflow reads the requested revision, rejects a changed hash, and
   calls a pure server-only Temporal planner. No organization, receipt, event,
   native projection, outbox entry, or other database write is created.
-- Native Temporal on Node 26+ derives the main event's calendar date in its
+- Server-only Temporal on Node 24 (via the pinned polyfill) derives the main event's calendar date in its
   event zone, adds calendar days, then combines the proposed local clock time.
   Server/device default zones and 24-hour duration arithmetic are not used.
 - A normal time returns one UTC candidate. A repeated time returns both
@@ -72,7 +72,7 @@ UI tests and an iOS 26 simulator run were not performed; no iOS 26 runtime is
 installed on this machine.
 
 Deployment still requires the existing blueprint migration/catalog setup and a
-Node 26+ server. This change does not run migrations, seed data, or deploy. A
+Node 24 server with the installed Temporal polyfill. This change does not run migrations, seed data, or deploy. A
 device visual/interaction pass is still needed, especially for repeated times,
 large text, English/Spanish, and offline retry. Next product work remains the
 other curated starters, guide editing, and the release gates in `06`.

@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "engines": {
-    "node": ">=26"
+    "node": "24.x"
   },
   "packageManager": "pnpm@12.9.1",
   "scripts": {
@@ -53,6 +53,7 @@
     "@effect/sql-pg": "4.0.0-beta.102",
     "@faker-js/faker": "^10.3.0",
     "@fontsource-variable/inter": "^5.3.0",
+    "@js-temporal/polyfill": "0.5.1",
     "@posthog/react": "^1.7.0",
     "@react-email/ui": "^6.11.1",
     "@sentry/tanstackstart-react": "^10.67.0",
@@ -125,7 +126,7 @@
     "@tanstack/router-cli": "^1.132.0",
     "@tanstack/start-client-core": "1.170.34",
     "@tanstack/start-storage-context": "1.167.36",
-    "@types/node": "^26.6.4",
+    "@types/node": "^24.19.2",
     "@types/pg": "^8.23.1",
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
@@ -143,5 +144,8 @@
     "skills": [
       "*"
     ]
+  },
+  "volta": {
+    "node": "24.22.1"
   }
 }

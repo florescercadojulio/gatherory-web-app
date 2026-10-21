@@ -31,7 +31,7 @@ transaction/advisory lock. Identical reruns/concurrent runs are no-ops; changed
 content at an existing key/revision is rejected. Wedding's definition/hash is
 unchanged. There is no new schema migration or native runtime branch.
 
-Deployment must already have the blueprint tables and Node 26+ runtime. Run
+Deployment must already have the blueprint tables and Node 24 runtime with the server Temporal polyfill. Run
 the explicit seed against the intended environment to make the new starters
 available. No development/production seeding or deployment was performed as
 part of this implementation. Existing installations remain independent.

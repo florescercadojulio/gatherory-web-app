@@ -182,9 +182,10 @@ Paths in inline code are relative to their owning repository.
   Follow [API contract conventions](api-contract-conventions.md); existing
   budget, archive and sync money formats require explicit adapters/versioning,
   not reinterpretation. Blueprint schemas already enforce these conventions.
-- Date reasoning for blueprints uses native Temporal in protected server-only
-  code on Node 26+. Shared/browser contracts remain plain strings without a
-  Temporal dependency. Keep confirmed instants, named event zones and date-only
+- Date reasoning for blueprints uses explicit `Temporal` imports from the
+  server-only `src/server/temporal.server.ts` polyfill adapter on Node 24.x.
+  Shared/browser contracts remain plain strings without a Temporal dependency.
+  Keep confirmed instants, named event zones and date-only
   values distinct; reject ambiguous/gapped local times rather than guess.
   Current installation precision is milliseconds. See the date section of the
   same conventions guide; do not migrate offline-sync formats incidentally.

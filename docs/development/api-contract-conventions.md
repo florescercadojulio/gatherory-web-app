@@ -74,11 +74,13 @@ executable module requires typed fields with their own narrower limits.
 
 ## Dates, time zones and Temporal
 
-The server runtime is Node.js 26 or later, with native Temporal required for
-blueprint schedule validation. The package engine and CI test runtime declare
-this requirement; deployed runtimes must match it. Node 26 enables Temporal by
-default ([Node release notes](https://nodejs.org/en/blog/release/v26.0.0/)). Do not
-assume that this implies browser support or availability in every edge runtime.
+The server runtime is Node.js 24.x. Blueprint scheduling and capture import
+`Temporal` through `src/server/temporal.server.ts`, which re-exports the pinned
+`@js-temporal/polyfill` implementation behind a TanStack server-only boundary.
+The same implementation runs in local development, CI and production; it does
+not depend on or install global Temporal. Keep the package engine, `.nvmrc`,
+Node types and CI runtime on Node 24. See the
+[polyfill usage documentation](https://github.com/js-temporal/temporal-polyfill#usage).
 
 Treat these as different kinds of data:
 
@@ -135,7 +137,8 @@ and the viewer's current zone must never silently replace the event's zone.
 
 ### Browser and SSR boundary
 
-- Shared contracts serialize strings and contain no native Temporal calls.
+- Shared contracts serialize strings and contain no Temporal calls or polyfill
+  imports.
   `src/server/blueprints/planning/confirmed-schedule.server.ts` is protected by
   TanStack's server-only marker. A directory called `server` alone is not an
   execution boundary; route loaders are not automatically server-only.
@@ -146,8 +149,8 @@ and the viewer's current zone must never silently replace the event's zone.
 - If a future client editor needs Temporal arithmetic, use a shared lazy-loaded
   compatibility adapter: feature-detect the needed Temporal classes and load a
   vetted polyfill when absent, or ask the server to resolve proposals. Never
-  silently fall back to `Date` arithmetic. No browser polyfill is needed or
-  installed for the current blueprint client; calendar reasoning is server-side.
+  silently fall back to `Date` arithmetic. The current blueprint client does not
+  load the server polyfill; calendar reasoning stays server-side.
 - Keep SSR and initial hydration formatting deterministic using an explicit
   locale and zone. Read viewer-local preferences after hydration if needed.
 - Keep timezone data current on the authoritative server. Revalidate proposed
@@ -156,7 +159,18 @@ and the viewer's current zone must never silently replace the event's zone.
 
 `tests/unit/blueprint-schedule.test.ts` covers DST gaps/overlaps, half-hour DST,
 skipped dates, quarter-hour offsets, leap dates, invalid/offset-only zones,
-precision, child schedules and contracts running without global Temporal.
+precision, child schedules, capture and contracts running without global Temporal.
+Run the suite on Node 24 without experimental Temporal flags; running only on a
+newer runtime would conceal accidental native API dependencies.
+
+Node 24 migration verification (October 21, 2026): locked installation,
+typecheck, generated contract checks, all 604 non-UI tests (43 external-resource
+tests skipped), and the production build passed on Node 24.22.1. The compiled
+server returned 200 from `/api/auth/ok` using synthetic configuration. The
+polyfill is present in the server bundle and absent from browser assets.
+DigitalOcean deployment and authenticated checks against the configured Neon
+database remain rollout checks; no database migration or UI test is required
+for the runtime adapter change.
 
 ## Money: integer minor-unit strings
 

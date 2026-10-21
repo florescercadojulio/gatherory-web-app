@@ -133,7 +133,15 @@ workspace so the database and protected UI exercise the same product model.
 
 ## Local setup
 
-Use pnpm for this repository:
+Use Node.js 24.x (`.nvmrc` and the project Volta pin) and pnpm 12.9.1. Blueprint
+scheduling uses an explicit server-only Temporal polyfill; native Temporal and
+experimental Node flags are not required. CI and production must also use Node 24.
+DigitalOcean App Platform can use its Node.js buildpack with build command
+`pnpm build` and run command `pnpm start`; a Node 26 Docker image is no longer
+needed. Keep existing Neon and other service configuration in the deployment
+environment.
+
+Install and start locally:
 
 ```bash
 pnpm install

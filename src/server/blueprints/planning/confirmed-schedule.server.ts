@@ -1,10 +1,9 @@
 import '@tanstack/react-start/server-only'
 
+import { Temporal } from '@/server/temporal.server'
+
 /** Validate without rewriting the reviewed value or its idempotency hash. */
 export function assertConfirmedSchedule(isoDateTime: string, timeZone: string) {
-  if (typeof Temporal === 'undefined') {
-    throw new Error('Blueprint scheduling requires native Temporal (Node.js 26 or later).')
-  }
   const instant = Temporal.Instant.from(isoDateTime)
   const zoned = instant.toZonedDateTimeISO(timeZone)
   if (/^[+-]/.test(zoned.timeZoneId)) {

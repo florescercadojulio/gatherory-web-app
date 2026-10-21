@@ -1,5 +1,7 @@
 import '@tanstack/react-start/server-only'
 
+import { Temporal } from '@/server/temporal.server'
+
 import {
   BlueprintCaptureSelectionSchema,
   BlueprintEventCaptureSourceSchema,
