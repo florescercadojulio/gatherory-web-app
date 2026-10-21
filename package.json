@@ -5,6 +5,7 @@
   "engines": {
     "node": ">=26"
   },
+  "packageManager": "pnpm@12.9.1",
   "scripts": {
     "intent": "node ./node_modules/@tanstack/intent/dist/cli.mjs",
     "dev": "dotenv run -f .env.local -- sh -c \"NODE_OPTIONS='--import ./instrument.server.mjs' vite dev --port 3003\"",
