@@ -4,6 +4,14 @@ October 21, 2026. Source checkpoint: web/server `3a08757`, iOS `b465a7c`, plus
 the uncommitted audit fixes described below. This is a local source and non-UI
 verification record, not evidence of a deployed backend or a release build.
 
+The subsequent [mobile invitation/RSVP usability pass](../../../ios-apps/gatherory/docs/invitation-rsvp-usability.md)
+simplifies preview copy and makes response retries resend the actual choice.
+It also journals explicit departures before sending them so failed cache cleanup
+cannot reopen a left event offline. The journal is scoped to the server and exact
+principal and never replays a leave. It preserves the permission, handover and
+generation boundaries below; see its verification record for newer native test
+and localization evidence.
+
 ## V1 behavior
 
 **Attend as guest; sign in to help plan.** Opening a link or scanning a QR shows
