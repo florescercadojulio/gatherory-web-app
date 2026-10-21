@@ -1,12 +1,16 @@
 import '@tanstack/react-start/server-only'
 
+import { waitUntil } from '@vercel/functions'
+
 /**
- * Start non-critical work without coupling the application to a hosting
- * provider's request-lifetime API. The Node server keeps pending I/O alive;
- * rejected tasks are observed so they cannot become unhandled rejections.
+ * Keep callback work alive after the response on Vercel. Without a Vercel
+ * request context the SDK is a no-op; the promise still runs and failures
+ * remain observed in local development.
  */
 export function runInBackground(promise: Promise<unknown>): void {
-  void promise.catch((error: unknown) => {
-    console.error('Background task failed', error)
-  })
+  waitUntil(
+    promise.catch((error: unknown) => {
+      console.error('Background task failed', error)
+    })
+  )
 }

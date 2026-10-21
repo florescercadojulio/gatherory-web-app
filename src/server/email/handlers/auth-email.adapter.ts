@@ -23,8 +23,8 @@ function schedule(program: Effect.Effect<unknown, unknown>) {
   )
 
   // Start immediately without making the auth response disclose whether a
-  // recipient exists. The standalone Node server keeps pending I/O alive and
-  // reports failures through Effect logging.
+  // recipient exists. The shared adapter retains Vercel's request lifetime;
+  // failures are reported through Effect logging.
   runInBackground(delivery)
 }
 

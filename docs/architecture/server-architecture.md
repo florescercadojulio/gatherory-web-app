@@ -155,8 +155,10 @@ This is also why handlers must not maintain their own `try/catch` error maps.
 Framework callbacks and trusted scripts instead use explicit Promise adapters
 under `handlers/`. They must preserve the callback's failure/return contract,
 not replace it with an HTTP result envelope. Authentication email adapters also
-retain runtime-neutral background scheduling and logged, non-disclosing delivery
-failures.
+retain shared background scheduling through `src/lib/background-tasks.ts`,
+which uses Vercel `waitUntil` to keep request work alive after the response and
+observes failures in local development. Delivery failures remain logged and
+non-disclosing.
 
 The implementation lives in `src/server/effect-utils.ts`; `effect.ts` re-exports
 it for existing callers. Backend expected failures use `Data.TaggedError` with

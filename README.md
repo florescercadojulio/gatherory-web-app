@@ -136,10 +136,19 @@ workspace so the database and protected UI exercise the same product model.
 Use Node.js 24.x (`.nvmrc` and the project Volta pin) and pnpm 12.9.1. Blueprint
 scheduling uses an explicit server-only Temporal polyfill; native Temporal and
 experimental Node flags are not required. CI and production must also use Node 24.
-DigitalOcean App Platform can use its Node.js buildpack with build command
-`pnpm build` and run command `pnpm start`; a Node 26 Docker image is no longer
-needed. Keep existing Neon and other service configuration in the deployment
-environment.
+Vercel builds with `pnpm build`; Nitro detects Vercel and generates
+`.vercel/output` with Node 24 functions. Leave the output-directory override
+unset and use the TanStack Start framework preset. Local builds retain the Node
+server output used by `pnpm start`. Keep existing Neon and other service
+configuration in the deployment environment.
+
+Authentication callbacks and email delivery use the shared `runInBackground`
+adapter backed by Vercel `waitUntil` so work survives the response. Local
+development observes the same promises without a Vercel request context.
+`vercel.json` restores the Apple association JSON header. The internal
+notification dispatch endpoint retains its 60-second function limit, but no
+cron schedule is configured: notification delivery remains best effort after
+the canonical operation commits.
 
 Install and start locally:
 

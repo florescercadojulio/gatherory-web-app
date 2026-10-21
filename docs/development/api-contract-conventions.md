@@ -168,7 +168,7 @@ typecheck, generated contract checks, all 604 non-UI tests (43 external-resource
 tests skipped), and the production build passed on Node 24.22.1. The compiled
 server returned 200 from `/api/auth/ok` using synthetic configuration. The
 polyfill is present in the server bundle and absent from browser assets.
-DigitalOcean deployment and authenticated checks against the configured Neon
+Hosting deployment and authenticated checks against the configured Neon
 database remain rollout checks; no database migration or UI test is required
 for the runtime adapter change.
 
