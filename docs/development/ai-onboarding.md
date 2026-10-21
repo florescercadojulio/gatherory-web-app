@@ -71,6 +71,56 @@ Paths in inline code are relative to their owning repository.
 
 ## Decisions to preserve
 
+- Consumer-facing wording is **Event / Events** (Spanish: **evento / eventos**),
+  including the former Workspaces directory/settings/budget labels. Keep stable
+  localization keys, internal `PlanningWorkspace` names, ownership containers,
+  IDs and sync formats unchanged. Blueprint authoring containers may say library.
+- [Event announcements](../roadmaps/notifications-roadmap/02-event-announcements.md)
+  use one iPhone Updates UI with All/Planning/Guests audiences. Hosts can send
+  all audiences; contributors/managers can send to Planning only. Exact-event
+  server read and notification policies isolate Planning from guests and Guests
+  from collaborators; hosts can oversee guest history. Earlier notes stay private
+  Planning history in their existing stores; do not convert or resend them.
+  Feed bylines resolve the sender's current event-member name and profile image
+  without storing a personal snapshot; deleted authors fall back to the generic
+  role label.
+  Guest access never grants sending or planning rights. Announcement/outbox writes
+  are atomic and request IDs deduplicate retries. Lock-screen text is generic,
+  and taps reauthorize before fetching text. The additive migration and updated
+  backend/native build require separate rollout approval; nothing was deployed.
+
+- Native launch routing uses a pure ordered `AuthenticationFlowChain` with a
+  separate `SessionPreparationCoordinator` for data activation/handover and
+  `SessionLifecycleActions` for save/exit hooks. Transient credential restore
+  failures show recovery; account readiness and onboarding are identity scoped.
+  Check [mobile session lifecycle](../architecture/mobile-session-lifecycle.md)
+  before changing sign-in, guest retention, or entry ordering. Do not put
+  network, deletion, or permission changes in routing handlers.
+  Confirmed account deletion now keeps an atomic account-ID cleanup journal
+  until exact-account device removal succeeds. Cleanup retries before session
+  restoration, never repeats remote deletion, and never uploads pending edits.
+  Lost confirmation requires explicit device-only removal. Preserve other
+  accounts, guest sources, notification installation credentials, and the
+  account-scoped media/file retry boundaries.
+
+- The October 20 [mobile FCM proof of concept](../roadmaps/notifications-roadmap/01-fcm-proof-of-concept.md)
+  adds a reusable notification connector consumed by the service layer, with
+  transactional assignment/event-change intents and separate delivery. Guest
+  and account bindings remain isolated. Personal reminders and browser push are
+  deferred. It is local implementation, not deployed or physical-device delivery
+  evidence; Firebase/APNs configuration and a dispatch deployment need separate
+  acceptance.
+
+- The October 20 [V1 guest slice](../roadmaps/v1-guest-release-candidate-roadmap/README.md)
+  allows device-local planning and public guest invitation attendance. Sharing
+  owned events and blueprint account actions require sign-in. Device guest
+  identity is separate from Better Auth and planner sync; account linking must
+  preserve existing account data and retain the source until retry-safe import
+  and attendance claim complete. V1 wording is “attend as guest; sign in to help
+  plan”; signing in never automatically upgrades attendance to a planning role.
+  Private/email invitations and view-only permissions remain explicit. Browser
+  guest RSVP remains a later slice.
+
 - Product wording is **Blueprint / Blueprints** across native and web UI
   (Spanish: **plano / planos**), per the October 19 terminology decision.
   Older documents may say template; stable localization keys, API fields and

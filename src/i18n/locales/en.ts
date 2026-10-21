@@ -112,7 +112,7 @@ const en = {
       'See the event, schedule, and people here. To make changes, use Gatherory on your iPhone.',
     detailsWillAppear: 'Event details will appear here',
     couldNotRefresh:
-      'Gatherory could not refresh these details just now. You can still use the rest of the workspace.',
+      'Gatherory could not refresh these details just now. You can still use the rest of the event.',
     firstEvent: 'Your first event starts here',
     firstEventDescription:
       'Create a main event, add its schedule, and invite hosts, collaborators, and guests.',
@@ -198,8 +198,7 @@ const en = {
       'Choose an event and select the planning details to copy into a private blueprint.',
     capturePrivacy:
       'Saved as a private draft. Review each detail before publishing a reusable version. Ideas copy their titles and optional notes; detailed settings and attachments stay with the event. Participants, expenses, event history, and photos are never copied. Playlists are not supported.',
-    captureNoWorkspace:
-      'Choose or create an authoring workspace before saving a private blueprint.',
+    captureNoWorkspace: 'Choose or create a blueprint library before saving a private blueprint.',
     captureChooseEvent: 'Choose a source event',
     captureSelectEvent: 'Select an event',
     captureLoadingSource: 'Loading event details…',
@@ -226,7 +225,7 @@ const en = {
     shareLinksTitle: 'Unlisted sharing',
     shareLinksDescription: 'Create a link to a published version of this blueprint.',
     shareLinksPrivacy:
-      'Anyone with the link can preview and forward the published content, then copy it into an independent plan. Review it for personal details and access codes before sharing. The source event and your workspace remain private.',
+      'Anyone with the link can preview and forward the published content, then copy it into an independent plan. Review it for personal details and access codes before sharing. The source event and your library remain private.',
     shareLinksPublishFirst: 'Publish this blueprint before creating a share link.',
     shareLinkCreate: 'Create unlisted link',
     shareLinkCreating: 'Creating link…',
@@ -264,7 +263,7 @@ const en = {
     sharedGuidance_other: '{{count}} guides',
     sharedNoGuidance: 'No guidance is included.',
     sharedOpenInApp: 'Open in Gatherory',
-    sharedCopyHint: 'Open Gatherory to save this blueprint or create your own workspace.',
+    sharedCopyHint: 'Open Gatherory to save this blueprint or create your own event.',
     captureAttemptLocked: 'Selection locked for retry',
     captureConflicts: 'Manual edits retained ({{count}})',
     captureConflictsHelp:
@@ -299,13 +298,13 @@ const en = {
     draftVersion: 'Draft version {{version}}',
     publishedRevision: 'Published revision {{revision}}',
     basedOn: 'Customized from {{name}}',
-    ownerWorkspace: 'Save in workspace',
-    personalWorkspace: 'Personal workspace',
-    ownerWorkspaceHelp: 'The selected workspace owns this private blueprint.',
-    noWorkspace: 'Create a personal workspace before saving a blueprint.',
-    createWorkspace: 'Create personal workspace',
-    workspaceCreated: 'Personal workspace is ready.',
-    workspaceCreateFailed: 'A personal workspace could not be created. Try again.',
+    ownerWorkspace: 'Save in library',
+    personalWorkspace: 'Personal library',
+    ownerWorkspaceHelp: 'The selected library holds this private blueprint.',
+    noWorkspace: 'Create a personal library before saving a blueprint.',
+    createWorkspace: 'Create personal library',
+    workspaceCreated: 'Personal library is ready.',
+    workspaceCreateFailed: 'A personal library could not be created. Try again.',
     basics: 'Basics',
     activities: 'Suggested activities',
     activitiesHelp: 'Activities are direct child events in the plan.',
@@ -436,26 +435,44 @@ const en = {
     title: 'Gatherory invitation',
     invalid: 'This invitation link is invalid. Ask the host for a new one.',
     sharedJoin:
-      'Anyone with this link can join as a {{role}}. Sign in or create an account to accept.',
+      'Sign in or create an account to continue with this public invitation as a {{role}}.',
+    sharedCollaboratorJoin: 'Sign in to help plan this event.',
+    sharedCollaboratorApprovalJoin:
+      'Sign in to request collaborator access. The host must approve your request before you can access the event.',
+    sharedCollaboratorViewOnlyJoin: 'Sign in to view this event and its plans as a collaborator.',
+    sharedCollaboratorViewOnlyApprovalJoin:
+      'Sign in to request view-only collaborator access. The host must approve your request before you can view the event and its plans.',
+    sharedGuestJoin:
+      'Guest attendance is available in the Gatherory iPhone app. To continue with this public invitation in the browser, sign in or create an account.',
     privateJoin:
-      'Sign in or create an account to check this invitation. Email-specific invitations must be accepted by the addressed account.',
+      'This private invitation requires you to sign in or create an account in the browser. Email-specific invitations must be accepted by an account using the invited email.',
     signIn: 'Sign in',
+    signInToPlan: 'Sign in to help plan',
+    signInToViewPlans: 'Sign in to view plans',
     createAccount: 'Create account',
+    createAccountToPlan: 'Create an account to help plan',
+    createAccountToViewPlans: 'Create an account to view plans',
     notLoaded:
       'This invitation could not be loaded. Make sure you are using the invited email address.',
     switchAccount: 'Switch account',
     joinedAs: 'You joined as a {{role}}. Your host can now include you in the event.',
     refreshOnIPhone:
-      'Open Gatherory on your iPhone and refresh to see this event. Guests see the invitation; main-event planning collaborators also receive planning access.',
+      'Open Gatherory on your iPhone and refresh to see this event. Guest access is for attending; collaborator access follows the event’s sharing permissions.',
     continue: 'Continue to Gatherory',
     invitedAs: 'You are invited as a {{role}}. This invitation expires {{date}}.',
-    collaboratorAccess:
-      'Accepting grants planning access to this event. Only share this link with people you trust.',
+    collaboratorViewOnly: 'This collaborator link grants view-only access to the event.',
+    collaboratorViewOnlyApproval:
+      'This collaborator link grants view-only access after the host approves your request.',
+    collaboratorPlanning: 'This collaborator link grants planning access to the event.',
+    collaboratorPlanningApproval:
+      'This collaborator link grants planning access after the host approves your request.',
+    awaitingApproval: 'Your request to join as a collaborator is waiting for host approval.',
     accepting: 'Accepting…',
     accept: 'Accept invitation',
     expired: 'This invitation has expired. Ask the host for a new link.',
     verifyEmail: 'Verify your email address, then return to this invitation.',
     acceptedToast: 'Invitation accepted',
+    requestSentToast: 'Request sent for host approval',
     acceptFailed: 'Your invitation could not be accepted. Try again.',
   },
   roles: {
@@ -465,7 +482,7 @@ const en = {
   },
   notFound: {
     title: 'This page isn’t on the itinerary.',
-    description: 'The link may be outdated, or the page may have moved to another workspace.',
+    description: 'The link may be outdated, or the page may have moved to another event.',
   },
   errors: {
     pageUnavailable: 'This page is temporarily unavailable',
@@ -523,12 +540,12 @@ const en = {
     restAvailable: 'The rest of Gatherory is still available. Try loading this page again.',
     couldNotFinish: 'This page could not finish loading',
     tryAgain: 'Try again',
-    workspacePrepareTitle: 'Your workspace could not be prepared',
+    workspacePrepareTitle: 'Your event could not be prepared',
     workspacePrepareDescription:
-      'Gatherory kept the rest of the app available. Try loading your workspace again.',
-    workspaceLoadTitle: 'This workspace could not be loaded',
+      'Gatherory kept the rest of the app available. Try loading your event again.',
+    workspaceLoadTitle: 'This event could not be loaded',
     workspaceLoadDescription:
-      'Your other Gatherory pages are still available. Try loading this workspace again.',
+      'Your other Gatherory pages are still available. Try loading this event again.',
   },
   appearance: {
     title: 'Appearance',

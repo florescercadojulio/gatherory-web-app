@@ -1,7 +1,7 @@
 import type en from './en.server-errors'
 
 const serverErrors = {
-  ACTIVE_WORKSPACE_REQUIRED: 'Elige un espacio de planificación e inténtalo de nuevo.',
+  ACTIVE_WORKSPACE_REQUIRED: 'Elige un evento e inténtalo de nuevo.',
   INVITATION_EMAIL_UNVERIFIED: 'Verifica tu correo electrónico antes de aceptar esta invitación.',
   INVITATION_UNAVAILABLE:
     'Esta invitación no está disponible. Comprueba el correo invitado o pide un nuevo enlace al anfitrión.',
@@ -28,7 +28,7 @@ const serverErrors = {
   EVENT_INVITATION_EXPIRED: 'Esta invitación ha caducado. Pide un nuevo enlace al anfitrión.',
   EVENT_INVITATION_INVALID: 'Esta invitación no es válida o ya se ha utilizado.',
   PARENT_EVENT_PARTICIPANT_REQUIRED: 'No tienes acceso al evento principal.',
-  WORKSPACE_MEMBERSHIP_REQUIRED: 'No tienes acceso a este espacio de planificación.',
+  WORKSPACE_MEMBERSHIP_REQUIRED: 'No tienes acceso a este evento.',
   EVENT_PARTICIPANT_REQUIRED: 'No tienes acceso a este evento.',
   MEDIA_OPERATION_FAILED: 'No se pudo completar la acción con la imagen. Inténtalo de nuevo.',
   MEDIA_NOT_FOUND: 'Esta imagen ya no está disponible.',
@@ -46,10 +46,9 @@ const serverErrors = {
   BLOCK_SELF_FORBIDDEN: 'Elige a otra persona para bloquearla.',
   BLOCK_TARGET_UNAVAILABLE: 'Esta persona ya no está disponible en tus eventos.',
   INVITATION_BLOCKED: 'Esta invitación no se puede enviar ni aceptar.',
-  PERSONAL_WORKSPACE_PROVISION_FAILED:
-    'No se pudo preparar tu espacio de planificación. Inténtalo de nuevo.',
-  WORKSPACE_CREATE_FAILED: 'No se pudo crear el espacio de planificación. Inténtalo de nuevo.',
-  WORKSPACE_RESOLVE_FAILED: 'No se pudo cargar este espacio de planificación. Inténtalo de nuevo.',
+  PERSONAL_WORKSPACE_PROVISION_FAILED: 'No se pudo preparar tu evento. Inténtalo de nuevo.',
+  WORKSPACE_CREATE_FAILED: 'No se pudo crear el evento. Inténtalo de nuevo.',
+  WORKSPACE_RESOLVE_FAILED: 'No se pudo cargar este evento. Inténtalo de nuevo.',
   SESSION_LOOKUP_FAILED: 'No se pudo comprobar tu sesión. Inténtalo de nuevo.',
   VALIDATION: 'Revisa los datos e inténtalo de nuevo.',
   AUTHORIZATION: 'No tienes permiso para realizar esta acción.',

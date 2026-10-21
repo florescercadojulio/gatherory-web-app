@@ -40,6 +40,7 @@ Read the product and data models first, then the relevant implementation guide.
 | [Monetization model](architecture/monetization-model.md)         | Free personal planning/RSVPs, Event Pass tree coverage, and deferred annual plans; not implemented billing. |
 | [Data model](architecture/data-model.md)                         | Schema ownership, native mapping, replication, and invariants.                                              |
 | [Server architecture](architecture/server-architecture.md)       | Effect boundaries, authorization, contracts, workflows, and repositories.                                   |
+| [Mobile session lifecycle](architecture/mobile-session-lifecycle.md) | Sign-in routing, onboarding, guest retention, preparation, and account isolation. |
 | [Media system](architecture/media-system.md)                     | Uploads, signed URLs, access checks, storage, and cleanup.                                                  |
 | [Experience architecture](architecture/experience-blueprints.md) | Cross-platform design for reusable experiences, including future capabilities.                              |
 
@@ -59,6 +60,19 @@ Read the product and data models first, then the relevant implementation guide.
   for multi-step work.
 
 ## Release and future work
+
+- [Mobile collaboration notifications](roadmaps/notifications-roadmap/README.md):
+  FCM connector/service proof of concept for assignment and exact-event changes;
+  configuration, isolation, local verification and remaining device checks.
+
+- [V1 guest release candidate](roadmaps/v1-guest-release-candidate-roadmap/README.md):
+  device guest planning, invitation attendance, account handover and recovery;
+  implementation evidence and remaining device/deployment acceptance.
+
+- [Event-planning progress and customer research — October 20, 2026](research/event-planning-progress-2026-10-20.md):
+  source-based product assessment, competitor capabilities, Reddit complaints,
+  proposed priorities, and validation limits. Recommendations are not approved
+  implementation scope or evidence of a deployed release.
 
 - [Server architecture roadmap](roadmaps/server-architecture-roadmap/README.md):
   Effect domain refactoring, compatibility boundaries, and persistence migration.

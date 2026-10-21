@@ -18,7 +18,11 @@ import type {
   NativePushResult,
 } from '../contracts/native-sync.contracts'
 import {
+  captureNativeEventChangeNotifications,
+  captureNativeTodoAssignmentNotification,
   materializeNativeMutation,
+  nativeNotificationEventStates,
+  nativeTodoAssigneeBefore,
   NativeMaterializationError,
 } from './native-materializer.persistence'
 import { buildScopedEventArchive } from '../services/scoped-event-projection'
@@ -368,11 +372,46 @@ export async function applyScopedEventMutation(
             : ''
           : encode(payload)
       const storedMutation = { ...mutation, scopeID: input.rootId, payload: storedPayload }
+      const previousTodoAssignee =
+        mutation.entityType === 'todo' && mutation.operation !== 'delete'
+          ? await nativeTodoAssigneeBefore(tx, {
+              organizationId: snapshot.organizationId,
+              todoId: mutation.entityID,
+            })
+          : null
+      const previousNotificationEvents =
+        mutation.entityType === 'event' && mutation.operation === 'update'
+          ? await nativeNotificationEventStates(tx, {
+              organizationId: snapshot.organizationId,
+              rootEventId: mutation.entityID,
+            })
+          : []
       await materializeNativeMutation(tx, {
         userId,
         organizationId: snapshot.organizationId,
         mutation: storedMutation,
       })
+      if (mutation.entityType === 'todo' && mutation.operation !== 'delete') {
+        await captureNativeTodoAssignmentNotification(tx, {
+          mutationId: mutation.id,
+          actorUserId: userId,
+          organizationId: snapshot.organizationId,
+          todoId: mutation.entityID,
+          previousAssigneePersonId: previousTodoAssignee,
+        })
+      }
+      if (previousNotificationEvents.length) {
+        await captureNativeEventChangeNotifications(tx, {
+          mutationId: mutation.id,
+          actorUserId: userId,
+          organizationId: snapshot.organizationId,
+          before: previousNotificationEvents,
+          after: await nativeNotificationEventStates(tx, {
+            organizationId: snapshot.organizationId,
+            rootEventId: mutation.entityID,
+          }),
+        })
+      }
       if (mutation.entityType === 'todo' && mutation.operation !== 'delete') {
         const canonicalTodo = await canonicalTodoForSync(
           tx,

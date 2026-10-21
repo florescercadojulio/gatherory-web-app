@@ -13,7 +13,11 @@ import {
 } from '@/db/schema/sync.schema'
 
 import {
+  captureNativeEventChangeNotifications,
+  captureNativeTodoAssignmentNotification,
   materializeNativeMutation,
+  nativeNotificationEventStates,
+  nativeTodoAssigneeBefore,
   NativeMaterializationError,
 } from './native-materializer.persistence'
 import {
@@ -533,11 +537,30 @@ export async function applyNativeMutations(input: {
                   ),
                 }
             payload = canonicalMutation.payload
+            const previousNotificationEvents =
+              snapshot && !snapshot.isDeleted && mutation.operation === 'update'
+                ? await nativeNotificationEventStates(transaction, {
+                    organizationId: snapshot.organizationId,
+                    rootEventId: mutation.scopeID,
+                  })
+                : []
             const materialized = await materializeNativeMutation(transaction, {
               userId: input.userId,
               mutation: canonicalMutation,
               organizationId: snapshot?.organizationId,
             })
+            if (previousNotificationEvents.length) {
+              await captureNativeEventChangeNotifications(transaction, {
+                mutationId: mutation.id,
+                actorUserId: input.userId,
+                organizationId: materialized.organizationId,
+                before: previousNotificationEvents,
+                after: await nativeNotificationEventStates(transaction, {
+                  organizationId: materialized.organizationId,
+                  rootEventId: mutation.scopeID,
+                }),
+              })
+            }
             await transaction
               .insert(nativeWorkspaceSnapshot)
               .values({
@@ -656,11 +679,46 @@ export async function applyNativeMutations(input: {
             }
 
             serverVersion = (entity?.serverVersion ?? 0) + 1
+            const previousTodoAssignee =
+              mutation.entityType === 'todo' && !isDeleted
+                ? await nativeTodoAssigneeBefore(transaction, {
+                    organizationId: snapshot.organizationId,
+                    todoId: mutation.entityID,
+                  })
+                : null
+            const previousNotificationEvents =
+              mutation.entityType === 'event' && mutation.operation === 'update'
+                ? await nativeNotificationEventStates(transaction, {
+                    organizationId: snapshot.organizationId,
+                    rootEventId: mutation.entityID,
+                  })
+                : []
             await materializeNativeMutation(transaction, {
               userId: input.userId,
               mutation,
               organizationId: snapshot.organizationId,
             })
+            if (mutation.entityType === 'todo' && !isDeleted) {
+              await captureNativeTodoAssignmentNotification(transaction, {
+                mutationId: mutation.id,
+                actorUserId: input.userId,
+                organizationId: snapshot.organizationId,
+                todoId: mutation.entityID,
+                previousAssigneePersonId: previousTodoAssignee,
+              })
+            }
+            if (previousNotificationEvents.length) {
+              await captureNativeEventChangeNotifications(transaction, {
+                mutationId: mutation.id,
+                actorUserId: input.userId,
+                organizationId: snapshot.organizationId,
+                before: previousNotificationEvents,
+                after: await nativeNotificationEventStates(transaction, {
+                  organizationId: snapshot.organizationId,
+                  rootEventId: mutation.entityID,
+                }),
+              })
+            }
             if (mutation.entityType === 'todo' && !isDeleted) {
               const canonicalTodo = await canonicalTodoForSync(
                 transaction,

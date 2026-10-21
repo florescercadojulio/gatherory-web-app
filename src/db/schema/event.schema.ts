@@ -146,6 +146,54 @@ export const eventInvitationStatus = pgEnum('event_invitation_status', [
   'expired',
 ])
 
+/** Device guest credentials are independent of Better Auth identity. */
+export const eventGuestProfile = pgTable(
+  'event_guest_profile',
+  {
+    id: uuid('id').primaryKey(),
+    displayName: text('display_name').notNull(),
+    credentialHash: text('credential_hash').notNull().unique(),
+    claimedByUserId: text('claimed_by_user_id').references(() => user.id, {
+      onDelete: 'set null',
+    }),
+    claimedAt: timestamp('claimed_at', { withTimezone: true }),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [
+    check('event_guest_profile_name_not_blank_check', sql`length(trim(${table.displayName})) > 0`),
+    check('event_guest_profile_name_length_check', sql`char_length(${table.displayName}) <= 80`),
+    check(
+      'event_guest_profile_credential_hash_check',
+      sql`char_length(${table.credentialHash}) = 64`
+    ),
+  ]
+)
+
+/** Durable, idempotent receipt for moving a device guest onto a verified account. */
+export const eventGuestClaim = pgTable(
+  'event_guest_claim',
+  {
+    guestProfileId: uuid('guest_profile_id')
+      .notNull()
+      .references(() => eventGuestProfile.id, { onDelete: 'cascade' }),
+    eventId: uuid('event_id')
+      .notNull()
+      .references(() => event.id, { onDelete: 'cascade' }),
+    claimedByUserId: text('claimed_by_user_id')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.guestProfileId, table.eventId] }),
+    index('event_guest_claim_user_created_idx').on(table.claimedByUserId, table.createdAt),
+  ]
+)
+
 /**
  * A person can participate in an event before they create a Gatherory account.
  * `userId` is linked when an invitation is accepted; planning access remains
@@ -159,6 +207,9 @@ export const workspacePerson = pgTable(
       .notNull()
       .references(() => organization.id, { onDelete: 'cascade' }),
     userId: text('user_id').references(() => user.id, {
+      onDelete: 'set null',
+    }),
+    guestProfileId: uuid('guest_profile_id').references(() => eventGuestProfile.id, {
       onDelete: 'set null',
     }),
     displayName: text('display_name').notNull(),
@@ -175,6 +226,9 @@ export const workspacePerson = pgTable(
     uniqueIndex('workspace_person_organization_user_uidx')
       .on(table.organizationId, table.userId)
       .where(sql`${table.userId} is not null`),
+    uniqueIndex('workspace_person_organization_guest_profile_uidx')
+      .on(table.organizationId, table.guestProfileId)
+      .where(sql`${table.guestProfileId} is not null`),
     index('workspace_person_organization_email_idx').on(table.organizationId, table.email),
     check(
       'workspace_person_display_name_not_blank_check',

@@ -33,11 +33,15 @@ import { Route as ApiBlueprintsPreviewRouteImport } from './routes/api/blueprint
 import { Route as ApiBlueprintsScheduleRouteImport } from './routes/api/blueprints/schedule'
 import { Route as ApiBlueprintsSharingRouteImport } from './routes/api/blueprints/sharing'
 import { Route as ApiEventsInvitationsRouteImport } from './routes/api/events/invitations'
+import { Route as ApiGuestClaimRouteImport } from './routes/api/guest/claim'
+import { Route as ApiGuestEventsRouteImport } from './routes/api/guest/events'
+import { Route as ApiGuestSessionRouteImport } from './routes/api/guest/session'
 import { Route as ApiInvitationsAcceptRouteImport } from './routes/api/invitations/accept'
 import { Route as ApiInvitationsPreviewRouteImport } from './routes/api/invitations/preview'
 import { Route as ApiModerationBlocksRouteImport } from './routes/api/moderation/blocks'
 import { Route as ApiModerationHideRouteImport } from './routes/api/moderation/hide'
 import { Route as ApiModerationReportsRouteImport } from './routes/api/moderation/reports'
+import { Route as ApiNotificationsInstallationsRouteImport } from './routes/api/notifications/installations'
 import { Route as ApiSyncBootstrapRouteImport } from './routes/api/sync/bootstrap'
 import { Route as ApiSyncPullRouteImport } from './routes/api/sync/pull'
 import { Route as ApiSyncPushRouteImport } from './routes/api/sync/push'
@@ -48,10 +52,12 @@ import { Route as ProtectedBlueprintsNewIndexRouteImport } from './routes/_prote
 import { Route as ProtectedWorkspacesWorkspaceSlugIndexRouteImport } from './routes/_protected/workspaces/$workspaceSlug/index'
 import { Route as ApiBlueprintsInstallationsRequestIdRouteImport } from './routes/api/blueprints/installations/$requestId'
 import { Route as ApiBlueprintsSharedTokenRouteImport } from './routes/api/blueprints/shared/$token'
+import { Route as ApiEventsEventIdAnnouncementsRouteImport } from './routes/api/events/$eventId/announcements'
 import { Route as ApiMediaNativeFinalizeRouteImport } from './routes/api/media/native/finalize'
 import { Route as ApiMediaNativePrepareRouteImport } from './routes/api/media/native/prepare'
 import { Route as ApiMediaNativeUrlRouteImport } from './routes/api/media/native/url'
 import { Route as TemplatesSharedTokenIndexRouteImport } from './routes/templates/shared/$token/index'
+import { Route as ApiGuestEventsEventIdAnnouncementsRouteImport } from './routes/api/guest/events/$eventId/announcements'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -177,6 +183,21 @@ const ApiEventsInvitationsRoute = ApiEventsInvitationsRouteImport.update({
   path: '/api/events/invitations',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiGuestClaimRoute = ApiGuestClaimRouteImport.update({
+  id: '/api/guest/claim',
+  path: '/api/guest/claim',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiGuestEventsRoute = ApiGuestEventsRouteImport.update({
+  id: '/api/guest/events',
+  path: '/api/guest/events',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiGuestSessionRoute = ApiGuestSessionRouteImport.update({
+  id: '/api/guest/session',
+  path: '/api/guest/session',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiInvitationsAcceptRoute = ApiInvitationsAcceptRouteImport.update({
   id: '/accept',
   path: '/accept',
@@ -202,6 +223,12 @@ const ApiModerationReportsRoute = ApiModerationReportsRouteImport.update({
   path: '/api/moderation/reports',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiNotificationsInstallationsRoute =
+  ApiNotificationsInstallationsRouteImport.update({
+    id: '/api/notifications/installations',
+    path: '/api/notifications/installations',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiSyncBootstrapRoute = ApiSyncBootstrapRouteImport.update({
   id: '/api/sync/bootstrap',
   path: '/api/sync/bootstrap',
@@ -258,6 +285,12 @@ const ApiBlueprintsSharedTokenRoute =
     path: '/api/blueprints/shared/$token',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiEventsEventIdAnnouncementsRoute =
+  ApiEventsEventIdAnnouncementsRouteImport.update({
+    id: '/api/events/$eventId/announcements',
+    path: '/api/events/$eventId/announcements',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiMediaNativeFinalizeRoute = ApiMediaNativeFinalizeRouteImport.update({
   id: '/api/media/native/finalize',
   path: '/api/media/native/finalize',
@@ -278,6 +311,12 @@ const TemplatesSharedTokenIndexRoute =
     id: '/templates/shared/$token/',
     path: '/templates/shared/$token/',
     getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiGuestEventsEventIdAnnouncementsRoute =
+  ApiGuestEventsEventIdAnnouncementsRouteImport.update({
+    id: '/$eventId/announcements',
+    path: '/$eventId/announcements',
+    getParentRoute: () => ApiGuestEventsRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
@@ -301,11 +340,15 @@ export interface FileRoutesByFullPath {
   '/api/blueprints/schedule': typeof ApiBlueprintsScheduleRoute
   '/api/blueprints/sharing': typeof ApiBlueprintsSharingRoute
   '/api/events/invitations': typeof ApiEventsInvitationsRoute
+  '/api/guest/claim': typeof ApiGuestClaimRoute
+  '/api/guest/events': typeof ApiGuestEventsRouteWithChildren
+  '/api/guest/session': typeof ApiGuestSessionRoute
   '/api/invitations/accept': typeof ApiInvitationsAcceptRoute
   '/api/invitations/preview': typeof ApiInvitationsPreviewRoute
   '/api/moderation/blocks': typeof ApiModerationBlocksRoute
   '/api/moderation/hide': typeof ApiModerationHideRoute
   '/api/moderation/reports': typeof ApiModerationReportsRoute
+  '/api/notifications/installations': typeof ApiNotificationsInstallationsRoute
   '/api/sync/bootstrap': typeof ApiSyncBootstrapRoute
   '/api/sync/pull': typeof ApiSyncPullRoute
   '/api/sync/push': typeof ApiSyncPushRoute
@@ -315,6 +358,7 @@ export interface FileRoutesByFullPath {
   '/auth/$path/': typeof AuthPathIndexRoute
   '/api/blueprints/installations/$requestId': typeof ApiBlueprintsInstallationsRequestIdRoute
   '/api/blueprints/shared/$token': typeof ApiBlueprintsSharedTokenRoute
+  '/api/events/$eventId/announcements': typeof ApiEventsEventIdAnnouncementsRoute
   '/api/media/native/finalize': typeof ApiMediaNativeFinalizeRoute
   '/api/media/native/prepare': typeof ApiMediaNativePrepareRoute
   '/api/media/native/url': typeof ApiMediaNativeUrlRoute
@@ -323,6 +367,7 @@ export interface FileRoutesByFullPath {
   '/blueprints/new/': typeof ProtectedBlueprintsNewIndexRoute
   '/workspaces/$workspaceSlug/': typeof ProtectedWorkspacesWorkspaceSlugIndexRoute
   '/templates/shared/$token/': typeof TemplatesSharedTokenIndexRoute
+  '/api/guest/events/$eventId/announcements': typeof ApiGuestEventsEventIdAnnouncementsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -344,11 +389,15 @@ export interface FileRoutesByTo {
   '/api/blueprints/schedule': typeof ApiBlueprintsScheduleRoute
   '/api/blueprints/sharing': typeof ApiBlueprintsSharingRoute
   '/api/events/invitations': typeof ApiEventsInvitationsRoute
+  '/api/guest/claim': typeof ApiGuestClaimRoute
+  '/api/guest/events': typeof ApiGuestEventsRouteWithChildren
+  '/api/guest/session': typeof ApiGuestSessionRoute
   '/api/invitations/accept': typeof ApiInvitationsAcceptRoute
   '/api/invitations/preview': typeof ApiInvitationsPreviewRoute
   '/api/moderation/blocks': typeof ApiModerationBlocksRoute
   '/api/moderation/hide': typeof ApiModerationHideRoute
   '/api/moderation/reports': typeof ApiModerationReportsRoute
+  '/api/notifications/installations': typeof ApiNotificationsInstallationsRoute
   '/api/sync/bootstrap': typeof ApiSyncBootstrapRoute
   '/api/sync/pull': typeof ApiSyncPullRoute
   '/api/sync/push': typeof ApiSyncPushRoute
@@ -358,6 +407,7 @@ export interface FileRoutesByTo {
   '/auth/$path': typeof AuthPathIndexRoute
   '/api/blueprints/installations/$requestId': typeof ApiBlueprintsInstallationsRequestIdRoute
   '/api/blueprints/shared/$token': typeof ApiBlueprintsSharedTokenRoute
+  '/api/events/$eventId/announcements': typeof ApiEventsEventIdAnnouncementsRoute
   '/api/media/native/finalize': typeof ApiMediaNativeFinalizeRoute
   '/api/media/native/prepare': typeof ApiMediaNativePrepareRoute
   '/api/media/native/url': typeof ApiMediaNativeUrlRoute
@@ -366,6 +416,7 @@ export interface FileRoutesByTo {
   '/blueprints/new': typeof ProtectedBlueprintsNewIndexRoute
   '/workspaces/$workspaceSlug': typeof ProtectedWorkspacesWorkspaceSlugIndexRoute
   '/templates/shared/$token': typeof TemplatesSharedTokenIndexRoute
+  '/api/guest/events/$eventId/announcements': typeof ApiGuestEventsEventIdAnnouncementsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -390,11 +441,15 @@ export interface FileRoutesById {
   '/api/blueprints/schedule': typeof ApiBlueprintsScheduleRoute
   '/api/blueprints/sharing': typeof ApiBlueprintsSharingRoute
   '/api/events/invitations': typeof ApiEventsInvitationsRoute
+  '/api/guest/claim': typeof ApiGuestClaimRoute
+  '/api/guest/events': typeof ApiGuestEventsRouteWithChildren
+  '/api/guest/session': typeof ApiGuestSessionRoute
   '/api/invitations/accept': typeof ApiInvitationsAcceptRoute
   '/api/invitations/preview': typeof ApiInvitationsPreviewRoute
   '/api/moderation/blocks': typeof ApiModerationBlocksRoute
   '/api/moderation/hide': typeof ApiModerationHideRoute
   '/api/moderation/reports': typeof ApiModerationReportsRoute
+  '/api/notifications/installations': typeof ApiNotificationsInstallationsRoute
   '/api/sync/bootstrap': typeof ApiSyncBootstrapRoute
   '/api/sync/pull': typeof ApiSyncPullRoute
   '/api/sync/push': typeof ApiSyncPushRoute
@@ -404,6 +459,7 @@ export interface FileRoutesById {
   '/auth/$path/': typeof AuthPathIndexRoute
   '/api/blueprints/installations/$requestId': typeof ApiBlueprintsInstallationsRequestIdRoute
   '/api/blueprints/shared/$token': typeof ApiBlueprintsSharedTokenRoute
+  '/api/events/$eventId/announcements': typeof ApiEventsEventIdAnnouncementsRoute
   '/api/media/native/finalize': typeof ApiMediaNativeFinalizeRoute
   '/api/media/native/prepare': typeof ApiMediaNativePrepareRoute
   '/api/media/native/url': typeof ApiMediaNativeUrlRoute
@@ -412,6 +468,7 @@ export interface FileRoutesById {
   '/_protected/blueprints/new/': typeof ProtectedBlueprintsNewIndexRoute
   '/_protected/workspaces/$workspaceSlug/': typeof ProtectedWorkspacesWorkspaceSlugIndexRoute
   '/templates/shared/$token/': typeof TemplatesSharedTokenIndexRoute
+  '/api/guest/events/$eventId/announcements': typeof ApiGuestEventsEventIdAnnouncementsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -436,11 +493,15 @@ export interface FileRouteTypes {
     | '/api/blueprints/schedule'
     | '/api/blueprints/sharing'
     | '/api/events/invitations'
+    | '/api/guest/claim'
+    | '/api/guest/events'
+    | '/api/guest/session'
     | '/api/invitations/accept'
     | '/api/invitations/preview'
     | '/api/moderation/blocks'
     | '/api/moderation/hide'
     | '/api/moderation/reports'
+    | '/api/notifications/installations'
     | '/api/sync/bootstrap'
     | '/api/sync/pull'
     | '/api/sync/push'
@@ -450,6 +511,7 @@ export interface FileRouteTypes {
     | '/auth/$path/'
     | '/api/blueprints/installations/$requestId'
     | '/api/blueprints/shared/$token'
+    | '/api/events/$eventId/announcements'
     | '/api/media/native/finalize'
     | '/api/media/native/prepare'
     | '/api/media/native/url'
@@ -458,6 +520,7 @@ export interface FileRouteTypes {
     | '/blueprints/new/'
     | '/workspaces/$workspaceSlug/'
     | '/templates/shared/$token/'
+    | '/api/guest/events/$eventId/announcements'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -479,11 +542,15 @@ export interface FileRouteTypes {
     | '/api/blueprints/schedule'
     | '/api/blueprints/sharing'
     | '/api/events/invitations'
+    | '/api/guest/claim'
+    | '/api/guest/events'
+    | '/api/guest/session'
     | '/api/invitations/accept'
     | '/api/invitations/preview'
     | '/api/moderation/blocks'
     | '/api/moderation/hide'
     | '/api/moderation/reports'
+    | '/api/notifications/installations'
     | '/api/sync/bootstrap'
     | '/api/sync/pull'
     | '/api/sync/push'
@@ -493,6 +560,7 @@ export interface FileRouteTypes {
     | '/auth/$path'
     | '/api/blueprints/installations/$requestId'
     | '/api/blueprints/shared/$token'
+    | '/api/events/$eventId/announcements'
     | '/api/media/native/finalize'
     | '/api/media/native/prepare'
     | '/api/media/native/url'
@@ -501,6 +569,7 @@ export interface FileRouteTypes {
     | '/blueprints/new'
     | '/workspaces/$workspaceSlug'
     | '/templates/shared/$token'
+    | '/api/guest/events/$eventId/announcements'
   id:
     | '__root__'
     | '/'
@@ -524,11 +593,15 @@ export interface FileRouteTypes {
     | '/api/blueprints/schedule'
     | '/api/blueprints/sharing'
     | '/api/events/invitations'
+    | '/api/guest/claim'
+    | '/api/guest/events'
+    | '/api/guest/session'
     | '/api/invitations/accept'
     | '/api/invitations/preview'
     | '/api/moderation/blocks'
     | '/api/moderation/hide'
     | '/api/moderation/reports'
+    | '/api/notifications/installations'
     | '/api/sync/bootstrap'
     | '/api/sync/pull'
     | '/api/sync/push'
@@ -538,6 +611,7 @@ export interface FileRouteTypes {
     | '/auth/$path/'
     | '/api/blueprints/installations/$requestId'
     | '/api/blueprints/shared/$token'
+    | '/api/events/$eventId/announcements'
     | '/api/media/native/finalize'
     | '/api/media/native/prepare'
     | '/api/media/native/url'
@@ -546,6 +620,7 @@ export interface FileRouteTypes {
     | '/_protected/blueprints/new/'
     | '/_protected/workspaces/$workspaceSlug/'
     | '/templates/shared/$token/'
+    | '/api/guest/events/$eventId/announcements'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -569,15 +644,20 @@ export interface RootRouteChildren {
   ApiBlueprintsScheduleRoute: typeof ApiBlueprintsScheduleRoute
   ApiBlueprintsSharingRoute: typeof ApiBlueprintsSharingRoute
   ApiEventsInvitationsRoute: typeof ApiEventsInvitationsRoute
+  ApiGuestClaimRoute: typeof ApiGuestClaimRoute
+  ApiGuestEventsRoute: typeof ApiGuestEventsRouteWithChildren
+  ApiGuestSessionRoute: typeof ApiGuestSessionRoute
   ApiModerationBlocksRoute: typeof ApiModerationBlocksRoute
   ApiModerationHideRoute: typeof ApiModerationHideRoute
   ApiModerationReportsRoute: typeof ApiModerationReportsRoute
+  ApiNotificationsInstallationsRoute: typeof ApiNotificationsInstallationsRoute
   ApiSyncBootstrapRoute: typeof ApiSyncBootstrapRoute
   ApiSyncPullRoute: typeof ApiSyncPullRoute
   ApiSyncPushRoute: typeof ApiSyncPushRoute
   AuthPathIndexRoute: typeof AuthPathIndexRoute
   ApiBlueprintsInstallationsRequestIdRoute: typeof ApiBlueprintsInstallationsRequestIdRoute
   ApiBlueprintsSharedTokenRoute: typeof ApiBlueprintsSharedTokenRoute
+  ApiEventsEventIdAnnouncementsRoute: typeof ApiEventsEventIdAnnouncementsRoute
   ApiMediaNativeFinalizeRoute: typeof ApiMediaNativeFinalizeRoute
   ApiMediaNativePrepareRoute: typeof ApiMediaNativePrepareRoute
   ApiMediaNativeUrlRoute: typeof ApiMediaNativeUrlRoute
@@ -754,6 +834,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiEventsInvitationsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/guest/claim': {
+      id: '/api/guest/claim'
+      path: '/api/guest/claim'
+      fullPath: '/api/guest/claim'
+      preLoaderRoute: typeof ApiGuestClaimRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/guest/events': {
+      id: '/api/guest/events'
+      path: '/api/guest/events'
+      fullPath: '/api/guest/events'
+      preLoaderRoute: typeof ApiGuestEventsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/guest/session': {
+      id: '/api/guest/session'
+      path: '/api/guest/session'
+      fullPath: '/api/guest/session'
+      preLoaderRoute: typeof ApiGuestSessionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/invitations/accept': {
       id: '/api/invitations/accept'
       path: '/accept'
@@ -787,6 +888,13 @@ declare module '@tanstack/react-router' {
       path: '/api/moderation/reports'
       fullPath: '/api/moderation/reports'
       preLoaderRoute: typeof ApiModerationReportsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/notifications/installations': {
+      id: '/api/notifications/installations'
+      path: '/api/notifications/installations'
+      fullPath: '/api/notifications/installations'
+      preLoaderRoute: typeof ApiNotificationsInstallationsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/sync/bootstrap': {
@@ -859,6 +967,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiBlueprintsSharedTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/events/$eventId/announcements': {
+      id: '/api/events/$eventId/announcements'
+      path: '/api/events/$eventId/announcements'
+      fullPath: '/api/events/$eventId/announcements'
+      preLoaderRoute: typeof ApiEventsEventIdAnnouncementsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/media/native/finalize': {
       id: '/api/media/native/finalize'
       path: '/api/media/native/finalize'
@@ -886,6 +1001,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/templates/shared/$token/'
       preLoaderRoute: typeof TemplatesSharedTokenIndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/api/guest/events/$eventId/announcements': {
+      id: '/api/guest/events/$eventId/announcements'
+      path: '/$eventId/announcements'
+      fullPath: '/api/guest/events/$eventId/announcements'
+      preLoaderRoute: typeof ApiGuestEventsEventIdAnnouncementsRouteImport
+      parentRoute: typeof ApiGuestEventsRoute
     }
   }
 }
@@ -945,6 +1067,19 @@ const ApiInvitationsRouteWithChildren = ApiInvitationsRoute._addFileChildren(
   ApiInvitationsRouteChildren,
 )
 
+interface ApiGuestEventsRouteChildren {
+  ApiGuestEventsEventIdAnnouncementsRoute: typeof ApiGuestEventsEventIdAnnouncementsRoute
+}
+
+const ApiGuestEventsRouteChildren: ApiGuestEventsRouteChildren = {
+  ApiGuestEventsEventIdAnnouncementsRoute:
+    ApiGuestEventsEventIdAnnouncementsRoute,
+}
+
+const ApiGuestEventsRouteWithChildren = ApiGuestEventsRoute._addFileChildren(
+  ApiGuestEventsRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ProtectedRouteRoute: ProtectedRouteRouteWithChildren,
@@ -967,9 +1102,13 @@ const rootRouteChildren: RootRouteChildren = {
   ApiBlueprintsScheduleRoute: ApiBlueprintsScheduleRoute,
   ApiBlueprintsSharingRoute: ApiBlueprintsSharingRoute,
   ApiEventsInvitationsRoute: ApiEventsInvitationsRoute,
+  ApiGuestClaimRoute: ApiGuestClaimRoute,
+  ApiGuestEventsRoute: ApiGuestEventsRouteWithChildren,
+  ApiGuestSessionRoute: ApiGuestSessionRoute,
   ApiModerationBlocksRoute: ApiModerationBlocksRoute,
   ApiModerationHideRoute: ApiModerationHideRoute,
   ApiModerationReportsRoute: ApiModerationReportsRoute,
+  ApiNotificationsInstallationsRoute: ApiNotificationsInstallationsRoute,
   ApiSyncBootstrapRoute: ApiSyncBootstrapRoute,
   ApiSyncPullRoute: ApiSyncPullRoute,
   ApiSyncPushRoute: ApiSyncPushRoute,
@@ -977,6 +1116,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiBlueprintsInstallationsRequestIdRoute:
     ApiBlueprintsInstallationsRequestIdRoute,
   ApiBlueprintsSharedTokenRoute: ApiBlueprintsSharedTokenRoute,
+  ApiEventsEventIdAnnouncementsRoute: ApiEventsEventIdAnnouncementsRoute,
   ApiMediaNativeFinalizeRoute: ApiMediaNativeFinalizeRoute,
   ApiMediaNativePrepareRoute: ApiMediaNativePrepareRoute,
   ApiMediaNativeUrlRoute: ApiMediaNativeUrlRoute,

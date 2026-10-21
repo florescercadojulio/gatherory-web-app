@@ -1,4 +1,4 @@
-import { and, eq, inArray, isNotNull, isNull, sql } from 'drizzle-orm'
+import { and, eq, inArray, isNotNull, isNull, or, sql } from 'drizzle-orm'
 import { Data } from 'effect'
 import type { DomainErrorShape } from '@/lib/domain-errors'
 
@@ -26,8 +26,222 @@ import { nativeSyncEntity } from '@/db/schema/sync.schema'
 import type { NativeMutation } from '../contracts/native-sync.contracts'
 import { ideaResponseID } from '../contracts/idea-response'
 import { retainedEventAccess } from '@/server/events/repos/event-departure.repo'
+import { enqueueNativeNotification } from '@/server/notifications/repos/notification-outbox.persistence'
 
 type NativeTransaction = Parameters<Parameters<typeof db.transaction>[0]>[0]
+
+type NotificationEventState = {
+  id: string
+  startsAt: Date | null
+  endsAt: Date | null
+  schedulingState: string
+  isAllDay: boolean
+  timeZone: string
+  locationName: string | null
+  locationAddress: string | null
+  locationAddressLine2: string | null
+  locationLatitude: number | null
+  locationLongitude: number | null
+  mapItemIdentifier: string | null
+  status: string | null
+  planningStatus: string | null
+}
+
+/** Canonical scheduling state used to decide whether a root snapshot changed an existing event. */
+export async function nativeNotificationEventStates(
+  transaction: NativeTransaction,
+  input: { organizationId: string; rootEventId: string }
+): Promise<NotificationEventState[]> {
+  return transaction
+    .select({
+      id: event.id,
+      startsAt: event.startsAt,
+      endsAt: event.endsAt,
+      schedulingState: event.schedulingState,
+      isAllDay: event.isAllDay,
+      timeZone: event.timeZone,
+      locationName: event.locationName,
+      locationAddress: event.locationAddress,
+      locationAddressLine2: event.locationAddressLine2,
+      locationLatitude: event.locationLatitude,
+      locationLongitude: event.locationLongitude,
+      mapItemIdentifier: event.mapItemIdentifier,
+      status: event.status,
+      planningStatus: event.planningStatus,
+    })
+    .from(event)
+    .where(
+      and(
+        eq(event.organizationId, input.organizationId),
+        or(eq(event.id, input.rootEventId), eq(event.parentEventId, input.rootEventId))
+      )
+    )
+}
+
+/** Capture an assignment from canonical todo state, within the caller's mutation transaction. */
+export async function captureNativeTodoAssignmentNotification(
+  transaction: NativeTransaction,
+  input: {
+    mutationId: string
+    actorUserId: string
+    organizationId: string
+    todoId: string
+    previousAssigneePersonId: string | null
+  }
+) {
+  const [todo] = await transaction
+    .select({
+      id: eventTodo.id,
+      eventId: eventTodo.eventId,
+      assigneePersonId: eventTodo.assigneePersonId,
+      isCompleted: eventTodo.isCompleted,
+    })
+    .from(eventTodo)
+    .where(and(eq(eventTodo.id, input.todoId), eq(eventTodo.organizationId, input.organizationId)))
+    .limit(1)
+  if (
+    !todo ||
+    todo.isCompleted ||
+    !todo.assigneePersonId ||
+    todo.assigneePersonId === input.previousAssigneePersonId
+  )
+    return
+
+  const [assignee] = await transaction
+    .select({ personId: workspacePerson.id, userId: workspacePerson.userId })
+    .from(workspacePerson)
+    .innerJoin(eventParticipant, eq(eventParticipant.personId, workspacePerson.id))
+    .innerJoin(
+      event,
+      and(
+        eq(event.id, eventParticipant.eventId),
+        eq(event.organizationId, workspacePerson.organizationId)
+      )
+    )
+    .leftJoin(
+      eventDeparture,
+      and(
+        eq(eventDeparture.eventId, eventParticipant.eventId),
+        eq(eventDeparture.userId, workspacePerson.userId)
+      )
+    )
+    .where(
+      and(
+        eq(workspacePerson.id, todo.assigneePersonId),
+        eq(workspacePerson.organizationId, input.organizationId),
+        isNotNull(workspacePerson.userId),
+        eq(eventParticipant.eventId, todo.eventId),
+        inArray(eventParticipant.role, ['host', 'collaborator']),
+        sql`(${eventParticipant.role} = 'host' or ${eventParticipant.planningPermission} in ('manage', 'contribute'))`,
+        isNull(eventDeparture.userId)
+      )
+    )
+    .limit(1)
+  if (!assignee?.userId || assignee.userId === input.actorUserId) return
+
+  await enqueueNativeNotification(transaction, {
+    eventId: todo.eventId,
+    entityId: todo.id,
+    recipient: { kind: 'user', id: assignee.userId },
+    mutationId: input.mutationId,
+    notificationType: 'assignment_changed',
+  })
+}
+
+export async function nativeTodoAssigneeBefore(
+  transaction: NativeTransaction,
+  input: { organizationId: string; todoId: string }
+) {
+  const [todo] = await transaction
+    .select({ assigneePersonId: eventTodo.assigneePersonId })
+    .from(eventTodo)
+    .where(and(eq(eventTodo.id, input.todoId), eq(eventTodo.organizationId, input.organizationId)))
+    .limit(1)
+  return todo?.assigneePersonId ?? null
+}
+
+/** Capture scheduling/location/cancellation changes for existing exact events only. */
+export async function captureNativeEventChangeNotifications(
+  transaction: NativeTransaction,
+  input: {
+    mutationId: string
+    actorUserId: string
+    organizationId: string
+    before: NotificationEventState[]
+    after: NotificationEventState[]
+  }
+) {
+  const beforeById = new Map(input.before.map((state) => [state.id, state]))
+  const changed = input.after.filter((after) => {
+    const before = beforeById.get(after.id)
+    if (!before) return false
+    const changedScheduleOrLocation = [
+      'startsAt',
+      'endsAt',
+      'schedulingState',
+      'isAllDay',
+      'timeZone',
+      'locationName',
+      'locationAddress',
+      'locationAddressLine2',
+      'locationLatitude',
+      'locationLongitude',
+      'mapItemIdentifier',
+    ].some((key) => {
+      const previous = before[key as keyof NotificationEventState]
+      const current = after[key as keyof NotificationEventState]
+      if (previous instanceof Date && current instanceof Date) {
+        return previous.getTime() !== current.getTime()
+      }
+      return !Object.is(previous, current)
+    })
+    const cancellationChanged =
+      (before.status === 'cancelled' || before.planningStatus === 'cancelled') !==
+      (after.status === 'cancelled' || after.planningStatus === 'cancelled')
+    return changedScheduleOrLocation || cancellationChanged
+  })
+
+  for (const state of changed) {
+    const participants = await transaction
+      .select({ userId: workspacePerson.userId, guestProfileId: workspacePerson.guestProfileId })
+      .from(eventParticipant)
+      .innerJoin(workspacePerson, eq(workspacePerson.id, eventParticipant.personId))
+      .leftJoin(
+        eventDeparture,
+        and(
+          eq(eventDeparture.eventId, eventParticipant.eventId),
+          eq(eventDeparture.userId, workspacePerson.userId)
+        )
+      )
+      .where(
+        and(
+          eq(eventParticipant.eventId, state.id),
+          eq(workspacePerson.organizationId, input.organizationId),
+          isNull(eventDeparture.userId)
+        )
+      )
+    for (const participant of participants) {
+      if (participant.userId) {
+        if (participant.userId === input.actorUserId) continue
+        await enqueueNativeNotification(transaction, {
+          eventId: state.id,
+          entityId: state.id,
+          recipient: { kind: 'user', id: participant.userId },
+          mutationId: input.mutationId,
+          notificationType: 'event_changed',
+        })
+      } else if (participant.guestProfileId) {
+        await enqueueNativeNotification(transaction, {
+          eventId: state.id,
+          entityId: state.id,
+          recipient: { kind: 'device_guest', id: participant.guestProfileId },
+          mutationId: input.mutationId,
+          notificationType: 'event_changed',
+        })
+      }
+    }
+  }
+}
 
 const appleReferenceDateOffsetSeconds = 978_307_200
 

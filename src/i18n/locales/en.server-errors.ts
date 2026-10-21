@@ -1,6 +1,6 @@
 // Stable product copy for application errors. Debugging details belong in logs.
 const serverErrors = {
-  ACTIVE_WORKSPACE_REQUIRED: 'Choose a workspace and try again.',
+  ACTIVE_WORKSPACE_REQUIRED: 'Choose an event and try again.',
   INVITATION_EMAIL_UNVERIFIED: 'Verify your email address before accepting this invitation.',
   INVITATION_UNAVAILABLE:
     'This invitation is unavailable. Check the invited email address or ask the host for a new link.',
@@ -10,7 +10,7 @@ const serverErrors = {
   INVALID_RESPONSE: 'Choose an attendance response and try again.',
   INVALID_EVENT: 'Choose an event and try again.',
   EVENT_LEAVE_FORBIDDEN:
-    'Only a guest can leave this invitation. Hosts and collaborators manage access in Workspace Settings.',
+    'Only a guest can leave this invitation. Hosts and collaborators manage access in Event Settings.',
   EVENT_NOT_FOUND: 'This event is no longer available.',
   EVENT_CLOSED: 'This event is closed. New invitations can no longer be accepted.',
   SHARE_LINK_UNAVAILABLE:
@@ -26,7 +26,7 @@ const serverErrors = {
   EVENT_INVITATION_EXPIRED: 'This invitation has expired. Ask the host for a new one.',
   EVENT_INVITATION_INVALID: 'This invitation is invalid or has already been used.',
   PARENT_EVENT_PARTICIPANT_REQUIRED: 'You do not have access to the parent event.',
-  WORKSPACE_MEMBERSHIP_REQUIRED: 'You do not have access to this workspace.',
+  WORKSPACE_MEMBERSHIP_REQUIRED: 'You do not have access to this event.',
   EVENT_PARTICIPANT_REQUIRED: 'You do not have access to this event.',
   MEDIA_OPERATION_FAILED: 'The media operation could not be completed. Try again.',
   MEDIA_NOT_FOUND: 'This image is no longer available.',
@@ -44,9 +44,9 @@ const serverErrors = {
   BLOCK_SELF_FORBIDDEN: 'Choose another person to block.',
   BLOCK_TARGET_UNAVAILABLE: 'This person is no longer available in your events.',
   INVITATION_BLOCKED: 'This invitation cannot be sent or accepted.',
-  PERSONAL_WORKSPACE_PROVISION_FAILED: 'Your workspace could not be prepared. Try again.',
-  WORKSPACE_CREATE_FAILED: 'The workspace could not be created. Try again.',
-  WORKSPACE_RESOLVE_FAILED: 'This workspace could not be loaded. Try again.',
+  PERSONAL_WORKSPACE_PROVISION_FAILED: 'Your event could not be prepared. Try again.',
+  WORKSPACE_CREATE_FAILED: 'The event could not be created. Try again.',
+  WORKSPACE_RESOLVE_FAILED: 'This event could not be loaded. Try again.',
   SESSION_LOOKUP_FAILED: 'Your session could not be checked. Try again.',
   VALIDATION: 'Check the details and try again.',
   AUTHORIZATION: 'You are not allowed to perform this action.',

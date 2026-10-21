@@ -2,6 +2,12 @@
 
 **Status:** Shared event To-dos implemented locally; reminders remain planned.
 **Requested:** October 20, 2026.
+
+**Updated direction:** Personal reminders are deferred by the user's October 20
+decision. The next authorized notification slice is
+[mobile collaboration updates through FCM](../notifications-roadmap/01-fcm-proof-of-concept.md)
+for assignment and event changes. The personal-reminder designs below are
+historical proposals, not current V1 requirements.
 **Owner areas:** Native event Manage/Home, event-scoped persistence and sync;
 personal notification delivery on iPhone.
 
@@ -38,17 +44,17 @@ Home preview only when there is something useful to display.
 
 ## What the first complete version includes
 
-| Area       | Proposed behavior                                                                                                                                   |
-| ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-| List       | One shared list per event; main events and sub-events have separate lists.                                                                          |
-| Add/edit   | Title required; optional due date; edit or delete an item. Duplicate titles are allowed.                                                            |
+| Area       | Proposed behavior                                                                                                                                         |
+| ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| List       | One shared list per event; main events and sub-events have separate lists.                                                                                |
+| Add/edit   | Title required; optional due date; edit or delete an item. Duplicate titles are allowed.                                                                  |
 | Completion | Local **Upcoming / Completed** segments; stable creation order within each. Upcoming includes overdue unfinished items. Uncheck a completed item to undo. |
-| Due date   | Optional calendar date in the event's time zone. No mandatory deadline, priority score or automatic alert.                                          |
-| Website    | Optional HTTP(S) link, opened only when tapped.                                                                                                    |
-| Assignment | Optional eligible planner; planning writers can assign/reassign/clear or take an unassigned item. No extra role or permission grants.              |
-| Reminder   | One optional, one-off date/time, for the person who enables it on that device. Label it **Remind me on this device** in the editor.                 |
-| Offline    | Add, edit and complete locally; preserve edits through relaunch and sync using existing account/event boundaries.                                   |
-| Navigation | A To-dos entry in Manage with local Upcoming / Completed segments. A compact Home preview is later work; no additional app-wide tab.              |
+| Due date   | Optional calendar date in the event's time zone. No mandatory deadline, priority score or automatic alert.                                                |
+| Website    | Optional HTTP(S) link, opened only when tapped.                                                                                                           |
+| Assignment | Optional eligible planner; planning writers can assign/reassign/clear or take an unassigned item. No extra role or permission grants.                     |
+| Reminder   | One optional, one-off date/time, for the person who enables it on that device. Label it **Remind me on this device** in the editor.                       |
+| Offline    | Add, edit and complete locally; preserve edits through relaunch and sync using existing account/event boundaries.                                         |
+| Navigation | A To-dos entry in Manage with local Upcoming / Completed segments. A compact Home preview is later work; no additional app-wide tab.                      |
 
 The list screen should look approximately like this; this is a content sketch,
 not a rendered or accessibility-verified design:

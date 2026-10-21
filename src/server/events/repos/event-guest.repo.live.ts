@@ -3,6 +3,7 @@ import { Effect, Layer } from 'effect'
 import { leaveGuestEvent } from './event-departure.repo'
 import {
   getInvitationCoverAsset,
+  listDeviceGuestEventInvitationProjections,
   listGuestEventInvitationProjections,
   respondToEvent,
 } from './guest-invitation.repo.persistence'
@@ -16,6 +17,8 @@ export const EventGuestRepoLive = Layer.effect(
       effect.pipe(Effect.provideService(PgClient, pg))
     return {
       listInvitationProjections: (userId) => bindPg(listGuestEventInvitationProjections(userId)),
+      listDeviceGuestInvitationProjections: (profileId) =>
+        bindPg(listDeviceGuestEventInvitationProjections(profileId)),
       getInvitationCoverAsset: (eventId, userId) =>
         bindPg(getInvitationCoverAsset(eventId, userId)),
       respondToEvent: (userId, eventId, attendance) =>

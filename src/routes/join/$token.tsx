@@ -13,6 +13,11 @@ import { getEventInvitation } from '@/server/events/handlers/get-event-invitatio
 import { acceptSharedEventInvitation } from '@/server/events/handlers/accept-shared-event-invitation.handler'
 import { getSharedEventInvitation } from '@/server/events/handlers/get-shared-event-invitation.handler'
 import { getJoinedSharedInvitation } from '@/server/events/handlers/get-joined-shared-invitation.handler'
+import {
+  getInvitationDisplayState,
+  getLocalInvitationPostStatus,
+  getSignedOutInvitationCopy,
+} from '@/lib/event-invitation-presentation'
 
 export const Route = createFileRoute('/join/$token')({
   loader: async ({ params }) => {
@@ -88,11 +93,23 @@ function JoinInvitation() {
   const [acceptance, setAcceptance] = useState<{
     token: string
     role: string
+    status: string
   } | null>(null)
-  const accepted = invitation?.status === 'accepted' || acceptance?.token === token
+  const localAcceptanceStatus = acceptance?.token === token ? acceptance.status : null
+  const invitationState = getInvitationDisplayState(invitation?.status, localAcceptanceStatus)
   const valid = z.uuid().safeParse(token).success
   const continuation = valid ? invitationPath(token) : '/'
   const expired = invitation ? new Date(invitation.expiresAt) <= new Date() : false
+  const requiresApproval =
+    !!invitation && 'requiresApproval' in invitation && invitation.requiresApproval === true
+  const planningPermission =
+    invitation && 'planningPermission' in invitation ? invitation.planningPermission : 'view_only'
+  const signedOutCopy = getSignedOutInvitationCopy({
+    shared,
+    role: invitation?.role,
+    planningPermission,
+    requiresApproval,
+  })
 
   async function accept() {
     setPending(true)
@@ -106,8 +123,19 @@ function JoinInvitation() {
         })
         return
       }
-      setAcceptance({ token, role: result.data.role })
-      toast.success(t('invitation.acceptedToast'))
+      const status = getLocalInvitationPostStatus(
+        'status' in result.data ? result.data.status : undefined
+      )
+      setAcceptance({ token, role: result.data.role, status })
+      if (status === 'pending') {
+        toast.error(t('invitation.acceptFailed'))
+        return
+      }
+      toast.success(
+        status === 'awaiting_approval'
+          ? t('invitation.requestSentToast')
+          : t('invitation.acceptedToast')
+      )
     } catch {
       toast.error(t('invitation.acceptFailed'))
     } finally {
@@ -128,9 +156,9 @@ function JoinInvitation() {
         ) : !session ? (
           <>
             <p className="text-muted-foreground">
-              {shared
-                ? t('invitation.sharedJoin', { role: roleLabel(t, invitation?.role) })
-                : t('invitation.privateJoin')}
+              {signedOutCopy.interpolateRole
+                ? t(signedOutCopy.descriptionKey, { role: roleLabel(t, invitation?.role) })
+                : t(signedOutCopy.descriptionKey)}
             </p>
             {shared && invitation && 'startsAt' in invitation && invitation.startsAt && (
               <p>{new Date(invitation.startsAt).toLocaleString(i18n.language)}</p>
@@ -144,7 +172,7 @@ function JoinInvitation() {
               params={{ path: 'sign-in' }}
               search={{ redirectTo: continuation }}
             >
-              {t('invitation.signIn')}
+              {t(signedOutCopy.signInKey)}
             </Link>
             <Link
               className={buttonVariants({ variant: 'outline' })}
@@ -152,7 +180,7 @@ function JoinInvitation() {
               params={{ path: 'sign-up' }}
               search={{ redirectTo: continuation }}
             >
-              {t('invitation.createAccount')}
+              {t(signedOutCopy.createAccountKey)}
             </Link>
           </>
         ) : !invitation ? (
@@ -167,7 +195,7 @@ function JoinInvitation() {
               {t('invitation.switchAccount')}
             </Link>
           </>
-        ) : accepted ? (
+        ) : invitationState === 'accepted' ? (
           <>
             <p>
               {t('invitation.joinedAs', {
@@ -179,6 +207,8 @@ function JoinInvitation() {
               {t('invitation.continue')}
             </Link>
           </>
+        ) : invitationState === 'awaitingApproval' ? (
+          <p>{t('invitation.awaitingApproval')}</p>
         ) : (
           <>
             <p className="text-muted-foreground">
@@ -188,7 +218,17 @@ function JoinInvitation() {
               })}
             </p>
             {shared && invitation.role === 'collaborator' && (
-              <p>{t('invitation.collaboratorAccess')}</p>
+              <p>
+                {t(
+                  planningPermission === 'view_only'
+                    ? requiresApproval
+                      ? 'invitation.collaboratorViewOnlyApproval'
+                      : 'invitation.collaboratorViewOnly'
+                    : requiresApproval
+                      ? 'invitation.collaboratorPlanningApproval'
+                      : 'invitation.collaboratorPlanning'
+                )}
+              </p>
             )}
             <Button disabled={pending || !session.user.emailVerified || expired} onClick={accept}>
               {pending ? t('invitation.accepting') : t('invitation.accept')}

@@ -189,7 +189,7 @@ describe('organization authorization middleware', () => {
     expect(handlerRuns).toBe(0)
     expect(result.error).toBeInstanceOf(Error)
     if (result.error instanceof Error) {
-      expect(result.error.message).toContain('You do not have access to this workspace.')
+      expect(result.error.message).toContain('You do not have access to this event.')
       expect(result.error.message).not.toContain('private-provider-membership-detail')
     }
   })

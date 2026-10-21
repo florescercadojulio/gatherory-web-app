@@ -8,6 +8,11 @@ type Requirements<Module> = {
     : never
 }
 
+test('announcement workflows leave only PgClient unresolved', () => {
+  type Workflows = typeof import('@/server/announcements/workflows/announcement.workflows.live')
+  expectTypeOf<Requirements<Workflows>>().toEqualTypeOf<{ [Key in keyof Workflows]: PgClient }>()
+})
+
 test('auth/workflows/account-deletion.workflows.live.ts leaves no services unresolved', () => {
   type Workflows = typeof import('@/server/auth/workflows/account-deletion.workflows.live')
   expectTypeOf<Requirements<Workflows>>().toEqualTypeOf<{

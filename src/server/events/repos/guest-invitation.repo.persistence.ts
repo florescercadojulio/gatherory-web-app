@@ -49,9 +49,21 @@ export function getInvitationCoverAsset(eventId: string, userId?: string) {
 }
 
 /** Canonical, event-scoped projection. No replication table is read by this feed. */
-export function listGuestEventInvitationProjections(userId: string) {
+function listGuestEventInvitationProjectionsFor(input: {
+  userId?: string
+  guestProfileId?: string
+}) {
   return Effect.gen(function* () {
     const db = yield* DB
+    const userId = input.userId
+    const participantIdentity = userId
+      ? and(eq(workspacePerson.userId, userId), retainedEventAccess(userId, event.id))
+      : input.guestProfileId
+        ? and(
+            eq(workspacePerson.guestProfileId, input.guestProfileId),
+            eq(eventParticipant.role, 'guest')
+          )
+        : sql`false`
     const rows = yield* db
       .select({
         id: event.id,
@@ -86,7 +98,7 @@ export function listGuestEventInvitationProjections(userId: string) {
           eq(workspacePerson.organizationId, event.organizationId)
         )
       )
-      .where(and(eq(workspacePerson.userId, userId), retainedEventAccess(userId, event.id)))
+      .where(participantIdentity)
       .orderBy(asc(event.startsAt), asc(event.createdAt))
     const result = []
     for (const row of rows) {
@@ -105,7 +117,7 @@ export function listGuestEventInvitationProjections(userId: string) {
         .where(
           and(
             eq(eventParticipant.eventId, row.id),
-            blockedAuthorPredicate(userId, workspacePerson.userId)
+            userId ? blockedAuthorPredicate(userId, workspacePerson.userId) : sql`true`
           )
         )
       const published = yield* db
@@ -123,7 +135,7 @@ export function listGuestEventInvitationProjections(userId: string) {
             eq(idea.eventId, row.id),
             eq(idea.status, 'approved'),
             eq(idea.guestVisibility, 'shown_to_guests'),
-            blockedAuthorPredicate(userId, idea.submittedByUserId)
+            userId ? blockedAuthorPredicate(userId, idea.submittedByUserId) : sql`true`
           )
         )
         .orderBy(asc(idea.createdAt))
@@ -229,6 +241,14 @@ export function listGuestEventInvitationProjections(userId: string) {
     }
     return result
   })
+}
+
+export function listGuestEventInvitationProjections(userId: string) {
+  return listGuestEventInvitationProjectionsFor({ userId })
+}
+
+export function listDeviceGuestEventInvitationProjections(guestProfileId: string) {
+  return listGuestEventInvitationProjectionsFor({ guestProfileId })
 }
 
 /** RSVP is a personal capability, never permission to edit the event or other people. */

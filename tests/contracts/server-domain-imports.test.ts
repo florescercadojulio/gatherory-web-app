@@ -14,6 +14,8 @@ vi.mock('@/lib/auth', () => {
 
 test('live domain logic can be imported without production adapters or credentials', async () => {
   const modules = await Promise.all([
+    import('@/server/announcements/services/announcement.service.live'),
+    import('@/server/announcements/workflows/announcement.workflows'),
     import('@/server/auth/authorization'),
     import('@/server/events/authorization'),
     import('@/server/events/services/event.service.live'),

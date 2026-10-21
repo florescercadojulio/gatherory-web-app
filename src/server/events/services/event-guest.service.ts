@@ -32,6 +32,9 @@ export type EventGuestServiceShape = Pick<
   readonly listInvitations: (
     userId: string
   ) => Effect.Effect<GuestInvitation[], InvitationProjectionError>
+  readonly listDeviceGuestInvitations: (
+    profileId: string
+  ) => Effect.Effect<GuestInvitation[], InvitationProjectionError>
   readonly invitationCoverURL: (
     eventId: string,
     userId?: string

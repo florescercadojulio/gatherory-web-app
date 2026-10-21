@@ -44,6 +44,7 @@ function dependencies(
 ) {
   const repo = {
     listInvitationProjections: () => Effect.succeed(projections),
+    listDeviceGuestInvitationProjections: () => Effect.succeed(projections),
     getInvitationCoverAsset: () => Effect.succeed(null),
     respondToEvent: () => Effect.succeed({ eventId: 'event-1', attendance: 'going' as const }),
     leaveGuestEvent: () => Effect.succeed({ eventId: 'event-1' }),
@@ -167,6 +168,7 @@ it.effect('falls back to null artwork URLs when signing fails', () => {
 it.effect('returns no invitations when no authorized event projections are available', () => {
   const repo = {
     listInvitationProjections: () => Effect.succeed([]),
+    listDeviceGuestInvitationProjections: () => Effect.succeed([]),
     getInvitationCoverAsset: () => Effect.succeed(null),
     respondToEvent: () => Effect.succeed({ eventId: 'event-1', attendance: 'going' as const }),
     leaveGuestEvent: () => Effect.succeed({ eventId: 'event-1' }),

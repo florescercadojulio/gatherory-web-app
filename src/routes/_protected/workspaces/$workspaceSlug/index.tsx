@@ -24,7 +24,7 @@ export const Route = createFileRoute('/_protected/workspaces/$workspaceSlug/')({
       return {
         ok: false as const,
         error: context.workspaceError ?? {
-          userMessage: 'This workspace could not be loaded. Try again.',
+          userMessage: 'This event could not be loaded. Try again.',
           errorId: crypto.randomUUID(),
         },
       }
