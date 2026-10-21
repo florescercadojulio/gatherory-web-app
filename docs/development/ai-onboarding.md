@@ -403,6 +403,13 @@ environment, and read the corresponding script before running it. The local
 reset leaves an empty database; seeding is a separate destructive operation.
 Keep secrets and reviewer passwords out of docs and tool output.
 
+Local App Review/development photo fixtures have a fill-only updater:
+`pnpm db:seed:images` previews missing covers and `--apply` fills them through
+private development R2 without a reset. `pnpm db:seed:portraits` does the same
+for account pictures. `pnpm db:seed:with-images` is the explicitly destructive
+fresh-seed variant. See [development seed](development-seed.md) for targets,
+preservation rules, checked-in photos, and verification evidence.
+
 ## Release context and known documentation gaps
 
 The [October 21 mobile V1 guest/invitation audit](../release/mobile-v1-guest-invitation-audit.md)

@@ -427,6 +427,7 @@ export function listEventJoinRequests(actorUserId: string, eventId: string) {
         id: eventJoinRequest.id,
         name: user.name,
         email: user.email,
+        profileImageURL: user.image,
         createdAt: eventJoinRequest.createdAt,
       })
       .from(eventJoinRequest)

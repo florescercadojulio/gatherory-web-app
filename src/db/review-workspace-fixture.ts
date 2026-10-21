@@ -1,4 +1,14 @@
 import { ideaResponseID } from '@/server/sync/contracts/idea-response'
+import {
+  developmentGuestProfiles,
+  developmentProfileImage,
+} from '@/db/seeds/development-profile-images'
+
+/** Exact workspace labels used by the reset fixture and its prior local seed. */
+export const reviewWorkspaceOrganizationNames = {
+  current: "Alex & Jordan's Gatherory",
+  legacy: "Alex & Jordan's Wedding",
+} as const
 
 /**
  * A real, iOS-compatible workspace for local App Review testing.
@@ -46,11 +56,11 @@ export const reviewWorkspaceIds = {
     jordan: '70000000-0000-4000-8000-000000000002',
     maya: '70000000-0000-4000-8000-000000000003',
     sam: '70000000-0000-4000-8000-000000000004',
-    pendingGuest: '70000000-0000-4000-8000-000000000005',
+    pendingGuest: developmentGuestProfiles[0].id,
     appReview: '70000000-0000-4000-8000-000000000006',
     receptionPlanner: '70000000-0000-4000-8000-000000000007',
-    goingGuest: '70000000-0000-4000-8000-000000000008',
-    declinedGuest: '70000000-0000-4000-8000-000000000009',
+    goingGuest: developmentGuestProfiles[1].id,
+    declinedGuest: developmentGuestProfiles[2].id,
   },
 } as const
 
@@ -58,6 +68,7 @@ export type ReviewFixtureUser = {
   id: string
   name: string
   email: string
+  image?: string | null
 }
 
 export type ReviewFixtureUsers = readonly [
@@ -151,7 +162,7 @@ export function createReviewWorkspaceArchive(input: {
     attendance: person.attendance as string,
     email: person.account.email,
     profileImageAssetName: null,
-    profileImageURL: null,
+    profileImageURL: person.account.image?.trim() || developmentProfileImage(person.account.email),
     planningPermission: person.permission as string,
     invitationStatus: 'active',
   }))
@@ -160,27 +171,24 @@ export function createReviewWorkspaceArchive(input: {
   // email invitation; neither contacts nor guests receive native scope grants.
   const guestContacts = [
     {
-      id: people.pendingGuest,
-      name: 'Invited Family',
-      email: 'family@gatherory.test',
+      ...developmentGuestProfiles[0],
       attendance: 'invited',
     },
     {
-      id: people.goingGuest,
-      name: 'Jamie Park',
-      email: 'jamie@gatherory.test',
+      ...developmentGuestProfiles[1],
       attendance: 'going',
     },
     {
-      id: people.declinedGuest,
-      name: 'Drew Ellis',
-      email: 'drew@gatherory.test',
+      ...developmentGuestProfiles[2],
       attendance: 'declined',
     },
   ]
   for (const guest of guestContacts) {
     members.push({
-      ...guest,
+      id: guest.id,
+      name: guest.name,
+      email: guest.email,
+      attendance: guest.attendance,
       userID: null,
       participantRole: 'guest',
       initials: guest.name
@@ -188,7 +196,7 @@ export function createReviewWorkspaceArchive(input: {
         .map((part) => part[0])
         .join(''),
       profileImageAssetName: null,
-      profileImageURL: null,
+      profileImageURL: guest.image,
       planningPermission: 'viewOnly',
       invitationStatus: guest.attendance === 'invited' ? 'invited' : 'active',
     })
@@ -239,7 +247,7 @@ export function createReviewWorkspaceArchive(input: {
       attendance: 'going',
       invitationStatus: 'active',
       profileImageAssetName: null,
-      profileImageURL: null,
+      profileImageURL: planner.image?.trim() || developmentProfileImage(planner.email),
     })
     eventParticipations.push({
       id: '82000000-0000-4000-8000-000000000001',

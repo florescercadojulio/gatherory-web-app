@@ -15,14 +15,20 @@ import {
   createDevelopmentWorkspaceSeed,
   writeDevelopmentWorkspaceSeed,
 } from '@/db/development-workspace-seed'
+import { reviewWorkspaceOrganizationNames } from '@/db/review-workspace-fixture'
 import { seedCuratedBlueprints } from '@/db/seeds/curated-blueprints'
 import { seedPrivateTemplates } from '@/db/seeds/private-templates'
+import { developmentProfileImage } from '@/db/seeds/development-profile-images'
+import {
+  preflightDevelopmentEventImages,
+  runDevelopmentEventImageUpdate,
+} from '@/db/seeds/development-event-images-update'
 import { auth } from '@/lib/auth'
 import { materializeNativeMutation } from '@/server/sync/repos/native-materializer.persistence'
 import { createEventWorkspace } from '@/server/workspaces/handlers/workspace-provisioning.adapter'
 import { developmentUsers } from '../../scripts/seed/development-users'
 
-type SeedUser = { id: string; name: string; email: string }
+type SeedUser = { id: string; name: string; email: string; image?: string | null }
 
 async function ensureDevelopmentUser(input: (typeof developmentUsers)[number]): Promise<SeedUser> {
   const [existingUser] = await db
@@ -31,30 +37,36 @@ async function ensureDevelopmentUser(input: (typeof developmentUsers)[number]): 
       name: user.name,
       email: user.email,
       emailVerified: user.emailVerified,
+      image: user.image,
     })
     .from(user)
     .where(eq(user.email, input.email))
     .limit(1)
 
   if (existingUser) {
-    if (!existingUser.emailVerified) {
-      await db.update(user).set({ emailVerified: true }).where(eq(user.id, existingUser.id))
+    const image = existingUser.image || developmentProfileImage(input.email)
+    if (!existingUser.emailVerified || image !== existingUser.image) {
+      await db.update(user).set({ emailVerified: true, image }).where(eq(user.id, existingUser.id))
     }
 
-    return existingUser
+    return { ...existingUser, image }
   }
 
   const result = await auth.api.signUpEmail({ body: input })
-  await db.update(user).set({ emailVerified: true }).where(eq(user.id, result.user.id))
+  const image = developmentProfileImage(input.email)
+  await db.update(user).set({ emailVerified: true, image }).where(eq(user.id, result.user.id))
   console.log(`Created development user: ${result.user.email}`)
-  return result.user
+  return { ...result.user, image }
 }
 
 function personalWorkspaceSlug(userId: string) {
   return `personal-${userId.toLowerCase().replaceAll(/[^a-z0-9]/g, '')}`
 }
 
-async function ensureWorkspace(owner: SeedUser, workspaceName = "Alex & Jordan's Gatherory") {
+async function ensureWorkspace(
+  owner: SeedUser,
+  workspaceName: string = reviewWorkspaceOrganizationNames.current
+) {
   const slug = personalWorkspaceSlug(owner.id)
   let [workspace] = await db
     .select({ id: organization.id, name: organization.name })
@@ -188,6 +200,10 @@ async function ensureReviewAccess(input: {
 }
 
 async function main() {
+  const args = process.argv.slice(2)
+  if (args.some((argument) => argument !== '--with-images') || args.length > 1)
+    throw new Error('Only an optional --with-images argument is supported.')
+  const withImages = args.includes('--with-images')
   if (process.env.NODE_ENV === 'production') {
     throw new ServerOperationError({
       category: 'system',
@@ -195,6 +211,17 @@ async function main() {
       debugMessage: 'The development seed cannot run in production.',
     })
   }
+
+  const imageOptions = {
+    databaseUrl: process.env.DATABASE_URL ?? '',
+    nodeEnv: process.env.NODE_ENV,
+    privateBucket: process.env.CLOUDFLARE_R2_PRIVATE_BUCKET_NAME,
+    apply: true,
+    pool,
+  } as const
+  // Check local target, bundled files, and storage configuration before the
+  // existing reset. A media-only update never enters this reset entry point.
+  if (withImages) await preflightDevelopmentEventImages(imageOptions)
 
   console.log('Resetting database...')
   await reset(db, {
@@ -233,6 +260,10 @@ async function main() {
   await db.update(user).set({ hasCompletedOnboarding: true }).where(eq(user.id, typedUsers[0].id))
   await db.update(user).set({ hasCompletedOnboarding: true }).where(eq(user.id, typedUsers[4].id))
   const privateTemplates = await seedPrivateTemplates(typedUsers[4].id, appReviewWorkspace.id)
+  if (withImages) {
+    const images = await runDevelopmentEventImageUpdate(imageOptions)
+    console.log(`Seeded ${images.insertedPlacements} event, idea, and registry images.`)
+  }
   const cottageStatus =
     privateTemplates.publishedCottage.publishedRevision === null
       ? 'draft'

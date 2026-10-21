@@ -85,7 +85,22 @@ test('share-link GET is explicit and returns only public link fields with role a
 })
 
 test('GET without the share-link discriminator preserves the approval request response', async () => {
-  const result = { requests: [{ id: 'pending-request', userId: 'requesting-account' }] }
+  const result = {
+    requests: [
+      {
+        id: 'pending-request',
+        userId: 'requesting-account',
+        name: 'Casey Patel',
+        profileImageURL: 'https://images.unsplash.com/photo-1517841905240-472988babdf9',
+      },
+      {
+        id: 'legacy-pending-request',
+        userId: 'legacy-requesting-account',
+        name: 'Legacy Requestor',
+        profileImageURL: null,
+      },
+    ],
+  }
   calls.requests.mockReturnValue(Effect.succeed(result))
   const response = await eventJoinRequestsResponse(request('GET', undefined, `?eventId=${eventId}`))
   expect(response.status).toBe(200)

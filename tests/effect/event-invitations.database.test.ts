@@ -87,6 +87,7 @@ const verification = Effect.gen(function* () {
             id: sharedCollaboratorId,
             name: 'Shared collaborator',
             email: `${sharedCollaboratorId}@example.com`,
+            image: 'https://images.unsplash.com/photo-1517841905240-472988babdf9',
             emailVerified: true,
           },
           {
@@ -619,6 +620,9 @@ const verification = Effect.gen(function* () {
         const { requests } = yield* listEventJoinRequests(ownerId, eventId)
         expect(requests.length, 'Retries do not duplicate requests').toBe(1)
         expect(requests[0].planningPermission).toBe('contribute')
+        expect(requests[0].profileImageURL).toBe(
+          'https://images.unsplash.com/photo-1517841905240-472988babdf9'
+        )
         expect(
           Exit.isFailure(
             yield* Effect.exit(reviewEventJoinRequest(guestId, eventId, requests[0].id, 'approve'))

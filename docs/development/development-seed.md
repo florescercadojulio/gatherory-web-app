@@ -77,16 +77,145 @@ to archive members or participation before approval.
 
 To change fixture content, edit the archive and derive any supplemental web rows
 from it; do not restore separate copies of the event/idea/note data in `seed.ts`.
-No media uploads, sync mutation receipts, moderation staff grants, or simulated
-outbox acknowledgements are created.
+The ordinary database-only seed creates no media uploads, sync mutation receipts,
+moderation staff grants, or simulated outbox acknowledgements. The optional image
+step below uploads only bundled fixture photos into private development storage.
+
+## Event, idea, and registry images
+
+The App Review fixture and the other seed accounts share the existing event.
+Photo visibility follows their existing event permissions; this step does not
+create accounts, enroll pending collaborators, or expand guest/child access.
+
+`src/db/seeds/development-event-images.ts` assigns a separate, relevant photo to
+the main event, six child events, thirteen ideas, and the registry item. The
+JPEGs are bundled under `scripts/seed/assets/`, with credits and source links in
+[seed image sources](seed-image-sources.md). Seed runs use those local files,
+so they do not download from Unsplash at runtime or require the landing/iOS
+repositories to be present. Replacing a photo means updating its catalog entry
+and bundled file.
+
+### Fill missing photos without a reset
+
+```sh
+pnpm db:seed:images
+pnpm db:seed:images --apply
+```
+
+The first command is a dry run with no database or object-storage writes.
+`--apply` fills only eligible missing images in the known local fixture. Existing
+normalized covers, legacy event image URLs, native inline images, and native
+media references are preserved. Deleted records and records whose fixture
+identity no longer matches are skipped. Re-running after a successful apply
+should report zero candidates.
+
+The updater verifies the local database, exact seed owner/workspace/scope, and
+the `gatherory-private-dev` bucket. It uploads immutable private objects, verifies
+their metadata, then writes ready media assets and typed cover placements.
+Bootstrap snapshots, native workspace/entity payloads, versions, and change-log
+records are updated together in one database transaction. It never calls the
+reset seed, rewrites planning content, or creates mutation receipts/notifications.
+An interrupted storage/transaction attempt may leave an unplaced object; a retry
+reuses its verified immutable key rather than overwriting it.
+
+Missing account portraits have a separate fill-only command:
+
+```sh
+pnpm db:seed:portraits
+pnpm db:seed:portraits --apply
+```
+
+### Fresh database seed with photos
+
+```sh
+pnpm db:seed:with-images
+```
+
+This is explicitly **destructive**, just like `pnpm db:seed`. It checks the image
+configuration and bundled files before the reset, creates the regular fixtures
+and portraits, then runs the same media updater. The ordinary `pnpm db:seed`
+remains available for database-only development. For an existing database,
+always use the fill-only commands above.
+
+These tools target the local fictional App Review account, not the credentials
+or database used for a live App Store review. They reject production targets.
+
+On October 21, 2026, the fill-only updater added all 21 covers to the existing
+`localhost:5438/gatherory` fixture and verified them in `gatherory-private-dev`.
+A second apply reported zero candidates and writes. All 21 private signed reads
+returned the expected bytes. A before/after comparison found no changes in the
+44 non-media tables or the non-image content of native snapshots/entities.
+The eight account portraits were already populated; no database reset ran.
+
+## Sample profile pictures
+
+The eight fictional `@gatherory.test` accounts have sample portrait URLs in
+`src/db/seeds/development-profile-images.ts`. The same catalog includes distinct
+portraits for the three root-event contacts: Invited Family (invited), Jamie Park
+(going), and Drew Ellis (declined). Their native participant photos and
+organization-scoped `workspace_person.avatar_url` values are populated without
+creating accounts or changing their guest role, RSVP, or view-only permission.
+Each of the eleven fixture people has a different stock portrait. Existing
+custom account pictures are preserved.
+
+To fill missing portraits in an **existing local** fixture database without
+resetting it, preview this incremental command first:
+
+```sh
+pnpm db:seed:portraits
+pnpm db:seed:portraits --apply
+```
+
+The default is a transaction-backed dry run that rolls back. `--apply` fills
+missing account and normalized-person pictures plus the exact fixture contacts
+and matching native bootstrap and participant payloads. It advances versions
+and adds native change-log records so an existing client can pull the update.
+Contact updates require the known stable participant ID, exact email and name,
+the fixture organization, and the seeded root snapshot owner. The command only
+accepts the `gatherory` database on localhost/loopback, refuses production, and
+checks exact account names and emails before writing. It recognizes the current
+`Alex & Jordan's Gatherory` workspace and the exact legacy
+`Alex & Jordan's Wedding` label used by existing local fixtures. It never creates users,
+changes access, or replaces existing pictures. Re-running it after applying
+should report zero changes. No account credentials or database connection
+strings are printed.
+
+These are temporary stock photographs served by the [Unsplash image
+CDN](https://images.unsplash.com), used under the [Unsplash
+License](https://unsplash.com/license). The people pictured are not customers,
+testimonial authors, or the fictional fixture identities. URLs are recorded
+beside each fixture so the local database, birthday-dinner simulator assets,
+and marketing prototype can use the same portraits. Replace these prototype
+assets with owned/consented images before using them as real customer content.
+
+The incremental portrait update is local development tooling only. Review the
+dry-run counts before applying it to a seeded local database. On October 21,
+the updater filled eight missing normalized-person portraits and three contact
+portraits in the legacy bootstrap snapshot. Verification found all eight demo
+accounts, all nine workspace people, both pending requestors, and all native
+sync people pictured; a final dry run reported zero changes. RSVP and request
+statuses were retained, and no database reset ran. Contact payloads accept both
+null and omitted optional account IDs while retaining exact identity checks.
 
 Run the DB-free regression checks with:
 
 ```sh
 pnpm exec vitest run tests/unit/development-workspace-seed.test.ts tests/unit/review-workspace-fixture.test.ts tests/unit/scoped-event-projection.test.ts
+pnpm exec vitest run tests/unit/development-profile-images.test.ts
+pnpm exec vitest run tests/unit/development-event-images.test.ts tests/unit/development-event-images-update.test.ts
 pnpm exec vitest run tests/unit/development-blueprints-seed.test.ts tests/unit/development-catalog-seed-wiring.test.ts tests/unit/seed-modules.test.ts tests/unit/private-templates-seed.test.ts
 pnpm typecheck
 ```
 
 These checks cover fixture consistency, scoped projection, and seed write wiring;
 they do not execute a database reset or certify an end-to-end device sync.
+
+`tests/integration/development-event-images.database.test.ts` is an opt-in check
+against a separate local database whose name starts with
+`gatherory_seed_images_test_`. Supply its schema and set
+`DEVELOPMENT_EVENT_IMAGES_TEST_DATABASE_URL` plus
+`RUN_DEVELOPMENT_EVENT_IMAGES_DB_TESTS=1` before running that test. It uses a fake
+object store and exercises the real materializer/SQL updater: existing covers,
+inline images, tombstones, mismatched records, other organizations, sync versions,
+repeat runs, and rollback after a storage-success/database-failure boundary.
+It refuses the normal `gatherory` database as its test target.

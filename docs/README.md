@@ -44,6 +44,14 @@ Read the product and data models first, then the relevant implementation guide.
 | [Media system](architecture/media-system.md)                     | Uploads, signed URLs, access checks, storage, and cleanup.                                                  |
 | [Experience architecture](architecture/experience-blueprints.md) | Cross-platform design for reusable experiences, including future capabilities.                              |
 
+## Marketing
+
+- [Marketing documents](marketing/README.md): launch audience, positioning,
+  acquisition experiments, landing-page recommendations, and measurement.
+- [Launch strategy — October 21, 2026](marketing/launch-strategy.md): proposed
+  founder-led launch plan; English-first with Spanish localization support.
+  Targets and page changes are recommendations, not completed execution.
+
 ## Development
 
 - [API and MCP contract conventions](development/api-contract-conventions.md):
