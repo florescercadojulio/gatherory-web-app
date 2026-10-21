@@ -7,11 +7,13 @@ import * as Redacted from 'effect/Redacted'
 import { Pool } from 'pg'
 
 import { databaseRelations } from '@/db/relations'
-import { env } from '@/env'
 
-const databaseUrl = env.DATABASE_URL
+// Database-only tools must not load local dotenv files or require credentials
+// for auth, media, or notifications. The application validates those in env.ts;
+// CLI entry points must supply their own environment before importing this module.
+const databaseUrl = process.env.DATABASE_URL
 
-if (!databaseUrl) {
+if (!databaseUrl?.trim()) {
   throw new ConfigurationError({
     category: 'system',
     code: 'CONFIGURATION_INVALID',

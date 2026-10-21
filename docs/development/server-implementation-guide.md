@@ -47,6 +47,15 @@ folder or import a legacy compatibility barrel when a canonical module exists.
 Keep `import type` dependencies type-only so contracts and service tags do not
 initialize auth, storage, or database configuration.
 
+The database adapter (`src/db/index.ts`) requires only an explicit `DATABASE_URL`
+from the process environment. It must not import `src/env.ts` or load dotenv
+files: database-only CI and maintenance tools do not require auth, media, or
+notification credentials. Local CLI entry points should load their environment
+before importing the adapter (for example, `pnpm db:materialize-native:local`).
+The application environment still validates its full configuration. Import
+regressions in `tests/tooling/database-cli-environment.test.ts` run in isolated
+temporary directories so developer `.env.local` files cannot hide failures.
+
 ## Follow one use case through production
 
 Participant invitation is a useful reference because it includes input
