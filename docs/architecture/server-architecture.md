@@ -155,7 +155,8 @@ This is also why handlers must not maintain their own `try/catch` error maps.
 Framework callbacks and trusted scripts instead use explicit Promise adapters
 under `handlers/`. They must preserve the callback's failure/return contract,
 not replace it with an HTTP result envelope. Authentication email adapters also
-retain `waitUntil` scheduling and logged, non-disclosing delivery failures.
+retain runtime-neutral background scheduling and logged, non-disclosing delivery
+failures.
 
 The implementation lives in `src/server/effect-utils.ts`; `effect.ts` re-exports
 it for existing callers. Backend expected failures use `Data.TaggedError` with

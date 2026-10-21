@@ -37,7 +37,6 @@ export const env = createEnv({
     CLOUDFLARE_R2_PRIVATE_BUCKET_NAME: z.string().min(1),
     CLOUDFLARE_R2_PUBLIC_BUCKET_NAME: z.string().min(1),
     NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
-    VERCEL_ENV: z.enum(['development', 'preview', 'production']).optional(),
     SERVER_URL: z.url().optional(),
   },
 
@@ -75,7 +74,7 @@ export const env = createEnv({
 })
 
 if (
-  env.VERCEL_ENV === 'production' &&
+  env.NODE_ENV === 'production' &&
   /(^|[-_.])dev($|[-_.])/.test(env.CLOUDFLARE_R2_PRIVATE_BUCKET_NAME.toLowerCase())
 ) {
   throw new ConfigurationError({

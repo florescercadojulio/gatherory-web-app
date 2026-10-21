@@ -145,7 +145,7 @@ and [middleware behavior](../architecture/server-architecture.md#reusable-event-
   lock order, savepoints, receipt idempotency, write order, and rollback behavior.
 - Preserve external side-effect ordering too: account-deletion object removal
   currently finishes before its SQL transaction, and auth email delivery retains
-  its existing `waitUntil` behavior.
+  its background scheduling behavior.
 - Tagged failures, stable sync rejection codes, and safe response serialization
   are part of the contract. Do not classify failures by matching error messages.
 

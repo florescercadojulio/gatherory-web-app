@@ -1,6 +1,5 @@
 import { ConfigurationError } from '@/lib/domain-errors'
 import { drizzleAdapter } from '@better-auth/drizzle-adapter/relations-v2'
-import { waitUntil } from '@vercel/functions'
 import { betterAuth } from 'better-auth'
 import { and, eq } from 'drizzle-orm'
 import { i18n, locales } from '@better-auth/i18n'
@@ -17,6 +16,7 @@ import {
   defaultOrganizationType,
   prepareOrganizationForCreation,
 } from '@/lib/organization-contract'
+import { runInBackground } from '@/lib/background-tasks'
 import {
   scheduleEmailOtp,
   scheduleMagicLinkEmail,
@@ -151,7 +151,7 @@ export const auth = betterAuth({
   },
   advanced: {
     backgroundTasks: {
-      handler: waitUntil,
+      handler: runInBackground,
     },
     database: {
       joins: true,

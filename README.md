@@ -218,8 +218,8 @@ the workflow installs the locked dependencies, runs `pnpm db:migrate`, and
 idempotently replays existing native records with `pnpm db:materialize-native`. A
 failed connection or migration makes the check fail, so it can be used as a
 required release signal. Migrations are serialized and are never cancelled
-mid-run. Vercel still deploys independently unless this check is also required
-by the repository's branch or deployment rules.
+mid-run. The application server still deploys independently unless this check is
+also required by the repository's branch or deployment rules.
 
 For a completely fresh local database, run:
 

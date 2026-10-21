@@ -40,12 +40,8 @@ const config = defineConfig(({ mode }) => {
     plugins: [
       devtools(),
       nitro({
+        preset: 'node-server',
         rollupConfig: { external: [/^@sentry\//] },
-        vercel: {
-          functionRules: {
-            '/api/internal/notifications/dispatch': { maxDuration: 60 },
-          },
-        },
       }),
       tailwindcss(),
       tanstackStart(),

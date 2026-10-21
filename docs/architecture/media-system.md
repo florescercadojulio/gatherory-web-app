@@ -193,8 +193,8 @@ from each configured bucket. For the private bucket it also performs the same
 CORS preflight a browser sends before a signed `PUT`. It never prints access
 keys or signed URLs.
 
-The production deployment must set all of the following in Vercel's Production
-environment. Store credential values as Secrets rather than public variables:
+The production server must set all of the following in its production
+environment. Store credential values as secrets rather than public variables:
 
 ```dotenv
 CLOUDFLARE_ACCOUNT_ID=
@@ -208,7 +208,7 @@ VITE_PUBLIC_ASSET_URL=https://cdn.gatherory.com
 Use a separate production R2 access key restricted to
 `gatherory-private-prod` and `gatherory-public`. Do not reuse the development
 key or grant it access to the production bucket. The application rejects a
-private bucket containing `dev` when Vercel builds the Production environment.
+private bucket containing `dev` when the production server starts.
 
 ## Validation and limits
 

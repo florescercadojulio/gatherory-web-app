@@ -1,5 +1,6 @@
-import { waitUntil } from '@vercel/functions'
 import { Effect } from 'effect'
+
+import { runInBackground } from '@/lib/background-tasks'
 
 import type { EmailOtpType } from '../contracts/auth-email.contract'
 import {
@@ -21,10 +22,10 @@ function schedule(program: Effect.Effect<unknown, unknown>) {
     )
   )
 
-  // Vercel keeps the request alive without making the auth response disclose
-  // whether a recipient exists. In local development the promise still starts
-  // immediately and reports failures through Effect logging.
-  waitUntil(delivery)
+  // Start immediately without making the auth response disclose whether a
+  // recipient exists. The standalone Node server keeps pending I/O alive and
+  // reports failures through Effect logging.
+  runInBackground(delivery)
 }
 
 export function scheduleVerificationEmail(input: {
