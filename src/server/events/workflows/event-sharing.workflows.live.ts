@@ -4,6 +4,7 @@ import { acceptEventShareLinkWorkflow as acceptEventShareLinkWorkflowProgram } f
 import { createEventShareLinkWorkflow as createEventShareLinkWorkflowProgram } from './create-event-share-link.workflow'
 import { getShareLinkEventIdWorkflow as getShareLinkEventIdWorkflowProgram } from './get-share-link-event-id.workflow'
 import { listEventJoinRequestsWorkflow as listEventJoinRequestsWorkflowProgram } from './list-event-join-requests.workflow'
+import { listActiveEventShareLinksWorkflow as listActiveEventShareLinksWorkflowProgram } from './list-active-event-share-links.workflow'
 import { previewEventShareLinkWorkflow as previewEventShareLinkWorkflowProgram } from './preview-event-share-link.workflow'
 import { reviewEventJoinRequestWorkflow as reviewEventJoinRequestWorkflowProgram } from './review-event-join-request.workflow'
 import { revokeEventShareLinkWorkflow as revokeEventShareLinkWorkflowProgram } from './revoke-event-share-link.workflow'
@@ -24,6 +25,10 @@ export const getShareLinkEventIdWorkflow = (
 export const listEventJoinRequestsWorkflow = (
   ...args: Parameters<typeof listEventJoinRequestsWorkflowProgram>
 ) => listEventJoinRequestsWorkflowProgram(...args).pipe(Effect.provide(EventSharingDomainLive))
+
+export const listActiveEventShareLinksWorkflow = (
+  ...args: Parameters<typeof listActiveEventShareLinksWorkflowProgram>
+) => listActiveEventShareLinksWorkflowProgram(...args).pipe(Effect.provide(EventSharingDomainLive))
 
 export const previewEventShareLinkWorkflow = (
   ...args: Parameters<typeof previewEventShareLinkWorkflowProgram>

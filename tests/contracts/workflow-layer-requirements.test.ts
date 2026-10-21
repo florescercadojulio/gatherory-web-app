@@ -13,6 +13,11 @@ test('announcement workflows leave only PgClient unresolved', () => {
   expectTypeOf<Requirements<Workflows>>().toEqualTypeOf<{ [Key in keyof Workflows]: PgClient }>()
 })
 
+test('notification workflows leave only caller-owned PgClient unresolved', () => {
+  type Workflows = typeof import('@/server/notifications/workflows/notification.workflows.live')
+  expectTypeOf<Requirements<Workflows>>().toEqualTypeOf<{ [Key in keyof Workflows]: PgClient }>()
+})
+
 test('auth/workflows/account-deletion.workflows.live.ts leaves no services unresolved', () => {
   type Workflows = typeof import('@/server/auth/workflows/account-deletion.workflows.live')
   expectTypeOf<Requirements<Workflows>>().toEqualTypeOf<{
@@ -97,11 +102,13 @@ test('sync/workflows/native-insights.workflows.live.ts leaves only PgClient unre
   }>()
 })
 
-test('sync/workflows/native-sync.workflows.live.ts leaves no services unresolved', () => {
+test('sync push leaves PgClient for postcommit delivery while read bindings need no services', () => {
   type Workflows = typeof import('@/server/sync/workflows/native-sync.workflows.live')
-  expectTypeOf<Requirements<Workflows>>().toEqualTypeOf<{
-    [Key in keyof Workflows]: never
-  }>()
+  expectTypeOf<
+    Effect.Services<ReturnType<Workflows['bootstrapNativeSync']>>
+  >().toEqualTypeOf<never>()
+  expectTypeOf<Effect.Services<ReturnType<Workflows['pullNativeSync']>>>().toEqualTypeOf<never>()
+  expectTypeOf<Effect.Services<ReturnType<Workflows['pushNativeSync']>>>().toEqualTypeOf<PgClient>()
 })
 
 test('workspaces/workflows/workspace.workflows.live.ts leaves only PgClient unresolved', () => {

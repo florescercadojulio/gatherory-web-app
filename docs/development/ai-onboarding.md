@@ -75,6 +75,29 @@ Paths in inline code are relative to their owning repository.
   including the former Workspaces directory/settings/budget labels. Keep stable
   localization keys, internal `PlanningWorkspace` names, ownership containers,
   IDs and sync formats unchanged. Blueprint authoring containers may say library.
+- [Reusable event invitation QR links](../roadmaps/event-invitation-qr-roadmap/README.md)
+  use separate Guest and Collaborator public links per exact event, with no
+  scheduled expiry for new links. Loading sharing never creates a link; creation
+  and role-specific revocation remain explicit. Scanning opens the existing
+  invitation preview and never silently enrolls someone. Guests attend without
+  planning access; collaborators sign in and retain current permission/approval
+  checks. The migration preserves active tokens without reviving expired or
+  revoked links. Private email invitations keep their expiry. The new native
+  build requires the compatible schema/server rollout; no deployment is implied.
+- [Share Event Schedule](../roadmaps/event-schedule-sharing-roadmap/README.md)
+  creates an explicit CSV attachment through the iPhone share sheet.
+  Exact-account active event managers may share only the allowlisted public
+  schedule; child exports never include parent/sibling data. Guest/member
+  records and private planning data are excluded. Local cache permissions are
+  rechecked before presentation; exported copies cannot be recalled or updated.
+  Temporary files are protected and removed on dismissal; never include account
+  or event identifiers in their filenames or reuse another share's attachment.
+- [Export Guest List](../roadmaps/guest-list-export-roadmap/README.md) shares only
+  names and RSVP statuses from the selected event's roster, using exact-account
+  active-manager permissions. Parent and child rosters never merge. Contact
+  fields, credentials, roles and IDs are excluded; email placeholders become
+  Unnamed Guest. It reuses the schedule export's CSV encoder and protected native
+  presenter, which invalidates stale account, permission and roster snapshots.
 - [Event announcements](../roadmaps/notifications-roadmap/02-event-announcements.md)
   use one iPhone Updates UI with All/Planning/Guests audiences. Hosts can send
   all audiences; contributors/managers can send to Planning only. Exact-event
@@ -110,6 +133,14 @@ Paths in inline code are relative to their owning repository.
   deferred. It is local implementation, not deployed or physical-device delivery
   evidence; Firebase/APNs configuration and a dispatch deployment need separate
   acceptance.
+
+- [Notification delivery](../roadmaps/notifications-roadmap/04-best-effort-delivery.md)
+  attempts delivery once after a native assignment/event change commits or an
+  announcement is explicitly saved. Failures do not undo the saved change or
+  trigger automatic retries. Preserve current permission/binding checks, lease
+  fencing and accepted-device checkpoints. The earlier retry worker and protected
+  scheduler remain available for later, disabled, with no cron schedule configured.
+  Do not enable recovery or replay old notifications as part of ordinary requests.
 
 - The October 20 [V1 guest slice](../roadmaps/v1-guest-release-candidate-roadmap/README.md)
   allows device-local planning and public guest invitation attendance. Sharing

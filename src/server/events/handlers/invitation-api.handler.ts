@@ -14,6 +14,7 @@ import { inviteEventParticipantWorkflow } from '../workflows/event.workflows.liv
 import { createEventShareLinkWorkflow } from '../workflows/event-sharing.workflows.live'
 import { revokeEventShareLinkWorkflow } from '../workflows/event-sharing.workflows.live'
 import { listEventJoinRequestsWorkflow } from '../workflows/event-sharing.workflows.live'
+import { listActiveEventShareLinksWorkflow } from '../workflows/event-sharing.workflows.live'
 import { reviewEventJoinRequestWorkflow } from '../workflows/event-sharing.workflows.live'
 import { isTrustedModerationMutation } from '@/server/moderation/contracts/moderation.contracts'
 
@@ -41,6 +42,39 @@ export function eventJoinRequestsResponse(request: Request) {
         const input = yield* validateInput(z.object({ eventId: z.uuid() }), {
           eventId: new URL(request.url).searchParams.get('eventId'),
         })
+        if (new URL(request.url).searchParams.get('kind') === 'share-links') {
+          const baseURL = process.env.BETTER_AUTH_URL
+          if (!baseURL)
+            return yield* Effect.fail(
+              new ConfigurationError({
+                category: 'system',
+                code: 'INVITATION_URL_NOT_CONFIGURED',
+                debugMessage: 'BETTER_AUTH_URL is required for invitation links.',
+              })
+            )
+          const makeURL = yield* Effect.try({
+            try: () => {
+              invitationURL(baseURL, crypto.randomUUID())
+              return (token: string) => invitationURL(baseURL, token)
+            },
+            catch: (cause) =>
+              serverOperationError(cause, {
+                category: 'system',
+                code: 'INVITATION_URL_INVALID',
+                debugMessage: 'The configured invitation URL is invalid.',
+              }),
+          })
+          const links = yield* listActiveEventShareLinksWorkflow(user.id, input.eventId)
+          return {
+            links: links.map((link) => ({
+              eventId: link.eventId,
+              email: null,
+              role: link.role,
+              expiresAt: link.expiresAt?.toISOString() ?? null,
+              url: makeURL(link.token),
+            })),
+          }
+        }
         return yield* listEventJoinRequestsWorkflow(user.id, input.eventId)
       }
       if (!isTrustedModerationMutation(request, process.env.BETTER_AUTH_URL))
@@ -105,7 +139,8 @@ export function createInvitationResponse(request: Request) {
         return {
           eventId: link.eventId,
           email: null,
-          expiresAt: link.expiresAt.toISOString(),
+          role: link.role,
+          expiresAt: link.expiresAt?.toISOString() ?? null,
           url: makeURL(link.token),
         }
       }
@@ -130,10 +165,10 @@ export function revokeInvitationResponse(request: Request) {
     Effect.gen(function* () {
       const user = yield* verifiedUser(request)
       const input = yield* validateInput(
-        z.object({ eventId: z.uuid() }),
+        z.object({ eventId: z.uuid(), role: z.enum(['guest', 'collaborator']).optional() }),
         yield* requestJson(request)
       )
-      return yield* revokeEventShareLinkWorkflow(user.id, input.eventId)
+      return yield* revokeEventShareLinkWorkflow(user.id, input.eventId, input.role)
     }).pipe(Effect.provide(PgClientLive)),
     { headers: request.headers }
   )

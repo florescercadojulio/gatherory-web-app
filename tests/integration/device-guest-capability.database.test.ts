@@ -48,6 +48,8 @@ test.skipIf(!enabled)(
     const hostUserId = `device-guest-host-${suffix}`
     const winnerUserId = `device-guest-winner-${suffix}`
     const otherUserId = `device-guest-other-${suffix}`
+    const formerCreatorUserId = `device-guest-former-creator-${suffix}`
+    const replacementHostUserId = `device-guest-replacement-host-${suffix}`
     const organizationIds = [
       `device-guest-org-main-${suffix}`,
       `device-guest-org-expired-${suffix}`,
@@ -55,6 +57,8 @@ test.skipIf(!enabled)(
       `device-guest-org-collaborator-${suffix}`,
       `device-guest-org-broken-${suffix}`,
       `device-guest-org-closed-${suffix}`,
+      `device-guest-org-demoted-creator-${suffix}`,
+      `device-guest-org-removed-creator-${suffix}`,
     ]
     const organizationId = organizationIds[0]!
     const rootId = crypto.randomUUID()
@@ -63,12 +67,15 @@ test.skipIf(!enabled)(
     const collaboratorEventId = crypto.randomUUID()
     const brokenEventId = crypto.randomUUID()
     const closedEventId = crypto.randomUUID()
+    const creatorPermissionEventIds = [crypto.randomUUID(), crypto.randomUUID()]
     const hostChildId = crypto.randomUUID()
     const guestChildId = crypto.randomUUID()
     const siblingChildId = crypto.randomUUID()
     const guestId = crypto.randomUUID()
     const childGuestId = crypto.randomUUID()
     const wrongProofGuestId = crypto.randomUUID()
+    const retainedGuestId = crypto.randomUUID()
+    const newGuestId = crypto.randomUUID()
     const guestCredential = Buffer.from(crypto.getRandomValues(new Uint8Array(32))).toString(
       'base64url'
     )
@@ -82,6 +89,7 @@ test.skipIf(!enabled)(
       expired: token(),
       revoked: token(),
       collaborator: token(),
+      sameEventPlanning: token(),
       broken: token(),
       child: token(),
       closed: token(),
@@ -93,6 +101,7 @@ test.skipIf(!enabled)(
       collaboratorEventId,
       brokenEventId,
       closedEventId,
+      ...creatorPermissionEventIds,
     ]
     const scopeIds = [rootId, hostChildId, guestChildId, siblingChildId, ...eventIds.slice(1)]
 
@@ -116,6 +125,12 @@ test.skipIf(!enabled)(
           email: `${otherUserId}@example.test`,
           emailVerified: true,
         },
+        ...[formerCreatorUserId, replacementHostUserId].map((id) => ({
+          id,
+          name: 'Link creator permission fixture',
+          email: `${id}@example.test`,
+          emailVerified: true,
+        })),
       ])
       await db.insert(organization).values(
         organizationIds.map((id) => ({
@@ -133,6 +148,8 @@ test.skipIf(!enabled)(
         'Collaborator event',
         'Rollback event',
         'Closed event',
+        'Demoted link creator event',
+        'Removed link creator event',
       ]
       await db.insert(event).values(
         eventIds.map((id, index) => ({
@@ -187,7 +204,14 @@ test.skipIf(!enabled)(
           token: linkTokens.valid,
           role: 'guest',
           createdByUserId: hostUserId,
-          expiresAt: new Date(Date.now() + 86_400_000),
+          expiresAt: null,
+        },
+        {
+          eventId: rootId,
+          token: linkTokens.sameEventPlanning,
+          role: 'collaborator',
+          createdByUserId: hostUserId,
+          expiresAt: null,
         },
         {
           eventId: expiredEventId,
@@ -243,6 +267,30 @@ test.skipIf(!enabled)(
         role: 'host',
         planningPermission: 'manage',
       })
+      // Child admission requires the creator to manage that exact child.
+      await db.insert(eventParticipant).values({
+        eventId: guestChildId,
+        personId: hostPerson!.id,
+        role: 'host',
+        planningPermission: 'manage',
+      })
+      const [brokenHostPerson] = await db
+        .insert(workspacePerson)
+        .values({
+          organizationId: organizationIds[4]!,
+          userId: hostUserId,
+          displayName: 'Rollback event host',
+        })
+        .returning()
+      const [brokenHostParticipation] = await db
+        .insert(eventParticipant)
+        .values({
+          eventId: brokenEventId,
+          personId: brokenHostPerson!.id,
+          role: 'host',
+          planningPermission: 'manage',
+        })
+        .returning()
       const [otherHostPerson] = await db
         .insert(workspacePerson)
         .values({ organizationId, userId: otherUserId, displayName: 'Other account host' })
@@ -352,6 +400,7 @@ test.skipIf(!enabled)(
         linkTokens.expired,
         linkTokens.revoked,
         linkTokens.collaborator,
+        linkTokens.sameEventPlanning,
       ]) {
         expect(
           Exit.isFailure(
@@ -543,7 +592,13 @@ test.skipIf(!enabled)(
         .select({ personId: eventParticipant.personId, role: eventParticipant.role })
         .from(eventParticipant)
         .where(eq(eventParticipant.eventId, guestChildId))
-      expect(mergedParticipation).toEqual([{ personId: otherHostPerson!.id, role: 'guest' }])
+      expect(mergedParticipation).toHaveLength(2)
+      expect(mergedParticipation).toEqual(
+        expect.arrayContaining([
+          { personId: hostPerson!.id, role: 'host' },
+          { personId: otherHostPerson!.id, role: 'guest' },
+        ])
+      )
       const [updatedSnapshot] = await db
         .select({ payload: nativeWorkspaceSnapshot.payload })
         .from(nativeWorkspaceSnapshot)
@@ -575,7 +630,7 @@ test.skipIf(!enabled)(
         .select({ id: eventParticipant.id })
         .from(eventParticipant)
         .where(eq(eventParticipant.eventId, brokenEventId))
-      expect(brokenRows).toHaveLength(0)
+      expect(brokenRows).toEqual([{ id: brokenHostParticipation!.id }])
 
       const [snapshot] = await db
         .select({ payload: nativeWorkspaceSnapshot.payload })
@@ -609,6 +664,188 @@ test.skipIf(!enabled)(
             )
           )
       ).toHaveLength(3)
+
+      // Link admission follows the original creator's current exact-event
+      // rights. Another host's presence does not silently transfer that link.
+      const sharing = await import('@/server/events/repos/event-share-link.repo')
+      await run(
+        repo.registerDeviceGuestProfile({
+          id: retainedGuestId,
+          name: 'Already admitted',
+          credential: guestCredential,
+        })
+      )
+      await run(
+        repo.registerDeviceGuestProfile({
+          id: newGuestId,
+          name: 'New attendee',
+          credential: childGuestCredential,
+        })
+      )
+      for (const [index, permissionEventId] of creatorPermissionEventIds.entries()) {
+        const permissionOrganizationId = organizationIds[6 + index]!
+        const people = await db
+          .insert(workspacePerson)
+          .values([
+            {
+              organizationId: permissionOrganizationId,
+              userId: formerCreatorUserId,
+              displayName: 'Original host',
+            },
+            {
+              organizationId: permissionOrganizationId,
+              userId: replacementHostUserId,
+              displayName: 'Remaining host',
+            },
+          ])
+          .returning()
+        const originalPerson = people.find((person) => person.userId === formerCreatorUserId)!
+        const remainingPerson = people.find((person) => person.userId === replacementHostUserId)!
+        await db.insert(eventParticipant).values(
+          people.map((person) => ({
+            eventId: permissionEventId,
+            personId: person.id,
+            role: 'host' as const,
+            planningPermission: 'manage' as const,
+          }))
+        )
+        await db.insert(nativeWorkspaceSnapshot).values({
+          scopeId: permissionEventId,
+          ownerUserId: formerCreatorUserId,
+          organizationId: permissionOrganizationId,
+          payload: Buffer.from(
+            JSON.stringify({
+              mainEventID: permissionEventId,
+              members: people.map((person) => ({
+                id: person.id,
+                name: person.displayName,
+                userID: person.userId,
+                participantRole: 'host',
+                planningPermission: 'manage',
+              })),
+              eventParticipations: [],
+              mainEventParticipantIDs: people.map((person) => person.id),
+            })
+          ).toString('base64'),
+        })
+        const originalLink = await run(
+          sharing.createEventShareLink(formerCreatorUserId, {
+            eventId: permissionEventId,
+            role: 'guest',
+          })
+        )
+        await run(
+          repo.joinDeviceGuestEvent({
+            guestId: retainedGuestId,
+            credential: guestCredential,
+            token: originalLink.token,
+          })
+        )
+        const [retainedPerson] = await db
+          .select()
+          .from(workspacePerson)
+          .where(
+            and(
+              eq(workspacePerson.organizationId, permissionOrganizationId),
+              eq(workspacePerson.guestProfileId, retainedGuestId)
+            )
+          )
+        const [retainedParticipation] = await db
+          .select()
+          .from(eventParticipant)
+          .where(
+            and(
+              eq(eventParticipant.eventId, permissionEventId),
+              eq(eventParticipant.personId, retainedPerson!.id)
+            )
+          )
+        const originalParticipation = and(
+          eq(eventParticipant.eventId, permissionEventId),
+          eq(eventParticipant.personId, originalPerson.id)
+        )
+        if (index === 0) {
+          await db
+            .update(eventParticipant)
+            .set({ role: 'collaborator', planningPermission: 'view_only' })
+            .where(originalParticipation)
+        } else {
+          await db.delete(eventParticipant).where(originalParticipation)
+        }
+        const beforeDeniedJoin = await db
+          .select()
+          .from(eventParticipant)
+          .where(eq(eventParticipant.eventId, permissionEventId))
+        expect(
+          Exit.isFailure(
+            await runExit(
+              repo.joinDeviceGuestEvent({
+                guestId: newGuestId,
+                credential: childGuestCredential,
+                token: originalLink.token,
+              })
+            )
+          )
+        ).toBe(true)
+        expect(
+          await db
+            .select()
+            .from(eventParticipant)
+            .where(eq(eventParticipant.eventId, permissionEventId))
+        ).toEqual(beforeDeniedJoin)
+        const replacementLink = await run(
+          sharing.createEventShareLink(replacementHostUserId, {
+            eventId: permissionEventId,
+            role: 'guest',
+          })
+        )
+        expect(replacementLink.token).not.toBe(originalLink.token)
+        expect(replacementLink.createdByUserId).toBe(replacementHostUserId)
+        expect(
+          Exit.isFailure(
+            await runExit(
+              repo.joinDeviceGuestEvent({
+                guestId: newGuestId,
+                credential: childGuestCredential,
+                token: originalLink.token,
+              })
+            )
+          )
+        ).toBe(true)
+        expect(
+          await run(
+            repo.joinDeviceGuestEvent({
+              guestId: newGuestId,
+              credential: childGuestCredential,
+              token: replacementLink.token,
+            })
+          )
+        ).toEqual({ eventId: permissionEventId, role: 'guest', status: 'accepted' })
+        expect(
+          await db
+            .select()
+            .from(eventParticipant)
+            .where(
+              and(
+                eq(eventParticipant.eventId, permissionEventId),
+                eq(eventParticipant.personId, retainedPerson!.id)
+              )
+            )
+        ).toEqual([retainedParticipation])
+        expect(
+          await db
+            .select({
+              role: eventParticipant.role,
+              permission: eventParticipant.planningPermission,
+            })
+            .from(eventParticipant)
+            .where(
+              and(
+                eq(eventParticipant.eventId, permissionEventId),
+                eq(eventParticipant.personId, remainingPerson.id)
+              )
+            )
+        ).toEqual([{ role: 'host', permission: 'manage' }])
+      }
     } finally {
       await db.delete(nativeSyncChange).where(inArray(nativeSyncChange.scopeId, scopeIds))
       await db.delete(nativeSyncEntity).where(inArray(nativeSyncEntity.scopeId, scopeIds))
@@ -620,9 +857,27 @@ test.skipIf(!enabled)(
         .where(inArray(eventGuestClaim.guestProfileId, [guestId, childGuestId]))
       await db
         .delete(eventGuestProfile)
-        .where(inArray(eventGuestProfile.id, [guestId, childGuestId, wrongProofGuestId]))
+        .where(
+          inArray(eventGuestProfile.id, [
+            guestId,
+            childGuestId,
+            wrongProofGuestId,
+            retainedGuestId,
+            newGuestId,
+          ])
+        )
       await db.delete(organization).where(inArray(organization.id, organizationIds))
-      await db.delete(user).where(inArray(user.id, [hostUserId, winnerUserId, otherUserId]))
+      await db
+        .delete(user)
+        .where(
+          inArray(user.id, [
+            hostUserId,
+            winnerUserId,
+            otherUserId,
+            formerCreatorUserId,
+            replacementHostUserId,
+          ])
+        )
     }
   }
 )

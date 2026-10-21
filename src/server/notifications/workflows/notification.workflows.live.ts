@@ -1,9 +1,11 @@
 import { Effect } from 'effect'
 import { NotificationDomainLive } from '../notification.layers.live'
 import { NotificationService } from '../services/notification.service'
+import type { NotificationDispatchScope } from '../contracts/notification.contracts'
 import {
   detachNotificationInstallation as detach,
   dispatchPendingNotifications as dispatch,
+  dispatchNotificationsOnce as dispatchOnce,
   registerNotificationInstallation as register,
 } from './notification.workflows'
 
@@ -23,5 +25,10 @@ export const detachNotificationInstallation = (
 
 export const dispatchPendingNotifications = (limit?: number) =>
   Effect.flatMap(NotificationService, (service) => dispatch(service, limit)).pipe(
+    Effect.provide(NotificationDomainLive)
+  )
+
+export const dispatchNotificationsOnce = (scope: NotificationDispatchScope) =>
+  Effect.flatMap(NotificationService, (service) => dispatchOnce(service, scope)).pipe(
     Effect.provide(NotificationDomainLive)
   )

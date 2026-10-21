@@ -460,6 +460,7 @@ const en = {
       'Open Gatherory on your iPhone and refresh to see this event. Guest access is for attending; collaborator access follows the event’s sharing permissions.',
     continue: 'Continue to Gatherory',
     invitedAs: 'You are invited as a {{role}}. This invitation expires {{date}}.',
+    invitedAsNoExpiry: 'You are invited as a {{role}}.',
     collaboratorViewOnly: 'This collaborator link grants view-only access to the event.',
     collaboratorViewOnlyApproval:
       'This collaborator link grants view-only access after the host approves your request.',

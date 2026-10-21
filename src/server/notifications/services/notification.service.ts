@@ -1,6 +1,9 @@
 import { Context, type Effect } from 'effect'
 import type { NotificationRepositoryFailure } from '../repos/notification.repo.contract'
-import type { NotificationIdentity } from '../contracts/notification.contracts'
+import type {
+  NotificationIdentity,
+  NotificationDispatchScope,
+} from '../contracts/notification.contracts'
 import { NotificationConnectorFailure } from '../connectors/notification.con'
 
 export type NotificationServiceShape = {
@@ -27,6 +30,12 @@ export type NotificationServiceShape = {
   >
   readonly dispatchPending: (
     limit?: number
+  ) => Effect.Effect<
+    { claimed: number; delivered: number; pending: number; discarded: number },
+    NotificationRepositoryFailure | NotificationConnectorFailure
+  >
+  readonly dispatchOnce: (
+    scope: NotificationDispatchScope
   ) => Effect.Effect<
     { claimed: number; delivered: number; pending: number; discarded: number },
     NotificationRepositoryFailure | NotificationConnectorFailure

@@ -109,7 +109,12 @@ it('keeps sync route and workflow modules on the transport and Effect boundaries
     const code = source(path)
     expect(code).toMatch(/runServerResponse\s*\(/)
     expect(code).not.toMatch(/tryServerOperation\s*\(/)
-    expect(code).not.toMatch(/from ['"]@\/db(?:['"]|\/)/)
+    // Transport may supply the PgClient runtime; database queries still belong in repos.
+    const withoutRuntimeImport = code.replace(
+      /import\s*\{\s*PgClientLive\s*\}\s*from ['"]@\/db['"]/,
+      ''
+    )
+    expect(withoutRuntimeImport).not.toMatch(/from ['"]@\/db(?:['"]|\/)/)
   }
 
   const workflows = [

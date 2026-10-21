@@ -73,8 +73,10 @@ generic lock-screen text and the recipient/access checks are still necessary.
 5. Assign an unfinished To-do to the second planner or change the shared event's
    location/time. Let the existing offline outbox sync successfully. Run the
    explicit `pnpm notifications:dispatch` command against that
-   configured environment. For this proof of concept dispatch is manual; no
-   scheduler or deployed worker is enabled.
+   configured environment. That was the initial proof-of-concept procedure.
+   The current [V1 best-effort flow](04-best-effort-delivery.md) attempts delivery
+   after saving, without this command or a worker. Retry scheduling is retained
+   for later, disabled.
 6. Confirm generic localized content, tap to refresh/open the authorized event
    or To-do list, then test revocation, completion/reassignment, identity changes,
    logout, and guest-to-account claim before dispatch and before tapping.

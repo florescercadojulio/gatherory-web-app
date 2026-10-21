@@ -2,7 +2,13 @@ import { Context, type Effect } from 'effect'
 import type { EffectDrizzleQueryError } from 'drizzle-orm/effect-core'
 import type { SqlError } from 'effect/unstable/sql/SqlError'
 import type { DomainError } from '@/lib/domain-errors'
-import type { ClaimedNotification, NotificationIdentity } from '../contracts/notification.contracts'
+import type {
+  ClaimedNotification,
+  NotificationIdentity,
+  NotificationDispatchScope,
+} from '../contracts/notification.contracts'
+
+export type NotificationClaimOptions = { scope: NotificationDispatchScope; freshOnly: true }
 
 export type NotificationRepositoryShape = {
   readonly register: (input: {
@@ -27,8 +33,12 @@ export type NotificationRepositoryShape = {
     NotificationRepositoryFailure
   >
   readonly claimPending: (
-    limit?: number
+    limit?: number,
+    options?: NotificationClaimOptions
   ) => Effect.Effect<ClaimedNotification[], NotificationRepositoryFailure>
+  readonly discardFresh: (
+    scope: NotificationDispatchScope
+  ) => Effect.Effect<number, NotificationRepositoryFailure>
   readonly isStillBound: (
     item: ClaimedNotification,
     installation: ClaimedNotification['installations'][number]
@@ -39,7 +49,8 @@ export type NotificationRepositoryShape = {
   readonly retry: (
     item: ClaimedNotification,
     reason: string,
-    discard?: boolean
+    discard?: boolean,
+    retryAfterMs?: number
   ) => Effect.Effect<void, NotificationRepositoryFailure>
   readonly markInstallationAccepted: (
     item: ClaimedNotification,

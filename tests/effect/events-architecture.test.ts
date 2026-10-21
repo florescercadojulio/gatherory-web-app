@@ -32,6 +32,7 @@ it.effect('EventSharingServiceLive delegates preview through the injected reposi
       token === 'share-token' ? Effect.succeed(preview) : Effect.succeed(null),
     accept: () => Effect.die('not used by this test'),
     listJoinRequests: () => Effect.die('not used by this test'),
+    listActiveLinks: () => Effect.die('not used by this test'),
     reviewJoinRequest: () => Effect.die('not used by this test'),
   } satisfies EventSharingRepoShape
   const repoLayer = Layer.succeed(EventSharingRepo, repo)

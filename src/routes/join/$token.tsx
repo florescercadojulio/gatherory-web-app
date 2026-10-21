@@ -99,7 +99,7 @@ function JoinInvitation() {
   const invitationState = getInvitationDisplayState(invitation?.status, localAcceptanceStatus)
   const valid = z.uuid().safeParse(token).success
   const continuation = valid ? invitationPath(token) : '/'
-  const expired = invitation ? new Date(invitation.expiresAt) <= new Date() : false
+  const expired = invitation?.expiresAt ? new Date(invitation.expiresAt) <= new Date() : false
   const requiresApproval =
     !!invitation && 'requiresApproval' in invitation && invitation.requiresApproval === true
   const planningPermission =
@@ -212,10 +212,14 @@ function JoinInvitation() {
         ) : (
           <>
             <p className="text-muted-foreground">
-              {t('invitation.invitedAs', {
-                role: roleLabel(t, invitation.role),
-                date: new Date(invitation.expiresAt).toLocaleDateString(i18n.language),
-              })}
+              {invitation.expiresAt
+                ? t('invitation.invitedAs', {
+                    role: roleLabel(t, invitation.role),
+                    date: new Date(invitation.expiresAt).toLocaleDateString(i18n.language),
+                  })
+                : t('invitation.invitedAsNoExpiry', {
+                    role: roleLabel(t, invitation.role),
+                  })}
             </p>
             {shared && invitation.role === 'collaborator' && (
               <p>

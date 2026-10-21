@@ -15,3 +15,10 @@ See [the FCM proof of concept](01-fcm-proof-of-concept.md) for configuration,
 test evidence, and the remaining device/deployment checks. Nothing in this slice
 is deployed. Real delivery requires an explicitly configured Firebase project
 and Apple push credentials; the default mobile build keeps this feature off.
+
+[Best-effort delivery](04-best-effort-delivery.md) is the current V1 policy:
+attempt a push once after a change commits, with no scheduled retries or
+catch-up delivery. Missing a push never removes the saved event, task or update.
+The earlier [retry infrastructure](03-automatic-dispatch.md) is retained for
+later use, disabled, and no cron schedule is configured. No commit or deployment
+was performed for these slices.

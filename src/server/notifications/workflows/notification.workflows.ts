@@ -1,4 +1,5 @@
 import type { NotificationServiceShape } from '../services/notification.service'
+import type { NotificationDispatchScope } from '../contracts/notification.contracts'
 
 export const registerNotificationInstallation = (
   service: NotificationServiceShape,
@@ -12,3 +13,8 @@ export const detachNotificationInstallation = (
 
 export const dispatchPendingNotifications = (service: NotificationServiceShape, limit?: number) =>
   service.dispatchPending(limit)
+
+export const dispatchNotificationsOnce = (
+  service: NotificationServiceShape,
+  scope: NotificationDispatchScope
+) => service.dispatchOnce(scope)

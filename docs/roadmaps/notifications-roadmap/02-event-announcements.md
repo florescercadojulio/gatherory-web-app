@@ -157,6 +157,8 @@ Physical-device acceptance remains:
 5. Check English/Spanish, larger text, VoiceOver, haptic feedback, and offline
    failure wording. Confirm notes and ordinary sync continue working.
 
-Production dispatcher scheduling, production APNs acceptance, broader delivery
-operations and rollout remain separate release work. No social features,
+The current [best-effort delivery policy](04-best-effort-delivery.md) attempts
+delivery once after sending. The [retry dispatcher](03-automatic-dispatch.md)
+and worker remain disabled for later; no cron is configured. Production APNs
+acceptance and rollout remain separate release work. No social features,
 personal reminders, browser expansion or billing are added.

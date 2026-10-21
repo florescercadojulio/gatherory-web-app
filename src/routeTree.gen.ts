@@ -53,6 +53,7 @@ import { Route as ProtectedWorkspacesWorkspaceSlugIndexRouteImport } from './rou
 import { Route as ApiBlueprintsInstallationsRequestIdRouteImport } from './routes/api/blueprints/installations/$requestId'
 import { Route as ApiBlueprintsSharedTokenRouteImport } from './routes/api/blueprints/shared/$token'
 import { Route as ApiEventsEventIdAnnouncementsRouteImport } from './routes/api/events/$eventId/announcements'
+import { Route as ApiInternalNotificationsDispatchRouteImport } from './routes/api/internal/notifications/dispatch'
 import { Route as ApiMediaNativeFinalizeRouteImport } from './routes/api/media/native/finalize'
 import { Route as ApiMediaNativePrepareRouteImport } from './routes/api/media/native/prepare'
 import { Route as ApiMediaNativeUrlRouteImport } from './routes/api/media/native/url'
@@ -291,6 +292,12 @@ const ApiEventsEventIdAnnouncementsRoute =
     path: '/api/events/$eventId/announcements',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiInternalNotificationsDispatchRoute =
+  ApiInternalNotificationsDispatchRouteImport.update({
+    id: '/api/internal/notifications/dispatch',
+    path: '/api/internal/notifications/dispatch',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiMediaNativeFinalizeRoute = ApiMediaNativeFinalizeRouteImport.update({
   id: '/api/media/native/finalize',
   path: '/api/media/native/finalize',
@@ -359,6 +366,7 @@ export interface FileRoutesByFullPath {
   '/api/blueprints/installations/$requestId': typeof ApiBlueprintsInstallationsRequestIdRoute
   '/api/blueprints/shared/$token': typeof ApiBlueprintsSharedTokenRoute
   '/api/events/$eventId/announcements': typeof ApiEventsEventIdAnnouncementsRoute
+  '/api/internal/notifications/dispatch': typeof ApiInternalNotificationsDispatchRoute
   '/api/media/native/finalize': typeof ApiMediaNativeFinalizeRoute
   '/api/media/native/prepare': typeof ApiMediaNativePrepareRoute
   '/api/media/native/url': typeof ApiMediaNativeUrlRoute
@@ -408,6 +416,7 @@ export interface FileRoutesByTo {
   '/api/blueprints/installations/$requestId': typeof ApiBlueprintsInstallationsRequestIdRoute
   '/api/blueprints/shared/$token': typeof ApiBlueprintsSharedTokenRoute
   '/api/events/$eventId/announcements': typeof ApiEventsEventIdAnnouncementsRoute
+  '/api/internal/notifications/dispatch': typeof ApiInternalNotificationsDispatchRoute
   '/api/media/native/finalize': typeof ApiMediaNativeFinalizeRoute
   '/api/media/native/prepare': typeof ApiMediaNativePrepareRoute
   '/api/media/native/url': typeof ApiMediaNativeUrlRoute
@@ -460,6 +469,7 @@ export interface FileRoutesById {
   '/api/blueprints/installations/$requestId': typeof ApiBlueprintsInstallationsRequestIdRoute
   '/api/blueprints/shared/$token': typeof ApiBlueprintsSharedTokenRoute
   '/api/events/$eventId/announcements': typeof ApiEventsEventIdAnnouncementsRoute
+  '/api/internal/notifications/dispatch': typeof ApiInternalNotificationsDispatchRoute
   '/api/media/native/finalize': typeof ApiMediaNativeFinalizeRoute
   '/api/media/native/prepare': typeof ApiMediaNativePrepareRoute
   '/api/media/native/url': typeof ApiMediaNativeUrlRoute
@@ -512,6 +522,7 @@ export interface FileRouteTypes {
     | '/api/blueprints/installations/$requestId'
     | '/api/blueprints/shared/$token'
     | '/api/events/$eventId/announcements'
+    | '/api/internal/notifications/dispatch'
     | '/api/media/native/finalize'
     | '/api/media/native/prepare'
     | '/api/media/native/url'
@@ -561,6 +572,7 @@ export interface FileRouteTypes {
     | '/api/blueprints/installations/$requestId'
     | '/api/blueprints/shared/$token'
     | '/api/events/$eventId/announcements'
+    | '/api/internal/notifications/dispatch'
     | '/api/media/native/finalize'
     | '/api/media/native/prepare'
     | '/api/media/native/url'
@@ -612,6 +624,7 @@ export interface FileRouteTypes {
     | '/api/blueprints/installations/$requestId'
     | '/api/blueprints/shared/$token'
     | '/api/events/$eventId/announcements'
+    | '/api/internal/notifications/dispatch'
     | '/api/media/native/finalize'
     | '/api/media/native/prepare'
     | '/api/media/native/url'
@@ -658,6 +671,7 @@ export interface RootRouteChildren {
   ApiBlueprintsInstallationsRequestIdRoute: typeof ApiBlueprintsInstallationsRequestIdRoute
   ApiBlueprintsSharedTokenRoute: typeof ApiBlueprintsSharedTokenRoute
   ApiEventsEventIdAnnouncementsRoute: typeof ApiEventsEventIdAnnouncementsRoute
+  ApiInternalNotificationsDispatchRoute: typeof ApiInternalNotificationsDispatchRoute
   ApiMediaNativeFinalizeRoute: typeof ApiMediaNativeFinalizeRoute
   ApiMediaNativePrepareRoute: typeof ApiMediaNativePrepareRoute
   ApiMediaNativeUrlRoute: typeof ApiMediaNativeUrlRoute
@@ -974,6 +988,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiEventsEventIdAnnouncementsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/internal/notifications/dispatch': {
+      id: '/api/internal/notifications/dispatch'
+      path: '/api/internal/notifications/dispatch'
+      fullPath: '/api/internal/notifications/dispatch'
+      preLoaderRoute: typeof ApiInternalNotificationsDispatchRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/media/native/finalize': {
       id: '/api/media/native/finalize'
       path: '/api/media/native/finalize'
@@ -1117,6 +1138,7 @@ const rootRouteChildren: RootRouteChildren = {
     ApiBlueprintsInstallationsRequestIdRoute,
   ApiBlueprintsSharedTokenRoute: ApiBlueprintsSharedTokenRoute,
   ApiEventsEventIdAnnouncementsRoute: ApiEventsEventIdAnnouncementsRoute,
+  ApiInternalNotificationsDispatchRoute: ApiInternalNotificationsDispatchRoute,
   ApiMediaNativeFinalizeRoute: ApiMediaNativeFinalizeRoute,
   ApiMediaNativePrepareRoute: ApiMediaNativePrepareRoute,
   ApiMediaNativeUrlRoute: ApiMediaNativeUrlRoute,

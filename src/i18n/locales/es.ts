@@ -62,6 +62,7 @@ const es = {
       'Abre Gatherory en tu iPhone y actualiza para ver este evento. El acceso de invitado es para asistir; el acceso de colaborador depende de los permisos para compartir del evento.',
     continue: 'Continuar a Gatherory',
     invitedAs: 'Te invitaron como {{role}}. Esta invitación vence el {{date}}.',
+    invitedAsNoExpiry: 'Te invitaron como {{role}}.',
     collaboratorViewOnly: 'Este enlace de colaborador permite ver el evento.',
     collaboratorViewOnlyApproval:
       'Este enlace de colaborador permite ver el evento cuando el anfitrión apruebe tu solicitud.',

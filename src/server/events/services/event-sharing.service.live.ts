@@ -13,6 +13,7 @@ export const EventSharingServiceLive = Layer.effect(
       preview: repo.preview,
       accept: repo.accept,
       listJoinRequests: repo.listJoinRequests,
+      listActiveLinks: repo.listActiveLinks,
       reviewJoinRequest: repo.reviewJoinRequest,
     }
   })

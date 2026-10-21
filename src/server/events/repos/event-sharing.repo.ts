@@ -4,6 +4,7 @@ import type {
   createEventShareLink,
   getEventIdForShareLink,
   listEventJoinRequests,
+  listActiveEventShareLinks,
   previewEventShareLink,
   revokeEventShareLink,
   reviewEventJoinRequest,
@@ -22,6 +23,7 @@ export type EventSharingRepoShape = {
   readonly preview: NeedsPg<typeof previewEventShareLink>
   readonly accept: NeedsPg<typeof acceptEventShareLink>
   readonly listJoinRequests: NeedsPg<typeof listEventJoinRequests>
+  readonly listActiveLinks: NeedsPg<typeof listActiveEventShareLinks>
   readonly reviewJoinRequest: NeedsPg<typeof reviewEventJoinRequest>
 }
 

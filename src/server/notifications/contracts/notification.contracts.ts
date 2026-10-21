@@ -18,6 +18,9 @@ export const NotificationInstallationDetachSchema = z.object({
 
 export type NotificationInstallationInput = z.infer<typeof NotificationInstallationInputSchema>
 export type NotificationIdentity = { kind: 'user' | 'device_guest'; id: string }
+/** Internal post-commit selectors; never accepted from a delivery HTTP request. */
+export type NotificationDispatchScope =
+  { kind: 'mutations'; mutationIds: string[] } | { kind: 'announcement'; announcementId: string }
 export type NotificationType = 'assignment_changed' | 'event_changed' | 'event_announcement'
 export type NativeNotificationPayload = {
   type: NotificationType

@@ -28,6 +28,7 @@
     "db:materialize-native": "tsx scripts/materialize-native-sync.ts",
     "db:materialize-native:local": "dotenv run -f .env.local -- pnpm db:materialize-native",
     "notifications:dispatch": "tsx scripts/dispatch-native-notifications.ts",
+    "notifications:worker": "tsx scripts/notification-worker.ts",
     "db:push": "drizzle-kit push",
     "db:reset": "dotenv run -f .env.local -- tsx scripts/reset-database.ts",
     "db:reset:neon": "tsx scripts/reset-neon-database.ts",

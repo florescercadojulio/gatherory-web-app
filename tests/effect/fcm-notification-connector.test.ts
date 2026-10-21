@@ -1,6 +1,6 @@
 import { generateKeyPairSync } from 'node:crypto'
 import { expect, it } from '@effect/vitest'
-import { Effect, Exit } from 'effect'
+import { Effect, Exit, Fiber } from 'effect'
 import { createFcmNotificationConnector } from '@/server/notifications/connectors/fcm-notification.con.live'
 
 it.effect(
@@ -29,6 +29,7 @@ it.effect(
 
     return Effect.gen(function* () {
       yield* connector.send({
+        deliveryId: 'outbox-opaque-id',
         token: 'device-token-secret',
         payload: {
           type: 'event_changed',
@@ -54,7 +55,10 @@ it.effect(
         entityId: 'entity-opaque',
         recipientKind: 'device_guest',
         recipientId: 'guest-opaque',
+        notificationId: 'outbox-opaque-id',
       })
+      expect(body.message.apns.headers).toEqual({ 'apns-collapse-id': 'outbox-opaque-id' })
+      expect(body.message.android).toEqual({ collapse_key: 'outbox-opaque-id' })
       expect(
         JSON.stringify({ notification: body.message.notification, data: body.message.data })
       ).not.toContain('device-token-secret')
@@ -143,58 +147,55 @@ it.effect('classifies only confirmed UNREGISTERED as an invalid registration', (
             reason._tag === 'Fail' &&
             reason.error instanceof Error &&
             'kind' in reason.error &&
-            reason.error.kind === 'transient'
+            reason.error.kind === 'invalid_payload'
         )
     ).toBe(true)
   })
 })
 
-it.effect(
-  'treats rejected credentials as permanent and provider throttling/outages as transient',
-  () => {
-    const { privateKey } = generateKeyPairSync('rsa', { modulusLength: 2048 })
-    const key = privateKey.export({ type: 'pkcs8', format: 'pem' }).toString()
-    const failureKind = async (status: number) => {
-      let fcm = false
-      const fetcher: typeof fetch = async (input) => {
-        if (!String(input).includes('oauth2.googleapis.com')) {
-          fcm = true
-          return Response.json({ error: { status: 'UNAVAILABLE' } }, { status })
-        }
-        return Response.json({ access_token: 'oauth-test-token' })
+it.effect('classifies rejected credentials separately from provider throttling and outages', () => {
+  const { privateKey } = generateKeyPairSync('rsa', { modulusLength: 2048 })
+  const key = privateKey.export({ type: 'pkcs8', format: 'pem' }).toString()
+  const failureKind = async (status: number) => {
+    let fcm = false
+    const fetcher: typeof fetch = async (input) => {
+      if (!String(input).includes('oauth2.googleapis.com')) {
+        fcm = true
+        return Response.json({ error: { status: 'UNAVAILABLE' } }, { status })
       }
-      const connector = createFcmNotificationConnector(
-        { projectId: 'test', clientEmail: 'test@example.test', privateKey: key },
-        fetcher
-      )
-      const exit = await Effect.runPromiseExit(
-        connector.send({
-          token: 'token',
-          payload: {
-            type: 'event_changed',
-            eventId: 'e',
-            entityId: 'e',
-            recipientKind: 'user',
-            recipientId: 'u',
-            title: 'Gatherory',
-            body: 'Event details changed.',
-          },
-        })
-      )
-      expect(fcm).toBe(true)
-      if (!Exit.isFailure(exit)) return 'success'
-      const failure = exit.cause.reasons.find((reason) => reason._tag === 'Fail')
-      return failure?._tag === 'Fail' && failure.error instanceof Error && 'kind' in failure.error
-        ? failure.error.kind
-        : 'unknown'
+      return Response.json({ access_token: 'oauth-test-token' })
     }
-    return Effect.promise(async () => {
-      expect(await failureKind(401)).toBe('credentials')
-      expect(await failureKind(429)).toBe('transient')
-      expect(await failureKind(503)).toBe('transient')
-    })
+    const connector = createFcmNotificationConnector(
+      { projectId: 'test', clientEmail: 'test@example.test', privateKey: key },
+      fetcher
+    )
+    const exit = await Effect.runPromiseExit(
+      connector.send({
+        token: 'token',
+        payload: {
+          type: 'event_changed',
+          eventId: 'e',
+          entityId: 'e',
+          recipientKind: 'user',
+          recipientId: 'u',
+          title: 'Gatherory',
+          body: 'Event details changed.',
+        },
+      })
+    )
+    expect(fcm).toBe(true)
+    if (!Exit.isFailure(exit)) return 'success'
+    const failure = exit.cause.reasons.find((reason) => reason._tag === 'Fail')
+    return failure?._tag === 'Fail' && failure.error instanceof Error && 'kind' in failure.error
+      ? failure.error.kind
+      : 'unknown'
   }
-)
+  return Effect.promise(async () => {
+    expect(await failureKind(401)).toBe('credentials')
+    expect(await failureKind(429)).toBe('transient')
+    expect(await failureKind(503)).toBe('transient')
+  })
+})
 
 it.effect(
   'rejects malformed service credentials before fetching and configures bounded no-redirect requests',
@@ -297,3 +298,101 @@ it.effect(
     })
   }
 )
+
+const testPayload = {
+  type: 'event_changed',
+  eventId: 'event',
+  entityId: 'entity',
+  recipientKind: 'user',
+  recipientId: 'recipient',
+  title: 'Gatherory',
+  body: 'Event details changed.',
+} as const
+
+for (const [status, retryAfter, expected] of [
+  [429, '7200', 7_200_000],
+  [503, 'Wed, 21 Oct 2026 12:02:00 GMT', 120_000],
+  [429, undefined, 60_000],
+  [503, 'invalid', undefined],
+] as const) {
+  it.effect(`preserves Retry-After ${retryAfter ?? 'default'} for ${status}`, () => {
+    const { privateKey } = generateKeyPairSync('rsa', { modulusLength: 2048 })
+    const connector = createFcmNotificationConnector(
+      {
+        projectId: 'test',
+        clientEmail: 'test@example.test',
+        privateKey: privateKey.export({ type: 'pkcs8', format: 'pem' }).toString(),
+      },
+      async (input) =>
+        String(input).includes('oauth2.googleapis.com')
+          ? Response.json({ access_token: 'oauth-token' })
+          : Response.json({}, { status, headers: retryAfter ? { 'retry-after': retryAfter } : {} }),
+      () => Date.parse('2026-10-21T12:00:00Z')
+    )
+    return Effect.gen(function* () {
+      const failure = yield* Effect.flip(connector.send({ token: 'token', payload: testPayload }))
+      expect(failure.kind).toBe('transient')
+      expect(failure.retryAfterMs).toBe(expected)
+    })
+  })
+}
+
+for (const phase of ['oauth', 'send'] as const) {
+  it.effect(`aborts the active ${phase} fetch when the delivery Effect is interrupted`, () => {
+    const { privateKey } = generateKeyPairSync('rsa', { modulusLength: 2048 })
+    let signal: AbortSignal | undefined
+    let started!: () => void
+    const ready = new Promise<void>((resolve) => {
+      started = resolve
+    })
+    const connector = createFcmNotificationConnector(
+      {
+        projectId: 'test',
+        clientEmail: 'test@example.test',
+        privateKey: privateKey.export({ type: 'pkcs8', format: 'pem' }).toString(),
+      },
+      async (input, init) => {
+        if (phase === 'send' && String(input).includes('oauth2.googleapis.com')) {
+          return Response.json({ access_token: 'oauth-token' })
+        }
+        signal = init?.signal ?? undefined
+        started()
+        return new Promise<Response>((_resolve, reject) => {
+          signal?.addEventListener('abort', () => reject(new Error('private transport detail')), {
+            once: true,
+          })
+        })
+      }
+    )
+    return Effect.gen(function* () {
+      const fiber = yield* Effect.forkChild(
+        connector.send({ token: 'token', payload: testPayload })
+      )
+      yield* Effect.promise(() => ready)
+      expect(signal?.aborted).toBe(false)
+      yield* Fiber.interrupt(fiber)
+      expect(signal?.aborted).toBe(true)
+    })
+  })
+}
+
+it.effect('propagates OAuth throttling delays without exposing response secrets', () => {
+  const { privateKey } = generateKeyPairSync('rsa', { modulusLength: 2048 })
+  const connector = createFcmNotificationConnector(
+    {
+      projectId: 'test',
+      clientEmail: 'test@example.test',
+      privateKey: privateKey.export({ type: 'pkcs8', format: 'pem' }).toString(),
+    },
+    async () =>
+      Response.json(
+        { secret: 'private OAuth detail' },
+        { status: 429, headers: { 'retry-after': '180' } }
+      )
+  )
+  return Effect.gen(function* () {
+    const failure = yield* Effect.flip(connector.send({ token: 'token', payload: testPayload }))
+    expect(failure).toMatchObject({ kind: 'transient', retryAfterMs: 180_000 })
+    expect(failure.message).not.toContain('private OAuth detail')
+  })
+})

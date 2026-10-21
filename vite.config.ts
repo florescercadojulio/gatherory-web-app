@@ -39,7 +39,14 @@ const config = defineConfig(({ mode }) => {
     },
     plugins: [
       devtools(),
-      nitro({ rollupConfig: { external: [/^@sentry\//] } }),
+      nitro({
+        rollupConfig: { external: [/^@sentry\//] },
+        vercel: {
+          functionRules: {
+            '/api/internal/notifications/dispatch': { maxDuration: 60 },
+          },
+        },
+      }),
       tailwindcss(),
       tanstackStart(),
       viteReact(),

@@ -1,5 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { Effect } from 'effect'
+import { PgClientLive } from '@/db'
 import { InvalidInputError, runServerResponse } from '@/server/effect-utils'
 import { requestJson, requestUser } from '@/server/http-errors'
 import { pushRequestSchema } from '@/server/sync/contracts/native-sync.contracts'
@@ -39,7 +40,7 @@ export const Route = createFileRoute('/api/sync/push')({
               supportsBlueprintGuides: hasBlueprintGuidesCapability(request.headers),
               supportsTodos: hasTodosCapability(request.headers),
             })
-          }),
+          }).pipe(Effect.provide(PgClientLive)),
           {
             headers: request.headers,
             operation: 'sync.push',

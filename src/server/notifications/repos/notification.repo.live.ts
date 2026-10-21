@@ -6,7 +6,7 @@ import {
   randomUUID,
   timingSafeEqual,
 } from 'node:crypto'
-import { and, asc, eq, isNotNull, isNull, lte, or, sql } from 'drizzle-orm'
+import { and, asc, eq, gt, gte, inArray, isNotNull, isNull, lt, lte, or, sql } from 'drizzle-orm'
 import { Effect } from 'effect'
 import { DB } from '@/db'
 import {
@@ -26,8 +26,20 @@ import { ConflictError, ForbiddenError, InvalidInputError } from '@/server/effec
 import type {
   ClaimedNotification,
   NotificationIdentity,
+  NotificationDispatchScope,
   NotificationType,
 } from '../contracts/notification.contracts'
+import type { NotificationClaimOptions } from './notification.repo.contract'
+
+import {
+  NOTIFICATION_LEASE_MS,
+  NOTIFICATION_MAX_AGE_MS,
+  NOTIFICATION_MAX_ATTEMPTS,
+  notificationIntentExpired,
+  notificationRetryAt,
+  sanitizeNotificationFailure,
+  validNotificationClaimLimit,
+} from '../services/notification-delivery-policy'
 
 const hash = (value: string) => createHash('sha256').update(value).digest('hex')
 // Tokens use the existing app secret to avoid a second secret store; rotate by re-registering devices.
@@ -54,6 +66,20 @@ const sameHash = (left: string, right: string) => {
 type DrizzleDatabase = Effect.Success<typeof DB>
 type NotificationTransaction = Parameters<Parameters<DrizzleDatabase['transaction']>[0]>[0]
 type NotificationExecutor = DrizzleDatabase | NotificationTransaction
+
+function notificationScopeWhere(scope: NotificationDispatchScope) {
+  return scope.kind === 'announcement'
+    ? and(
+        eq(nativeNotificationOutbox.type, 'event_announcement'),
+        eq(nativeNotificationOutbox.entityId, scope.announcementId)
+      )
+    : and(
+        sql`${nativeNotificationOutbox.type} <> 'event_announcement'`,
+        scope.mutationIds.length > 0
+          ? inArray(nativeNotificationOutbox.mutationId, scope.mutationIds)
+          : sql`false`
+      )
+}
 
 function recipientEligible(
   executor: NotificationExecutor,
@@ -337,9 +363,9 @@ export const notificationRepo = {
     })
   },
 
-  claimPending(limit = 20) {
+  claimPending(limit = 20, options?: NotificationClaimOptions) {
     return Effect.gen(function* () {
-      if (!Number.isInteger(limit) || limit < 1 || limit > 100) {
+      if (!validNotificationClaimLimit(limit)) {
         return yield* Effect.fail(
           new InvalidInputError({
             category: 'validation',
@@ -351,102 +377,196 @@ export const notificationRepo = {
       const database = yield* DB
       return yield* database.transaction((tx) =>
         Effect.gen(function* () {
-          const now = new Date()
-          const rows = yield* tx
-            .select()
-            .from(nativeNotificationOutbox)
-            .where(
-              and(
-                or(
-                  eq(nativeNotificationOutbox.state, 'pending'),
-                  and(
-                    eq(nativeNotificationOutbox.state, 'leased'),
+          const [clock] = yield* tx
+            .select({
+              now: sql<number>`(extract(epoch from clock_timestamp()) * 1000)::double precision`,
+            })
+            .from(sql`(select 1) as notification_clock`)
+          const now = new Date(clock!.now)
+          // Never sweep an active owner. Bounded SKIP LOCKED cleanup also expires
+          // rows whose next retry was scheduled beyond the intent lifetime.
+          const available = options
+            ? and(
+                eq(nativeNotificationOutbox.state, 'pending'),
+                eq(nativeNotificationOutbox.attempts, 0),
+                notificationScopeWhere(options.scope)
+              )
+            : or(
+                eq(nativeNotificationOutbox.state, 'pending'),
+                and(
+                  eq(nativeNotificationOutbox.state, 'leased'),
+                  or(
+                    isNull(nativeNotificationOutbox.leaseUntil),
+                    isNull(nativeNotificationOutbox.leaseKey),
                     lte(nativeNotificationOutbox.leaseUntil, now)
                   )
-                ),
-                lte(nativeNotificationOutbox.nextAttemptAt, now)
+                )
               )
-            )
-            .orderBy(asc(nativeNotificationOutbox.createdAt))
-            .limit(limit)
-            .for('update', { skipLocked: true })
-          const claimed: ClaimedNotification[] = []
-          for (const row of rows) {
-            const leaseKey = randomUUID()
+          const oldestAllowed = new Date(now.getTime() - NOTIFICATION_MAX_AGE_MS)
+          const terminalRows = options
+            ? []
+            : yield* tx
+                .select({ id: nativeNotificationOutbox.id })
+                .from(nativeNotificationOutbox)
+                .where(
+                  and(
+                    available,
+                    or(
+                      gte(nativeNotificationOutbox.attempts, NOTIFICATION_MAX_ATTEMPTS),
+                      lte(nativeNotificationOutbox.createdAt, oldestAllowed)
+                    )
+                  )
+                )
+                .orderBy(asc(nativeNotificationOutbox.createdAt))
+                .limit(100)
+                .for('update', { skipLocked: true })
+          if (terminalRows.length > 0) {
             yield* tx
               .update(nativeNotificationOutbox)
               .set({
-                state: 'leased',
-                leaseUntil: new Date(Date.now() + 10 * 60_000),
-                leaseKey,
-                attempts: row.attempts + 1,
+                state: 'discarded',
+                leaseKey: null,
+                leaseUntil: null,
+                lastFailure: 'retry_exhausted',
               })
-              .where(eq(nativeNotificationOutbox.id, row.id))
-            const recipient = {
-              kind: row.recipientKind,
-              id: row.recipientId,
-            } satisfies NotificationIdentity
-            if (!(yield* recipientEligible(tx, row.eventId, row.entityId, recipient, row.type))) {
-              yield* tx
-                .update(nativeNotificationOutbox)
-                .set({ state: 'discarded', leaseKey: null, leaseUntil: null })
-                .where(eq(nativeNotificationOutbox.id, row.id))
-              continue
-            }
-            const installs = yield* tx
-              .select()
-              .from(notificationInstallation)
               .where(
-                and(
-                  eq(notificationInstallation.recipientKind, row.recipientKind),
-                  eq(notificationInstallation.recipientId, row.recipientId),
-                  eq(notificationInstallation.enabled, true),
-                  isNull(notificationInstallation.detachedAt),
-                  isNotNull(notificationInstallation.tokenHash),
-                  isNotNull(notificationInstallation.tokenCiphertext)
+                inArray(
+                  nativeNotificationOutbox.id,
+                  terminalRows.map((row) => row.id)
                 )
               )
-            const installationsWithTokens = []
-            for (const install of installs) {
-              if (!install.tokenHash || !install.tokenCiphertext) continue
-              try {
-                installationsWithTokens.push({
-                  id: install.id,
-                  generation: install.bindingGeneration,
-                  revision: install.revision,
-                  tokenHash: install.tokenHash,
-                  locale: install.locale as 'en' | 'es',
-                  token: decryptToken(install.tokenCiphertext),
-                })
-              } catch {
-                // A damaged ciphertext must not crash the worker or be logged. Disable only
-                // the exact revision so a concurrent token refresh remains usable.
+          }
+          const claimed: ClaimedNotification[] = []
+          let scanned = 0
+          // Fetch only unfilled slots so competing workers can lock other work.
+          // Revoked heads are discarded and the bounded scan continues behind them.
+          while (claimed.length < limit && scanned < 100) {
+            const rows = yield* tx
+              .select()
+              .from(nativeNotificationOutbox)
+              .where(
+                and(
+                  available,
+                  lt(nativeNotificationOutbox.attempts, NOTIFICATION_MAX_ATTEMPTS),
+                  gt(nativeNotificationOutbox.createdAt, oldestAllowed),
+                  lte(nativeNotificationOutbox.nextAttemptAt, now)
+                )
+              )
+              .orderBy(asc(nativeNotificationOutbox.createdAt))
+              .limit(Math.min(limit - claimed.length, 100 - scanned))
+              .for('update', { skipLocked: true })
+            if (rows.length === 0) break
+            for (const row of rows) {
+              scanned += 1
+              const leaseKey = randomUUID()
+              const recipient = {
+                kind: row.recipientKind,
+                id: row.recipientId,
+              } satisfies NotificationIdentity
+              if (!(yield* recipientEligible(tx, row.eventId, row.entityId, recipient, row.type))) {
                 yield* tx
-                  .update(notificationInstallation)
-                  .set({ enabled: false, detachedAt: new Date(), updatedAt: new Date() })
-                  .where(
-                    and(
-                      eq(notificationInstallation.id, install.id),
-                      eq(notificationInstallation.revision, install.revision),
-                      eq(notificationInstallation.tokenHash, install.tokenHash)
-                    )
-                  )
+                  .update(nativeNotificationOutbox)
+                  .set({ state: 'discarded', leaseKey: null, leaseUntil: null })
+                  .where(eq(nativeNotificationOutbox.id, row.id))
+                continue
               }
+              yield* tx
+                .update(nativeNotificationOutbox)
+                .set({
+                  state: 'leased',
+                  leaseUntil: new Date(now.getTime() + NOTIFICATION_LEASE_MS),
+                  leaseKey,
+                  attempts: row.attempts + 1,
+                })
+                .where(eq(nativeNotificationOutbox.id, row.id))
+              const installs = yield* tx
+                .select()
+                .from(notificationInstallation)
+                .where(
+                  and(
+                    eq(notificationInstallation.recipientKind, row.recipientKind),
+                    eq(notificationInstallation.recipientId, row.recipientId),
+                    eq(notificationInstallation.enabled, true),
+                    isNull(notificationInstallation.detachedAt),
+                    isNotNull(notificationInstallation.tokenHash),
+                    isNotNull(notificationInstallation.tokenCiphertext)
+                  )
+                )
+              const installationsWithTokens = []
+              for (const install of installs) {
+                if (!install.tokenHash || !install.tokenCiphertext) continue
+                try {
+                  installationsWithTokens.push({
+                    id: install.id,
+                    generation: install.bindingGeneration,
+                    revision: install.revision,
+                    tokenHash: install.tokenHash,
+                    locale: install.locale as 'en' | 'es',
+                    token: decryptToken(install.tokenCiphertext),
+                  })
+                } catch {
+                  // A damaged ciphertext must not crash the worker or be logged. Disable only
+                  // the exact revision so a concurrent token refresh remains usable.
+                  yield* tx
+                    .update(notificationInstallation)
+                    .set({
+                      enabled: false,
+                      detachedAt: new Date(),
+                      recipientKind: null,
+                      recipientId: null,
+                      platform: null,
+                      tokenHash: null,
+                      tokenCiphertext: null,
+                      updatedAt: new Date(),
+                    })
+                    .where(
+                      and(
+                        eq(notificationInstallation.id, install.id),
+                        eq(notificationInstallation.bindingGeneration, install.bindingGeneration),
+                        eq(notificationInstallation.revision, install.revision),
+                        eq(notificationInstallation.tokenHash, install.tokenHash)
+                      )
+                    )
+                }
+              }
+              claimed.push({
+                id: row.id,
+                eventId: row.eventId,
+                entityId: row.entityId,
+                recipient,
+                type: row.type,
+                leaseKey,
+                acceptedInstallationIds: row.acceptedInstallationIds,
+                installations: installationsWithTokens,
+              })
             }
-            claimed.push({
-              id: row.id,
-              eventId: row.eventId,
-              entityId: row.entityId,
-              recipient,
-              type: row.type,
-              leaseKey,
-              acceptedInstallationIds: row.acceptedInstallationIds,
-              installations: installationsWithTokens,
-            })
           }
           return claimed
         })
       )
+    })
+  },
+
+  discardFresh(scope: NotificationDispatchScope) {
+    return Effect.gen(function* () {
+      const database = yield* DB
+      const rows = yield* database
+        .update(nativeNotificationOutbox)
+        .set({
+          state: 'discarded',
+          leaseKey: null,
+          leaseUntil: null,
+          lastFailure: 'best_effort_unattempted',
+        })
+        .where(
+          and(
+            eq(nativeNotificationOutbox.state, 'pending'),
+            eq(nativeNotificationOutbox.attempts, 0),
+            notificationScopeWhere(scope)
+          )
+        )
+        .returning({ id: nativeNotificationOutbox.id })
+      return rows.length
     })
   },
 
@@ -456,39 +576,60 @@ export const notificationRepo = {
   ) {
     return Effect.gen(function* () {
       const database = yield* DB
-      const now = new Date()
-      const [lease] = yield* database
-        .update(nativeNotificationOutbox)
-        .set({ leaseUntil: new Date(now.getTime() + 10 * 60_000) })
-        .where(
-          and(
-            eq(nativeNotificationOutbox.id, item.id),
-            eq(nativeNotificationOutbox.state, 'leased'),
-            eq(nativeNotificationOutbox.leaseKey, item.leaseKey),
-            sql`${nativeNotificationOutbox.leaseUntil} > ${now}`
+      return yield* database.transaction((tx) =>
+        Effect.gen(function* () {
+          // Do not wait behind another owner and then renew using a stale time check.
+          // Lock first, then evaluate expiry against the database clock in the UPDATE.
+          const [owned] = yield* tx
+            .select({ id: nativeNotificationOutbox.id })
+            .from(nativeNotificationOutbox)
+            .where(
+              and(
+                eq(nativeNotificationOutbox.id, item.id),
+                eq(nativeNotificationOutbox.state, 'leased'),
+                eq(nativeNotificationOutbox.leaseKey, item.leaseKey)
+              )
+            )
+            .limit(1)
+            .for('update', { skipLocked: true })
+          if (!owned) return false
+          const [lease] = yield* tx
+            .update(nativeNotificationOutbox)
+            .set({
+              leaseUntil: sql`clock_timestamp() + ${NOTIFICATION_LEASE_MS} * interval '1 millisecond'`,
+            })
+            .where(
+              and(
+                eq(nativeNotificationOutbox.id, item.id),
+                eq(nativeNotificationOutbox.state, 'leased'),
+                eq(nativeNotificationOutbox.leaseKey, item.leaseKey),
+                sql`${nativeNotificationOutbox.leaseUntil} > clock_timestamp()`,
+                sql`${nativeNotificationOutbox.createdAt} > clock_timestamp() - ${NOTIFICATION_MAX_AGE_MS} * interval '1 millisecond'`
+              )
+            )
+            .returning({ id: nativeNotificationOutbox.id })
+          if (!lease) return false
+          const [row] = yield* tx
+            .select({ id: notificationInstallation.id })
+            .from(notificationInstallation)
+            .where(
+              and(
+                eq(notificationInstallation.id, installation.id),
+                eq(notificationInstallation.bindingGeneration, installation.generation),
+                eq(notificationInstallation.revision, installation.revision),
+                eq(notificationInstallation.tokenHash, installation.tokenHash),
+                eq(notificationInstallation.recipientKind, item.recipient.kind),
+                eq(notificationInstallation.recipientId, item.recipient.id),
+                eq(notificationInstallation.enabled, true),
+                isNull(notificationInstallation.detachedAt)
+              )
+            )
+            .limit(1)
+          return (
+            Boolean(row) &&
+            (yield* recipientEligible(tx, item.eventId, item.entityId, item.recipient, item.type))
           )
-        )
-        .returning({ id: nativeNotificationOutbox.id })
-      if (!lease) return false
-      const [row] = yield* database
-        .select({ id: notificationInstallation.id })
-        .from(notificationInstallation)
-        .where(
-          and(
-            eq(notificationInstallation.id, installation.id),
-            eq(notificationInstallation.bindingGeneration, installation.generation),
-            eq(notificationInstallation.revision, installation.revision),
-            eq(notificationInstallation.tokenHash, installation.tokenHash),
-            eq(notificationInstallation.recipientKind, item.recipient.kind),
-            eq(notificationInstallation.recipientId, item.recipient.id),
-            eq(notificationInstallation.enabled, true),
-            isNull(notificationInstallation.detachedAt)
-          )
-        )
-        .limit(1)
-      return (
-        Boolean(row) &&
-        (yield* recipientEligible(database, item.eventId, item.entityId, item.recipient, item.type))
+        })
       )
     })
   },
@@ -508,12 +649,15 @@ export const notificationRepo = {
         .where(
           and(
             eq(nativeNotificationOutbox.id, item.id),
+            eq(nativeNotificationOutbox.state, 'leased'),
             eq(nativeNotificationOutbox.leaseKey, item.leaseKey)
           )
         )
     })
   },
 
+  // A late ack can still win before lease replacement. The state/key fence
+  // makes it a no-op as soon as another owner claims or settles this intent.
   markInstallationAccepted(item: ClaimedNotification, installationId: string) {
     return Effect.gen(function* () {
       const database = yield* DB
@@ -525,6 +669,7 @@ export const notificationRepo = {
         .where(
           and(
             eq(nativeNotificationOutbox.id, item.id),
+            eq(nativeNotificationOutbox.state, 'leased'),
             eq(nativeNotificationOutbox.leaseKey, item.leaseKey)
           )
         )
@@ -557,24 +702,45 @@ export const notificationRepo = {
     })
   },
 
-  retry(item: ClaimedNotification, reason: string, discard = false) {
+  retry(item: ClaimedNotification, reason: string, discard = false, retryAfterMs = 0) {
     return Effect.gen(function* () {
       const database = yield* DB
-      yield* database
-        .update(nativeNotificationOutbox)
-        .set({
-          state: discard ? 'discarded' : 'pending',
-          nextAttemptAt: new Date(Date.now() + 16 * 60_000),
-          leaseKey: null,
-          leaseUntil: null,
-          lastFailure: reason.slice(0, 64),
-        })
-        .where(
-          and(
+      yield* database.transaction((tx) =>
+        Effect.gen(function* () {
+          const fence = and(
             eq(nativeNotificationOutbox.id, item.id),
+            eq(nativeNotificationOutbox.state, 'leased'),
             eq(nativeNotificationOutbox.leaseKey, item.leaseKey)
           )
-        )
+          const [row] = yield* tx
+            .select({
+              attempts: nativeNotificationOutbox.attempts,
+              createdAt: nativeNotificationOutbox.createdAt,
+            })
+            .from(nativeNotificationOutbox)
+            .where(fence)
+            .limit(1)
+            .for('update')
+          if (!row) return
+          const [clock] = yield* tx
+            .select({
+              now: sql<number>`(extract(epoch from clock_timestamp()) * 1000)::double precision`,
+            })
+            .from(sql`(select 1) as notification_clock`)
+          const now = new Date(clock!.now)
+          const expired = notificationIntentExpired(row.createdAt, row.attempts, now)
+          yield* tx
+            .update(nativeNotificationOutbox)
+            .set({
+              state: discard || expired ? 'discarded' : 'pending',
+              nextAttemptAt: notificationRetryAt(row.createdAt, row.attempts, now, retryAfterMs),
+              leaseKey: null,
+              leaseUntil: null,
+              lastFailure: expired ? 'retry_exhausted' : sanitizeNotificationFailure(reason),
+            })
+            .where(fence)
+        })
+      )
     })
   },
 }

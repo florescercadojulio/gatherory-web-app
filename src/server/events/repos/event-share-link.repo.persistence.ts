@@ -72,6 +72,10 @@ function sharingPolicy(eventId: string) {
   })
 }
 
+function isExpiredLink(expiresAt: Date | null, now = new Date()) {
+  return expiresAt !== null && expiresAt <= now
+}
+
 // Use the same root -> event lock order as invitation acceptance and lifecycle changes.
 function lockEvent(eventId: string) {
   return Effect.gen(function* () {
@@ -112,29 +116,33 @@ export function createEventShareLink(actorUserId: string, input: z.infer<typeof 
         const [existing] = yield* db
           .select()
           .from(eventShareLink)
-          .where(eq(eventShareLink.eventId, input.eventId))
-        if (
-          existing &&
-          !existing.revokedAt &&
-          existing.expiresAt > new Date() &&
-          existing.role === input.role
-        )
-          return existing
+          .where(
+            and(eq(eventShareLink.eventId, input.eventId), eq(eventShareLink.role, input.role))
+          )
+        if (existing && !existing.revokedAt && !isExpiredLink(existing.expiresAt)) {
+          const creatorCanShare = yield* requireManager(
+            input.eventId,
+            existing.createdByUserId
+          ).pipe(
+            Effect.as(true),
+            Effect.catchTag('ForbiddenError', () => Effect.succeed(false))
+          )
+          if (creatorCanShare) return existing
+        }
         const [link] = yield* db
           .insert(eventShareLink)
           .values({
             eventId: input.eventId,
             createdByUserId: actorUserId,
             role: input.role,
-            expiresAt: new Date(Date.now() + 14 * 86400_000),
+            expiresAt: null,
           })
           .onConflictDoUpdate({
-            target: eventShareLink.eventId,
+            target: [eventShareLink.eventId, eventShareLink.role],
             set: {
               token: crypto.randomUUID(),
-              role: input.role,
               createdByUserId: actorUserId,
-              expiresAt: new Date(Date.now() + 14 * 86400_000),
+              expiresAt: null,
               revokedAt: null,
               updatedAt: new Date(),
             },
@@ -146,7 +154,11 @@ export function createEventShareLink(actorUserId: string, input: z.infer<typeof 
   })
 }
 
-export function revokeEventShareLink(actorUserId: string, eventId: string) {
+export function revokeEventShareLink(
+  actorUserId: string,
+  eventId: string,
+  role?: 'guest' | 'collaborator'
+) {
   return Effect.gen(function* () {
     const sql = yield* PgClient
     return yield* sql.withTransaction(
@@ -158,10 +170,37 @@ export function revokeEventShareLink(actorUserId: string, eventId: string) {
         yield* db
           .update(eventShareLink)
           .set({ revokedAt: new Date(), updatedAt: new Date() })
-          .where(eq(eventShareLink.eventId, eventId))
+          .where(
+            role
+              ? and(eq(eventShareLink.eventId, eventId), eq(eventShareLink.role, role))
+              : eq(eventShareLink.eventId, eventId)
+          )
         // Revocation stops new joins; it does not remove people already admitted.
         return { eventId }
       })
+    )
+  })
+}
+
+export function listActiveEventShareLinks(actorUserId: string, eventId: string) {
+  return Effect.gen(function* () {
+    yield* requireManager(eventId, actorUserId)
+    yield* requireJoinableEvent(eventId)
+    const db = yield* DB
+    const policy = yield* sharingPolicy(eventId)
+    const rows = yield* db.select().from(eventShareLink).where(eq(eventShareLink.eventId, eventId))
+    const creatorCanShare = yield* Effect.forEach(rows, (link) =>
+      requireManager(eventId, link.createdByUserId).pipe(
+        Effect.as(true),
+        Effect.catchTag('ForbiddenError', () => Effect.succeed(false))
+      )
+    )
+    return rows.filter(
+      (link, index) =>
+        creatorCanShare[index] &&
+        !link.revokedAt &&
+        !isExpiredLink(link.expiresAt) &&
+        (link.role !== 'collaborator' || policy.enabled)
     )
   })
 }
@@ -196,9 +235,9 @@ export function previewEventShareLink(token: string, userId?: string) {
         locationName: preview.locationName,
         role: joined.role,
         status: 'accepted' as const,
-        expiresAt: preview.expiresAt.toISOString(),
+        expiresAt: preview.expiresAt?.toISOString() ?? null,
       }
-    if (preview.revokedAt || preview.expiresAt <= new Date()) return null
+    if (preview.revokedAt || isExpiredLink(preview.expiresAt)) return null
     const creatorCanShare = yield* requireManager(preview.eventId, preview.creatorId).pipe(
       Effect.as(true),
       Effect.catchTag('ForbiddenError', () => Effect.succeed(false))
@@ -232,7 +271,7 @@ export function previewEventShareLink(token: string, userId?: string) {
             : 'pending',
       requiresApproval: preview.role === 'collaborator' && policy.requiresApproval,
       planningPermission: preview.role === 'collaborator' ? policy.permission : 'view_only',
-      expiresAt: preview.expiresAt.toISOString(),
+      expiresAt: preview.expiresAt?.toISOString() ?? null,
     }
   })
 }
@@ -299,7 +338,8 @@ export function acceptEventShareLink(userId: string, token: string) {
             status: 'accepted' as const,
           }
         yield* requireJoinableEvent(link.eventId)
-        if (link.revokedAt || link.expiresAt <= new Date()) return yield* Effect.fail(unavailable())
+        if (link.revokedAt || isExpiredLink(link.expiresAt))
+          return yield* Effect.fail(unavailable())
         yield* requireManager(link.eventId, link.createdByUserId)
         const policy = yield* sharingPolicy(link.eventId)
         if (link.role === 'collaborator') {
@@ -372,14 +412,14 @@ export function listEventJoinRequests(actorUserId: string, eventId: string) {
     const [link] = yield* db
       .select()
       .from(eventShareLink)
-      .where(eq(eventShareLink.eventId, eventId))
+      .where(and(eq(eventShareLink.eventId, eventId), eq(eventShareLink.role, 'collaborator')))
       .limit(1)
     if (
       !policy.enabled ||
       !link ||
       link.role !== 'collaborator' ||
       link.revokedAt ||
-      link.expiresAt <= new Date()
+      isExpiredLink(link.expiresAt)
     )
       return { requests: [] }
     const rows = yield* db
@@ -436,7 +476,9 @@ export function reviewEventJoinRequest(
           const [link] = yield* db
             .select()
             .from(eventShareLink)
-            .where(eq(eventShareLink.eventId, eventId))
+            .where(
+              and(eq(eventShareLink.eventId, eventId), eq(eventShareLink.role, 'collaborator'))
+            )
             .limit(1)
           const policy = yield* sharingPolicy(eventId)
           if (
@@ -445,7 +487,7 @@ export function reviewEventJoinRequest(
             link.token !== request.shareLinkToken ||
             link.role !== 'collaborator' ||
             link.revokedAt ||
-            link.expiresAt <= new Date()
+            isExpiredLink(link.expiresAt)
           )
             return yield* Effect.fail(unavailable())
           yield* requireManager(eventId, link.createdByUserId)

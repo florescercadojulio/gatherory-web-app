@@ -2,6 +2,10 @@ import { ConfigurationError } from '@/lib/domain-errors'
 import { createEnv } from '@t3-oss/env-core'
 import { config } from 'dotenv'
 import { z } from 'zod'
+import {
+  NotificationCronSecretSchema,
+  NotificationDispatchEnabledSchema,
+} from '@/server/notifications/scheduler/notification-dispatch.configuration'
 
 // CLI entry points and seed scripts do not receive Vite's automatic env load.
 config({ path: ['.env.local', '.env'], quiet: true })
@@ -25,6 +29,8 @@ export const env = createEnv({
     FCM_PROJECT_ID: z.string().min(1).optional(),
     FCM_CLIENT_EMAIL: z.email().optional(),
     FCM_PRIVATE_KEY: z.string().min(1).optional(),
+    NOTIFICATION_DISPATCH_ENABLED: NotificationDispatchEnabledSchema,
+    CRON_SECRET: NotificationCronSecretSchema,
     CLOUDFLARE_ACCOUNT_ID: z.string().min(1),
     CLOUDFLARE_R2_ACCESS_KEY_ID: z.string().min(1),
     CLOUDFLARE_R2_SECRET_ACCESS_KEY: z.string().min(1),

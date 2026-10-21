@@ -14,8 +14,10 @@ const NotificationRepositoryLive = Layer.effect(
         notificationRepo.register(input).pipe(Effect.provideService(PgClient, pg)),
       detach: (input: Parameters<typeof notificationRepo.detach>[0]) =>
         notificationRepo.detach(input).pipe(Effect.provideService(PgClient, pg)),
-      claimPending: (limit?: number) =>
-        notificationRepo.claimPending(limit).pipe(Effect.provideService(PgClient, pg)),
+      claimPending: (...args: Parameters<typeof notificationRepo.claimPending>) =>
+        notificationRepo.claimPending(...args).pipe(Effect.provideService(PgClient, pg)),
+      discardFresh: (scope: Parameters<typeof notificationRepo.discardFresh>[0]) =>
+        notificationRepo.discardFresh(scope).pipe(Effect.provideService(PgClient, pg)),
       isStillBound: (...args: Parameters<typeof notificationRepo.isStillBound>) =>
         notificationRepo.isStillBound(...args).pipe(Effect.provideService(PgClient, pg)),
       delivered: (...args: Parameters<typeof notificationRepo.delivered>) =>

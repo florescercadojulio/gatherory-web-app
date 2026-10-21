@@ -5,6 +5,7 @@ import {
   createEventShareLink,
   getEventIdForShareLink,
   listEventJoinRequests,
+  listActiveEventShareLinks,
   previewEventShareLink,
   revokeEventShareLink,
   reviewEventJoinRequest,
@@ -20,10 +21,11 @@ export const EventSharingRepoLive = Layer.effect(
     return {
       create: (userId, input) => bindPg(createEventShareLink(userId, input)),
       getEventIdForShareLink: (token) => bindPg(getEventIdForShareLink(token)),
-      revoke: (userId, eventId) => bindPg(revokeEventShareLink(userId, eventId)),
+      revoke: (userId, eventId, role) => bindPg(revokeEventShareLink(userId, eventId, role)),
       preview: (token, userId) => bindPg(previewEventShareLink(token, userId)),
       accept: (userId, token) => bindPg(acceptEventShareLink(userId, token)),
       listJoinRequests: (userId, eventId) => bindPg(listEventJoinRequests(userId, eventId)),
+      listActiveLinks: (userId, eventId) => bindPg(listActiveEventShareLinks(userId, eventId)),
       reviewJoinRequest: (userId, eventId, requestId, action) =>
         bindPg(reviewEventJoinRequest(userId, eventId, requestId, action)),
     }

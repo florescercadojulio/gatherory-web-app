@@ -18,7 +18,9 @@ import {
   nativeSyncEntity,
   nativeWorkspaceSnapshot,
 } from '@/db/schema/sync.schema'
+import { hasEventPermission, planningPermissionFromDatabase } from '@/lib/permissions'
 import { ConflictError, EntityNotFoundError, ForbiddenError } from '@/server/effect'
+import { getEventParticipant } from './event.repo.persistence'
 import { requireJoinableEvent } from './event-lifecycle.repo'
 
 const hashCredential = (id: string, credential: string) =>
@@ -41,6 +43,23 @@ function unavailableGuestLink() {
     category: 'not_found',
     code: 'GUEST_LINK_UNAVAILABLE',
     userMessageKey: 'serverErrors.NOT_FOUND',
+  })
+}
+
+function requireGuestLinkCreatorManager(eventId: string, userId: string) {
+  return Effect.gen(function* () {
+    const participant = yield* getEventParticipant({ eventId, userId })
+    if (
+      !participant ||
+      !hasEventPermission(
+        {
+          role: participant.role,
+          planningPermission: planningPermissionFromDatabase(participant.planningPermission),
+        },
+        { event: ['manage_participants'] }
+      )
+    )
+      return yield* Effect.fail(unavailableGuestLink())
   })
 }
 
@@ -315,13 +334,19 @@ export function joinDeviceGuestEvent(input: {
           .from(eventShareLink)
           .where(eq(eventShareLink.token, input.token))
           .limit(1)
-        if (!link || link.role !== 'guest' || link.revokedAt || link.expiresAt <= new Date())
+        if (
+          !link ||
+          link.role !== 'guest' ||
+          link.revokedAt ||
+          (link.expiresAt !== null && link.expiresAt <= new Date())
+        )
           return yield* Effect.fail(unavailableGuestLink())
         yield* requireJoinableEvent(link.eventId)
         const [lockedLink] = yield* db
           .select({
             eventId: eventShareLink.eventId,
             role: eventShareLink.role,
+            createdByUserId: eventShareLink.createdByUserId,
             expiresAt: eventShareLink.expiresAt,
             revokedAt: eventShareLink.revokedAt,
           })
@@ -335,9 +360,10 @@ export function joinDeviceGuestEvent(input: {
           !lockedLink ||
           lockedLink.role !== 'guest' ||
           lockedLink.revokedAt ||
-          lockedLink.expiresAt <= new Date()
+          (lockedLink.expiresAt !== null && lockedLink.expiresAt <= new Date())
         )
           return yield* Effect.fail(unavailableGuestLink())
+        yield* requireGuestLinkCreatorManager(lockedLink.eventId, lockedLink.createdByUserId)
         const [target] = yield* db
           .select({ organizationId: event.organizationId, parentId: event.parentEventId })
           .from(event)

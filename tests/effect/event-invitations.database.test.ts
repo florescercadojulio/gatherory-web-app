@@ -39,6 +39,7 @@ const verification = Effect.gen(function* () {
     previewEventShareLink,
     listEventJoinRequests,
     reviewEventJoinRequest,
+    listActiveEventShareLinks,
   } = yield* Effect.promise(() => import('@/server/events/repos/event-share-link.repo'))
   const { guestEventInvitations, respondToEvent } = yield* Effect.promise(
     () => import('@/server/events/repos/guest-invitation.repo')
@@ -445,7 +446,102 @@ const verification = Effect.gen(function* () {
             )
         ).toBeTruthy()
 
-        const publicLink = yield* createEventShareLink(ownerId, { eventId, role: 'guest' })
+        let publicLink = yield* createEventShareLink(ownerId, { eventId, role: 'guest' })
+        let independentPlanningLink = yield* createEventShareLink(ownerId, {
+          eventId,
+          role: 'collaborator',
+        })
+        expect(publicLink.expiresAt, 'New reusable guest links do not expire').toBe(null)
+        expect(independentPlanningLink.expiresAt, 'New planning links do not expire').toBe(null)
+        expect(independentPlanningLink.token).not.toBe(publicLink.token)
+        const managedLinks = yield* listActiveEventShareLinks(ownerId, eventId)
+        expect(managedLinks.map((link) => link.role).sort()).toEqual(['collaborator', 'guest'])
+        expect(managedLinks.map((link) => link.token).sort()).toEqual(
+          [publicLink.token, independentPlanningLink.token].sort()
+        )
+        expect(
+          Exit.isFailure(yield* Effect.exit(listActiveEventShareLinks(guestId, eventId)))
+        ).toBeTruthy()
+        expect(
+          Exit.isFailure(
+            yield* Effect.exit(listActiveEventShareLinks(ownerId, crypto.randomUUID()))
+          )
+        ).toBeTruthy()
+        expect(
+          (yield* createEventShareLink(ownerId, { eventId, role: 'guest' })).token,
+          'Creating the planning link must preserve the guest QR destination'
+        ).toBe(publicLink.token)
+        expect(
+          (yield* createEventShareLink(ownerId, { eventId, role: 'collaborator' })).token
+        ).toBe(independentPlanningLink.token)
+
+        // A previously issued bounded link keeps its original deadline. Only a
+        // deliberately renewed link receives the new perpetual-link contract.
+        const legacyDeadline = new Date(Date.now() + 3_600_000)
+        yield* db
+          .update(eventShareLink)
+          .set({ expiresAt: legacyDeadline })
+          .where(and(eq(eventShareLink.eventId, eventId), eq(eventShareLink.role, 'guest')))
+        const legacyLink = yield* createEventShareLink(ownerId, { eventId, role: 'guest' })
+        expect(legacyLink.token).toBe(publicLink.token)
+        expect(legacyLink.expiresAt?.getTime()).toBe(legacyDeadline.getTime())
+        yield* db
+          .update(eventShareLink)
+          .set({ expiresAt: new Date(0) })
+          .where(and(eq(eventShareLink.eventId, eventId), eq(eventShareLink.role, 'guest')))
+        expect(yield* previewEventShareLink(legacyLink.token)).toBe(null)
+        expect(
+          (yield* listActiveEventShareLinks(ownerId, eventId)).map((link) => link.role)
+        ).toEqual(['collaborator'])
+        expect(
+          Exit.isFailure(
+            yield* Effect.exit(acceptEventShareLink(sharedCollaboratorId, legacyLink.token))
+          )
+        ).toBeTruthy()
+        publicLink = yield* createEventShareLink(ownerId, { eventId, role: 'guest' })
+        expect(publicLink.token).not.toBe(legacyLink.token)
+        expect(publicLink.expiresAt).toBe(null)
+        expect(yield* previewEventShareLink(legacyLink.token)).toBe(null)
+
+        const revokedGuestToken = publicLink.token
+        yield* revokeEventShareLink(ownerId, eventId, 'guest')
+        expect(yield* previewEventShareLink(revokedGuestToken)).toBe(null)
+        expect(
+          (yield* listActiveEventShareLinks(ownerId, eventId)).map((link) => link.role)
+        ).toEqual(['collaborator'])
+        expect((yield* previewEventShareLink(independentPlanningLink.token))?.role).toBe(
+          'collaborator'
+        )
+        expect(
+          Exit.isFailure(
+            yield* Effect.exit(acceptEventShareLink(sharedCollaboratorId, revokedGuestToken))
+          )
+        ).toBeTruthy()
+        publicLink = yield* createEventShareLink(ownerId, { eventId, role: 'guest' })
+        expect(publicLink.token).not.toBe(revokedGuestToken)
+        expect(
+          (yield* createEventShareLink(ownerId, { eventId, role: 'collaborator' })).token
+        ).toBe(independentPlanningLink.token)
+        expect(yield* previewEventShareLink(revokedGuestToken)).toBe(null)
+        const revokedPlanningToken = independentPlanningLink.token
+        expect(
+          Exit.isFailure(yield* Effect.exit(revokeEventShareLink(guestId, eventId, 'collaborator')))
+        ).toBeTruthy()
+        yield* revokeEventShareLink(ownerId, eventId, 'collaborator')
+        expect(yield* previewEventShareLink(revokedPlanningToken)).toBe(null)
+        expect((yield* previewEventShareLink(publicLink.token))?.role).toBe('guest')
+        expect(
+          (yield* listActiveEventShareLinks(ownerId, eventId)).map((link) => link.role)
+        ).toEqual(['guest'])
+        independentPlanningLink = yield* createEventShareLink(ownerId, {
+          eventId,
+          role: 'collaborator',
+        })
+        expect(independentPlanningLink.token).not.toBe(revokedPlanningToken)
+        expect(yield* previewEventShareLink(revokedPlanningToken)).toBe(null)
+        expect((yield* createEventShareLink(ownerId, { eventId, role: 'guest' })).token).toBe(
+          publicLink.token
+        )
         expect(
           Exit.isFailure(yield* Effect.exit(acceptEventShareLink(unverifiedId, publicLink.token))),
           'An unverified account cannot join'
@@ -582,6 +678,15 @@ const verification = Effect.gen(function* () {
         ).toBeTruthy()
         yield* acceptEventShareLink(readonlyId, planningLink.token)
         const readonlyRequest = (yield* listEventJoinRequests(ownerId, eventId)).requests[0]
+        const concurrentGuestLink = yield* createEventShareLink(ownerId, { eventId, role: 'guest' })
+        yield* revokeEventShareLink(ownerId, eventId, 'guest')
+        expect(yield* previewEventShareLink(concurrentGuestLink.token)).toBe(null)
+        expect(
+          (yield* listEventJoinRequests(ownerId, eventId)).requests.map((item) => item.id)
+        ).toContain(readonlyRequest.id)
+        expect((yield* previewEventShareLink(planningLink.token, readonlyId))?.status).toBe(
+          'awaiting_approval'
+        )
         yield* db.update(event).set({ status: 'finished' }).where(eq(event.id, eventId))
         expect(
           Exit.isFailure(
@@ -593,6 +698,8 @@ const verification = Effect.gen(function* () {
         ).toBeTruthy()
         yield* db.update(event).set({ status: 'draft' }).where(eq(event.id, eventId))
         yield* revokeEventShareLink(ownerId, eventId)
+        expect(yield* previewEventShareLink(planningLink.token)).toBe(null)
+        expect(yield* previewEventShareLink(concurrentGuestLink.token)).toBe(null)
         expect(
           Exit.isFailure(
             yield* Effect.exit(
@@ -650,6 +757,14 @@ const verification = Effect.gen(function* () {
           .set({ collaboratorLinkEnabled: false })
           .where(eq(workspacePlanningSettings.organizationId, organizationId))
         expect(yield* previewEventShareLink(rotated.token)).toBe(null)
+        const policyIndependentGuest = yield* createEventShareLink(ownerId, {
+          eventId,
+          role: 'guest',
+        })
+        expect((yield* previewEventShareLink(policyIndependentGuest.token))?.role).toBe('guest')
+        expect(
+          (yield* listActiveEventShareLinks(ownerId, eventId)).map((link) => link.role)
+        ).toEqual(['guest'])
         expect(
           Exit.isFailure(
             yield* Effect.exit(createEventShareLink(ownerId, { eventId, role: 'collaborator' }))

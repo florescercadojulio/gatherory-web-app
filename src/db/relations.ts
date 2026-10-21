@@ -180,7 +180,7 @@ export const databaseRelations = defineRelationsPart(
         from: r.event.id,
         to: r.eventInvitation.eventId,
       }),
-      shareLink: r.one.eventShareLink({
+      shareLinks: r.many.eventShareLink({
         from: r.event.id,
         to: r.eventShareLink.eventId,
       }),
