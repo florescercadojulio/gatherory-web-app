@@ -161,6 +161,26 @@ export const member = pgTable(
   ]
 )
 
+/** Organization-scoped Better Auth dynamic access-control role definitions. */
+export const organizationRole = pgTable(
+  'organization_role',
+  {
+    id: text('id').primaryKey(),
+    organizationId: text('organization_id')
+      .notNull()
+      .references(() => organization.id, { onDelete: 'cascade' }),
+    role: text('role').notNull(),
+    permission: text('permission').notNull(),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').$onUpdate(() => /* @__PURE__ */ new Date()),
+  },
+  (table) => [
+    index('organization_role_organizationId_idx').on(table.organizationId),
+    index('organization_role_role_idx').on(table.role),
+    uniqueIndex('organization_role_organization_role_uidx').on(table.organizationId, table.role),
+  ]
+)
+
 export const invitation = pgTable(
   'invitation',
   {
@@ -194,6 +214,7 @@ export const authRelations = defineRelationsPart(
     team,
     teamMember,
     member,
+    organizationRole,
     invitation,
   },
   (r) => ({
@@ -244,6 +265,10 @@ export const authRelations = defineRelationsPart(
         from: r.organization.id,
         to: r.invitation.organizationId,
       }),
+      roles: r.many.organizationRole({
+        from: r.organization.id,
+        to: r.organizationRole.organizationId,
+      }),
     },
     team: {
       organization: r.one.organization({
@@ -283,6 +308,12 @@ export const authRelations = defineRelationsPart(
       user: r.one.user({
         from: r.invitation.inviterId,
         to: r.user.id,
+      }),
+    },
+    organizationRole: {
+      organization: r.one.organization({
+        from: r.organizationRole.organizationId,
+        to: r.organization.id,
       }),
     },
   })

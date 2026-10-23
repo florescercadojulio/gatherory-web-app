@@ -271,6 +271,27 @@ through Better Auth so their credential records and password hashes use the
 same path as normal registration. Never point `DATABASE_URL` at data you need
 to preserve when running this command:
 
+The default `pnpm db:seed` includes the 21 bundled event/idea/registry covers and
+six shared-album photos. It validates both image catalogs, the local database
+target, and private development storage configuration before the reset; after
+seeding it uploads the bundled photos to the private development bucket.
+Use `pnpm db:seed -- --without-images` only when intentionally seeding without
+photos; it is destructive too. `pnpm db:reset` remains a separate reset-only command and
+leaves the database empty.
+
+The seed commands have four distinct jobs:
+
+| Command | Purpose |
+| --- | --- |
+| `pnpm db:seed` | Reset development data and recreate the full fixture, including covers, shared album, portraits, and blueprints. |
+| `pnpm db:seed:images` | Preview missing fixture covers and album photos; add `--apply` to fill them without resetting data. |
+| `pnpm db:seed:portraits` | Preview missing fixture profile pictures; add `--apply` to fill them without resetting data. |
+| `pnpm blueprints:seed` | Add missing curated catalog revisions to the explicitly configured database, without a development reset. |
+
+The two fill-only commands are maintenance tools; they are not extra steps after
+a fresh full seed. Image-enabled and database-only modes share `db:seed` rather
+than adding separate package aliases.
+
 ```text
 Alex (host):        planner@gatherory.test
 Jordan (host):      jordan@gatherory.test
@@ -372,6 +393,7 @@ Start here before adding product behavior:
 - [Product model](docs/architecture/product-model.md)
 - [Data model](docs/architecture/data-model.md)
 - [Cross-platform experience architecture](docs/architecture/experience-blueprints.md)
+- [Blueprint library collections roadmap](docs/roadmaps/blueprint-ranking-roadmap/10-blueprint-library-collections.md)
 - [Server architecture](docs/architecture/server-architecture.md)
 - [Page creation standard](docs/development/page-creation.md)
 - [Roadmap guide](docs/development/roadmap-guide.md)

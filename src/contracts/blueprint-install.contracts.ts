@@ -80,6 +80,7 @@ export const BlueprintChildDefinitionSchema = z
     title: titleSchema,
     purpose: z.enum(['planning_scouting', 'part_of_event']),
     category: BlueprintChildCategorySchema,
+    coverAssetId: UUIDSchema.nullable().optional(),
     scheduleProposal: z
       .object({
         anchor: z.literal('main_start'),
@@ -109,6 +110,7 @@ export const BlueprintIdeaDefinitionSchema = z
     notes: notesSchema.optional(),
     target: BlueprintTargetSchema,
     configuration: PortableIdeaConfigurationSchema,
+    coverAssetId: UUIDSchema.nullable().optional(),
   })
   .strict()
 
@@ -490,6 +492,7 @@ export const BlueprintInstallInputSchema = z
     customizations: z
       .object({
         version: z.literal(1),
+        coverAssetId: UUIDSchema.nullable().optional(),
         children: z.array(BlueprintChildDefinitionSchema).max(BLUEPRINT_LIMITS.children),
         ideas: z.array(BlueprintIdeaDefinitionSchema).max(BLUEPRINT_LIMITS.ideas),
       })
@@ -537,6 +540,7 @@ export const BlueprintPlannedEventSchema = z
     purpose: z.enum(['planning_scouting', 'part_of_event']).nullable(),
     category: BlueprintChildCategorySchema.nullable(),
     planningStatus: z.literal('approved').nullable(),
+    coverAssetId: UUIDSchema.nullable().optional(),
   })
   .strict()
 
@@ -549,6 +553,7 @@ export const BlueprintPlannedIdeaSchema = z
     targetSourceKey: BlueprintStableKeySchema,
     configuration: PortableIdeaConfigurationSchema,
     status: z.literal('new'),
+    coverAssetId: UUIDSchema.nullable().optional(),
   })
   .strict()
 

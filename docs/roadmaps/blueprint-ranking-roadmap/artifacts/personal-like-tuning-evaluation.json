@@ -1,0 +1,4870 @@
+{
+  "formatVersion": 1,
+  "purpose": "Deterministic offline comparison on predeclared fictional authored-plan fixtures. It is not production traffic, observed user preference, or evidence of user-quality or engagement uplift.",
+  "asOf": "2026-10-22T12:00:00.000Z",
+  "evaluationProtocol": {
+    "developmentLock": "31309b41556e52ddb5a6a1121b1150780eb012aadd5787192bc048b4bc74ca7b",
+    "heldoutLock": "b8bab4bb4f69e6ceacb12cca33e44ae2f5a1cbaa95f5ddf0e35a7f07bc5493cc",
+    "sourcePopulationBySplit": {
+      "development": 49,
+      "heldout": 24
+    },
+    "splitDesign": "Development and heldout plan families are separate fixture files. Each split is evaluated as its own current public source corpus (development N=49; heldout N=24), preventing development-family documents from affecting heldout IDF or candidate ranks.",
+    "queryProfiles": "One exact current Like seed per predeclared intent family; each seed is evaluated separately; the seed item is excluded from ranking and pair denominators.",
+    "labels": "Hand-authored ordinal judgments from fictional fixture content: relevant, unrelated, ambiguous. Ambiguous cases are excluded from strict precision/recall/FPR and counted in a conservative precision denominator as false positives.",
+    "time": "2026-10-22T12:00:00.000Z",
+    "noPostLockEdits": true
+  },
+  "activePolicies": {
+    "baselineAlgorithmVersion": "blueprint-baseline-v2",
+    "baselineConfigurationFingerprint": "4c85a77f26eb79885e3201fb2d2cdd981b39139ec1a79baf61f4ba624f2e7779",
+    "frozenV1Version": "blueprint-personal-likes-v1",
+    "frozenV1Fingerprint": "06038dda577b036a3ab9dfa82c950195411aeb828b602e19c738f0e8853547a3",
+    "roleAwareV2Version": "blueprint-personal-likes-v2",
+    "roleAwareV2Fingerprint": "a466c320b2efd0181951cdd615d091132945d5b289d1566e91ab406235ca2e1d"
+  },
+  "frozenV1SourceFingerprint": "cd21a91a4df115f976bdbabc9d4b5ce4a4c2c8dec9407e0c9f61239130551b1e",
+  "roleAwareV2Formula": {
+    "roleWeights": {
+      "name": 3,
+      "eventTitles": 2,
+      "ideaTitles": 2,
+      "summary": 1,
+      "ideaNotes": 0.5
+    },
+    "tokenSelection": "Distinct terms: retain strongest-role weight, sort by descending weight then lexical token, cap at 64 per source.",
+    "documentFrequency": "Computed from the same bounded current public source vectors; IDF = ln(1 + N / (1 + df)).",
+    "similarity": "Weighted Jaccard: sum(min(seedWeight,candidateWeight)) / sum(max(seedWeight,candidateWeight)), using IDF-adjusted weights.",
+    "qualification": "At least two distinct shared meaningful tokens and at least one shared identity token from name/event-title/idea-title on both sides; idea-notes-only matches do not qualify.",
+    "threshold": 0.05,
+    "score": "Maximum qualifying seed similarity multiplied by 3, capped at 3; otherwise zero."
+  },
+  "development": {
+    "labelCounts": {
+      "relevant": 43,
+      "ambiguous": 65,
+      "unrelated": 180
+    },
+    "policies": {
+      "baseline": {
+        "note": "Non-personal baseline has no preference scores; binary affinity precision/recall are not applicable.",
+        "perSeed": [
+          {
+            "seedKey": "synthetic-wedding-01",
+            "seedLanguage": "en",
+            "orderedKeys": [
+              "synthetic-birthday-01",
+              "synthetic-birthday-02",
+              "synthetic-birthday-03",
+              "synthetic-birthday-04",
+              "synthetic-birthday-05",
+              "synthetic-birthday-06",
+              "synthetic-birthday-07",
+              "synthetic-birthday-08",
+              "synthetic-camping-01",
+              "synthetic-camping-02",
+              "synthetic-camping-03",
+              "synthetic-camping-04",
+              "synthetic-camping-05",
+              "synthetic-camping-06",
+              "synthetic-camping-07",
+              "synthetic-camping-08",
+              "synthetic-craft_activity-01",
+              "synthetic-craft_activity-02",
+              "synthetic-craft_activity-03",
+              "synthetic-craft_activity-04",
+              "synthetic-craft_activity-05",
+              "synthetic-craft_activity-06",
+              "synthetic-craft_activity-07",
+              "synthetic-craft_activity-08",
+              "synthetic-craft_activity-09",
+              "synthetic-food_dietary-01",
+              "synthetic-food_dietary-02",
+              "synthetic-food_dietary-03",
+              "synthetic-food_dietary-04",
+              "synthetic-food_dietary-05",
+              "synthetic-food_dietary-06",
+              "synthetic-food_dietary-07",
+              "synthetic-food_dietary-08",
+              "synthetic-generic_logistics-01",
+              "synthetic-generic_logistics-02",
+              "synthetic-generic_logistics-03",
+              "synthetic-generic_logistics-04",
+              "synthetic-generic_logistics-05",
+              "synthetic-generic_logistics-06",
+              "synthetic-generic_logistics-07",
+              "synthetic-generic_logistics-08",
+              "synthetic-wedding-02",
+              "synthetic-wedding-03",
+              "synthetic-wedding-04",
+              "synthetic-wedding-05",
+              "synthetic-wedding-06",
+              "synthetic-wedding-07",
+              "synthetic-wedding-08"
+            ],
+            "pairwiseRelevanceViolations": 0,
+            "top10MembershipChanges": 0,
+            "top10OrderChangedPositions": 0,
+            "top10MembershipOverlap": 10,
+            "topK": [
+              {
+                "k": 1,
+                "precisionRelevantOnly": 0,
+                "relevantCount": 0,
+                "unrelatedCount": 1,
+                "ambiguousCount": 0,
+                "conservativePrecision": 0,
+                "creatorDiversity": {
+                  "creatorCount": 1,
+                  "distinctCreators": 1,
+                  "maxCreatorShare": 1,
+                  "hhi": 1,
+                  "recentItemShare": 1
+                }
+              },
+              {
+                "k": 3,
+                "precisionRelevantOnly": 0,
+                "relevantCount": 0,
+                "unrelatedCount": 3,
+                "ambiguousCount": 0,
+                "conservativePrecision": 0,
+                "creatorDiversity": {
+                  "creatorCount": 3,
+                  "distinctCreators": 3,
+                  "maxCreatorShare": 0.3333,
+                  "hhi": 0.3333,
+                  "recentItemShare": 0.3333
+                }
+              },
+              {
+                "k": 5,
+                "precisionRelevantOnly": 0,
+                "relevantCount": 0,
+                "unrelatedCount": 5,
+                "ambiguousCount": 0,
+                "conservativePrecision": 0,
+                "creatorDiversity": {
+                  "creatorCount": 5,
+                  "distinctCreators": 5,
+                  "maxCreatorShare": 0.2,
+                  "hhi": 0.2,
+                  "recentItemShare": 0.4
+                }
+              },
+              {
+                "k": 10,
+                "precisionRelevantOnly": 0,
+                "relevantCount": 0,
+                "unrelatedCount": 10,
+                "ambiguousCount": 0,
+                "conservativePrecision": 0,
+                "creatorDiversity": {
+                  "creatorCount": 10,
+                  "distinctCreators": 10,
+                  "maxCreatorShare": 0.1,
+                  "hhi": 0.1,
+                  "recentItemShare": 0.4
+                }
+              },
+              {
+                "k": 20,
+                "precisionRelevantOnly": 0,
+                "relevantCount": 0,
+                "unrelatedCount": 20,
+                "ambiguousCount": 0,
+                "conservativePrecision": 0,
+                "creatorDiversity": {
+                  "creatorCount": 20,
+                  "distinctCreators": 20,
+                  "maxCreatorShare": 0.05,
+                  "hhi": 0.05,
+                  "recentItemShare": 0.35
+                }
+              }
+            ],
+            "baselineTop10MembershipCount": 10
+          },
+          {
+            "seedKey": "synthetic-birthday-01",
+            "seedLanguage": "en",
+            "orderedKeys": [
+              "synthetic-birthday-02",
+              "synthetic-birthday-03",
+              "synthetic-birthday-04",
+              "synthetic-birthday-05",
+              "synthetic-birthday-06",
+              "synthetic-birthday-07",
+              "synthetic-birthday-08",
+              "synthetic-camping-01",
+              "synthetic-camping-02",
+              "synthetic-camping-03",
+              "synthetic-camping-04",
+              "synthetic-camping-05",
+              "synthetic-camping-06",
+              "synthetic-camping-07",
+              "synthetic-camping-08",
+              "synthetic-craft_activity-01",
+              "synthetic-craft_activity-02",
+              "synthetic-craft_activity-03",
+              "synthetic-craft_activity-04",
+              "synthetic-craft_activity-05",
+              "synthetic-craft_activity-06",
+              "synthetic-craft_activity-07",
+              "synthetic-craft_activity-08",
+              "synthetic-craft_activity-09",
+              "synthetic-food_dietary-01",
+              "synthetic-food_dietary-02",
+              "synthetic-food_dietary-03",
+              "synthetic-food_dietary-04",
+              "synthetic-food_dietary-05",
+              "synthetic-food_dietary-06",
+              "synthetic-food_dietary-07",
+              "synthetic-food_dietary-08",
+              "synthetic-generic_logistics-01",
+              "synthetic-generic_logistics-02",
+              "synthetic-generic_logistics-03",
+              "synthetic-generic_logistics-04",
+              "synthetic-generic_logistics-05",
+              "synthetic-generic_logistics-06",
+              "synthetic-generic_logistics-07",
+              "synthetic-generic_logistics-08",
+              "synthetic-wedding-01",
+              "synthetic-wedding-02",
+              "synthetic-wedding-03",
+              "synthetic-wedding-04",
+              "synthetic-wedding-05",
+              "synthetic-wedding-06",
+              "synthetic-wedding-07",
+              "synthetic-wedding-08"
+            ],
+            "pairwiseRelevanceViolations": 0,
+            "top10MembershipChanges": 0,
+            "top10OrderChangedPositions": 0,
+            "top10MembershipOverlap": 10,
+            "topK": [
+              {
+                "k": 1,
+                "precisionRelevantOnly": 1,
+                "relevantCount": 1,
+                "unrelatedCount": 0,
+                "ambiguousCount": 0,
+                "conservativePrecision": 1,
+                "creatorDiversity": {
+                  "creatorCount": 1,
+                  "distinctCreators": 1,
+                  "maxCreatorShare": 1,
+                  "hhi": 1,
+                  "recentItemShare": 0
+                }
+              },
+              {
+                "k": 3,
+                "precisionRelevantOnly": 1,
+                "relevantCount": 3,
+                "unrelatedCount": 0,
+                "ambiguousCount": 0,
+                "conservativePrecision": 1,
+                "creatorDiversity": {
+                  "creatorCount": 3,
+                  "distinctCreators": 3,
+                  "maxCreatorShare": 0.3333,
+                  "hhi": 0.3333,
+                  "recentItemShare": 0
+                }
+              },
+              {
+                "k": 5,
+                "precisionRelevantOnly": 1,
+                "relevantCount": 5,
+                "unrelatedCount": 0,
+                "ambiguousCount": 0,
+                "conservativePrecision": 1,
+                "creatorDiversity": {
+                  "creatorCount": 5,
+                  "distinctCreators": 5,
+                  "maxCreatorShare": 0.2,
+                  "hhi": 0.2,
+                  "recentItemShare": 0.2
+                }
+              },
+              {
+                "k": 10,
+                "precisionRelevantOnly": 0.7,
+                "relevantCount": 7,
+                "unrelatedCount": 3,
+                "ambiguousCount": 0,
+                "conservativePrecision": 0.7,
+                "creatorDiversity": {
+                  "creatorCount": 10,
+                  "distinctCreators": 10,
+                  "maxCreatorShare": 0.1,
+                  "hhi": 0.1,
+                  "recentItemShare": 0.3
+                }
+              },
+              {
+                "k": 20,
+                "precisionRelevantOnly": 0.35,
+                "relevantCount": 7,
+                "unrelatedCount": 8,
+                "ambiguousCount": 5,
+                "conservativePrecision": 0.35,
+                "creatorDiversity": {
+                  "creatorCount": 20,
+                  "distinctCreators": 20,
+                  "maxCreatorShare": 0.05,
+                  "hhi": 0.05,
+                  "recentItemShare": 0.35
+                }
+              }
+            ],
+            "baselineTop10MembershipCount": 10
+          },
+          {
+            "seedKey": "synthetic-food_dietary-01",
+            "seedLanguage": "en",
+            "orderedKeys": [
+              "synthetic-birthday-01",
+              "synthetic-birthday-02",
+              "synthetic-birthday-03",
+              "synthetic-birthday-04",
+              "synthetic-birthday-05",
+              "synthetic-birthday-06",
+              "synthetic-birthday-07",
+              "synthetic-birthday-08",
+              "synthetic-camping-01",
+              "synthetic-camping-02",
+              "synthetic-camping-03",
+              "synthetic-camping-04",
+              "synthetic-camping-05",
+              "synthetic-camping-06",
+              "synthetic-camping-07",
+              "synthetic-camping-08",
+              "synthetic-craft_activity-01",
+              "synthetic-craft_activity-02",
+              "synthetic-craft_activity-03",
+              "synthetic-craft_activity-04",
+              "synthetic-craft_activity-05",
+              "synthetic-craft_activity-06",
+              "synthetic-craft_activity-07",
+              "synthetic-craft_activity-08",
+              "synthetic-craft_activity-09",
+              "synthetic-food_dietary-02",
+              "synthetic-food_dietary-03",
+              "synthetic-food_dietary-04",
+              "synthetic-food_dietary-05",
+              "synthetic-food_dietary-06",
+              "synthetic-food_dietary-07",
+              "synthetic-food_dietary-08",
+              "synthetic-generic_logistics-01",
+              "synthetic-generic_logistics-02",
+              "synthetic-generic_logistics-03",
+              "synthetic-generic_logistics-04",
+              "synthetic-generic_logistics-05",
+              "synthetic-generic_logistics-06",
+              "synthetic-generic_logistics-07",
+              "synthetic-generic_logistics-08",
+              "synthetic-wedding-01",
+              "synthetic-wedding-02",
+              "synthetic-wedding-03",
+              "synthetic-wedding-04",
+              "synthetic-wedding-05",
+              "synthetic-wedding-06",
+              "synthetic-wedding-07",
+              "synthetic-wedding-08"
+            ],
+            "pairwiseRelevanceViolations": 0,
+            "top10MembershipChanges": 0,
+            "top10OrderChangedPositions": 0,
+            "top10MembershipOverlap": 10,
+            "topK": [
+              {
+                "k": 1,
+                "precisionRelevantOnly": 0,
+                "relevantCount": 0,
+                "unrelatedCount": 0,
+                "ambiguousCount": 1,
+                "conservativePrecision": 0,
+                "creatorDiversity": {
+                  "creatorCount": 1,
+                  "distinctCreators": 1,
+                  "maxCreatorShare": 1,
+                  "hhi": 1,
+                  "recentItemShare": 1
+                }
+              },
+              {
+                "k": 3,
+                "precisionRelevantOnly": 0,
+                "relevantCount": 0,
+                "unrelatedCount": 0,
+                "ambiguousCount": 3,
+                "conservativePrecision": 0,
+                "creatorDiversity": {
+                  "creatorCount": 3,
+                  "distinctCreators": 3,
+                  "maxCreatorShare": 0.3333,
+                  "hhi": 0.3333,
+                  "recentItemShare": 0.3333
+                }
+              },
+              {
+                "k": 5,
+                "precisionRelevantOnly": 0,
+                "relevantCount": 0,
+                "unrelatedCount": 0,
+                "ambiguousCount": 5,
+                "conservativePrecision": 0,
+                "creatorDiversity": {
+                  "creatorCount": 5,
+                  "distinctCreators": 5,
+                  "maxCreatorShare": 0.2,
+                  "hhi": 0.2,
+                  "recentItemShare": 0.4
+                }
+              },
+              {
+                "k": 10,
+                "precisionRelevantOnly": 0,
+                "relevantCount": 0,
+                "unrelatedCount": 0,
+                "ambiguousCount": 10,
+                "conservativePrecision": 0,
+                "creatorDiversity": {
+                  "creatorCount": 10,
+                  "distinctCreators": 10,
+                  "maxCreatorShare": 0.1,
+                  "hhi": 0.1,
+                  "recentItemShare": 0.4
+                }
+              },
+              {
+                "k": 20,
+                "precisionRelevantOnly": 0,
+                "relevantCount": 0,
+                "unrelatedCount": 4,
+                "ambiguousCount": 16,
+                "conservativePrecision": 0,
+                "creatorDiversity": {
+                  "creatorCount": 20,
+                  "distinctCreators": 20,
+                  "maxCreatorShare": 0.05,
+                  "hhi": 0.05,
+                  "recentItemShare": 0.35
+                }
+              }
+            ],
+            "baselineTop10MembershipCount": 10
+          },
+          {
+            "seedKey": "synthetic-camping-01",
+            "seedLanguage": "en",
+            "orderedKeys": [
+              "synthetic-birthday-01",
+              "synthetic-birthday-02",
+              "synthetic-birthday-03",
+              "synthetic-birthday-04",
+              "synthetic-birthday-05",
+              "synthetic-birthday-06",
+              "synthetic-birthday-07",
+              "synthetic-birthday-08",
+              "synthetic-camping-02",
+              "synthetic-camping-03",
+              "synthetic-camping-04",
+              "synthetic-camping-05",
+              "synthetic-camping-06",
+              "synthetic-camping-07",
+              "synthetic-camping-08",
+              "synthetic-craft_activity-01",
+              "synthetic-craft_activity-02",
+              "synthetic-craft_activity-03",
+              "synthetic-craft_activity-04",
+              "synthetic-craft_activity-05",
+              "synthetic-craft_activity-06",
+              "synthetic-craft_activity-07",
+              "synthetic-craft_activity-08",
+              "synthetic-craft_activity-09",
+              "synthetic-food_dietary-01",
+              "synthetic-food_dietary-02",
+              "synthetic-food_dietary-03",
+              "synthetic-food_dietary-04",
+              "synthetic-food_dietary-05",
+              "synthetic-food_dietary-06",
+              "synthetic-food_dietary-07",
+              "synthetic-food_dietary-08",
+              "synthetic-generic_logistics-01",
+              "synthetic-generic_logistics-02",
+              "synthetic-generic_logistics-03",
+              "synthetic-generic_logistics-04",
+              "synthetic-generic_logistics-05",
+              "synthetic-generic_logistics-06",
+              "synthetic-generic_logistics-07",
+              "synthetic-generic_logistics-08",
+              "synthetic-wedding-01",
+              "synthetic-wedding-02",
+              "synthetic-wedding-03",
+              "synthetic-wedding-04",
+              "synthetic-wedding-05",
+              "synthetic-wedding-06",
+              "synthetic-wedding-07",
+              "synthetic-wedding-08"
+            ],
+            "pairwiseRelevanceViolations": 0,
+            "top10MembershipChanges": 0,
+            "top10OrderChangedPositions": 0,
+            "top10MembershipOverlap": 10,
+            "topK": [
+              {
+                "k": 1,
+                "precisionRelevantOnly": 0,
+                "relevantCount": 0,
+                "unrelatedCount": 1,
+                "ambiguousCount": 0,
+                "conservativePrecision": 0,
+                "creatorDiversity": {
+                  "creatorCount": 1,
+                  "distinctCreators": 1,
+                  "maxCreatorShare": 1,
+                  "hhi": 1,
+                  "recentItemShare": 1
+                }
+              },
+              {
+                "k": 3,
+                "precisionRelevantOnly": 0,
+                "relevantCount": 0,
+                "unrelatedCount": 3,
+                "ambiguousCount": 0,
+                "conservativePrecision": 0,
+                "creatorDiversity": {
+                  "creatorCount": 3,
+                  "distinctCreators": 3,
+                  "maxCreatorShare": 0.3333,
+                  "hhi": 0.3333,
+                  "recentItemShare": 0.3333
+                }
+              },
+              {
+                "k": 5,
+                "precisionRelevantOnly": 0,
+                "relevantCount": 0,
+                "unrelatedCount": 5,
+                "ambiguousCount": 0,
+                "conservativePrecision": 0,
+                "creatorDiversity": {
+                  "creatorCount": 5,
+                  "distinctCreators": 5,
+                  "maxCreatorShare": 0.2,
+                  "hhi": 0.2,
+                  "recentItemShare": 0.4
+                }
+              },
+              {
+                "k": 10,
+                "precisionRelevantOnly": 0.2,
+                "relevantCount": 2,
+                "unrelatedCount": 8,
+                "ambiguousCount": 0,
+                "conservativePrecision": 0.2,
+                "creatorDiversity": {
+                  "creatorCount": 10,
+                  "distinctCreators": 10,
+                  "maxCreatorShare": 0.1,
+                  "hhi": 0.1,
+                  "recentItemShare": 0.3
+                }
+              },
+              {
+                "k": 20,
+                "precisionRelevantOnly": 0.35,
+                "relevantCount": 7,
+                "unrelatedCount": 13,
+                "ambiguousCount": 0,
+                "conservativePrecision": 0.35,
+                "creatorDiversity": {
+                  "creatorCount": 20,
+                  "distinctCreators": 20,
+                  "maxCreatorShare": 0.05,
+                  "hhi": 0.05,
+                  "recentItemShare": 0.35
+                }
+              }
+            ],
+            "baselineTop10MembershipCount": 10
+          },
+          {
+            "seedKey": "synthetic-craft_activity-01",
+            "seedLanguage": "en",
+            "orderedKeys": [
+              "synthetic-birthday-01",
+              "synthetic-birthday-02",
+              "synthetic-birthday-03",
+              "synthetic-birthday-04",
+              "synthetic-birthday-05",
+              "synthetic-birthday-06",
+              "synthetic-birthday-07",
+              "synthetic-birthday-08",
+              "synthetic-camping-01",
+              "synthetic-camping-02",
+              "synthetic-camping-03",
+              "synthetic-camping-04",
+              "synthetic-camping-05",
+              "synthetic-camping-06",
+              "synthetic-camping-07",
+              "synthetic-camping-08",
+              "synthetic-craft_activity-02",
+              "synthetic-craft_activity-03",
+              "synthetic-craft_activity-04",
+              "synthetic-craft_activity-05",
+              "synthetic-craft_activity-06",
+              "synthetic-craft_activity-07",
+              "synthetic-craft_activity-08",
+              "synthetic-craft_activity-09",
+              "synthetic-food_dietary-01",
+              "synthetic-food_dietary-02",
+              "synthetic-food_dietary-03",
+              "synthetic-food_dietary-04",
+              "synthetic-food_dietary-05",
+              "synthetic-food_dietary-06",
+              "synthetic-food_dietary-07",
+              "synthetic-food_dietary-08",
+              "synthetic-generic_logistics-01",
+              "synthetic-generic_logistics-02",
+              "synthetic-generic_logistics-03",
+              "synthetic-generic_logistics-04",
+              "synthetic-generic_logistics-05",
+              "synthetic-generic_logistics-06",
+              "synthetic-generic_logistics-07",
+              "synthetic-generic_logistics-08",
+              "synthetic-wedding-01",
+              "synthetic-wedding-02",
+              "synthetic-wedding-03",
+              "synthetic-wedding-04",
+              "synthetic-wedding-05",
+              "synthetic-wedding-06",
+              "synthetic-wedding-07",
+              "synthetic-wedding-08"
+            ],
+            "pairwiseRelevanceViolations": 0,
+            "top10MembershipChanges": 0,
+            "top10OrderChangedPositions": 0,
+            "top10MembershipOverlap": 10,
+            "topK": [
+              {
+                "k": 1,
+                "precisionRelevantOnly": 0,
+                "relevantCount": 0,
+                "unrelatedCount": 0,
+                "ambiguousCount": 1,
+                "conservativePrecision": 0,
+                "creatorDiversity": {
+                  "creatorCount": 1,
+                  "distinctCreators": 1,
+                  "maxCreatorShare": 1,
+                  "hhi": 1,
+                  "recentItemShare": 1
+                }
+              },
+              {
+                "k": 3,
+                "precisionRelevantOnly": 0,
+                "relevantCount": 0,
+                "unrelatedCount": 0,
+                "ambiguousCount": 3,
+                "conservativePrecision": 0,
+                "creatorDiversity": {
+                  "creatorCount": 3,
+                  "distinctCreators": 3,
+                  "maxCreatorShare": 0.3333,
+                  "hhi": 0.3333,
+                  "recentItemShare": 0.3333
+                }
+              },
+              {
+                "k": 5,
+                "precisionRelevantOnly": 0,
+                "relevantCount": 0,
+                "unrelatedCount": 0,
+                "ambiguousCount": 5,
+                "conservativePrecision": 0,
+                "creatorDiversity": {
+                  "creatorCount": 5,
+                  "distinctCreators": 5,
+                  "maxCreatorShare": 0.2,
+                  "hhi": 0.2,
+                  "recentItemShare": 0.4
+                }
+              },
+              {
+                "k": 10,
+                "precisionRelevantOnly": 0,
+                "relevantCount": 0,
+                "unrelatedCount": 2,
+                "ambiguousCount": 8,
+                "conservativePrecision": 0,
+                "creatorDiversity": {
+                  "creatorCount": 10,
+                  "distinctCreators": 10,
+                  "maxCreatorShare": 0.1,
+                  "hhi": 0.1,
+                  "recentItemShare": 0.4
+                }
+              },
+              {
+                "k": 20,
+                "precisionRelevantOnly": 0.2,
+                "relevantCount": 4,
+                "unrelatedCount": 8,
+                "ambiguousCount": 8,
+                "conservativePrecision": 0.2,
+                "creatorDiversity": {
+                  "creatorCount": 20,
+                  "distinctCreators": 20,
+                  "maxCreatorShare": 0.05,
+                  "hhi": 0.05,
+                  "recentItemShare": 0.35
+                }
+              }
+            ],
+            "baselineTop10MembershipCount": 10
+          },
+          {
+            "seedKey": "synthetic-generic_logistics-01",
+            "seedLanguage": "en",
+            "orderedKeys": [
+              "synthetic-birthday-01",
+              "synthetic-birthday-02",
+              "synthetic-birthday-03",
+              "synthetic-birthday-04",
+              "synthetic-birthday-05",
+              "synthetic-birthday-06",
+              "synthetic-birthday-07",
+              "synthetic-birthday-08",
+              "synthetic-camping-01",
+              "synthetic-camping-02",
+              "synthetic-camping-03",
+              "synthetic-camping-04",
+              "synthetic-camping-05",
+              "synthetic-camping-06",
+              "synthetic-camping-07",
+              "synthetic-camping-08",
+              "synthetic-craft_activity-01",
+              "synthetic-craft_activity-02",
+              "synthetic-craft_activity-03",
+              "synthetic-craft_activity-04",
+              "synthetic-craft_activity-05",
+              "synthetic-craft_activity-06",
+              "synthetic-craft_activity-07",
+              "synthetic-craft_activity-08",
+              "synthetic-craft_activity-09",
+              "synthetic-food_dietary-01",
+              "synthetic-food_dietary-02",
+              "synthetic-food_dietary-03",
+              "synthetic-food_dietary-04",
+              "synthetic-food_dietary-05",
+              "synthetic-food_dietary-06",
+              "synthetic-food_dietary-07",
+              "synthetic-food_dietary-08",
+              "synthetic-generic_logistics-02",
+              "synthetic-generic_logistics-03",
+              "synthetic-generic_logistics-04",
+              "synthetic-generic_logistics-05",
+              "synthetic-generic_logistics-06",
+              "synthetic-generic_logistics-07",
+              "synthetic-generic_logistics-08",
+              "synthetic-wedding-01",
+              "synthetic-wedding-02",
+              "synthetic-wedding-03",
+              "synthetic-wedding-04",
+              "synthetic-wedding-05",
+              "synthetic-wedding-06",
+              "synthetic-wedding-07",
+              "synthetic-wedding-08"
+            ],
+            "pairwiseRelevanceViolations": 0,
+            "top10MembershipChanges": 0,
+            "top10OrderChangedPositions": 0,
+            "top10MembershipOverlap": 10,
+            "topK": [
+              {
+                "k": 1,
+                "precisionRelevantOnly": 0,
+                "relevantCount": 0,
+                "unrelatedCount": 1,
+                "ambiguousCount": 0,
+                "conservativePrecision": 0,
+                "creatorDiversity": {
+                  "creatorCount": 1,
+                  "distinctCreators": 1,
+                  "maxCreatorShare": 1,
+                  "hhi": 1,
+                  "recentItemShare": 1
+                }
+              },
+              {
+                "k": 3,
+                "precisionRelevantOnly": 0,
+                "relevantCount": 0,
+                "unrelatedCount": 3,
+                "ambiguousCount": 0,
+                "conservativePrecision": 0,
+                "creatorDiversity": {
+                  "creatorCount": 3,
+                  "distinctCreators": 3,
+                  "maxCreatorShare": 0.3333,
+                  "hhi": 0.3333,
+                  "recentItemShare": 0.3333
+                }
+              },
+              {
+                "k": 5,
+                "precisionRelevantOnly": 0,
+                "relevantCount": 0,
+                "unrelatedCount": 5,
+                "ambiguousCount": 0,
+                "conservativePrecision": 0,
+                "creatorDiversity": {
+                  "creatorCount": 5,
+                  "distinctCreators": 5,
+                  "maxCreatorShare": 0.2,
+                  "hhi": 0.2,
+                  "recentItemShare": 0.4
+                }
+              },
+              {
+                "k": 10,
+                "precisionRelevantOnly": 0,
+                "relevantCount": 0,
+                "unrelatedCount": 10,
+                "ambiguousCount": 0,
+                "conservativePrecision": 0,
+                "creatorDiversity": {
+                  "creatorCount": 10,
+                  "distinctCreators": 10,
+                  "maxCreatorShare": 0.1,
+                  "hhi": 0.1,
+                  "recentItemShare": 0.4
+                }
+              },
+              {
+                "k": 20,
+                "precisionRelevantOnly": 0,
+                "relevantCount": 0,
+                "unrelatedCount": 20,
+                "ambiguousCount": 0,
+                "conservativePrecision": 0,
+                "creatorDiversity": {
+                  "creatorCount": 20,
+                  "distinctCreators": 20,
+                  "maxCreatorShare": 0.05,
+                  "hhi": 0.05,
+                  "recentItemShare": 0.35
+                }
+              }
+            ],
+            "baselineTop10MembershipCount": 10
+          }
+        ]
+      },
+      "frozenV1": {
+        "pairPrediction": {
+          "pairCount": 288,
+          "relevantLabelCount": 43,
+          "unrelatedLabelCount": 180,
+          "ambiguousLabelCount": 65,
+          "predictedPairCount": 45,
+          "truePositiveCount": 21,
+          "falsePositiveCount": 14,
+          "ambiguousPredictionCount": 10,
+          "strictPrecision": 0.6,
+          "conservativePrecisionCountingAmbiguousAsFalse": 0.4667,
+          "strictRecall": 0.4884,
+          "falsePositiveRate": 0.0778,
+          "labeledPairEvaluationCoverage": 1,
+          "positiveMatchShare": 0.1563,
+          "seedCountWithNoPredictionInSubset": 0,
+          "scoreBins": [
+            {
+              "range": "[0, 0.05)",
+              "pairCount": 243
+            },
+            {
+              "range": "[0.05, 0.5)",
+              "pairCount": 0
+            },
+            {
+              "range": "[0.5, 1)",
+              "pairCount": 0
+            },
+            {
+              "range": "[1, 2)",
+              "pairCount": 22
+            },
+            {
+              "range": "[2, 3]",
+              "pairCount": 23
+            }
+          ]
+        },
+        "candidateLanguageBreakdown": {
+          "en": {
+            "pairCount": 156,
+            "relevantLabelCount": 21,
+            "unrelatedLabelCount": 101,
+            "ambiguousLabelCount": 34,
+            "predictedPairCount": 36,
+            "truePositiveCount": 15,
+            "falsePositiveCount": 12,
+            "ambiguousPredictionCount": 9,
+            "strictPrecision": 0.5556,
+            "conservativePrecisionCountingAmbiguousAsFalse": 0.4167,
+            "strictRecall": 0.7143,
+            "falsePositiveRate": 0.1188,
+            "labeledPairEvaluationCoverage": 1,
+            "positiveMatchShare": 0.2308,
+            "seedCountWithNoPredictionInSubset": 0,
+            "scoreBins": [
+              {
+                "range": "[0, 0.05)",
+                "pairCount": 120
+              },
+              {
+                "range": "[0.05, 0.5)",
+                "pairCount": 0
+              },
+              {
+                "range": "[0.5, 1)",
+                "pairCount": 0
+              },
+              {
+                "range": "[1, 2)",
+                "pairCount": 18
+              },
+              {
+                "range": "[2, 3]",
+                "pairCount": 18
+              }
+            ]
+          },
+          "es": {
+            "pairCount": 96,
+            "relevantLabelCount": 16,
+            "unrelatedLabelCount": 57,
+            "ambiguousLabelCount": 23,
+            "predictedPairCount": 4,
+            "truePositiveCount": 2,
+            "falsePositiveCount": 2,
+            "ambiguousPredictionCount": 0,
+            "strictPrecision": 0.5,
+            "conservativePrecisionCountingAmbiguousAsFalse": 0.5,
+            "strictRecall": 0.125,
+            "falsePositiveRate": 0.0351,
+            "labeledPairEvaluationCoverage": 1,
+            "positiveMatchShare": 0.0417,
+            "seedCountWithNoPredictionInSubset": 2,
+            "scoreBins": [
+              {
+                "range": "[0, 0.05)",
+                "pairCount": 92
+              },
+              {
+                "range": "[0.05, 0.5)",
+                "pairCount": 0
+              },
+              {
+                "range": "[0.5, 1)",
+                "pairCount": 0
+              },
+              {
+                "range": "[1, 2)",
+                "pairCount": 2
+              },
+              {
+                "range": "[2, 3]",
+                "pairCount": 2
+              }
+            ]
+          },
+          "mixed": {
+            "pairCount": 30,
+            "relevantLabelCount": 5,
+            "unrelatedLabelCount": 18,
+            "ambiguousLabelCount": 7,
+            "predictedPairCount": 5,
+            "truePositiveCount": 4,
+            "falsePositiveCount": 0,
+            "ambiguousPredictionCount": 1,
+            "strictPrecision": 1,
+            "conservativePrecisionCountingAmbiguousAsFalse": 0.8,
+            "strictRecall": 0.8,
+            "falsePositiveRate": 0,
+            "labeledPairEvaluationCoverage": 1,
+            "positiveMatchShare": 0.1667,
+            "seedCountWithNoPredictionInSubset": 2,
+            "scoreBins": [
+              {
+                "range": "[0, 0.05)",
+                "pairCount": 25
+              },
+              {
+                "range": "[0.05, 0.5)",
+                "pairCount": 0
+              },
+              {
+                "range": "[0.5, 1)",
+                "pairCount": 0
+              },
+              {
+                "range": "[1, 2)",
+                "pairCount": 2
+              },
+              {
+                "range": "[2, 3]",
+                "pairCount": 3
+              }
+            ]
+          },
+          "und": {
+            "pairCount": 6,
+            "relevantLabelCount": 1,
+            "unrelatedLabelCount": 4,
+            "ambiguousLabelCount": 1,
+            "predictedPairCount": 0,
+            "truePositiveCount": 0,
+            "falsePositiveCount": 0,
+            "ambiguousPredictionCount": 0,
+            "strictPrecision": null,
+            "conservativePrecisionCountingAmbiguousAsFalse": null,
+            "strictRecall": 0,
+            "falsePositiveRate": 0,
+            "labeledPairEvaluationCoverage": 1,
+            "positiveMatchShare": 0,
+            "seedCountWithNoPredictionInSubset": 6,
+            "scoreBins": [
+              {
+                "range": "[0, 0.05)",
+                "pairCount": 6
+              },
+              {
+                "range": "[0.05, 0.5)",
+                "pairCount": 0
+              },
+              {
+                "range": "[0.5, 1)",
+                "pairCount": 0
+              },
+              {
+                "range": "[1, 2)",
+                "pairCount": 0
+              },
+              {
+                "range": "[2, 3]",
+                "pairCount": 0
+              }
+            ]
+          }
+        },
+        "perSeed": [
+          {
+            "seedKey": "synthetic-wedding-01",
+            "seedLanguage": "en",
+            "orderedKeys": [
+              "synthetic-wedding-03",
+              "synthetic-wedding-04",
+              "synthetic-wedding-06",
+              "synthetic-wedding-08",
+              "synthetic-food_dietary-01",
+              "synthetic-wedding-05",
+              "synthetic-wedding-07",
+              "synthetic-birthday-01",
+              "synthetic-birthday-02",
+              "synthetic-birthday-03",
+              "synthetic-birthday-04",
+              "synthetic-birthday-05",
+              "synthetic-birthday-06",
+              "synthetic-birthday-07",
+              "synthetic-birthday-08",
+              "synthetic-camping-01",
+              "synthetic-camping-02",
+              "synthetic-camping-03",
+              "synthetic-camping-04",
+              "synthetic-camping-05",
+              "synthetic-camping-06",
+              "synthetic-camping-07",
+              "synthetic-camping-08",
+              "synthetic-craft_activity-01",
+              "synthetic-craft_activity-02",
+              "synthetic-craft_activity-03",
+              "synthetic-craft_activity-04",
+              "synthetic-craft_activity-05",
+              "synthetic-craft_activity-06",
+              "synthetic-craft_activity-07",
+              "synthetic-craft_activity-08",
+              "synthetic-craft_activity-09",
+              "synthetic-food_dietary-02",
+              "synthetic-food_dietary-03",
+              "synthetic-food_dietary-04",
+              "synthetic-food_dietary-05",
+              "synthetic-food_dietary-06",
+              "synthetic-food_dietary-07",
+              "synthetic-food_dietary-08",
+              "synthetic-generic_logistics-01",
+              "synthetic-generic_logistics-02",
+              "synthetic-generic_logistics-03",
+              "synthetic-generic_logistics-04",
+              "synthetic-generic_logistics-05",
+              "synthetic-generic_logistics-06",
+              "synthetic-generic_logistics-07",
+              "synthetic-generic_logistics-08",
+              "synthetic-wedding-02"
+            ],
+            "pairwiseRelevanceViolations": 0,
+            "top10MembershipChanges": 7,
+            "top10OrderChangedPositions": 10,
+            "top10MembershipOverlap": 3,
+            "topK": [
+              {
+                "k": 1,
+                "precisionRelevantOnly": 1,
+                "relevantCount": 1,
+                "unrelatedCount": 0,
+                "ambiguousCount": 0,
+                "conservativePrecision": 1,
+                "creatorDiversity": {
+                  "creatorCount": 1,
+                  "distinctCreators": 1,
+                  "maxCreatorShare": 1,
+                  "hhi": 1,
+                  "recentItemShare": 0
+                }
+              },
+              {
+                "k": 3,
+                "precisionRelevantOnly": 1,
+                "relevantCount": 3,
+                "unrelatedCount": 0,
+                "ambiguousCount": 0,
+                "conservativePrecision": 1,
+                "creatorDiversity": {
+                  "creatorCount": 3,
+                  "distinctCreators": 3,
+                  "maxCreatorShare": 0.3333,
+                  "hhi": 0.3333,
+                  "recentItemShare": 0
+                }
+              },
+              {
+                "k": 5,
+                "precisionRelevantOnly": 0.8,
+                "relevantCount": 4,
+                "unrelatedCount": 1,
+                "ambiguousCount": 0,
+                "conservativePrecision": 0.8,
+                "creatorDiversity": {
+                  "creatorCount": 5,
+                  "distinctCreators": 4,
+                  "maxCreatorShare": 0.4,
+                  "hhi": 0.28,
+                  "recentItemShare": 0.2
+                }
+              },
+              {
+                "k": 10,
+                "precisionRelevantOnly": 0.6,
+                "relevantCount": 6,
+                "unrelatedCount": 4,
+                "ambiguousCount": 0,
+                "conservativePrecision": 0.6,
+                "creatorDiversity": {
+                  "creatorCount": 10,
+                  "distinctCreators": 9,
+                  "maxCreatorShare": 0.2,
+                  "hhi": 0.12,
+                  "recentItemShare": 0.4
+                }
+              },
+              {
+                "k": 20,
+                "precisionRelevantOnly": 0.3,
+                "relevantCount": 6,
+                "unrelatedCount": 14,
+                "ambiguousCount": 0,
+                "conservativePrecision": 0.3,
+                "creatorDiversity": {
+                  "creatorCount": 20,
+                  "distinctCreators": 18,
+                  "maxCreatorShare": 0.1,
+                  "hhi": 0.06,
+                  "recentItemShare": 0.4
+                }
+              }
+            ],
+            "baselineTop10MembershipCount": 10
+          },
+          {
+            "seedKey": "synthetic-birthday-01",
+            "seedLanguage": "en",
+            "orderedKeys": [
+              "synthetic-birthday-04",
+              "synthetic-birthday-05",
+              "synthetic-craft_activity-01",
+              "synthetic-craft_activity-09",
+              "synthetic-craft_activity-03",
+              "synthetic-craft_activity-04",
+              "synthetic-craft_activity-05",
+              "synthetic-food_dietary-03",
+              "synthetic-wedding-06",
+              "synthetic-birthday-02",
+              "synthetic-birthday-03",
+              "synthetic-birthday-06",
+              "synthetic-birthday-07",
+              "synthetic-birthday-08",
+              "synthetic-camping-01",
+              "synthetic-camping-02",
+              "synthetic-camping-03",
+              "synthetic-camping-04",
+              "synthetic-camping-05",
+              "synthetic-camping-06",
+              "synthetic-camping-07",
+              "synthetic-camping-08",
+              "synthetic-craft_activity-02",
+              "synthetic-craft_activity-06",
+              "synthetic-craft_activity-07",
+              "synthetic-craft_activity-08",
+              "synthetic-food_dietary-01",
+              "synthetic-food_dietary-02",
+              "synthetic-food_dietary-04",
+              "synthetic-food_dietary-05",
+              "synthetic-food_dietary-06",
+              "synthetic-food_dietary-07",
+              "synthetic-food_dietary-08",
+              "synthetic-generic_logistics-01",
+              "synthetic-generic_logistics-02",
+              "synthetic-generic_logistics-03",
+              "synthetic-generic_logistics-04",
+              "synthetic-generic_logistics-05",
+              "synthetic-generic_logistics-06",
+              "synthetic-generic_logistics-07",
+              "synthetic-generic_logistics-08",
+              "synthetic-wedding-01",
+              "synthetic-wedding-02",
+              "synthetic-wedding-03",
+              "synthetic-wedding-04",
+              "synthetic-wedding-05",
+              "synthetic-wedding-07",
+              "synthetic-wedding-08"
+            ],
+            "pairwiseRelevanceViolations": 0,
+            "top10MembershipChanges": 7,
+            "top10OrderChangedPositions": 10,
+            "top10MembershipOverlap": 3,
+            "topK": [
+              {
+                "k": 1,
+                "precisionRelevantOnly": 1,
+                "relevantCount": 1,
+                "unrelatedCount": 0,
+                "ambiguousCount": 0,
+                "conservativePrecision": 1,
+                "creatorDiversity": {
+                  "creatorCount": 1,
+                  "distinctCreators": 1,
+                  "maxCreatorShare": 1,
+                  "hhi": 1,
+                  "recentItemShare": 0
+                }
+              },
+              {
+                "k": 3,
+                "precisionRelevantOnly": 0.6667,
+                "relevantCount": 2,
+                "unrelatedCount": 0,
+                "ambiguousCount": 1,
+                "conservativePrecision": 0.6667,
+                "creatorDiversity": {
+                  "creatorCount": 3,
+                  "distinctCreators": 3,
+                  "maxCreatorShare": 0.3333,
+                  "hhi": 0.3333,
+                  "recentItemShare": 0.6667
+                }
+              },
+              {
+                "k": 5,
+                "precisionRelevantOnly": 0.4,
+                "relevantCount": 2,
+                "unrelatedCount": 0,
+                "ambiguousCount": 3,
+                "conservativePrecision": 0.4,
+                "creatorDiversity": {
+                  "creatorCount": 5,
+                  "distinctCreators": 5,
+                  "maxCreatorShare": 0.2,
+                  "hhi": 0.2,
+                  "recentItemShare": 0.6
+                }
+              },
+              {
+                "k": 10,
+                "precisionRelevantOnly": 0.3,
+                "relevantCount": 3,
+                "unrelatedCount": 1,
+                "ambiguousCount": 6,
+                "conservativePrecision": 0.3,
+                "creatorDiversity": {
+                  "creatorCount": 10,
+                  "distinctCreators": 10,
+                  "maxCreatorShare": 0.1,
+                  "hhi": 0.1,
+                  "recentItemShare": 0.4
+                }
+              },
+              {
+                "k": 20,
+                "precisionRelevantOnly": 0.35,
+                "relevantCount": 7,
+                "unrelatedCount": 7,
+                "ambiguousCount": 6,
+                "conservativePrecision": 0.35,
+                "creatorDiversity": {
+                  "creatorCount": 20,
+                  "distinctCreators": 20,
+                  "maxCreatorShare": 0.05,
+                  "hhi": 0.05,
+                  "recentItemShare": 0.35
+                }
+              }
+            ],
+            "baselineTop10MembershipCount": 10
+          },
+          {
+            "seedKey": "synthetic-food_dietary-01",
+            "seedLanguage": "en",
+            "orderedKeys": [
+              "synthetic-craft_activity-03",
+              "synthetic-food_dietary-03",
+              "synthetic-birthday-03",
+              "synthetic-food_dietary-07",
+              "synthetic-wedding-01",
+              "synthetic-birthday-01",
+              "synthetic-birthday-02",
+              "synthetic-birthday-04",
+              "synthetic-birthday-05",
+              "synthetic-birthday-06",
+              "synthetic-birthday-07",
+              "synthetic-birthday-08",
+              "synthetic-camping-01",
+              "synthetic-camping-02",
+              "synthetic-camping-03",
+              "synthetic-camping-04",
+              "synthetic-camping-05",
+              "synthetic-camping-06",
+              "synthetic-camping-07",
+              "synthetic-camping-08",
+              "synthetic-craft_activity-01",
+              "synthetic-craft_activity-02",
+              "synthetic-craft_activity-04",
+              "synthetic-craft_activity-05",
+              "synthetic-craft_activity-06",
+              "synthetic-craft_activity-07",
+              "synthetic-craft_activity-08",
+              "synthetic-craft_activity-09",
+              "synthetic-food_dietary-02",
+              "synthetic-food_dietary-04",
+              "synthetic-food_dietary-05",
+              "synthetic-food_dietary-06",
+              "synthetic-food_dietary-08",
+              "synthetic-generic_logistics-01",
+              "synthetic-generic_logistics-02",
+              "synthetic-generic_logistics-03",
+              "synthetic-generic_logistics-04",
+              "synthetic-generic_logistics-05",
+              "synthetic-generic_logistics-06",
+              "synthetic-generic_logistics-07",
+              "synthetic-generic_logistics-08",
+              "synthetic-wedding-02",
+              "synthetic-wedding-03",
+              "synthetic-wedding-04",
+              "synthetic-wedding-05",
+              "synthetic-wedding-06",
+              "synthetic-wedding-07",
+              "synthetic-wedding-08"
+            ],
+            "pairwiseRelevanceViolations": 0,
+            "top10MembershipChanges": 4,
+            "top10OrderChangedPositions": 9,
+            "top10MembershipOverlap": 6,
+            "topK": [
+              {
+                "k": 1,
+                "precisionRelevantOnly": 0,
+                "relevantCount": 0,
+                "unrelatedCount": 1,
+                "ambiguousCount": 0,
+                "conservativePrecision": 0,
+                "creatorDiversity": {
+                  "creatorCount": 1,
+                  "distinctCreators": 1,
+                  "maxCreatorShare": 1,
+                  "hhi": 1,
+                  "recentItemShare": 0
+                }
+              },
+              {
+                "k": 3,
+                "precisionRelevantOnly": 0.3333,
+                "relevantCount": 1,
+                "unrelatedCount": 1,
+                "ambiguousCount": 1,
+                "conservativePrecision": 0.3333,
+                "creatorDiversity": {
+                  "creatorCount": 3,
+                  "distinctCreators": 3,
+                  "maxCreatorShare": 0.3333,
+                  "hhi": 0.3333,
+                  "recentItemShare": 0
+                }
+              },
+              {
+                "k": 5,
+                "precisionRelevantOnly": 0.4,
+                "relevantCount": 2,
+                "unrelatedCount": 2,
+                "ambiguousCount": 1,
+                "conservativePrecision": 0.4,
+                "creatorDiversity": {
+                  "creatorCount": 5,
+                  "distinctCreators": 5,
+                  "maxCreatorShare": 0.2,
+                  "hhi": 0.2,
+                  "recentItemShare": 0.4
+                }
+              },
+              {
+                "k": 10,
+                "precisionRelevantOnly": 0.2,
+                "relevantCount": 2,
+                "unrelatedCount": 2,
+                "ambiguousCount": 6,
+                "conservativePrecision": 0.2,
+                "creatorDiversity": {
+                  "creatorCount": 10,
+                  "distinctCreators": 10,
+                  "maxCreatorShare": 0.1,
+                  "hhi": 0.1,
+                  "recentItemShare": 0.4
+                }
+              },
+              {
+                "k": 20,
+                "precisionRelevantOnly": 0.1,
+                "relevantCount": 2,
+                "unrelatedCount": 2,
+                "ambiguousCount": 16,
+                "conservativePrecision": 0.1,
+                "creatorDiversity": {
+                  "creatorCount": 20,
+                  "distinctCreators": 20,
+                  "maxCreatorShare": 0.05,
+                  "hhi": 0.05,
+                  "recentItemShare": 0.4
+                }
+              }
+            ],
+            "baselineTop10MembershipCount": 10
+          },
+          {
+            "seedKey": "synthetic-camping-01",
+            "seedLanguage": "en",
+            "orderedKeys": [
+              "synthetic-camping-03",
+              "synthetic-camping-04",
+              "synthetic-camping-05",
+              "synthetic-birthday-03",
+              "synthetic-craft_activity-02",
+              "synthetic-craft_activity-03",
+              "synthetic-birthday-01",
+              "synthetic-birthday-02",
+              "synthetic-birthday-04",
+              "synthetic-birthday-05",
+              "synthetic-birthday-06",
+              "synthetic-birthday-07",
+              "synthetic-birthday-08",
+              "synthetic-camping-02",
+              "synthetic-camping-06",
+              "synthetic-camping-07",
+              "synthetic-camping-08",
+              "synthetic-craft_activity-01",
+              "synthetic-craft_activity-04",
+              "synthetic-craft_activity-05",
+              "synthetic-craft_activity-06",
+              "synthetic-craft_activity-07",
+              "synthetic-craft_activity-08",
+              "synthetic-craft_activity-09",
+              "synthetic-food_dietary-01",
+              "synthetic-food_dietary-02",
+              "synthetic-food_dietary-03",
+              "synthetic-food_dietary-04",
+              "synthetic-food_dietary-05",
+              "synthetic-food_dietary-06",
+              "synthetic-food_dietary-07",
+              "synthetic-food_dietary-08",
+              "synthetic-generic_logistics-01",
+              "synthetic-generic_logistics-02",
+              "synthetic-generic_logistics-03",
+              "synthetic-generic_logistics-04",
+              "synthetic-generic_logistics-05",
+              "synthetic-generic_logistics-06",
+              "synthetic-generic_logistics-07",
+              "synthetic-generic_logistics-08",
+              "synthetic-wedding-01",
+              "synthetic-wedding-02",
+              "synthetic-wedding-03",
+              "synthetic-wedding-04",
+              "synthetic-wedding-05",
+              "synthetic-wedding-06",
+              "synthetic-wedding-07",
+              "synthetic-wedding-08"
+            ],
+            "pairwiseRelevanceViolations": 0,
+            "top10MembershipChanges": 4,
+            "top10OrderChangedPositions": 10,
+            "top10MembershipOverlap": 6,
+            "topK": [
+              {
+                "k": 1,
+                "precisionRelevantOnly": 1,
+                "relevantCount": 1,
+                "unrelatedCount": 0,
+                "ambiguousCount": 0,
+                "conservativePrecision": 1,
+                "creatorDiversity": {
+                  "creatorCount": 1,
+                  "distinctCreators": 1,
+                  "maxCreatorShare": 1,
+                  "hhi": 1,
+                  "recentItemShare": 0
+                }
+              },
+              {
+                "k": 3,
+                "precisionRelevantOnly": 1,
+                "relevantCount": 3,
+                "unrelatedCount": 0,
+                "ambiguousCount": 0,
+                "conservativePrecision": 1,
+                "creatorDiversity": {
+                  "creatorCount": 3,
+                  "distinctCreators": 3,
+                  "maxCreatorShare": 0.3333,
+                  "hhi": 0.3333,
+                  "recentItemShare": 0.3333
+                }
+              },
+              {
+                "k": 5,
+                "precisionRelevantOnly": 0.6,
+                "relevantCount": 3,
+                "unrelatedCount": 2,
+                "ambiguousCount": 0,
+                "conservativePrecision": 0.6,
+                "creatorDiversity": {
+                  "creatorCount": 5,
+                  "distinctCreators": 5,
+                  "maxCreatorShare": 0.2,
+                  "hhi": 0.2,
+                  "recentItemShare": 0.2
+                }
+              },
+              {
+                "k": 10,
+                "precisionRelevantOnly": 0.3,
+                "relevantCount": 3,
+                "unrelatedCount": 7,
+                "ambiguousCount": 0,
+                "conservativePrecision": 0.3,
+                "creatorDiversity": {
+                  "creatorCount": 10,
+                  "distinctCreators": 10,
+                  "maxCreatorShare": 0.1,
+                  "hhi": 0.1,
+                  "recentItemShare": 0.3
+                }
+              },
+              {
+                "k": 20,
+                "precisionRelevantOnly": 0.35,
+                "relevantCount": 7,
+                "unrelatedCount": 13,
+                "ambiguousCount": 0,
+                "conservativePrecision": 0.35,
+                "creatorDiversity": {
+                  "creatorCount": 20,
+                  "distinctCreators": 20,
+                  "maxCreatorShare": 0.05,
+                  "hhi": 0.05,
+                  "recentItemShare": 0.35
+                }
+              }
+            ],
+            "baselineTop10MembershipCount": 10
+          },
+          {
+            "seedKey": "synthetic-craft_activity-01",
+            "seedLanguage": "en",
+            "orderedKeys": [
+              "synthetic-craft_activity-08",
+              "synthetic-craft_activity-09",
+              "synthetic-birthday-01",
+              "synthetic-craft_activity-04",
+              "synthetic-camping-05",
+              "synthetic-craft_activity-03",
+              "synthetic-craft_activity-07",
+              "synthetic-birthday-02",
+              "synthetic-birthday-03",
+              "synthetic-birthday-04",
+              "synthetic-birthday-05",
+              "synthetic-birthday-06",
+              "synthetic-birthday-07",
+              "synthetic-birthday-08",
+              "synthetic-camping-01",
+              "synthetic-camping-02",
+              "synthetic-camping-03",
+              "synthetic-camping-04",
+              "synthetic-camping-06",
+              "synthetic-camping-07",
+              "synthetic-camping-08",
+              "synthetic-craft_activity-02",
+              "synthetic-craft_activity-05",
+              "synthetic-craft_activity-06",
+              "synthetic-food_dietary-01",
+              "synthetic-food_dietary-02",
+              "synthetic-food_dietary-03",
+              "synthetic-food_dietary-04",
+              "synthetic-food_dietary-05",
+              "synthetic-food_dietary-06",
+              "synthetic-food_dietary-07",
+              "synthetic-food_dietary-08",
+              "synthetic-generic_logistics-01",
+              "synthetic-generic_logistics-02",
+              "synthetic-generic_logistics-03",
+              "synthetic-generic_logistics-04",
+              "synthetic-generic_logistics-05",
+              "synthetic-generic_logistics-06",
+              "synthetic-generic_logistics-07",
+              "synthetic-generic_logistics-08",
+              "synthetic-wedding-01",
+              "synthetic-wedding-02",
+              "synthetic-wedding-03",
+              "synthetic-wedding-04",
+              "synthetic-wedding-05",
+              "synthetic-wedding-06",
+              "synthetic-wedding-07",
+              "synthetic-wedding-08"
+            ],
+            "pairwiseRelevanceViolations": 0,
+            "top10MembershipChanges": 6,
+            "top10OrderChangedPositions": 10,
+            "top10MembershipOverlap": 4,
+            "topK": [
+              {
+                "k": 1,
+                "precisionRelevantOnly": 1,
+                "relevantCount": 1,
+                "unrelatedCount": 0,
+                "ambiguousCount": 0,
+                "conservativePrecision": 1,
+                "creatorDiversity": {
+                  "creatorCount": 1,
+                  "distinctCreators": 1,
+                  "maxCreatorShare": 1,
+                  "hhi": 1,
+                  "recentItemShare": 0
+                }
+              },
+              {
+                "k": 3,
+                "precisionRelevantOnly": 0.6667,
+                "relevantCount": 2,
+                "unrelatedCount": 0,
+                "ambiguousCount": 1,
+                "conservativePrecision": 0.6667,
+                "creatorDiversity": {
+                  "creatorCount": 3,
+                  "distinctCreators": 3,
+                  "maxCreatorShare": 0.3333,
+                  "hhi": 0.3333,
+                  "recentItemShare": 0.6667
+                }
+              },
+              {
+                "k": 5,
+                "precisionRelevantOnly": 0.6,
+                "relevantCount": 3,
+                "unrelatedCount": 1,
+                "ambiguousCount": 1,
+                "conservativePrecision": 0.6,
+                "creatorDiversity": {
+                  "creatorCount": 5,
+                  "distinctCreators": 5,
+                  "maxCreatorShare": 0.2,
+                  "hhi": 0.2,
+                  "recentItemShare": 0.6
+                }
+              },
+              {
+                "k": 10,
+                "precisionRelevantOnly": 0.5,
+                "relevantCount": 5,
+                "unrelatedCount": 1,
+                "ambiguousCount": 4,
+                "conservativePrecision": 0.5,
+                "creatorDiversity": {
+                  "creatorCount": 10,
+                  "distinctCreators": 10,
+                  "maxCreatorShare": 0.1,
+                  "hhi": 0.1,
+                  "recentItemShare": 0.4
+                }
+              },
+              {
+                "k": 20,
+                "precisionRelevantOnly": 0.25,
+                "relevantCount": 5,
+                "unrelatedCount": 7,
+                "ambiguousCount": 8,
+                "conservativePrecision": 0.25,
+                "creatorDiversity": {
+                  "creatorCount": 20,
+                  "distinctCreators": 20,
+                  "maxCreatorShare": 0.05,
+                  "hhi": 0.05,
+                  "recentItemShare": 0.4
+                }
+              }
+            ],
+            "baselineTop10MembershipCount": 10
+          },
+          {
+            "seedKey": "synthetic-generic_logistics-01",
+            "seedLanguage": "en",
+            "orderedKeys": [
+              "synthetic-birthday-07",
+              "synthetic-camping-07",
+              "synthetic-food_dietary-07",
+              "synthetic-generic_logistics-03",
+              "synthetic-generic_logistics-07",
+              "synthetic-wedding-07",
+              "synthetic-camping-03",
+              "synthetic-camping-08",
+              "synthetic-craft_activity-07",
+              "synthetic-food_dietary-03",
+              "synthetic-generic_logistics-04",
+              "synthetic-birthday-01",
+              "synthetic-birthday-02",
+              "synthetic-birthday-03",
+              "synthetic-birthday-04",
+              "synthetic-birthday-05",
+              "synthetic-birthday-06",
+              "synthetic-birthday-08",
+              "synthetic-camping-01",
+              "synthetic-camping-02",
+              "synthetic-camping-04",
+              "synthetic-camping-05",
+              "synthetic-camping-06",
+              "synthetic-craft_activity-01",
+              "synthetic-craft_activity-02",
+              "synthetic-craft_activity-03",
+              "synthetic-craft_activity-04",
+              "synthetic-craft_activity-05",
+              "synthetic-craft_activity-06",
+              "synthetic-craft_activity-08",
+              "synthetic-craft_activity-09",
+              "synthetic-food_dietary-01",
+              "synthetic-food_dietary-02",
+              "synthetic-food_dietary-04",
+              "synthetic-food_dietary-05",
+              "synthetic-food_dietary-06",
+              "synthetic-food_dietary-08",
+              "synthetic-generic_logistics-02",
+              "synthetic-generic_logistics-05",
+              "synthetic-generic_logistics-06",
+              "synthetic-generic_logistics-08",
+              "synthetic-wedding-01",
+              "synthetic-wedding-02",
+              "synthetic-wedding-03",
+              "synthetic-wedding-04",
+              "synthetic-wedding-05",
+              "synthetic-wedding-06",
+              "synthetic-wedding-08"
+            ],
+            "pairwiseRelevanceViolations": 0,
+            "top10MembershipChanges": 9,
+            "top10OrderChangedPositions": 10,
+            "top10MembershipOverlap": 1,
+            "topK": [
+              {
+                "k": 1,
+                "precisionRelevantOnly": 0,
+                "relevantCount": 0,
+                "unrelatedCount": 1,
+                "ambiguousCount": 0,
+                "conservativePrecision": 0,
+                "creatorDiversity": {
+                  "creatorCount": 1,
+                  "distinctCreators": 1,
+                  "maxCreatorShare": 1,
+                  "hhi": 1,
+                  "recentItemShare": 1
+                }
+              },
+              {
+                "k": 3,
+                "precisionRelevantOnly": 0,
+                "relevantCount": 0,
+                "unrelatedCount": 2,
+                "ambiguousCount": 1,
+                "conservativePrecision": 0,
+                "creatorDiversity": {
+                  "creatorCount": 3,
+                  "distinctCreators": 3,
+                  "maxCreatorShare": 0.3333,
+                  "hhi": 0.3333,
+                  "recentItemShare": 1
+                }
+              },
+              {
+                "k": 5,
+                "precisionRelevantOnly": 0.4,
+                "relevantCount": 2,
+                "unrelatedCount": 2,
+                "ambiguousCount": 1,
+                "conservativePrecision": 0.4,
+                "creatorDiversity": {
+                  "creatorCount": 5,
+                  "distinctCreators": 5,
+                  "maxCreatorShare": 0.2,
+                  "hhi": 0.2,
+                  "recentItemShare": 0.8
+                }
+              },
+              {
+                "k": 10,
+                "precisionRelevantOnly": 0.2,
+                "relevantCount": 2,
+                "unrelatedCount": 6,
+                "ambiguousCount": 2,
+                "conservativePrecision": 0.2,
+                "creatorDiversity": {
+                  "creatorCount": 10,
+                  "distinctCreators": 10,
+                  "maxCreatorShare": 0.1,
+                  "hhi": 0.1,
+                  "recentItemShare": 0.6
+                }
+              },
+              {
+                "k": 20,
+                "precisionRelevantOnly": 0.15,
+                "relevantCount": 3,
+                "unrelatedCount": 15,
+                "ambiguousCount": 2,
+                "conservativePrecision": 0.15,
+                "creatorDiversity": {
+                  "creatorCount": 20,
+                  "distinctCreators": 20,
+                  "maxCreatorShare": 0.05,
+                  "hhi": 0.05,
+                  "recentItemShare": 0.45
+                }
+              }
+            ],
+            "baselineTop10MembershipCount": 10
+          }
+        ]
+      },
+      "roleAwareV2": {
+        "pairPrediction": {
+          "pairCount": 288,
+          "relevantLabelCount": 43,
+          "unrelatedLabelCount": 180,
+          "ambiguousLabelCount": 65,
+          "predictedPairCount": 17,
+          "truePositiveCount": 11,
+          "falsePositiveCount": 5,
+          "ambiguousPredictionCount": 1,
+          "strictPrecision": 0.6875,
+          "conservativePrecisionCountingAmbiguousAsFalse": 0.6471,
+          "strictRecall": 0.2558,
+          "falsePositiveRate": 0.0278,
+          "labeledPairEvaluationCoverage": 1,
+          "positiveMatchShare": 0.059,
+          "seedCountWithNoPredictionInSubset": 0,
+          "scoreBins": [
+            {
+              "range": "[0, 0.05)",
+              "pairCount": 271
+            },
+            {
+              "range": "[0.05, 0.5)",
+              "pairCount": 15
+            },
+            {
+              "range": "[0.5, 1)",
+              "pairCount": 2
+            },
+            {
+              "range": "[1, 2)",
+              "pairCount": 0
+            },
+            {
+              "range": "[2, 3]",
+              "pairCount": 0
+            }
+          ]
+        },
+        "candidateLanguageBreakdown": {
+          "en": {
+            "pairCount": 156,
+            "relevantLabelCount": 21,
+            "unrelatedLabelCount": 101,
+            "ambiguousLabelCount": 34,
+            "predictedPairCount": 15,
+            "truePositiveCount": 9,
+            "falsePositiveCount": 5,
+            "ambiguousPredictionCount": 1,
+            "strictPrecision": 0.6429,
+            "conservativePrecisionCountingAmbiguousAsFalse": 0.6,
+            "strictRecall": 0.4286,
+            "falsePositiveRate": 0.0495,
+            "labeledPairEvaluationCoverage": 1,
+            "positiveMatchShare": 0.0962,
+            "seedCountWithNoPredictionInSubset": 0,
+            "scoreBins": [
+              {
+                "range": "[0, 0.05)",
+                "pairCount": 141
+              },
+              {
+                "range": "[0.05, 0.5)",
+                "pairCount": 13
+              },
+              {
+                "range": "[0.5, 1)",
+                "pairCount": 2
+              },
+              {
+                "range": "[1, 2)",
+                "pairCount": 0
+              },
+              {
+                "range": "[2, 3]",
+                "pairCount": 0
+              }
+            ]
+          },
+          "es": {
+            "pairCount": 96,
+            "relevantLabelCount": 16,
+            "unrelatedLabelCount": 57,
+            "ambiguousLabelCount": 23,
+            "predictedPairCount": 0,
+            "truePositiveCount": 0,
+            "falsePositiveCount": 0,
+            "ambiguousPredictionCount": 0,
+            "strictPrecision": null,
+            "conservativePrecisionCountingAmbiguousAsFalse": null,
+            "strictRecall": 0,
+            "falsePositiveRate": 0,
+            "labeledPairEvaluationCoverage": 1,
+            "positiveMatchShare": 0,
+            "seedCountWithNoPredictionInSubset": 6,
+            "scoreBins": [
+              {
+                "range": "[0, 0.05)",
+                "pairCount": 96
+              },
+              {
+                "range": "[0.05, 0.5)",
+                "pairCount": 0
+              },
+              {
+                "range": "[0.5, 1)",
+                "pairCount": 0
+              },
+              {
+                "range": "[1, 2)",
+                "pairCount": 0
+              },
+              {
+                "range": "[2, 3]",
+                "pairCount": 0
+              }
+            ]
+          },
+          "mixed": {
+            "pairCount": 30,
+            "relevantLabelCount": 5,
+            "unrelatedLabelCount": 18,
+            "ambiguousLabelCount": 7,
+            "predictedPairCount": 2,
+            "truePositiveCount": 2,
+            "falsePositiveCount": 0,
+            "ambiguousPredictionCount": 0,
+            "strictPrecision": 1,
+            "conservativePrecisionCountingAmbiguousAsFalse": 1,
+            "strictRecall": 0.4,
+            "falsePositiveRate": 0,
+            "labeledPairEvaluationCoverage": 1,
+            "positiveMatchShare": 0.0667,
+            "seedCountWithNoPredictionInSubset": 4,
+            "scoreBins": [
+              {
+                "range": "[0, 0.05)",
+                "pairCount": 28
+              },
+              {
+                "range": "[0.05, 0.5)",
+                "pairCount": 2
+              },
+              {
+                "range": "[0.5, 1)",
+                "pairCount": 0
+              },
+              {
+                "range": "[1, 2)",
+                "pairCount": 0
+              },
+              {
+                "range": "[2, 3]",
+                "pairCount": 0
+              }
+            ]
+          },
+          "und": {
+            "pairCount": 6,
+            "relevantLabelCount": 1,
+            "unrelatedLabelCount": 4,
+            "ambiguousLabelCount": 1,
+            "predictedPairCount": 0,
+            "truePositiveCount": 0,
+            "falsePositiveCount": 0,
+            "ambiguousPredictionCount": 0,
+            "strictPrecision": null,
+            "conservativePrecisionCountingAmbiguousAsFalse": null,
+            "strictRecall": 0,
+            "falsePositiveRate": 0,
+            "labeledPairEvaluationCoverage": 1,
+            "positiveMatchShare": 0,
+            "seedCountWithNoPredictionInSubset": 6,
+            "scoreBins": [
+              {
+                "range": "[0, 0.05)",
+                "pairCount": 6
+              },
+              {
+                "range": "[0.05, 0.5)",
+                "pairCount": 0
+              },
+              {
+                "range": "[0.5, 1)",
+                "pairCount": 0
+              },
+              {
+                "range": "[1, 2)",
+                "pairCount": 0
+              },
+              {
+                "range": "[2, 3]",
+                "pairCount": 0
+              }
+            ]
+          }
+        },
+        "perSeed": [
+          {
+            "seedKey": "synthetic-wedding-01",
+            "seedLanguage": "en",
+            "orderedKeys": [
+              "synthetic-wedding-06",
+              "synthetic-wedding-04",
+              "synthetic-wedding-03",
+              "synthetic-birthday-01",
+              "synthetic-birthday-02",
+              "synthetic-birthday-03",
+              "synthetic-birthday-04",
+              "synthetic-birthday-05",
+              "synthetic-birthday-06",
+              "synthetic-birthday-07",
+              "synthetic-birthday-08",
+              "synthetic-camping-01",
+              "synthetic-camping-02",
+              "synthetic-camping-03",
+              "synthetic-camping-04",
+              "synthetic-camping-05",
+              "synthetic-camping-06",
+              "synthetic-camping-07",
+              "synthetic-camping-08",
+              "synthetic-craft_activity-01",
+              "synthetic-craft_activity-02",
+              "synthetic-craft_activity-03",
+              "synthetic-craft_activity-04",
+              "synthetic-craft_activity-05",
+              "synthetic-craft_activity-06",
+              "synthetic-craft_activity-07",
+              "synthetic-craft_activity-08",
+              "synthetic-craft_activity-09",
+              "synthetic-food_dietary-01",
+              "synthetic-food_dietary-02",
+              "synthetic-food_dietary-03",
+              "synthetic-food_dietary-04",
+              "synthetic-food_dietary-05",
+              "synthetic-food_dietary-06",
+              "synthetic-food_dietary-07",
+              "synthetic-food_dietary-08",
+              "synthetic-generic_logistics-01",
+              "synthetic-generic_logistics-02",
+              "synthetic-generic_logistics-03",
+              "synthetic-generic_logistics-04",
+              "synthetic-generic_logistics-05",
+              "synthetic-generic_logistics-06",
+              "synthetic-generic_logistics-07",
+              "synthetic-generic_logistics-08",
+              "synthetic-wedding-02",
+              "synthetic-wedding-05",
+              "synthetic-wedding-07",
+              "synthetic-wedding-08"
+            ],
+            "pairwiseRelevanceViolations": 0,
+            "top10MembershipChanges": 3,
+            "top10OrderChangedPositions": 10,
+            "top10MembershipOverlap": 7,
+            "topK": [
+              {
+                "k": 1,
+                "precisionRelevantOnly": 1,
+                "relevantCount": 1,
+                "unrelatedCount": 0,
+                "ambiguousCount": 0,
+                "conservativePrecision": 1,
+                "creatorDiversity": {
+                  "creatorCount": 1,
+                  "distinctCreators": 1,
+                  "maxCreatorShare": 1,
+                  "hhi": 1,
+                  "recentItemShare": 0
+                }
+              },
+              {
+                "k": 3,
+                "precisionRelevantOnly": 1,
+                "relevantCount": 3,
+                "unrelatedCount": 0,
+                "ambiguousCount": 0,
+                "conservativePrecision": 1,
+                "creatorDiversity": {
+                  "creatorCount": 3,
+                  "distinctCreators": 3,
+                  "maxCreatorShare": 0.3333,
+                  "hhi": 0.3333,
+                  "recentItemShare": 0
+                }
+              },
+              {
+                "k": 5,
+                "precisionRelevantOnly": 0.6,
+                "relevantCount": 3,
+                "unrelatedCount": 2,
+                "ambiguousCount": 0,
+                "conservativePrecision": 0.6,
+                "creatorDiversity": {
+                  "creatorCount": 5,
+                  "distinctCreators": 5,
+                  "maxCreatorShare": 0.2,
+                  "hhi": 0.2,
+                  "recentItemShare": 0.2
+                }
+              },
+              {
+                "k": 10,
+                "precisionRelevantOnly": 0.3,
+                "relevantCount": 3,
+                "unrelatedCount": 7,
+                "ambiguousCount": 0,
+                "conservativePrecision": 0.3,
+                "creatorDiversity": {
+                  "creatorCount": 10,
+                  "distinctCreators": 10,
+                  "maxCreatorShare": 0.1,
+                  "hhi": 0.1,
+                  "recentItemShare": 0.3
+                }
+              },
+              {
+                "k": 20,
+                "precisionRelevantOnly": 0.15,
+                "relevantCount": 3,
+                "unrelatedCount": 17,
+                "ambiguousCount": 0,
+                "conservativePrecision": 0.15,
+                "creatorDiversity": {
+                  "creatorCount": 20,
+                  "distinctCreators": 19,
+                  "maxCreatorShare": 0.1,
+                  "hhi": 0.055,
+                  "recentItemShare": 0.35
+                }
+              }
+            ],
+            "baselineTop10MembershipCount": 10
+          },
+          {
+            "seedKey": "synthetic-birthday-01",
+            "seedLanguage": "en",
+            "orderedKeys": [
+              "synthetic-wedding-06",
+              "synthetic-birthday-04",
+              "synthetic-birthday-05",
+              "synthetic-food_dietary-03",
+              "synthetic-birthday-02",
+              "synthetic-birthday-03",
+              "synthetic-birthday-06",
+              "synthetic-birthday-07",
+              "synthetic-birthday-08",
+              "synthetic-camping-01",
+              "synthetic-camping-02",
+              "synthetic-camping-03",
+              "synthetic-camping-04",
+              "synthetic-camping-05",
+              "synthetic-camping-06",
+              "synthetic-camping-07",
+              "synthetic-camping-08",
+              "synthetic-craft_activity-01",
+              "synthetic-craft_activity-02",
+              "synthetic-craft_activity-03",
+              "synthetic-craft_activity-04",
+              "synthetic-craft_activity-05",
+              "synthetic-craft_activity-06",
+              "synthetic-craft_activity-07",
+              "synthetic-craft_activity-08",
+              "synthetic-craft_activity-09",
+              "synthetic-food_dietary-01",
+              "synthetic-food_dietary-02",
+              "synthetic-food_dietary-04",
+              "synthetic-food_dietary-05",
+              "synthetic-food_dietary-06",
+              "synthetic-food_dietary-07",
+              "synthetic-food_dietary-08",
+              "synthetic-generic_logistics-01",
+              "synthetic-generic_logistics-02",
+              "synthetic-generic_logistics-03",
+              "synthetic-generic_logistics-04",
+              "synthetic-generic_logistics-05",
+              "synthetic-generic_logistics-06",
+              "synthetic-generic_logistics-07",
+              "synthetic-generic_logistics-08",
+              "synthetic-wedding-01",
+              "synthetic-wedding-02",
+              "synthetic-wedding-03",
+              "synthetic-wedding-04",
+              "synthetic-wedding-05",
+              "synthetic-wedding-07",
+              "synthetic-wedding-08"
+            ],
+            "pairwiseRelevanceViolations": 0,
+            "top10MembershipChanges": 2,
+            "top10OrderChangedPositions": 10,
+            "top10MembershipOverlap": 8,
+            "topK": [
+              {
+                "k": 1,
+                "precisionRelevantOnly": 0,
+                "relevantCount": 0,
+                "unrelatedCount": 1,
+                "ambiguousCount": 0,
+                "conservativePrecision": 0,
+                "creatorDiversity": {
+                  "creatorCount": 1,
+                  "distinctCreators": 1,
+                  "maxCreatorShare": 1,
+                  "hhi": 1,
+                  "recentItemShare": 0
+                }
+              },
+              {
+                "k": 3,
+                "precisionRelevantOnly": 0.6667,
+                "relevantCount": 2,
+                "unrelatedCount": 1,
+                "ambiguousCount": 0,
+                "conservativePrecision": 0.6667,
+                "creatorDiversity": {
+                  "creatorCount": 3,
+                  "distinctCreators": 3,
+                  "maxCreatorShare": 0.3333,
+                  "hhi": 0.3333,
+                  "recentItemShare": 0.3333
+                }
+              },
+              {
+                "k": 5,
+                "precisionRelevantOnly": 0.6,
+                "relevantCount": 3,
+                "unrelatedCount": 1,
+                "ambiguousCount": 1,
+                "conservativePrecision": 0.6,
+                "creatorDiversity": {
+                  "creatorCount": 5,
+                  "distinctCreators": 5,
+                  "maxCreatorShare": 0.2,
+                  "hhi": 0.2,
+                  "recentItemShare": 0.2
+                }
+              },
+              {
+                "k": 10,
+                "precisionRelevantOnly": 0.7,
+                "relevantCount": 7,
+                "unrelatedCount": 2,
+                "ambiguousCount": 1,
+                "conservativePrecision": 0.7,
+                "creatorDiversity": {
+                  "creatorCount": 10,
+                  "distinctCreators": 10,
+                  "maxCreatorShare": 0.1,
+                  "hhi": 0.1,
+                  "recentItemShare": 0.3
+                }
+              },
+              {
+                "k": 20,
+                "precisionRelevantOnly": 0.35,
+                "relevantCount": 7,
+                "unrelatedCount": 9,
+                "ambiguousCount": 4,
+                "conservativePrecision": 0.35,
+                "creatorDiversity": {
+                  "creatorCount": 20,
+                  "distinctCreators": 20,
+                  "maxCreatorShare": 0.05,
+                  "hhi": 0.05,
+                  "recentItemShare": 0.3
+                }
+              }
+            ],
+            "baselineTop10MembershipCount": 10
+          },
+          {
+            "seedKey": "synthetic-food_dietary-01",
+            "seedLanguage": "en",
+            "orderedKeys": [
+              "synthetic-craft_activity-03",
+              "synthetic-birthday-01",
+              "synthetic-birthday-02",
+              "synthetic-birthday-03",
+              "synthetic-birthday-04",
+              "synthetic-birthday-05",
+              "synthetic-birthday-06",
+              "synthetic-birthday-07",
+              "synthetic-birthday-08",
+              "synthetic-camping-01",
+              "synthetic-camping-02",
+              "synthetic-camping-03",
+              "synthetic-camping-04",
+              "synthetic-camping-05",
+              "synthetic-camping-06",
+              "synthetic-camping-07",
+              "synthetic-camping-08",
+              "synthetic-craft_activity-01",
+              "synthetic-craft_activity-02",
+              "synthetic-craft_activity-04",
+              "synthetic-craft_activity-05",
+              "synthetic-craft_activity-06",
+              "synthetic-craft_activity-07",
+              "synthetic-craft_activity-08",
+              "synthetic-craft_activity-09",
+              "synthetic-food_dietary-02",
+              "synthetic-food_dietary-03",
+              "synthetic-food_dietary-04",
+              "synthetic-food_dietary-05",
+              "synthetic-food_dietary-06",
+              "synthetic-food_dietary-07",
+              "synthetic-food_dietary-08",
+              "synthetic-generic_logistics-01",
+              "synthetic-generic_logistics-02",
+              "synthetic-generic_logistics-03",
+              "synthetic-generic_logistics-04",
+              "synthetic-generic_logistics-05",
+              "synthetic-generic_logistics-06",
+              "synthetic-generic_logistics-07",
+              "synthetic-generic_logistics-08",
+              "synthetic-wedding-01",
+              "synthetic-wedding-02",
+              "synthetic-wedding-03",
+              "synthetic-wedding-04",
+              "synthetic-wedding-05",
+              "synthetic-wedding-06",
+              "synthetic-wedding-07",
+              "synthetic-wedding-08"
+            ],
+            "pairwiseRelevanceViolations": 0,
+            "top10MembershipChanges": 1,
+            "top10OrderChangedPositions": 10,
+            "top10MembershipOverlap": 9,
+            "topK": [
+              {
+                "k": 1,
+                "precisionRelevantOnly": 0,
+                "relevantCount": 0,
+                "unrelatedCount": 1,
+                "ambiguousCount": 0,
+                "conservativePrecision": 0,
+                "creatorDiversity": {
+                  "creatorCount": 1,
+                  "distinctCreators": 1,
+                  "maxCreatorShare": 1,
+                  "hhi": 1,
+                  "recentItemShare": 0
+                }
+              },
+              {
+                "k": 3,
+                "precisionRelevantOnly": 0,
+                "relevantCount": 0,
+                "unrelatedCount": 1,
+                "ambiguousCount": 2,
+                "conservativePrecision": 0,
+                "creatorDiversity": {
+                  "creatorCount": 3,
+                  "distinctCreators": 3,
+                  "maxCreatorShare": 0.3333,
+                  "hhi": 0.3333,
+                  "recentItemShare": 0.3333
+                }
+              },
+              {
+                "k": 5,
+                "precisionRelevantOnly": 0,
+                "relevantCount": 0,
+                "unrelatedCount": 1,
+                "ambiguousCount": 4,
+                "conservativePrecision": 0,
+                "creatorDiversity": {
+                  "creatorCount": 5,
+                  "distinctCreators": 5,
+                  "maxCreatorShare": 0.2,
+                  "hhi": 0.2,
+                  "recentItemShare": 0.2
+                }
+              },
+              {
+                "k": 10,
+                "precisionRelevantOnly": 0,
+                "relevantCount": 0,
+                "unrelatedCount": 1,
+                "ambiguousCount": 9,
+                "conservativePrecision": 0,
+                "creatorDiversity": {
+                  "creatorCount": 10,
+                  "distinctCreators": 10,
+                  "maxCreatorShare": 0.1,
+                  "hhi": 0.1,
+                  "recentItemShare": 0.4
+                }
+              },
+              {
+                "k": 20,
+                "precisionRelevantOnly": 0,
+                "relevantCount": 0,
+                "unrelatedCount": 4,
+                "ambiguousCount": 16,
+                "conservativePrecision": 0,
+                "creatorDiversity": {
+                  "creatorCount": 20,
+                  "distinctCreators": 20,
+                  "maxCreatorShare": 0.05,
+                  "hhi": 0.05,
+                  "recentItemShare": 0.35
+                }
+              }
+            ],
+            "baselineTop10MembershipCount": 10
+          },
+          {
+            "seedKey": "synthetic-camping-01",
+            "seedLanguage": "en",
+            "orderedKeys": [
+              "synthetic-camping-05",
+              "synthetic-camping-04",
+              "synthetic-camping-03",
+              "synthetic-birthday-01",
+              "synthetic-birthday-02",
+              "synthetic-birthday-03",
+              "synthetic-birthday-04",
+              "synthetic-birthday-05",
+              "synthetic-birthday-06",
+              "synthetic-birthday-07",
+              "synthetic-birthday-08",
+              "synthetic-camping-02",
+              "synthetic-camping-06",
+              "synthetic-camping-07",
+              "synthetic-camping-08",
+              "synthetic-craft_activity-01",
+              "synthetic-craft_activity-02",
+              "synthetic-craft_activity-03",
+              "synthetic-craft_activity-04",
+              "synthetic-craft_activity-05",
+              "synthetic-craft_activity-06",
+              "synthetic-craft_activity-07",
+              "synthetic-craft_activity-08",
+              "synthetic-craft_activity-09",
+              "synthetic-food_dietary-01",
+              "synthetic-food_dietary-02",
+              "synthetic-food_dietary-03",
+              "synthetic-food_dietary-04",
+              "synthetic-food_dietary-05",
+              "synthetic-food_dietary-06",
+              "synthetic-food_dietary-07",
+              "synthetic-food_dietary-08",
+              "synthetic-generic_logistics-01",
+              "synthetic-generic_logistics-02",
+              "synthetic-generic_logistics-03",
+              "synthetic-generic_logistics-04",
+              "synthetic-generic_logistics-05",
+              "synthetic-generic_logistics-06",
+              "synthetic-generic_logistics-07",
+              "synthetic-generic_logistics-08",
+              "synthetic-wedding-01",
+              "synthetic-wedding-02",
+              "synthetic-wedding-03",
+              "synthetic-wedding-04",
+              "synthetic-wedding-05",
+              "synthetic-wedding-06",
+              "synthetic-wedding-07",
+              "synthetic-wedding-08"
+            ],
+            "pairwiseRelevanceViolations": 0,
+            "top10MembershipChanges": 2,
+            "top10OrderChangedPositions": 10,
+            "top10MembershipOverlap": 8,
+            "topK": [
+              {
+                "k": 1,
+                "precisionRelevantOnly": 1,
+                "relevantCount": 1,
+                "unrelatedCount": 0,
+                "ambiguousCount": 0,
+                "conservativePrecision": 1,
+                "creatorDiversity": {
+                  "creatorCount": 1,
+                  "distinctCreators": 1,
+                  "maxCreatorShare": 1,
+                  "hhi": 1,
+                  "recentItemShare": 1
+                }
+              },
+              {
+                "k": 3,
+                "precisionRelevantOnly": 1,
+                "relevantCount": 3,
+                "unrelatedCount": 0,
+                "ambiguousCount": 0,
+                "conservativePrecision": 1,
+                "creatorDiversity": {
+                  "creatorCount": 3,
+                  "distinctCreators": 3,
+                  "maxCreatorShare": 0.3333,
+                  "hhi": 0.3333,
+                  "recentItemShare": 0.3333
+                }
+              },
+              {
+                "k": 5,
+                "precisionRelevantOnly": 0.6,
+                "relevantCount": 3,
+                "unrelatedCount": 2,
+                "ambiguousCount": 0,
+                "conservativePrecision": 0.6,
+                "creatorDiversity": {
+                  "creatorCount": 5,
+                  "distinctCreators": 5,
+                  "maxCreatorShare": 0.2,
+                  "hhi": 0.2,
+                  "recentItemShare": 0.4
+                }
+              },
+              {
+                "k": 10,
+                "precisionRelevantOnly": 0.3,
+                "relevantCount": 3,
+                "unrelatedCount": 7,
+                "ambiguousCount": 0,
+                "conservativePrecision": 0.3,
+                "creatorDiversity": {
+                  "creatorCount": 10,
+                  "distinctCreators": 10,
+                  "maxCreatorShare": 0.1,
+                  "hhi": 0.1,
+                  "recentItemShare": 0.4
+                }
+              },
+              {
+                "k": 20,
+                "precisionRelevantOnly": 0.35,
+                "relevantCount": 7,
+                "unrelatedCount": 13,
+                "ambiguousCount": 0,
+                "conservativePrecision": 0.35,
+                "creatorDiversity": {
+                  "creatorCount": 20,
+                  "distinctCreators": 20,
+                  "maxCreatorShare": 0.05,
+                  "hhi": 0.05,
+                  "recentItemShare": 0.35
+                }
+              }
+            ],
+            "baselineTop10MembershipCount": 10
+          },
+          {
+            "seedKey": "synthetic-craft_activity-01",
+            "seedLanguage": "en",
+            "orderedKeys": [
+              "synthetic-craft_activity-09",
+              "synthetic-craft_activity-03",
+              "synthetic-birthday-01",
+              "synthetic-birthday-02",
+              "synthetic-birthday-03",
+              "synthetic-birthday-04",
+              "synthetic-birthday-05",
+              "synthetic-birthday-06",
+              "synthetic-birthday-07",
+              "synthetic-birthday-08",
+              "synthetic-camping-01",
+              "synthetic-camping-02",
+              "synthetic-camping-03",
+              "synthetic-camping-04",
+              "synthetic-camping-05",
+              "synthetic-camping-06",
+              "synthetic-camping-07",
+              "synthetic-camping-08",
+              "synthetic-craft_activity-02",
+              "synthetic-craft_activity-04",
+              "synthetic-craft_activity-05",
+              "synthetic-craft_activity-06",
+              "synthetic-craft_activity-07",
+              "synthetic-craft_activity-08",
+              "synthetic-food_dietary-01",
+              "synthetic-food_dietary-02",
+              "synthetic-food_dietary-03",
+              "synthetic-food_dietary-04",
+              "synthetic-food_dietary-05",
+              "synthetic-food_dietary-06",
+              "synthetic-food_dietary-07",
+              "synthetic-food_dietary-08",
+              "synthetic-generic_logistics-01",
+              "synthetic-generic_logistics-02",
+              "synthetic-generic_logistics-03",
+              "synthetic-generic_logistics-04",
+              "synthetic-generic_logistics-05",
+              "synthetic-generic_logistics-06",
+              "synthetic-generic_logistics-07",
+              "synthetic-generic_logistics-08",
+              "synthetic-wedding-01",
+              "synthetic-wedding-02",
+              "synthetic-wedding-03",
+              "synthetic-wedding-04",
+              "synthetic-wedding-05",
+              "synthetic-wedding-06",
+              "synthetic-wedding-07",
+              "synthetic-wedding-08"
+            ],
+            "pairwiseRelevanceViolations": 0,
+            "top10MembershipChanges": 2,
+            "top10OrderChangedPositions": 10,
+            "top10MembershipOverlap": 8,
+            "topK": [
+              {
+                "k": 1,
+                "precisionRelevantOnly": 1,
+                "relevantCount": 1,
+                "unrelatedCount": 0,
+                "ambiguousCount": 0,
+                "conservativePrecision": 1,
+                "creatorDiversity": {
+                  "creatorCount": 1,
+                  "distinctCreators": 1,
+                  "maxCreatorShare": 1,
+                  "hhi": 1,
+                  "recentItemShare": 1
+                }
+              },
+              {
+                "k": 3,
+                "precisionRelevantOnly": 0.6667,
+                "relevantCount": 2,
+                "unrelatedCount": 0,
+                "ambiguousCount": 1,
+                "conservativePrecision": 0.6667,
+                "creatorDiversity": {
+                  "creatorCount": 3,
+                  "distinctCreators": 3,
+                  "maxCreatorShare": 0.3333,
+                  "hhi": 0.3333,
+                  "recentItemShare": 0.6667
+                }
+              },
+              {
+                "k": 5,
+                "precisionRelevantOnly": 0.4,
+                "relevantCount": 2,
+                "unrelatedCount": 0,
+                "ambiguousCount": 3,
+                "conservativePrecision": 0.4,
+                "creatorDiversity": {
+                  "creatorCount": 5,
+                  "distinctCreators": 5,
+                  "maxCreatorShare": 0.2,
+                  "hhi": 0.2,
+                  "recentItemShare": 0.4
+                }
+              },
+              {
+                "k": 10,
+                "precisionRelevantOnly": 0.2,
+                "relevantCount": 2,
+                "unrelatedCount": 0,
+                "ambiguousCount": 8,
+                "conservativePrecision": 0.2,
+                "creatorDiversity": {
+                  "creatorCount": 10,
+                  "distinctCreators": 10,
+                  "maxCreatorShare": 0.1,
+                  "hhi": 0.1,
+                  "recentItemShare": 0.4
+                }
+              },
+              {
+                "k": 20,
+                "precisionRelevantOnly": 0.2,
+                "relevantCount": 4,
+                "unrelatedCount": 8,
+                "ambiguousCount": 8,
+                "conservativePrecision": 0.2,
+                "creatorDiversity": {
+                  "creatorCount": 20,
+                  "distinctCreators": 20,
+                  "maxCreatorShare": 0.05,
+                  "hhi": 0.05,
+                  "recentItemShare": 0.35
+                }
+              }
+            ],
+            "baselineTop10MembershipCount": 10
+          },
+          {
+            "seedKey": "synthetic-generic_logistics-01",
+            "seedLanguage": "en",
+            "orderedKeys": [
+              "synthetic-wedding-07",
+              "synthetic-birthday-07",
+              "synthetic-generic_logistics-07",
+              "synthetic-camping-03",
+              "synthetic-birthday-01",
+              "synthetic-birthday-02",
+              "synthetic-birthday-03",
+              "synthetic-birthday-04",
+              "synthetic-birthday-05",
+              "synthetic-birthday-06",
+              "synthetic-birthday-08",
+              "synthetic-camping-01",
+              "synthetic-camping-02",
+              "synthetic-camping-04",
+              "synthetic-camping-05",
+              "synthetic-camping-06",
+              "synthetic-camping-07",
+              "synthetic-camping-08",
+              "synthetic-craft_activity-01",
+              "synthetic-craft_activity-02",
+              "synthetic-craft_activity-03",
+              "synthetic-craft_activity-04",
+              "synthetic-craft_activity-05",
+              "synthetic-craft_activity-06",
+              "synthetic-craft_activity-07",
+              "synthetic-craft_activity-08",
+              "synthetic-craft_activity-09",
+              "synthetic-food_dietary-01",
+              "synthetic-food_dietary-02",
+              "synthetic-food_dietary-03",
+              "synthetic-food_dietary-04",
+              "synthetic-food_dietary-05",
+              "synthetic-food_dietary-06",
+              "synthetic-food_dietary-07",
+              "synthetic-food_dietary-08",
+              "synthetic-generic_logistics-02",
+              "synthetic-generic_logistics-03",
+              "synthetic-generic_logistics-04",
+              "synthetic-generic_logistics-05",
+              "synthetic-generic_logistics-06",
+              "synthetic-generic_logistics-08",
+              "synthetic-wedding-01",
+              "synthetic-wedding-02",
+              "synthetic-wedding-03",
+              "synthetic-wedding-04",
+              "synthetic-wedding-05",
+              "synthetic-wedding-06",
+              "synthetic-wedding-08"
+            ],
+            "pairwiseRelevanceViolations": 0,
+            "top10MembershipChanges": 3,
+            "top10OrderChangedPositions": 10,
+            "top10MembershipOverlap": 7,
+            "topK": [
+              {
+                "k": 1,
+                "precisionRelevantOnly": 0,
+                "relevantCount": 0,
+                "unrelatedCount": 1,
+                "ambiguousCount": 0,
+                "conservativePrecision": 0,
+                "creatorDiversity": {
+                  "creatorCount": 1,
+                  "distinctCreators": 1,
+                  "maxCreatorShare": 1,
+                  "hhi": 1,
+                  "recentItemShare": 1
+                }
+              },
+              {
+                "k": 3,
+                "precisionRelevantOnly": 0.3333,
+                "relevantCount": 1,
+                "unrelatedCount": 2,
+                "ambiguousCount": 0,
+                "conservativePrecision": 0.3333,
+                "creatorDiversity": {
+                  "creatorCount": 3,
+                  "distinctCreators": 3,
+                  "maxCreatorShare": 0.3333,
+                  "hhi": 0.3333,
+                  "recentItemShare": 1
+                }
+              },
+              {
+                "k": 5,
+                "precisionRelevantOnly": 0.2,
+                "relevantCount": 1,
+                "unrelatedCount": 4,
+                "ambiguousCount": 0,
+                "conservativePrecision": 0.2,
+                "creatorDiversity": {
+                  "creatorCount": 5,
+                  "distinctCreators": 5,
+                  "maxCreatorShare": 0.2,
+                  "hhi": 0.2,
+                  "recentItemShare": 0.8
+                }
+              },
+              {
+                "k": 10,
+                "precisionRelevantOnly": 0.1,
+                "relevantCount": 1,
+                "unrelatedCount": 9,
+                "ambiguousCount": 0,
+                "conservativePrecision": 0.1,
+                "creatorDiversity": {
+                  "creatorCount": 10,
+                  "distinctCreators": 10,
+                  "maxCreatorShare": 0.1,
+                  "hhi": 0.1,
+                  "recentItemShare": 0.5
+                }
+              },
+              {
+                "k": 20,
+                "precisionRelevantOnly": 0.05,
+                "relevantCount": 1,
+                "unrelatedCount": 19,
+                "ambiguousCount": 0,
+                "conservativePrecision": 0.05,
+                "creatorDiversity": {
+                  "creatorCount": 20,
+                  "distinctCreators": 20,
+                  "maxCreatorShare": 0.05,
+                  "hhi": 0.05,
+                  "recentItemShare": 0.45
+                }
+              }
+            ],
+            "baselineTop10MembershipCount": 10
+          }
+        ]
+      }
+    },
+    "profileDiagnostics": [
+      {
+        "seedKey": "synthetic-wedding-01",
+        "seedLanguage": "en",
+        "eligibleSeedCount": 1,
+        "v2Diagnostic": {
+          "sourceCount": 49,
+          "ambiguousSourceCount": 0,
+          "likeRowCount": 1,
+          "eligibleLikeCount": 1,
+          "invalidLikeCount": 0,
+          "ineligibleLikeCount": 0,
+          "unlikedRowCount": 0,
+          "selectedSeedCount": 1,
+          "seedLimitApplied": false,
+          "tokenCappedSourceCount": 0,
+          "matchedCandidateCount": 3,
+          "thresholdRejectedCandidateCount": 0,
+          "boostedCandidateCount": 3,
+          "maxScore": 0.33694062956648096
+        }
+      },
+      {
+        "seedKey": "synthetic-birthday-01",
+        "seedLanguage": "en",
+        "eligibleSeedCount": 1,
+        "v2Diagnostic": {
+          "sourceCount": 49,
+          "ambiguousSourceCount": 0,
+          "likeRowCount": 1,
+          "eligibleLikeCount": 1,
+          "invalidLikeCount": 0,
+          "ineligibleLikeCount": 0,
+          "unlikedRowCount": 0,
+          "selectedSeedCount": 1,
+          "seedLimitApplied": false,
+          "tokenCappedSourceCount": 0,
+          "matchedCandidateCount": 5,
+          "thresholdRejectedCandidateCount": 1,
+          "boostedCandidateCount": 4,
+          "maxScore": 0.3497148038247263
+        }
+      },
+      {
+        "seedKey": "synthetic-food_dietary-01",
+        "seedLanguage": "en",
+        "eligibleSeedCount": 1,
+        "v2Diagnostic": {
+          "sourceCount": 49,
+          "ambiguousSourceCount": 0,
+          "likeRowCount": 1,
+          "eligibleLikeCount": 1,
+          "invalidLikeCount": 0,
+          "ineligibleLikeCount": 0,
+          "unlikedRowCount": 0,
+          "selectedSeedCount": 1,
+          "seedLimitApplied": false,
+          "tokenCappedSourceCount": 0,
+          "matchedCandidateCount": 2,
+          "thresholdRejectedCandidateCount": 1,
+          "boostedCandidateCount": 1,
+          "maxScore": 0.19050769459257616
+        }
+      },
+      {
+        "seedKey": "synthetic-camping-01",
+        "seedLanguage": "en",
+        "eligibleSeedCount": 1,
+        "v2Diagnostic": {
+          "sourceCount": 49,
+          "ambiguousSourceCount": 0,
+          "likeRowCount": 1,
+          "eligibleLikeCount": 1,
+          "invalidLikeCount": 0,
+          "ineligibleLikeCount": 0,
+          "unlikedRowCount": 0,
+          "selectedSeedCount": 1,
+          "seedLimitApplied": false,
+          "tokenCappedSourceCount": 0,
+          "matchedCandidateCount": 4,
+          "thresholdRejectedCandidateCount": 1,
+          "boostedCandidateCount": 3,
+          "maxScore": 0.4137046652102343
+        }
+      },
+      {
+        "seedKey": "synthetic-craft_activity-01",
+        "seedLanguage": "en",
+        "eligibleSeedCount": 1,
+        "v2Diagnostic": {
+          "sourceCount": 49,
+          "ambiguousSourceCount": 0,
+          "likeRowCount": 1,
+          "eligibleLikeCount": 1,
+          "invalidLikeCount": 0,
+          "ineligibleLikeCount": 0,
+          "unlikedRowCount": 0,
+          "selectedSeedCount": 1,
+          "seedLimitApplied": false,
+          "tokenCappedSourceCount": 0,
+          "matchedCandidateCount": 3,
+          "thresholdRejectedCandidateCount": 1,
+          "boostedCandidateCount": 2,
+          "maxScore": 0.5501161377919676
+        }
+      },
+      {
+        "seedKey": "synthetic-generic_logistics-01",
+        "seedLanguage": "en",
+        "eligibleSeedCount": 1,
+        "v2Diagnostic": {
+          "sourceCount": 49,
+          "ambiguousSourceCount": 0,
+          "likeRowCount": 1,
+          "eligibleLikeCount": 1,
+          "invalidLikeCount": 0,
+          "ineligibleLikeCount": 0,
+          "unlikedRowCount": 0,
+          "selectedSeedCount": 1,
+          "seedLimitApplied": false,
+          "tokenCappedSourceCount": 0,
+          "matchedCandidateCount": 4,
+          "thresholdRejectedCandidateCount": 0,
+          "boostedCandidateCount": 4,
+          "maxScore": 0.5685306636809901
+        }
+      }
+    ]
+  },
+  "heldout": {
+    "labelCounts": {
+      "relevant": 21,
+      "ambiguous": 16,
+      "unrelated": 32
+    },
+    "policies": {
+      "baseline": {
+        "note": "Non-personal baseline has no preference scores; binary affinity precision/recall are not applicable.",
+        "perSeed": [
+          {
+            "seedKey": "synthetic-sports_watch-01",
+            "seedLanguage": "en",
+            "orderedKeys": [
+              "synthetic-community_service-01",
+              "synthetic-community_service-02",
+              "synthetic-community_service-03",
+              "synthetic-community_service-04",
+              "synthetic-community_service-05",
+              "synthetic-community_service-06",
+              "synthetic-community_service-07",
+              "synthetic-community_service-08",
+              "synthetic-sports_watch-02",
+              "synthetic-sports_watch-03",
+              "synthetic-sports_watch-04",
+              "synthetic-sports_watch-05",
+              "synthetic-sports_watch-06",
+              "synthetic-sports_watch-07",
+              "synthetic-sports_watch-08",
+              "synthetic-weekend_travel-01",
+              "synthetic-weekend_travel-02",
+              "synthetic-weekend_travel-03",
+              "synthetic-weekend_travel-04",
+              "synthetic-weekend_travel-05",
+              "synthetic-weekend_travel-06",
+              "synthetic-weekend_travel-07",
+              "synthetic-weekend_travel-08"
+            ],
+            "pairwiseRelevanceViolations": 0,
+            "top10MembershipChanges": 0,
+            "top10OrderChangedPositions": 0,
+            "top10MembershipOverlap": 10,
+            "topK": [
+              {
+                "k": 1,
+                "precisionRelevantOnly": 0,
+                "relevantCount": 0,
+                "unrelatedCount": 1,
+                "ambiguousCount": 0,
+                "conservativePrecision": 0,
+                "creatorDiversity": {
+                  "creatorCount": 1,
+                  "distinctCreators": 1,
+                  "maxCreatorShare": 1,
+                  "hhi": 1,
+                  "recentItemShare": 1
+                }
+              },
+              {
+                "k": 3,
+                "precisionRelevantOnly": 0,
+                "relevantCount": 0,
+                "unrelatedCount": 3,
+                "ambiguousCount": 0,
+                "conservativePrecision": 0,
+                "creatorDiversity": {
+                  "creatorCount": 3,
+                  "distinctCreators": 3,
+                  "maxCreatorShare": 0.3333,
+                  "hhi": 0.3333,
+                  "recentItemShare": 0.3333
+                }
+              },
+              {
+                "k": 5,
+                "precisionRelevantOnly": 0,
+                "relevantCount": 0,
+                "unrelatedCount": 5,
+                "ambiguousCount": 0,
+                "conservativePrecision": 0,
+                "creatorDiversity": {
+                  "creatorCount": 5,
+                  "distinctCreators": 5,
+                  "maxCreatorShare": 0.2,
+                  "hhi": 0.2,
+                  "recentItemShare": 0.2
+                }
+              },
+              {
+                "k": 10,
+                "precisionRelevantOnly": 0.2,
+                "relevantCount": 2,
+                "unrelatedCount": 8,
+                "ambiguousCount": 0,
+                "conservativePrecision": 0.2,
+                "creatorDiversity": {
+                  "creatorCount": 10,
+                  "distinctCreators": 10,
+                  "maxCreatorShare": 0.1,
+                  "hhi": 0.1,
+                  "recentItemShare": 0.1
+                }
+              },
+              {
+                "k": 20,
+                "precisionRelevantOnly": 0.35,
+                "relevantCount": 7,
+                "unrelatedCount": 13,
+                "ambiguousCount": 0,
+                "conservativePrecision": 0.35,
+                "creatorDiversity": {
+                  "creatorCount": 20,
+                  "distinctCreators": 20,
+                  "maxCreatorShare": 0.05,
+                  "hhi": 0.05,
+                  "recentItemShare": 0.2
+                }
+              }
+            ],
+            "baselineTop10MembershipCount": 10
+          },
+          {
+            "seedKey": "synthetic-weekend_travel-01",
+            "seedLanguage": "en",
+            "orderedKeys": [
+              "synthetic-community_service-01",
+              "synthetic-community_service-02",
+              "synthetic-community_service-03",
+              "synthetic-community_service-04",
+              "synthetic-community_service-05",
+              "synthetic-community_service-06",
+              "synthetic-community_service-07",
+              "synthetic-community_service-08",
+              "synthetic-sports_watch-01",
+              "synthetic-sports_watch-02",
+              "synthetic-sports_watch-03",
+              "synthetic-sports_watch-04",
+              "synthetic-sports_watch-05",
+              "synthetic-sports_watch-06",
+              "synthetic-sports_watch-07",
+              "synthetic-sports_watch-08",
+              "synthetic-weekend_travel-02",
+              "synthetic-weekend_travel-03",
+              "synthetic-weekend_travel-04",
+              "synthetic-weekend_travel-05",
+              "synthetic-weekend_travel-06",
+              "synthetic-weekend_travel-07",
+              "synthetic-weekend_travel-08"
+            ],
+            "pairwiseRelevanceViolations": 0,
+            "top10MembershipChanges": 0,
+            "top10OrderChangedPositions": 0,
+            "top10MembershipOverlap": 10,
+            "topK": [
+              {
+                "k": 1,
+                "precisionRelevantOnly": 0,
+                "relevantCount": 0,
+                "unrelatedCount": 0,
+                "ambiguousCount": 1,
+                "conservativePrecision": 0,
+                "creatorDiversity": {
+                  "creatorCount": 1,
+                  "distinctCreators": 1,
+                  "maxCreatorShare": 1,
+                  "hhi": 1,
+                  "recentItemShare": 1
+                }
+              },
+              {
+                "k": 3,
+                "precisionRelevantOnly": 0,
+                "relevantCount": 0,
+                "unrelatedCount": 0,
+                "ambiguousCount": 3,
+                "conservativePrecision": 0,
+                "creatorDiversity": {
+                  "creatorCount": 3,
+                  "distinctCreators": 3,
+                  "maxCreatorShare": 0.3333,
+                  "hhi": 0.3333,
+                  "recentItemShare": 0.3333
+                }
+              },
+              {
+                "k": 5,
+                "precisionRelevantOnly": 0,
+                "relevantCount": 0,
+                "unrelatedCount": 0,
+                "ambiguousCount": 5,
+                "conservativePrecision": 0,
+                "creatorDiversity": {
+                  "creatorCount": 5,
+                  "distinctCreators": 5,
+                  "maxCreatorShare": 0.2,
+                  "hhi": 0.2,
+                  "recentItemShare": 0.2
+                }
+              },
+              {
+                "k": 10,
+                "precisionRelevantOnly": 0,
+                "relevantCount": 0,
+                "unrelatedCount": 2,
+                "ambiguousCount": 8,
+                "conservativePrecision": 0,
+                "creatorDiversity": {
+                  "creatorCount": 10,
+                  "distinctCreators": 10,
+                  "maxCreatorShare": 0.1,
+                  "hhi": 0.1,
+                  "recentItemShare": 0.2
+                }
+              },
+              {
+                "k": 20,
+                "precisionRelevantOnly": 0.2,
+                "relevantCount": 4,
+                "unrelatedCount": 8,
+                "ambiguousCount": 8,
+                "conservativePrecision": 0.2,
+                "creatorDiversity": {
+                  "creatorCount": 20,
+                  "distinctCreators": 20,
+                  "maxCreatorShare": 0.05,
+                  "hhi": 0.05,
+                  "recentItemShare": 0.2
+                }
+              }
+            ],
+            "baselineTop10MembershipCount": 10
+          },
+          {
+            "seedKey": "synthetic-community_service-01",
+            "seedLanguage": "en",
+            "orderedKeys": [
+              "synthetic-community_service-02",
+              "synthetic-community_service-03",
+              "synthetic-community_service-04",
+              "synthetic-community_service-05",
+              "synthetic-community_service-06",
+              "synthetic-community_service-07",
+              "synthetic-community_service-08",
+              "synthetic-sports_watch-01",
+              "synthetic-sports_watch-02",
+              "synthetic-sports_watch-03",
+              "synthetic-sports_watch-04",
+              "synthetic-sports_watch-05",
+              "synthetic-sports_watch-06",
+              "synthetic-sports_watch-07",
+              "synthetic-sports_watch-08",
+              "synthetic-weekend_travel-01",
+              "synthetic-weekend_travel-02",
+              "synthetic-weekend_travel-03",
+              "synthetic-weekend_travel-04",
+              "synthetic-weekend_travel-05",
+              "synthetic-weekend_travel-06",
+              "synthetic-weekend_travel-07",
+              "synthetic-weekend_travel-08"
+            ],
+            "pairwiseRelevanceViolations": 0,
+            "top10MembershipChanges": 0,
+            "top10OrderChangedPositions": 0,
+            "top10MembershipOverlap": 10,
+            "topK": [
+              {
+                "k": 1,
+                "precisionRelevantOnly": 1,
+                "relevantCount": 1,
+                "unrelatedCount": 0,
+                "ambiguousCount": 0,
+                "conservativePrecision": 1,
+                "creatorDiversity": {
+                  "creatorCount": 1,
+                  "distinctCreators": 1,
+                  "maxCreatorShare": 1,
+                  "hhi": 1,
+                  "recentItemShare": 0
+                }
+              },
+              {
+                "k": 3,
+                "precisionRelevantOnly": 1,
+                "relevantCount": 3,
+                "unrelatedCount": 0,
+                "ambiguousCount": 0,
+                "conservativePrecision": 1,
+                "creatorDiversity": {
+                  "creatorCount": 3,
+                  "distinctCreators": 3,
+                  "maxCreatorShare": 0.3333,
+                  "hhi": 0.3333,
+                  "recentItemShare": 0
+                }
+              },
+              {
+                "k": 5,
+                "precisionRelevantOnly": 1,
+                "relevantCount": 5,
+                "unrelatedCount": 0,
+                "ambiguousCount": 0,
+                "conservativePrecision": 1,
+                "creatorDiversity": {
+                  "creatorCount": 5,
+                  "distinctCreators": 5,
+                  "maxCreatorShare": 0.2,
+                  "hhi": 0.2,
+                  "recentItemShare": 0
+                }
+              },
+              {
+                "k": 10,
+                "precisionRelevantOnly": 0.7,
+                "relevantCount": 7,
+                "unrelatedCount": 3,
+                "ambiguousCount": 0,
+                "conservativePrecision": 0.7,
+                "creatorDiversity": {
+                  "creatorCount": 10,
+                  "distinctCreators": 10,
+                  "maxCreatorShare": 0.1,
+                  "hhi": 0.1,
+                  "recentItemShare": 0.1
+                }
+              },
+              {
+                "k": 20,
+                "precisionRelevantOnly": 0.35,
+                "relevantCount": 7,
+                "unrelatedCount": 8,
+                "ambiguousCount": 5,
+                "conservativePrecision": 0.35,
+                "creatorDiversity": {
+                  "creatorCount": 20,
+                  "distinctCreators": 20,
+                  "maxCreatorShare": 0.05,
+                  "hhi": 0.05,
+                  "recentItemShare": 0.2
+                }
+              }
+            ],
+            "baselineTop10MembershipCount": 10
+          }
+        ]
+      },
+      "frozenV1": {
+        "pairPrediction": {
+          "pairCount": 69,
+          "relevantLabelCount": 21,
+          "unrelatedLabelCount": 32,
+          "ambiguousLabelCount": 16,
+          "predictedPairCount": 14,
+          "truePositiveCount": 9,
+          "falsePositiveCount": 2,
+          "ambiguousPredictionCount": 3,
+          "strictPrecision": 0.8182,
+          "conservativePrecisionCountingAmbiguousAsFalse": 0.6429,
+          "strictRecall": 0.4286,
+          "falsePositiveRate": 0.0625,
+          "labeledPairEvaluationCoverage": 1,
+          "positiveMatchShare": 0.2029,
+          "seedCountWithNoPredictionInSubset": 0,
+          "scoreBins": [
+            {
+              "range": "[0, 0.05)",
+              "pairCount": 55
+            },
+            {
+              "range": "[0.05, 0.5)",
+              "pairCount": 0
+            },
+            {
+              "range": "[0.5, 1)",
+              "pairCount": 0
+            },
+            {
+              "range": "[1, 2)",
+              "pairCount": 8
+            },
+            {
+              "range": "[2, 3]",
+              "pairCount": 6
+            }
+          ]
+        },
+        "candidateLanguageBreakdown": {
+          "en": {
+            "pairCount": 33,
+            "relevantLabelCount": 9,
+            "unrelatedLabelCount": 16,
+            "ambiguousLabelCount": 8,
+            "predictedPairCount": 11,
+            "truePositiveCount": 6,
+            "falsePositiveCount": 2,
+            "ambiguousPredictionCount": 3,
+            "strictPrecision": 0.75,
+            "conservativePrecisionCountingAmbiguousAsFalse": 0.5455,
+            "strictRecall": 0.6667,
+            "falsePositiveRate": 0.125,
+            "labeledPairEvaluationCoverage": 1,
+            "positiveMatchShare": 0.3333,
+            "seedCountWithNoPredictionInSubset": 0,
+            "scoreBins": [
+              {
+                "range": "[0, 0.05)",
+                "pairCount": 22
+              },
+              {
+                "range": "[0.05, 0.5)",
+                "pairCount": 0
+              },
+              {
+                "range": "[0.5, 1)",
+                "pairCount": 0
+              },
+              {
+                "range": "[1, 2)",
+                "pairCount": 7
+              },
+              {
+                "range": "[2, 3]",
+                "pairCount": 4
+              }
+            ]
+          },
+          "es": {
+            "pairCount": 24,
+            "relevantLabelCount": 8,
+            "unrelatedLabelCount": 11,
+            "ambiguousLabelCount": 5,
+            "predictedPairCount": 2,
+            "truePositiveCount": 2,
+            "falsePositiveCount": 0,
+            "ambiguousPredictionCount": 0,
+            "strictPrecision": 1,
+            "conservativePrecisionCountingAmbiguousAsFalse": 1,
+            "strictRecall": 0.25,
+            "falsePositiveRate": 0,
+            "labeledPairEvaluationCoverage": 1,
+            "positiveMatchShare": 0.0833,
+            "seedCountWithNoPredictionInSubset": 2,
+            "scoreBins": [
+              {
+                "range": "[0, 0.05)",
+                "pairCount": 22
+              },
+              {
+                "range": "[0.05, 0.5)",
+                "pairCount": 0
+              },
+              {
+                "range": "[0.5, 1)",
+                "pairCount": 0
+              },
+              {
+                "range": "[1, 2)",
+                "pairCount": 1
+              },
+              {
+                "range": "[2, 3]",
+                "pairCount": 1
+              }
+            ]
+          },
+          "mixed": {
+            "pairCount": 9,
+            "relevantLabelCount": 3,
+            "unrelatedLabelCount": 4,
+            "ambiguousLabelCount": 2,
+            "predictedPairCount": 1,
+            "truePositiveCount": 1,
+            "falsePositiveCount": 0,
+            "ambiguousPredictionCount": 0,
+            "strictPrecision": 1,
+            "conservativePrecisionCountingAmbiguousAsFalse": 1,
+            "strictRecall": 0.3333,
+            "falsePositiveRate": 0,
+            "labeledPairEvaluationCoverage": 1,
+            "positiveMatchShare": 0.1111,
+            "seedCountWithNoPredictionInSubset": 2,
+            "scoreBins": [
+              {
+                "range": "[0, 0.05)",
+                "pairCount": 8
+              },
+              {
+                "range": "[0.05, 0.5)",
+                "pairCount": 0
+              },
+              {
+                "range": "[0.5, 1)",
+                "pairCount": 0
+              },
+              {
+                "range": "[1, 2)",
+                "pairCount": 0
+              },
+              {
+                "range": "[2, 3]",
+                "pairCount": 1
+              }
+            ]
+          },
+          "und": {
+            "pairCount": 3,
+            "relevantLabelCount": 1,
+            "unrelatedLabelCount": 1,
+            "ambiguousLabelCount": 1,
+            "predictedPairCount": 0,
+            "truePositiveCount": 0,
+            "falsePositiveCount": 0,
+            "ambiguousPredictionCount": 0,
+            "strictPrecision": null,
+            "conservativePrecisionCountingAmbiguousAsFalse": null,
+            "strictRecall": 0,
+            "falsePositiveRate": 0,
+            "labeledPairEvaluationCoverage": 1,
+            "positiveMatchShare": 0,
+            "seedCountWithNoPredictionInSubset": 3,
+            "scoreBins": [
+              {
+                "range": "[0, 0.05)",
+                "pairCount": 3
+              },
+              {
+                "range": "[0.05, 0.5)",
+                "pairCount": 0
+              },
+              {
+                "range": "[0.5, 1)",
+                "pairCount": 0
+              },
+              {
+                "range": "[1, 2)",
+                "pairCount": 0
+              },
+              {
+                "range": "[2, 3]",
+                "pairCount": 0
+              }
+            ]
+          }
+        },
+        "perSeed": [
+          {
+            "seedKey": "synthetic-sports_watch-01",
+            "seedLanguage": "en",
+            "orderedKeys": [
+              "synthetic-sports_watch-07",
+              "synthetic-sports_watch-02",
+              "synthetic-sports_watch-04",
+              "synthetic-sports_watch-03",
+              "synthetic-sports_watch-06",
+              "synthetic-weekend_travel-01",
+              "synthetic-community_service-01",
+              "synthetic-community_service-02",
+              "synthetic-community_service-03",
+              "synthetic-community_service-04",
+              "synthetic-community_service-05",
+              "synthetic-community_service-06",
+              "synthetic-community_service-07",
+              "synthetic-community_service-08",
+              "synthetic-sports_watch-05",
+              "synthetic-sports_watch-08",
+              "synthetic-weekend_travel-02",
+              "synthetic-weekend_travel-03",
+              "synthetic-weekend_travel-04",
+              "synthetic-weekend_travel-05",
+              "synthetic-weekend_travel-06",
+              "synthetic-weekend_travel-07",
+              "synthetic-weekend_travel-08"
+            ],
+            "pairwiseRelevanceViolations": 0,
+            "top10MembershipChanges": 4,
+            "top10OrderChangedPositions": 10,
+            "top10MembershipOverlap": 6,
+            "topK": [
+              {
+                "k": 1,
+                "precisionRelevantOnly": 1,
+                "relevantCount": 1,
+                "unrelatedCount": 0,
+                "ambiguousCount": 0,
+                "conservativePrecision": 1,
+                "creatorDiversity": {
+                  "creatorCount": 1,
+                  "distinctCreators": 1,
+                  "maxCreatorShare": 1,
+                  "hhi": 1,
+                  "recentItemShare": 1
+                }
+              },
+              {
+                "k": 3,
+                "precisionRelevantOnly": 1,
+                "relevantCount": 3,
+                "unrelatedCount": 0,
+                "ambiguousCount": 0,
+                "conservativePrecision": 1,
+                "creatorDiversity": {
+                  "creatorCount": 3,
+                  "distinctCreators": 3,
+                  "maxCreatorShare": 0.3333,
+                  "hhi": 0.3333,
+                  "recentItemShare": 0.3333
+                }
+              },
+              {
+                "k": 5,
+                "precisionRelevantOnly": 1,
+                "relevantCount": 5,
+                "unrelatedCount": 0,
+                "ambiguousCount": 0,
+                "conservativePrecision": 1,
+                "creatorDiversity": {
+                  "creatorCount": 5,
+                  "distinctCreators": 5,
+                  "maxCreatorShare": 0.2,
+                  "hhi": 0.2,
+                  "recentItemShare": 0.2
+                }
+              },
+              {
+                "k": 10,
+                "precisionRelevantOnly": 0.5,
+                "relevantCount": 5,
+                "unrelatedCount": 5,
+                "ambiguousCount": 0,
+                "conservativePrecision": 0.5,
+                "creatorDiversity": {
+                  "creatorCount": 10,
+                  "distinctCreators": 10,
+                  "maxCreatorShare": 0.1,
+                  "hhi": 0.1,
+                  "recentItemShare": 0.3
+                }
+              },
+              {
+                "k": 20,
+                "precisionRelevantOnly": 0.35,
+                "relevantCount": 7,
+                "unrelatedCount": 13,
+                "ambiguousCount": 0,
+                "conservativePrecision": 0.35,
+                "creatorDiversity": {
+                  "creatorCount": 20,
+                  "distinctCreators": 20,
+                  "maxCreatorShare": 0.05,
+                  "hhi": 0.05,
+                  "recentItemShare": 0.2
+                }
+              }
+            ],
+            "baselineTop10MembershipCount": 10
+          },
+          {
+            "seedKey": "synthetic-weekend_travel-01",
+            "seedLanguage": "en",
+            "orderedKeys": [
+              "synthetic-weekend_travel-03",
+              "synthetic-weekend_travel-05",
+              "synthetic-community_service-01",
+              "synthetic-community_service-05",
+              "synthetic-sports_watch-01",
+              "synthetic-community_service-02",
+              "synthetic-community_service-03",
+              "synthetic-community_service-04",
+              "synthetic-community_service-06",
+              "synthetic-community_service-07",
+              "synthetic-community_service-08",
+              "synthetic-sports_watch-02",
+              "synthetic-sports_watch-03",
+              "synthetic-sports_watch-04",
+              "synthetic-sports_watch-05",
+              "synthetic-sports_watch-06",
+              "synthetic-sports_watch-07",
+              "synthetic-sports_watch-08",
+              "synthetic-weekend_travel-02",
+              "synthetic-weekend_travel-04",
+              "synthetic-weekend_travel-06",
+              "synthetic-weekend_travel-07",
+              "synthetic-weekend_travel-08"
+            ],
+            "pairwiseRelevanceViolations": 0,
+            "top10MembershipChanges": 2,
+            "top10OrderChangedPositions": 10,
+            "top10MembershipOverlap": 8,
+            "topK": [
+              {
+                "k": 1,
+                "precisionRelevantOnly": 1,
+                "relevantCount": 1,
+                "unrelatedCount": 0,
+                "ambiguousCount": 0,
+                "conservativePrecision": 1,
+                "creatorDiversity": {
+                  "creatorCount": 1,
+                  "distinctCreators": 1,
+                  "maxCreatorShare": 1,
+                  "hhi": 1,
+                  "recentItemShare": 0
+                }
+              },
+              {
+                "k": 3,
+                "precisionRelevantOnly": 0.6667,
+                "relevantCount": 2,
+                "unrelatedCount": 0,
+                "ambiguousCount": 1,
+                "conservativePrecision": 0.6667,
+                "creatorDiversity": {
+                  "creatorCount": 3,
+                  "distinctCreators": 3,
+                  "maxCreatorShare": 0.3333,
+                  "hhi": 0.3333,
+                  "recentItemShare": 0.3333
+                }
+              },
+              {
+                "k": 5,
+                "precisionRelevantOnly": 0.4,
+                "relevantCount": 2,
+                "unrelatedCount": 1,
+                "ambiguousCount": 2,
+                "conservativePrecision": 0.4,
+                "creatorDiversity": {
+                  "creatorCount": 5,
+                  "distinctCreators": 5,
+                  "maxCreatorShare": 0.2,
+                  "hhi": 0.2,
+                  "recentItemShare": 0.4
+                }
+              },
+              {
+                "k": 10,
+                "precisionRelevantOnly": 0.2,
+                "relevantCount": 2,
+                "unrelatedCount": 1,
+                "ambiguousCount": 7,
+                "conservativePrecision": 0.2,
+                "creatorDiversity": {
+                  "creatorCount": 10,
+                  "distinctCreators": 10,
+                  "maxCreatorShare": 0.1,
+                  "hhi": 0.1,
+                  "recentItemShare": 0.2
+                }
+              },
+              {
+                "k": 20,
+                "precisionRelevantOnly": 0.2,
+                "relevantCount": 4,
+                "unrelatedCount": 8,
+                "ambiguousCount": 8,
+                "conservativePrecision": 0.2,
+                "creatorDiversity": {
+                  "creatorCount": 20,
+                  "distinctCreators": 20,
+                  "maxCreatorShare": 0.05,
+                  "hhi": 0.05,
+                  "recentItemShare": 0.2
+                }
+              }
+            ],
+            "baselineTop10MembershipCount": 10
+          },
+          {
+            "seedKey": "synthetic-community_service-01",
+            "seedLanguage": "en",
+            "orderedKeys": [
+              "synthetic-community_service-03",
+              "synthetic-community_service-07",
+              "synthetic-weekend_travel-01",
+              "synthetic-community_service-02",
+              "synthetic-community_service-04",
+              "synthetic-community_service-05",
+              "synthetic-community_service-06",
+              "synthetic-community_service-08",
+              "synthetic-sports_watch-01",
+              "synthetic-sports_watch-02",
+              "synthetic-sports_watch-03",
+              "synthetic-sports_watch-04",
+              "synthetic-sports_watch-05",
+              "synthetic-sports_watch-06",
+              "synthetic-sports_watch-07",
+              "synthetic-sports_watch-08",
+              "synthetic-weekend_travel-02",
+              "synthetic-weekend_travel-03",
+              "synthetic-weekend_travel-04",
+              "synthetic-weekend_travel-05",
+              "synthetic-weekend_travel-06",
+              "synthetic-weekend_travel-07",
+              "synthetic-weekend_travel-08"
+            ],
+            "pairwiseRelevanceViolations": 0,
+            "top10MembershipChanges": 1,
+            "top10OrderChangedPositions": 10,
+            "top10MembershipOverlap": 9,
+            "topK": [
+              {
+                "k": 1,
+                "precisionRelevantOnly": 1,
+                "relevantCount": 1,
+                "unrelatedCount": 0,
+                "ambiguousCount": 0,
+                "conservativePrecision": 1,
+                "creatorDiversity": {
+                  "creatorCount": 1,
+                  "distinctCreators": 1,
+                  "maxCreatorShare": 1,
+                  "hhi": 1,
+                  "recentItemShare": 0
+                }
+              },
+              {
+                "k": 3,
+                "precisionRelevantOnly": 0.6667,
+                "relevantCount": 2,
+                "unrelatedCount": 0,
+                "ambiguousCount": 1,
+                "conservativePrecision": 0.6667,
+                "creatorDiversity": {
+                  "creatorCount": 3,
+                  "distinctCreators": 3,
+                  "maxCreatorShare": 0.3333,
+                  "hhi": 0.3333,
+                  "recentItemShare": 0.3333
+                }
+              },
+              {
+                "k": 5,
+                "precisionRelevantOnly": 0.8,
+                "relevantCount": 4,
+                "unrelatedCount": 0,
+                "ambiguousCount": 1,
+                "conservativePrecision": 0.8,
+                "creatorDiversity": {
+                  "creatorCount": 5,
+                  "distinctCreators": 5,
+                  "maxCreatorShare": 0.2,
+                  "hhi": 0.2,
+                  "recentItemShare": 0.2
+                }
+              },
+              {
+                "k": 10,
+                "precisionRelevantOnly": 0.7,
+                "relevantCount": 7,
+                "unrelatedCount": 2,
+                "ambiguousCount": 1,
+                "conservativePrecision": 0.7,
+                "creatorDiversity": {
+                  "creatorCount": 10,
+                  "distinctCreators": 10,
+                  "maxCreatorShare": 0.1,
+                  "hhi": 0.1,
+                  "recentItemShare": 0.2
+                }
+              },
+              {
+                "k": 20,
+                "precisionRelevantOnly": 0.35,
+                "relevantCount": 7,
+                "unrelatedCount": 8,
+                "ambiguousCount": 5,
+                "conservativePrecision": 0.35,
+                "creatorDiversity": {
+                  "creatorCount": 20,
+                  "distinctCreators": 20,
+                  "maxCreatorShare": 0.05,
+                  "hhi": 0.05,
+                  "recentItemShare": 0.2
+                }
+              }
+            ],
+            "baselineTop10MembershipCount": 10
+          }
+        ]
+      },
+      "roleAwareV2": {
+        "pairPrediction": {
+          "pairCount": 69,
+          "relevantLabelCount": 21,
+          "unrelatedLabelCount": 32,
+          "ambiguousLabelCount": 16,
+          "predictedPairCount": 2,
+          "truePositiveCount": 2,
+          "falsePositiveCount": 0,
+          "ambiguousPredictionCount": 0,
+          "strictPrecision": 1,
+          "conservativePrecisionCountingAmbiguousAsFalse": 1,
+          "strictRecall": 0.0952,
+          "falsePositiveRate": 0,
+          "labeledPairEvaluationCoverage": 1,
+          "positiveMatchShare": 0.029,
+          "seedCountWithNoPredictionInSubset": 1,
+          "scoreBins": [
+            {
+              "range": "[0, 0.05)",
+              "pairCount": 67
+            },
+            {
+              "range": "[0.05, 0.5)",
+              "pairCount": 2
+            },
+            {
+              "range": "[0.5, 1)",
+              "pairCount": 0
+            },
+            {
+              "range": "[1, 2)",
+              "pairCount": 0
+            },
+            {
+              "range": "[2, 3]",
+              "pairCount": 0
+            }
+          ]
+        },
+        "candidateLanguageBreakdown": {
+          "en": {
+            "pairCount": 33,
+            "relevantLabelCount": 9,
+            "unrelatedLabelCount": 16,
+            "ambiguousLabelCount": 8,
+            "predictedPairCount": 2,
+            "truePositiveCount": 2,
+            "falsePositiveCount": 0,
+            "ambiguousPredictionCount": 0,
+            "strictPrecision": 1,
+            "conservativePrecisionCountingAmbiguousAsFalse": 1,
+            "strictRecall": 0.2222,
+            "falsePositiveRate": 0,
+            "labeledPairEvaluationCoverage": 1,
+            "positiveMatchShare": 0.0606,
+            "seedCountWithNoPredictionInSubset": 1,
+            "scoreBins": [
+              {
+                "range": "[0, 0.05)",
+                "pairCount": 31
+              },
+              {
+                "range": "[0.05, 0.5)",
+                "pairCount": 2
+              },
+              {
+                "range": "[0.5, 1)",
+                "pairCount": 0
+              },
+              {
+                "range": "[1, 2)",
+                "pairCount": 0
+              },
+              {
+                "range": "[2, 3]",
+                "pairCount": 0
+              }
+            ]
+          },
+          "es": {
+            "pairCount": 24,
+            "relevantLabelCount": 8,
+            "unrelatedLabelCount": 11,
+            "ambiguousLabelCount": 5,
+            "predictedPairCount": 0,
+            "truePositiveCount": 0,
+            "falsePositiveCount": 0,
+            "ambiguousPredictionCount": 0,
+            "strictPrecision": null,
+            "conservativePrecisionCountingAmbiguousAsFalse": null,
+            "strictRecall": 0,
+            "falsePositiveRate": 0,
+            "labeledPairEvaluationCoverage": 1,
+            "positiveMatchShare": 0,
+            "seedCountWithNoPredictionInSubset": 3,
+            "scoreBins": [
+              {
+                "range": "[0, 0.05)",
+                "pairCount": 24
+              },
+              {
+                "range": "[0.05, 0.5)",
+                "pairCount": 0
+              },
+              {
+                "range": "[0.5, 1)",
+                "pairCount": 0
+              },
+              {
+                "range": "[1, 2)",
+                "pairCount": 0
+              },
+              {
+                "range": "[2, 3]",
+                "pairCount": 0
+              }
+            ]
+          },
+          "mixed": {
+            "pairCount": 9,
+            "relevantLabelCount": 3,
+            "unrelatedLabelCount": 4,
+            "ambiguousLabelCount": 2,
+            "predictedPairCount": 0,
+            "truePositiveCount": 0,
+            "falsePositiveCount": 0,
+            "ambiguousPredictionCount": 0,
+            "strictPrecision": null,
+            "conservativePrecisionCountingAmbiguousAsFalse": null,
+            "strictRecall": 0,
+            "falsePositiveRate": 0,
+            "labeledPairEvaluationCoverage": 1,
+            "positiveMatchShare": 0,
+            "seedCountWithNoPredictionInSubset": 3,
+            "scoreBins": [
+              {
+                "range": "[0, 0.05)",
+                "pairCount": 9
+              },
+              {
+                "range": "[0.05, 0.5)",
+                "pairCount": 0
+              },
+              {
+                "range": "[0.5, 1)",
+                "pairCount": 0
+              },
+              {
+                "range": "[1, 2)",
+                "pairCount": 0
+              },
+              {
+                "range": "[2, 3]",
+                "pairCount": 0
+              }
+            ]
+          },
+          "und": {
+            "pairCount": 3,
+            "relevantLabelCount": 1,
+            "unrelatedLabelCount": 1,
+            "ambiguousLabelCount": 1,
+            "predictedPairCount": 0,
+            "truePositiveCount": 0,
+            "falsePositiveCount": 0,
+            "ambiguousPredictionCount": 0,
+            "strictPrecision": null,
+            "conservativePrecisionCountingAmbiguousAsFalse": null,
+            "strictRecall": 0,
+            "falsePositiveRate": 0,
+            "labeledPairEvaluationCoverage": 1,
+            "positiveMatchShare": 0,
+            "seedCountWithNoPredictionInSubset": 3,
+            "scoreBins": [
+              {
+                "range": "[0, 0.05)",
+                "pairCount": 3
+              },
+              {
+                "range": "[0.05, 0.5)",
+                "pairCount": 0
+              },
+              {
+                "range": "[0.5, 1)",
+                "pairCount": 0
+              },
+              {
+                "range": "[1, 2)",
+                "pairCount": 0
+              },
+              {
+                "range": "[2, 3]",
+                "pairCount": 0
+              }
+            ]
+          }
+        },
+        "perSeed": [
+          {
+            "seedKey": "synthetic-sports_watch-01",
+            "seedLanguage": "en",
+            "orderedKeys": [
+              "synthetic-community_service-01",
+              "synthetic-community_service-02",
+              "synthetic-community_service-03",
+              "synthetic-community_service-04",
+              "synthetic-community_service-05",
+              "synthetic-community_service-06",
+              "synthetic-community_service-07",
+              "synthetic-community_service-08",
+              "synthetic-sports_watch-02",
+              "synthetic-sports_watch-03",
+              "synthetic-sports_watch-04",
+              "synthetic-sports_watch-05",
+              "synthetic-sports_watch-06",
+              "synthetic-sports_watch-07",
+              "synthetic-sports_watch-08",
+              "synthetic-weekend_travel-01",
+              "synthetic-weekend_travel-02",
+              "synthetic-weekend_travel-03",
+              "synthetic-weekend_travel-04",
+              "synthetic-weekend_travel-05",
+              "synthetic-weekend_travel-06",
+              "synthetic-weekend_travel-07",
+              "synthetic-weekend_travel-08"
+            ],
+            "pairwiseRelevanceViolations": 0,
+            "top10MembershipChanges": 0,
+            "top10OrderChangedPositions": 0,
+            "top10MembershipOverlap": 10,
+            "topK": [
+              {
+                "k": 1,
+                "precisionRelevantOnly": 0,
+                "relevantCount": 0,
+                "unrelatedCount": 1,
+                "ambiguousCount": 0,
+                "conservativePrecision": 0,
+                "creatorDiversity": {
+                  "creatorCount": 1,
+                  "distinctCreators": 1,
+                  "maxCreatorShare": 1,
+                  "hhi": 1,
+                  "recentItemShare": 1
+                }
+              },
+              {
+                "k": 3,
+                "precisionRelevantOnly": 0,
+                "relevantCount": 0,
+                "unrelatedCount": 3,
+                "ambiguousCount": 0,
+                "conservativePrecision": 0,
+                "creatorDiversity": {
+                  "creatorCount": 3,
+                  "distinctCreators": 3,
+                  "maxCreatorShare": 0.3333,
+                  "hhi": 0.3333,
+                  "recentItemShare": 0.3333
+                }
+              },
+              {
+                "k": 5,
+                "precisionRelevantOnly": 0,
+                "relevantCount": 0,
+                "unrelatedCount": 5,
+                "ambiguousCount": 0,
+                "conservativePrecision": 0,
+                "creatorDiversity": {
+                  "creatorCount": 5,
+                  "distinctCreators": 5,
+                  "maxCreatorShare": 0.2,
+                  "hhi": 0.2,
+                  "recentItemShare": 0.2
+                }
+              },
+              {
+                "k": 10,
+                "precisionRelevantOnly": 0.2,
+                "relevantCount": 2,
+                "unrelatedCount": 8,
+                "ambiguousCount": 0,
+                "conservativePrecision": 0.2,
+                "creatorDiversity": {
+                  "creatorCount": 10,
+                  "distinctCreators": 10,
+                  "maxCreatorShare": 0.1,
+                  "hhi": 0.1,
+                  "recentItemShare": 0.1
+                }
+              },
+              {
+                "k": 20,
+                "precisionRelevantOnly": 0.35,
+                "relevantCount": 7,
+                "unrelatedCount": 13,
+                "ambiguousCount": 0,
+                "conservativePrecision": 0.35,
+                "creatorDiversity": {
+                  "creatorCount": 20,
+                  "distinctCreators": 20,
+                  "maxCreatorShare": 0.05,
+                  "hhi": 0.05,
+                  "recentItemShare": 0.2
+                }
+              }
+            ],
+            "baselineTop10MembershipCount": 10
+          },
+          {
+            "seedKey": "synthetic-weekend_travel-01",
+            "seedLanguage": "en",
+            "orderedKeys": [
+              "synthetic-weekend_travel-03",
+              "synthetic-community_service-01",
+              "synthetic-community_service-02",
+              "synthetic-community_service-03",
+              "synthetic-community_service-04",
+              "synthetic-community_service-05",
+              "synthetic-community_service-06",
+              "synthetic-community_service-07",
+              "synthetic-community_service-08",
+              "synthetic-sports_watch-01",
+              "synthetic-sports_watch-02",
+              "synthetic-sports_watch-03",
+              "synthetic-sports_watch-04",
+              "synthetic-sports_watch-05",
+              "synthetic-sports_watch-06",
+              "synthetic-sports_watch-07",
+              "synthetic-sports_watch-08",
+              "synthetic-weekend_travel-02",
+              "synthetic-weekend_travel-04",
+              "synthetic-weekend_travel-05",
+              "synthetic-weekend_travel-06",
+              "synthetic-weekend_travel-07",
+              "synthetic-weekend_travel-08"
+            ],
+            "pairwiseRelevanceViolations": 0,
+            "top10MembershipChanges": 1,
+            "top10OrderChangedPositions": 10,
+            "top10MembershipOverlap": 9,
+            "topK": [
+              {
+                "k": 1,
+                "precisionRelevantOnly": 1,
+                "relevantCount": 1,
+                "unrelatedCount": 0,
+                "ambiguousCount": 0,
+                "conservativePrecision": 1,
+                "creatorDiversity": {
+                  "creatorCount": 1,
+                  "distinctCreators": 1,
+                  "maxCreatorShare": 1,
+                  "hhi": 1,
+                  "recentItemShare": 0
+                }
+              },
+              {
+                "k": 3,
+                "precisionRelevantOnly": 0.3333,
+                "relevantCount": 1,
+                "unrelatedCount": 0,
+                "ambiguousCount": 2,
+                "conservativePrecision": 0.3333,
+                "creatorDiversity": {
+                  "creatorCount": 3,
+                  "distinctCreators": 3,
+                  "maxCreatorShare": 0.3333,
+                  "hhi": 0.3333,
+                  "recentItemShare": 0.3333
+                }
+              },
+              {
+                "k": 5,
+                "precisionRelevantOnly": 0.2,
+                "relevantCount": 1,
+                "unrelatedCount": 0,
+                "ambiguousCount": 4,
+                "conservativePrecision": 0.2,
+                "creatorDiversity": {
+                  "creatorCount": 5,
+                  "distinctCreators": 5,
+                  "maxCreatorShare": 0.2,
+                  "hhi": 0.2,
+                  "recentItemShare": 0.2
+                }
+              },
+              {
+                "k": 10,
+                "precisionRelevantOnly": 0.1,
+                "relevantCount": 1,
+                "unrelatedCount": 1,
+                "ambiguousCount": 8,
+                "conservativePrecision": 0.1,
+                "creatorDiversity": {
+                  "creatorCount": 10,
+                  "distinctCreators": 10,
+                  "maxCreatorShare": 0.1,
+                  "hhi": 0.1,
+                  "recentItemShare": 0.2
+                }
+              },
+              {
+                "k": 20,
+                "precisionRelevantOnly": 0.2,
+                "relevantCount": 4,
+                "unrelatedCount": 8,
+                "ambiguousCount": 8,
+                "conservativePrecision": 0.2,
+                "creatorDiversity": {
+                  "creatorCount": 20,
+                  "distinctCreators": 20,
+                  "maxCreatorShare": 0.05,
+                  "hhi": 0.05,
+                  "recentItemShare": 0.2
+                }
+              }
+            ],
+            "baselineTop10MembershipCount": 10
+          },
+          {
+            "seedKey": "synthetic-community_service-01",
+            "seedLanguage": "en",
+            "orderedKeys": [
+              "synthetic-community_service-03",
+              "synthetic-community_service-02",
+              "synthetic-community_service-04",
+              "synthetic-community_service-05",
+              "synthetic-community_service-06",
+              "synthetic-community_service-07",
+              "synthetic-community_service-08",
+              "synthetic-sports_watch-01",
+              "synthetic-sports_watch-02",
+              "synthetic-sports_watch-03",
+              "synthetic-sports_watch-04",
+              "synthetic-sports_watch-05",
+              "synthetic-sports_watch-06",
+              "synthetic-sports_watch-07",
+              "synthetic-sports_watch-08",
+              "synthetic-weekend_travel-01",
+              "synthetic-weekend_travel-02",
+              "synthetic-weekend_travel-03",
+              "synthetic-weekend_travel-04",
+              "synthetic-weekend_travel-05",
+              "synthetic-weekend_travel-06",
+              "synthetic-weekend_travel-07",
+              "synthetic-weekend_travel-08"
+            ],
+            "pairwiseRelevanceViolations": 0,
+            "top10MembershipChanges": 0,
+            "top10OrderChangedPositions": 2,
+            "top10MembershipOverlap": 10,
+            "topK": [
+              {
+                "k": 1,
+                "precisionRelevantOnly": 1,
+                "relevantCount": 1,
+                "unrelatedCount": 0,
+                "ambiguousCount": 0,
+                "conservativePrecision": 1,
+                "creatorDiversity": {
+                  "creatorCount": 1,
+                  "distinctCreators": 1,
+                  "maxCreatorShare": 1,
+                  "hhi": 1,
+                  "recentItemShare": 0
+                }
+              },
+              {
+                "k": 3,
+                "precisionRelevantOnly": 1,
+                "relevantCount": 3,
+                "unrelatedCount": 0,
+                "ambiguousCount": 0,
+                "conservativePrecision": 1,
+                "creatorDiversity": {
+                  "creatorCount": 3,
+                  "distinctCreators": 3,
+                  "maxCreatorShare": 0.3333,
+                  "hhi": 0.3333,
+                  "recentItemShare": 0
+                }
+              },
+              {
+                "k": 5,
+                "precisionRelevantOnly": 1,
+                "relevantCount": 5,
+                "unrelatedCount": 0,
+                "ambiguousCount": 0,
+                "conservativePrecision": 1,
+                "creatorDiversity": {
+                  "creatorCount": 5,
+                  "distinctCreators": 5,
+                  "maxCreatorShare": 0.2,
+                  "hhi": 0.2,
+                  "recentItemShare": 0
+                }
+              },
+              {
+                "k": 10,
+                "precisionRelevantOnly": 0.7,
+                "relevantCount": 7,
+                "unrelatedCount": 3,
+                "ambiguousCount": 0,
+                "conservativePrecision": 0.7,
+                "creatorDiversity": {
+                  "creatorCount": 10,
+                  "distinctCreators": 10,
+                  "maxCreatorShare": 0.1,
+                  "hhi": 0.1,
+                  "recentItemShare": 0.1
+                }
+              },
+              {
+                "k": 20,
+                "precisionRelevantOnly": 0.35,
+                "relevantCount": 7,
+                "unrelatedCount": 8,
+                "ambiguousCount": 5,
+                "conservativePrecision": 0.35,
+                "creatorDiversity": {
+                  "creatorCount": 20,
+                  "distinctCreators": 20,
+                  "maxCreatorShare": 0.05,
+                  "hhi": 0.05,
+                  "recentItemShare": 0.2
+                }
+              }
+            ],
+            "baselineTop10MembershipCount": 10
+          }
+        ]
+      }
+    },
+    "profileDiagnostics": [
+      {
+        "seedKey": "synthetic-sports_watch-01",
+        "seedLanguage": "en",
+        "eligibleSeedCount": 1,
+        "v2Diagnostic": {
+          "sourceCount": 24,
+          "ambiguousSourceCount": 0,
+          "likeRowCount": 1,
+          "eligibleLikeCount": 1,
+          "invalidLikeCount": 0,
+          "ineligibleLikeCount": 0,
+          "unlikedRowCount": 0,
+          "selectedSeedCount": 1,
+          "seedLimitApplied": false,
+          "tokenCappedSourceCount": 0,
+          "matchedCandidateCount": 0,
+          "thresholdRejectedCandidateCount": 0,
+          "boostedCandidateCount": 0,
+          "maxScore": 0
+        }
+      },
+      {
+        "seedKey": "synthetic-weekend_travel-01",
+        "seedLanguage": "en",
+        "eligibleSeedCount": 1,
+        "v2Diagnostic": {
+          "sourceCount": 24,
+          "ambiguousSourceCount": 0,
+          "likeRowCount": 1,
+          "eligibleLikeCount": 1,
+          "invalidLikeCount": 0,
+          "ineligibleLikeCount": 0,
+          "unlikedRowCount": 0,
+          "selectedSeedCount": 1,
+          "seedLimitApplied": false,
+          "tokenCappedSourceCount": 0,
+          "matchedCandidateCount": 3,
+          "thresholdRejectedCandidateCount": 2,
+          "boostedCandidateCount": 1,
+          "maxScore": 0.1527567842810873
+        }
+      },
+      {
+        "seedKey": "synthetic-community_service-01",
+        "seedLanguage": "en",
+        "eligibleSeedCount": 1,
+        "v2Diagnostic": {
+          "sourceCount": 24,
+          "ambiguousSourceCount": 0,
+          "likeRowCount": 1,
+          "eligibleLikeCount": 1,
+          "invalidLikeCount": 0,
+          "ineligibleLikeCount": 0,
+          "unlikedRowCount": 0,
+          "selectedSeedCount": 1,
+          "seedLimitApplied": false,
+          "tokenCappedSourceCount": 0,
+          "matchedCandidateCount": 2,
+          "thresholdRejectedCandidateCount": 1,
+          "boostedCandidateCount": 1,
+          "maxScore": 0.18795376472221292
+        }
+      }
+    ]
+  },
+  "behavioralGuards": {
+    "noHistory": {
+      "eligibleLikeCount": 0,
+      "boostCount": 0,
+      "orderMatchesBaseline": true
+    },
+    "oneExactLike": {
+      "selectedSeedCount": 1,
+      "seedIsExcludedAsTarget": true,
+      "remainingCandidatesRemainPresent": true
+    },
+    "staleLike": {
+      "eligibleLikeCount": 0,
+      "boostCount": 0
+    },
+    "unlikedRow": {
+      "eligibleLikeCount": 0,
+      "boostCount": 0
+    },
+    "ineligibleLike": {
+      "eligibleLikeCount": 0,
+      "boostCount": 0
+    },
+    "withdrawnSource": {
+      "eligibleLikeCount": 0,
+      "boostCount": 0
+    },
+    "relevanceBarrier": {
+      "orderedKeys": [
+        "higher-relevance",
+        "lower-relevance"
+      ],
+      "lowerRelevanceCannotPassHigherRelevance": true
+    },
+    "notesOnlyBoundaryProbe": {
+      "description": "Unlabeled two-source probe with shared body-note topic terms and no shared identity-role terms.",
+      "candidateScore": 0,
+      "bodyOnlyMatchDoesNotQualify": true
+    }
+  },
+  "curatedUnlabeledDiagnostic": {
+    "source": "17 current public curated starter fixtures; unlabeled legacy diagnostic only.",
+    "itemCount": 17,
+    "requestedPageSizes": [
+      1,
+      2,
+      3,
+      7,
+      20
+    ],
+    "traversals": [
+      {
+        "baseline": {
+          "pageSize": 1,
+          "pageCount": 17,
+          "itemCount": 17,
+          "complete": true,
+          "duplicateCount": 0,
+          "orderHash": "3db0ac58f7afe87c86f5aedc0c4ca1fe33b989de698390f662290ab0283864aa",
+          "orderedKeys": [
+            "wedding",
+            "birthday",
+            "thanksgiving",
+            "anniversary_supper",
+            "engagement_gathering",
+            "family_cottage_escape",
+            "family_reunion_weekend",
+            "friends_celebration_weekend",
+            "graduation_open_house",
+            "neighborhood_gathering",
+            "park_picnic",
+            "seasonal_dinner_party",
+            "shared_city_break",
+            "small_team_retreat",
+            "thoughtful_guest_stay",
+            "welcome_baby_shower",
+            "welcoming_game_night"
+          ]
+        },
+        "personalized": {
+          "pageSize": 1,
+          "pageCount": 17,
+          "itemCount": 17,
+          "complete": true,
+          "duplicateCount": 0,
+          "orderHash": "018193c08624f9fa046a7465b5bece2ff3bbb31873cf07f9c2035d5c32702559",
+          "orderedKeys": [
+            "wedding",
+            "birthday",
+            "thanksgiving",
+            "welcome_baby_shower",
+            "seasonal_dinner_party",
+            "family_reunion_weekend",
+            "engagement_gathering",
+            "neighborhood_gathering",
+            "friends_celebration_weekend",
+            "anniversary_supper",
+            "family_cottage_escape",
+            "graduation_open_house",
+            "park_picnic",
+            "shared_city_break",
+            "small_team_retreat",
+            "thoughtful_guest_stay",
+            "welcoming_game_night"
+          ]
+        }
+      },
+      {
+        "baseline": {
+          "pageSize": 2,
+          "pageCount": 9,
+          "itemCount": 17,
+          "complete": true,
+          "duplicateCount": 0,
+          "orderHash": "3db0ac58f7afe87c86f5aedc0c4ca1fe33b989de698390f662290ab0283864aa",
+          "orderedKeys": [
+            "wedding",
+            "birthday",
+            "thanksgiving",
+            "anniversary_supper",
+            "engagement_gathering",
+            "family_cottage_escape",
+            "family_reunion_weekend",
+            "friends_celebration_weekend",
+            "graduation_open_house",
+            "neighborhood_gathering",
+            "park_picnic",
+            "seasonal_dinner_party",
+            "shared_city_break",
+            "small_team_retreat",
+            "thoughtful_guest_stay",
+            "welcome_baby_shower",
+            "welcoming_game_night"
+          ]
+        },
+        "personalized": {
+          "pageSize": 2,
+          "pageCount": 9,
+          "itemCount": 17,
+          "complete": true,
+          "duplicateCount": 0,
+          "orderHash": "018193c08624f9fa046a7465b5bece2ff3bbb31873cf07f9c2035d5c32702559",
+          "orderedKeys": [
+            "wedding",
+            "birthday",
+            "thanksgiving",
+            "welcome_baby_shower",
+            "seasonal_dinner_party",
+            "family_reunion_weekend",
+            "engagement_gathering",
+            "neighborhood_gathering",
+            "friends_celebration_weekend",
+            "anniversary_supper",
+            "family_cottage_escape",
+            "graduation_open_house",
+            "park_picnic",
+            "shared_city_break",
+            "small_team_retreat",
+            "thoughtful_guest_stay",
+            "welcoming_game_night"
+          ]
+        }
+      },
+      {
+        "baseline": {
+          "pageSize": 3,
+          "pageCount": 6,
+          "itemCount": 17,
+          "complete": true,
+          "duplicateCount": 0,
+          "orderHash": "3db0ac58f7afe87c86f5aedc0c4ca1fe33b989de698390f662290ab0283864aa",
+          "orderedKeys": [
+            "wedding",
+            "birthday",
+            "thanksgiving",
+            "anniversary_supper",
+            "engagement_gathering",
+            "family_cottage_escape",
+            "family_reunion_weekend",
+            "friends_celebration_weekend",
+            "graduation_open_house",
+            "neighborhood_gathering",
+            "park_picnic",
+            "seasonal_dinner_party",
+            "shared_city_break",
+            "small_team_retreat",
+            "thoughtful_guest_stay",
+            "welcome_baby_shower",
+            "welcoming_game_night"
+          ]
+        },
+        "personalized": {
+          "pageSize": 3,
+          "pageCount": 6,
+          "itemCount": 17,
+          "complete": true,
+          "duplicateCount": 0,
+          "orderHash": "018193c08624f9fa046a7465b5bece2ff3bbb31873cf07f9c2035d5c32702559",
+          "orderedKeys": [
+            "wedding",
+            "birthday",
+            "thanksgiving",
+            "welcome_baby_shower",
+            "seasonal_dinner_party",
+            "family_reunion_weekend",
+            "engagement_gathering",
+            "neighborhood_gathering",
+            "friends_celebration_weekend",
+            "anniversary_supper",
+            "family_cottage_escape",
+            "graduation_open_house",
+            "park_picnic",
+            "shared_city_break",
+            "small_team_retreat",
+            "thoughtful_guest_stay",
+            "welcoming_game_night"
+          ]
+        }
+      },
+      {
+        "baseline": {
+          "pageSize": 7,
+          "pageCount": 3,
+          "itemCount": 17,
+          "complete": true,
+          "duplicateCount": 0,
+          "orderHash": "3db0ac58f7afe87c86f5aedc0c4ca1fe33b989de698390f662290ab0283864aa",
+          "orderedKeys": [
+            "wedding",
+            "birthday",
+            "thanksgiving",
+            "anniversary_supper",
+            "engagement_gathering",
+            "family_cottage_escape",
+            "family_reunion_weekend",
+            "friends_celebration_weekend",
+            "graduation_open_house",
+            "neighborhood_gathering",
+            "park_picnic",
+            "seasonal_dinner_party",
+            "shared_city_break",
+            "small_team_retreat",
+            "thoughtful_guest_stay",
+            "welcome_baby_shower",
+            "welcoming_game_night"
+          ]
+        },
+        "personalized": {
+          "pageSize": 7,
+          "pageCount": 3,
+          "itemCount": 17,
+          "complete": true,
+          "duplicateCount": 0,
+          "orderHash": "018193c08624f9fa046a7465b5bece2ff3bbb31873cf07f9c2035d5c32702559",
+          "orderedKeys": [
+            "wedding",
+            "birthday",
+            "thanksgiving",
+            "welcome_baby_shower",
+            "seasonal_dinner_party",
+            "family_reunion_weekend",
+            "engagement_gathering",
+            "neighborhood_gathering",
+            "friends_celebration_weekend",
+            "anniversary_supper",
+            "family_cottage_escape",
+            "graduation_open_house",
+            "park_picnic",
+            "shared_city_break",
+            "small_team_retreat",
+            "thoughtful_guest_stay",
+            "welcoming_game_night"
+          ]
+        }
+      },
+      {
+        "baseline": {
+          "pageSize": 20,
+          "pageCount": 1,
+          "itemCount": 17,
+          "complete": true,
+          "duplicateCount": 0,
+          "orderHash": "3db0ac58f7afe87c86f5aedc0c4ca1fe33b989de698390f662290ab0283864aa",
+          "orderedKeys": [
+            "wedding",
+            "birthday",
+            "thanksgiving",
+            "anniversary_supper",
+            "engagement_gathering",
+            "family_cottage_escape",
+            "family_reunion_weekend",
+            "friends_celebration_weekend",
+            "graduation_open_house",
+            "neighborhood_gathering",
+            "park_picnic",
+            "seasonal_dinner_party",
+            "shared_city_break",
+            "small_team_retreat",
+            "thoughtful_guest_stay",
+            "welcome_baby_shower",
+            "welcoming_game_night"
+          ]
+        },
+        "personalized": {
+          "pageSize": 20,
+          "pageCount": 1,
+          "itemCount": 17,
+          "complete": true,
+          "duplicateCount": 0,
+          "orderHash": "018193c08624f9fa046a7465b5bece2ff3bbb31873cf07f9c2035d5c32702559",
+          "orderedKeys": [
+            "wedding",
+            "birthday",
+            "thanksgiving",
+            "welcome_baby_shower",
+            "seasonal_dinner_party",
+            "family_reunion_weekend",
+            "engagement_gathering",
+            "neighborhood_gathering",
+            "friends_celebration_weekend",
+            "anniversary_supper",
+            "family_cottage_escape",
+            "graduation_open_house",
+            "park_picnic",
+            "shared_city_break",
+            "small_team_retreat",
+            "thoughtful_guest_stay",
+            "welcoming_game_night"
+          ]
+        }
+      }
+    ],
+    "stableAcrossPageSizes": {
+      "baseline": true,
+      "personalized": true
+    }
+  },
+  "caveats": [
+    "These are manually written fictional fixtures with family-based ordinal labels and selected ambiguous cross-family cases, not independently adjudicated real-user relevance labels; results describe only these cases.",
+    "The baseline has no affinity prediction. Its ranking precision at K is reported against the fixture judgments, but affinity precision/recall are not applicable.",
+    "V2 lowers false positives in this fixture set while losing many labeled relevant matches; this is a precision/recall tradeoff, not a demonstrated quality improvement.",
+    "The family-seed design is intentionally small and does not estimate independent-user variance; pairs sharing a seed are correlated and should not be treated as independent observations for confidence intervals or significance claims.",
+    "The corpus includes English, Spanish, mixed-language and unknown-language examples; it does not establish robust multilingual or semantic-paraphrase coverage.",
+    "Creator concentration, recency, and cursor traversal are deterministic fixture diagnostics only; they do not establish live exposure or engagement outcomes.",
+    "The heldout split was opened only after the v2 formula, threshold, and production policy fingerprint were locked; any later policy change requires a new validation split or must be reported as validation-informed iteration."
+  ],
+  "checks": {
+    "developmentV2MatchesLockedScratch": true,
+    "developmentFixtureMatchesFrozenLock": true,
+    "heldoutFixtureMatchesFrozenLock": true,
+    "noHistoryMatchesBaseline": true,
+    "eligibilityAndRelevanceGuardsHold": true,
+    "allScoresWithinPolicyCap": true,
+    "curatedPagingCompleteWithoutDuplicates": true,
+    "curatedPagingStableAcrossPageSizes": true
+  }
+}

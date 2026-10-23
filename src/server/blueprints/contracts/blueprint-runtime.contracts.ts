@@ -30,6 +30,8 @@ export type CatalogRevision = {
   definition: BlueprintCatalogDefinition
   description?: string
   creator?: { displayName: string }
+  /** Private inputs for deterministic ranking; strip before every wire response. */
+  rankingMetadata?: { creatorKey: string | null; firstPublishedAt: string | null }
 }
 export type InstallationRecord = {
   id: string

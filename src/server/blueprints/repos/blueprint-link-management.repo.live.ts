@@ -5,6 +5,7 @@ import type { BlueprintManagedTemplate } from '@/contracts/blueprint-link-manage
 import { BlueprintSharingRepo } from './blueprint-sharing.repo'
 import { BlueprintSharingRepoLive } from './blueprint-sharing.repo.live'
 import { BlueprintLinkManagementRepo } from './blueprint-link-management.repo'
+import { ORGANIZATION_OWNER_ROLE } from '../../auth/organization-role-membership'
 
 const forbidden = () =>
   new ForbiddenError({
@@ -55,7 +56,7 @@ export const BlueprintLinkManagementRepoLive = Layer.effect(
               (t.retired_at IS NOT NULL) AS retired
             FROM blueprint_template t JOIN member m ON m.organization_id = t.organization_id
             LEFT JOIN blueprint_revision r ON r.template_id = t.id AND r.revision = t.published_revision AND r.retired_at IS NULL
-            WHERE m.user_id = ${actorId} AND m.role = 'owner'
+            WHERE m.user_id = ${actorId} AND ${ORGANIZATION_OWNER_ROLE} = ANY(string_to_array(m.role, ','))
               AND t.source->>'kind' = 'event' AND lower(t.source->>'eventId') = ${input.eventId.toLowerCase()}
             ORDER BY t.updated_at DESC, t.id`
                 return { templates: [...templates] }
@@ -65,7 +66,7 @@ export const BlueprintLinkManagementRepoLive = Layer.effect(
                 const owned = yield* pg`
           SELECT t.id, t.retired_at AS "retiredAt", t.listed_revision AS "listedRevision"
           FROM blueprint_template t JOIN member m ON m.organization_id = t.organization_id
-          WHERE t.id = ${input.templateId} AND m.user_id = ${actorId} AND m.role = 'owner'
+          WHERE t.id = ${input.templateId} AND m.user_id = ${actorId} AND ${ORGANIZATION_OWNER_ROLE} = ANY(string_to_array(m.role, ','))
             AND t.source->>'kind' = 'event' AND lower(t.source->>'eventId') = ${input.eventId.toLowerCase()}
           FOR UPDATE OF t FOR SHARE OF m`
                 if (!owned.length) return yield* Effect.fail(forbidden())
@@ -101,7 +102,7 @@ export const BlueprintLinkManagementRepoLive = Layer.effect(
 
               const owned = yield* pg`
           SELECT t.id FROM blueprint_template t JOIN member m ON m.organization_id = t.organization_id
-          WHERE t.id = ${input.templateId} AND m.user_id = ${actorId} AND m.role = 'owner'
+          WHERE t.id = ${input.templateId} AND m.user_id = ${actorId} AND ${ORGANIZATION_OWNER_ROLE} = ANY(string_to_array(m.role, ','))
             AND t.source->>'kind' = 'event' AND lower(t.source->>'eventId') = ${input.eventId.toLowerCase()}
           FOR SHARE OF t, m`
               if (!owned.length) return yield* Effect.fail(forbidden())

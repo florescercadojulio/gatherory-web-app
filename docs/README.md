@@ -34,15 +34,29 @@ for the longer-term design.
 
 Read the product and data models first, then the relevant implementation guide.
 
-| Document                                                         | Scope                                                                                                       |
-| ---------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
-| [Product model](architecture/product-model.md)                   | Workspaces, events, participation, and release boundaries.                                                  |
-| [Monetization model](architecture/monetization-model.md)         | Free personal planning/RSVPs, Event Pass tree coverage, and deferred annual plans; not implemented billing. |
-| [Data model](architecture/data-model.md)                         | Schema ownership, native mapping, replication, and invariants.                                              |
-| [Server architecture](architecture/server-architecture.md)       | Effect boundaries, authorization, contracts, workflows, and repositories.                                   |
-| [Mobile session lifecycle](architecture/mobile-session-lifecycle.md) | Sign-in routing, onboarding, guest retention, preparation, and account isolation. |
-| [Media system](architecture/media-system.md)                     | Uploads, signed URLs, access checks, storage, and cleanup.                                                  |
-| [Experience architecture](architecture/experience-blueprints.md) | Cross-platform design for reusable experiences, including future capabilities.                              |
+| Document                                                             | Scope                                                                                                       |
+| -------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| [Product model](architecture/product-model.md)                       | Workspaces, events, participation, and release boundaries.                                                  |
+| [Monetization model](architecture/monetization-model.md)             | Free personal planning/RSVPs, Event Pass tree coverage, and deferred annual plans; not implemented billing. |
+| [Data model](architecture/data-model.md)                             | Schema ownership, native mapping, replication, and invariants.                                              |
+| [Server architecture](architecture/server-architecture.md)           | Effect boundaries, authorization, contracts, workflows, and repositories.                                   |
+| [Mobile session lifecycle](architecture/mobile-session-lifecycle.md) | Sign-in routing, onboarding, guest retention, preparation, and account isolation.                           |
+| [Media system](architecture/media-system.md)                         | Uploads, signed URLs, access checks, storage, and cleanup.                                                  |
+| [Experience architecture](architecture/experience-blueprints.md)     | Cross-platform design for reusable experiences, including future capabilities.                              |
+
+- [Blueprint library collections](roadmaps/blueprint-ranking-roadmap/10-blueprint-library-collections.md): accepted native Yours/Saved/Liked navigation direction and pending implementation acceptance.
+- [Search relevance and Explore header](roadmaps/blueprint-ranking-roadmap/11-search-relevance-and-scroll-header.md): phrase and typo matching evaluated against frozen v1, content-first browsing without category tiles, and the restored native Search title, profile toolbar and system search field.
+- [Ads-enabled Explore stability](roadmaps/blueprint-ranking-roadmap/12-ads-enabled-feed-stability.md): measured ad slots and preview suspension, with real SDK sample scrolling/paging checks in Light/Dark and accessibility text. Production advertising remains disabled.
+- [Discovery and library actions](roadmaps/blueprint-ranking-roadmap/13-discovery-and-library-actions.md): context-specific previews keep discovery read-only, preferences separate from copies, and Use explicit; locally implemented with focused native tests and simulator visual checks passed.
+- [Unified Yours library](roadmaps/blueprint-ranking-roadmap/14-unified-yours-library.md): personal Blueprints and recoverable customizations in one grid, without a Drafts selector or empty-layout gap; native Create Blueprint event chooser and preserved setup recovery.
+- [Single public preview and event creation](roadmaps/blueprint-ranking-roadmap/15-single-preview-and-event-creation.md): main event, included events and ideas in one public reading view; personal planning stays in Yours, with focused date confirmation and explicit Create Events.
+- [Blueprint-led discovery](architecture/blueprint-led-discovery.md): accepted
+  scan-first card direction with a cover, purpose-led title, optional creator
+  byline, and preview-only event/idea detail. Categories stay internal; no
+  required taxonomy, likes, or ranking change. The former highlight prototype
+  and its validation are superseded history. Published content/related-term search
+  is now implemented locally, alongside private Blueprint actions and default-off
+  recommendation measurement.
 
 ## Marketing
 
@@ -68,6 +82,37 @@ Read the product and data models first, then the relevant implementation guide.
   for multi-step work.
 
 ## Release and future work
+
+- [Pinterest inspiration for event ideas](roadmaps/pinterest-event-ideas-roadmap/README.md):
+  proposed board picker and selected references in event Ideas, existing manual
+  link alternative, provider storage/sharing constraints, and build order.
+  Planning only; no Pinterest integration or provider approval is implemented.
+
+- [Blueprint ranking source research — October 22, 2026](research/blueprint-ranking-community-notes-2026-10-22.md):
+  Community Notes code reuse map, trust and confidence mechanisms, and current
+  Gatherory data gaps. The [discovery and ranking roadmap](roadmaps/blueprint-ranking-roadmap/README.md)
+  records the current title-led card direction and the superseded highlight
+  prototype history in [slice 01](roadmaps/blueprint-ranking-roadmap/01-blueprint-cards-and-highlights.md).
+  [Content search and related terms](roadmaps/blueprint-ranking-roadmap/02-content-search-and-related-terms.md)
+  are implemented locally. [Actions and verified measurement](roadmaps/blueprint-ranking-roadmap/03-actions-and-measurement.md)
+  add private likes/bookmarks/hiding, opt-in organic signals and unchanged-copy
+  adoption attribution. [Recommendation baseline](roadmaps/blueprint-ranking-roadmap/04-recommendation-baseline.md)
+  adds explicit editorial priorities, creator diversity and recent-authored
+  opportunity with versioned paging. [Baseline evaluation and signal readiness](roadmaps/blueprint-ranking-roadmap/05-baseline-evaluation-and-signal-readiness.md)
+  records offline ordering checks and current signal limitations.
+  [Measurement readiness report and attribution checks](roadmaps/blueprint-ranking-roadmap/06-measurement-readiness-report-and-attribution-checks.md)
+  add a local read-only operational report and native snapshot/copy/install matrix.
+  [Measurement cleanup and new-item opportunities](roadmaps/blueprint-ranking-roadmap/07-measurement-cleanup-and-new-item-opportunities.md)
+  add acceptance order, exact pairing, opt-in serving diagnostics and promotion-only
+  baseline v2. [Personal Like-based ranking](roadmaps/blueprint-ranking-roadmap/08-personal-like-ranking.md)
+  adds private current-Like content affinity, baseline comparison and native
+  cursor recovery. [Personal Like precision tuning](roadmaps/blueprint-ranking-roadmap/09-personal-like-precision.md)
+  adds role-aware matching and broader fixtures: the known wedding overmatching
+  improves, but fresh-challenge precision/recall equal v1. Production usefulness
+  remains unverified; no pooled engagement weights are added.
+  Spotlights, social expansion and community quality models follow later;
+  these later capabilities remain planned. New discovery collection defaults off;
+  no shared migration, deployment or phone release occurred.
 
 - [Mobile collaboration notifications](roadmaps/notifications-roadmap/README.md):
   FCM connector/service proof of concept for assignment and exact-event changes;

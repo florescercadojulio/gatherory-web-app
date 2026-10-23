@@ -5,6 +5,7 @@ import { ForbiddenError } from '@/lib/domain-errors'
 const calls = vi.hoisted(() => ({
   user: vi.fn(),
   catalog: vi.fn(),
+  catalogPage: vi.fn(),
   preview: vi.fn(),
   schedule: vi.fn(),
   install: vi.fn(),
@@ -18,6 +19,7 @@ vi.mock('@/server/http-errors', async (importOriginal) => ({
 }))
 vi.mock('@/server/blueprints/workflows/blueprint.workflows.live', () => ({
   blueprintCatalog: calls.catalog,
+  blueprintCatalogPage: calls.catalogPage,
   previewBlueprint: calls.preview,
   scheduleBlueprint: calls.schedule,
   installBlueprint: calls.install,
@@ -107,4 +109,54 @@ test('install uses authenticated identity and serializes the durable manifest wi
   expect(await response.json()).toEqual(result)
   expect(response.headers.get('Cache-Control')).toContain('no-store')
   expect(calls.install).toHaveBeenCalledWith(actor, input)
+})
+
+test('catalog reads the device context from its header and ignores malformed context for typed search', async () => {
+  calls.user.mockReturnValue(Effect.succeed({ id: 'actor' }))
+  calls.catalogPage.mockReturnValue(Effect.succeed({ entries: [], availableCategories: [] }))
+  const discoverySession = {
+    version: 1,
+    sessionId: '7e9d1f13-5a19-4a1e-9ad6-6f4f68081a54',
+    startedAt: '2026-10-22T23:30:00.000Z',
+    seen: [{ catalogKey: 'wedding', lastSeenAt: '2026-10-22T22:30:00.000Z' }],
+  }
+  const browse = await handleBlueprintRequest(
+    new Request('https://example.test/api/blueprints?limit=2&ranking=baseline_v1', {
+      headers: { 'X-Gatherory-Discovery-Context': JSON.stringify(discoverySession) },
+    }),
+    'catalog'
+  )
+  expect(browse.status).toBe(200)
+  expect(calls.catalogPage).toHaveBeenLastCalledWith('actor', {
+    limit: 2,
+    q: '',
+    ranking: 'baseline_v1',
+    discoverySession,
+  })
+
+  calls.catalogPage.mockClear()
+  const search = await handleBlueprintRequest(
+    new Request('https://example.test/api/blueprints?limit=2&ranking=baseline_v1&q=wedding', {
+      headers: { 'X-Gatherory-Discovery-Context': '{ malformed json' },
+    }),
+    'catalog'
+  )
+  expect(search.status).toBe(200)
+  expect(calls.catalogPage).toHaveBeenCalledWith('actor', {
+    limit: 2,
+    q: 'wedding',
+    ranking: 'baseline_v1',
+  })
+})
+
+test('catalog rejects malformed discovery context during browse before paging', async () => {
+  calls.user.mockReturnValue(Effect.succeed({ id: 'actor' }))
+  const response = await handleBlueprintRequest(
+    new Request('https://example.test/api/blueprints?ranking=baseline_v1', {
+      headers: { 'X-Gatherory-Discovery-Context': '{ malformed json' },
+    }),
+    'catalog'
+  )
+  expect(response.status).toBe(400)
+  expect(calls.catalogPage).not.toHaveBeenCalled()
 })

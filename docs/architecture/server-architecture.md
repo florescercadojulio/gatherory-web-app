@@ -370,6 +370,14 @@ service is introduced by this pattern.
 
 ## Permission rules
 
+Workspace administration now supports database-backed custom roles through
+Better Auth Organization dynamic access control. The shared statement and
+default roles live in `src/lib/org-permissions.ts`; server checks resolve current
+organization membership and role definitions. See
+[Dynamic workspace roles](dynamic-workspace-rbac.md) for API usage, ownership
+boundaries, the additive migration, and rollout status. This does not replace
+event participant authorization or enable event-specific custom roles.
+
 Permissions use Better Auth's resource/action statement model, not dotted
 strings or screen names. Examples include:
 

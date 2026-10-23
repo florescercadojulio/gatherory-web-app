@@ -16,13 +16,23 @@ import {
   writeDevelopmentWorkspaceSeed,
 } from '@/db/development-workspace-seed'
 import { reviewWorkspaceOrganizationNames } from '@/db/review-workspace-fixture'
-import { seedCuratedBlueprints } from '@/db/seeds/curated-blueprints'
-import { seedPrivateTemplates } from '@/db/seeds/private-templates'
+import {
+  assertCuratedBlueprintSeedImageCoverage,
+  seedCuratedBlueprints,
+} from '@/db/seeds/curated-blueprints'
+import {
+  assertPrivateTemplateSeedImageCoverage,
+  seedPrivateTemplates,
+} from '@/db/seeds/private-templates'
 import { developmentProfileImage } from '@/db/seeds/development-profile-images'
 import {
   preflightDevelopmentEventImages,
   runDevelopmentEventImageUpdate,
 } from '@/db/seeds/development-event-images-update'
+import {
+  preflightDevelopmentSharedAlbum,
+  runDevelopmentSharedAlbumUpdate,
+} from '@/db/seeds/development-shared-album-update'
 import { auth } from '@/lib/auth'
 import { materializeNativeMutation } from '@/server/sync/repos/native-materializer.persistence'
 import { createEventWorkspace } from '@/server/workspaces/handlers/workspace-provisioning.adapter'
@@ -201,9 +211,16 @@ async function ensureReviewAccess(input: {
 
 async function main() {
   const args = process.argv.slice(2)
-  if (args.some((argument) => argument !== '--with-images') || args.length > 1)
-    throw new Error('Only an optional --with-images argument is supported.')
-  const withImages = args.includes('--with-images')
+  const seedArgs = args[0] === '--' ? args.slice(1) : args
+  const allowedFlags = new Set(['--with-images', '--without-images'])
+  if (
+    seedArgs.some((argument) => !allowedFlags.has(argument)) ||
+    new Set(seedArgs).size !== seedArgs.length ||
+    (seedArgs.includes('--with-images') && seedArgs.includes('--without-images'))
+  ) {
+    throw new Error('Use at most one of --with-images or --without-images.')
+  }
+  const withImages = !seedArgs.includes('--without-images')
   if (process.env.NODE_ENV === 'production') {
     throw new ServerOperationError({
       category: 'system',
@@ -221,7 +238,13 @@ async function main() {
   } as const
   // Check local target, bundled files, and storage configuration before the
   // existing reset. A media-only update never enters this reset entry point.
-  if (withImages) await preflightDevelopmentEventImages(imageOptions)
+  // Private Blueprint fixtures always import covers, even when the legacy
+  // workspace/album image backfill is disabled. Validate storage before reset.
+  await preflightDevelopmentEventImages(imageOptions)
+  if (withImages) await preflightDevelopmentSharedAlbum(imageOptions)
+  // Image mapping errors must fail before this destructive reset begins.
+  assertCuratedBlueprintSeedImageCoverage()
+  assertPrivateTemplateSeedImageCoverage()
 
   console.log('Resetting database...')
   await reset(db, {
@@ -261,8 +284,10 @@ async function main() {
   await db.update(user).set({ hasCompletedOnboarding: true }).where(eq(user.id, typedUsers[4].id))
   const privateTemplates = await seedPrivateTemplates(typedUsers[4].id, appReviewWorkspace.id)
   if (withImages) {
-    const images = await runDevelopmentEventImageUpdate(imageOptions)
-    console.log(`Seeded ${images.insertedPlacements} event, idea, and registry images.`)
+    const covers = await runDevelopmentEventImageUpdate(imageOptions)
+    const album = await runDevelopmentSharedAlbumUpdate(imageOptions)
+    console.log(`Seeded ${covers.insertedPlacements} event, idea, and registry images.`)
+    console.log(`Seeded ${album.insertedPlacements} shared album images.`)
   }
   const cottageStatus =
     privateTemplates.publishedCottage.publishedRevision === null

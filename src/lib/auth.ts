@@ -1,4 +1,9 @@
 import { ConfigurationError } from '@/lib/domain-errors'
+import { orgAccessControl, orgRoles } from '@/lib/org-permissions'
+import {
+  organizationRolePolicyPlugin,
+  type OrganizationRolePolicySession,
+} from '@/server/auth/organization-role-policy'
 import { drizzleAdapter } from '@better-auth/drizzle-adapter/relations-v2'
 import { betterAuth } from 'better-auth'
 import { and, eq } from 'drizzle-orm'
@@ -7,6 +12,7 @@ import { bearer } from 'better-auth/plugins/bearer'
 import { emailOTP } from 'better-auth/plugins/email-otp'
 import { magicLink } from 'better-auth/plugins/magic-link'
 import { organization } from 'better-auth/plugins/organization'
+import type { OrganizationOptions } from 'better-auth/plugins/organization'
 import { tanstackStartCookies } from 'better-auth/tanstack-start'
 
 import { db } from '@/db'
@@ -89,6 +95,30 @@ const apple = hasAllAppleCredentials
       }
     }
   : undefined
+
+const organizationRoleOptions = {
+  ac: orgAccessControl,
+  roles: orgRoles,
+  dynamicAccessControl: {
+    enabled: true,
+    maximumRolesPerOrganization: 50,
+  },
+} satisfies Pick<OrganizationOptions, 'ac' | 'roles' | 'dynamicAccessControl'>
+
+async function resolveOrganizationRolePolicySession(
+  headers: Headers
+): Promise<OrganizationRolePolicySession | null> {
+  const session = await auth.api.getSession({
+    headers,
+    query: { disableCookieCache: true, disableRefresh: true },
+  })
+  if (!session) return null
+
+  return {
+    user: { id: session.user.id },
+    session: { activeOrganizationId: session.session.activeOrganizationId ?? null },
+  }
+}
 
 export const auth = betterAuth({
   appName: 'Gatherory',
@@ -186,6 +216,7 @@ export const auth = betterAuth({
       },
     }),
     organization({
+      ...organizationRoleOptions,
       teams: {
         enabled: true,
         allowRemovingAllTeams: false,
@@ -214,6 +245,7 @@ export const auth = betterAuth({
         }),
       },
     }),
+    organizationRolePolicyPlugin(resolveOrganizationRolePolicySession, organizationRoleOptions),
     tanstackStartCookies(),
   ],
 })

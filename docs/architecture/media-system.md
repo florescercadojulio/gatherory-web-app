@@ -118,11 +118,19 @@ production:
 | ------------------------ | ---------------------- | ---------------------------------------------------------------- | --------------------------------------------------------- |
 | `gatherory-private-dev`  | Development            | Event, idea, registry, invitation, and guest media               | Authorized short-lived URLs issued by the local app       |
 | `gatherory-private-prod` | Production             | Event, idea, registry, invitation, and guest media               | Authorized short-lived URLs issued by `app.gatherory.com` |
-| `gatherory-public`       | Shared public delivery | Explicitly published creator images and future template previews | `https://cdn.gatherory.com`                               |
+| `gatherory-public`       | Shared public delivery | Explicitly published creator images and curated Explore covers | `https://cdn.gatherory.com`                               |
 
 Publishing does not silently change an existing private asset's storage
 contract. If a future template needs a public derivative, create a separately
 tracked public asset or an explicit publication record.
+
+Curated Explore artwork uses a public derivative manifest and a checked-in
+catalog cover registry. The [Explore image skill](../../.agents/skills/gatherory-explore-images/SKILL.md)
+uploads through the authenticated Cloudflare plugin or bucket-scoped S3
+credentials. See [Blueprint cover images](blueprint-cover-images.md) for the
+commands and rollout status. New personal copies import curated covers into
+private Blueprint assets before ordinary event media installation. Explicit
+cover replacement/removal takes priority. User event/idea media remains private.
 
 Required configuration:
 

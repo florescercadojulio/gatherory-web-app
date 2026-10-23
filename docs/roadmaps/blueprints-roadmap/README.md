@@ -35,6 +35,51 @@ design constraints and future slices, not newly implemented capabilities.
 
 ## Current position and stopping point
 
+**Discovery direction — October 22, clarified:** The user accepted
+[Blueprint-led discovery](../../architecture/blueprint-led-discovery.md): one
+Blueprint remains the primary published/feed object. Cards are scan-first,
+showing cover, prominent purpose-led title and small optional creator byline;
+the existing whole-card button opens the preview for event/idea detail. No
+category label, summary, highlights, visible preview CTA, title validation, or
+automatic renaming is part of the card direction. Do not inflate metadata to
+compensate for vague titles. Single-event plans remain valid; public discovery
+never reads private live-event content. The earlier local highlight prototype
+and its tests are superseded history in [slice 01](../blueprint-ranking-roadmap/01-blueprint-cards-and-highlights.md#superseded-highlight-prototype-history).
+Earlier card verification after simplification: native build plus 25 focused
+navigation/content/session tests passed, localization passed 1,638 strings, and
+synthetic visual inspection confirmed light/dark and AX3 title/byline wrapping.
+This is not physical-device, signed-in navigation, or spoken VoiceOver evidence.
+[Content and related-term search](../blueprint-ranking-roadmap/02-content-search-and-related-terms.md)
+is now implemented locally: published event/idea text, bounded English/Spanish
+aliases, query relevance and snapshot-safe paging. Native search retains server
+results and the clean cards. Current web typecheck/contracts/full tests and 37
+focused native tests passed; see the search slice for staged verification.
+[Blueprint actions and trustworthy measurement](../blueprint-ranking-roadmap/03-actions-and-measurement.md)
+are implemented locally: private likes/bookmarks/hiding, saved/hidden management,
+explicit opt-in organic measurement and verified unchanged-copy install attribution.
+The additive migration has only been tested in an isolated database; no rollout
+occurred. The [deterministic recommendation baseline](../blueprint-ranking-roadmap/04-recommendation-baseline.md)
+is now implemented locally behind an explicit paged capability: content relevance
+stays primary, with editorial priority, creator diversity and recent-authored
+opportunity. [Offline evaluation and signal readiness](../blueprint-ranking-roadmap/05-baseline-evaluation-and-signal-readiness.md)
+now records fixture results and measurement gaps; production outcomes are unverified.
+The [measurement report and attribution checks](../blueprint-ranking-roadmap/06-measurement-readiness-report-and-attribution-checks.md)
+are implemented locally. [Measurement cleanup and new-item opportunities](../blueprint-ranking-roadmap/07-measurement-cleanup-and-new-item-opportunities.md)
+adds accepted signal order, explicit pairing, opt-in serving diagnostics and
+promotion-only baseline v2. [Personal Like-based ranking](../blueprint-ranking-roadmap/08-personal-like-ranking.md)
+implements a bounded own-account content rule with baseline comparison and native
+cursor recovery. [Precision tuning](../blueprint-ranking-roadmap/09-personal-like-precision.md)
+adds role-aware matching and broader fixtures: wedding boosts fall 11 to 4, while
+fresh-challenge precision/recall equal v1. Next review real-content and multilingual
+relevance with human judgments; verify operational coverage/outcomes before pooled
+engagement weights.
+Keep categories and curated tags behind the scenes with optional browse
+shortcuts; taxonomy, likes, and ranking changes are not required. The
+[discovery/ranking roadmap](../blueprint-ranking-roadmap/README.md) owns later
+sequence. Separate event/idea spotlight cards, follows and quality models remain
+later work. This card direction does not change existing mobile/QR release
+acceptance gates and has not been deployed or installed on the phone.
+
 October 20 follow-up: [optional blueprint To-dos](../to-dos-reminders-roadmap/02-blueprint-to-dos.md)
 are implemented locally. Capture starts excluded; explicit inclusion carries
 title/website definitions and creates independent, unfinished, unassigned tasks.

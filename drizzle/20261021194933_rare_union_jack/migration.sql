@@ -1,0 +1,2 @@
+ALTER TABLE "native_notification_outbox" ADD COLUMN "event_change_kind" text;--> statement-breakpoint
+ALTER TABLE "native_notification_outbox" ADD CONSTRAINT "native_notification_outbox_event_change_kind_check" CHECK ("event_change_kind" is null or ("type" = 'event_changed' and "event_change_kind" in ('schedule', 'location', 'schedule_and_location', 'cancelled', 'reopened')));

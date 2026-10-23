@@ -20,6 +20,7 @@ import { eventTodo } from '@/db/schema/planning.schema'
 import { eventAnnouncement } from '@/db/schema/announcement.schema'
 import { announcementAccess } from '@/server/announcements/repos/announcement-access.persistence'
 import { announcementNotificationAllowed } from '@/server/announcements/services/announcement-policy'
+import { eventChangeDispatchAllowed } from '../services/event-change-policy'
 import { nativeNotificationOutbox, notificationInstallation } from '@/db/schema/notification.schema'
 import { env } from '@/env'
 import { ConflictError, ForbiddenError, InvalidInputError } from '@/server/effect-utils'
@@ -86,15 +87,27 @@ function recipientEligible(
   eventId: string,
   entityId: string,
   recipient: NotificationIdentity,
-  type: NotificationType
+  type: NotificationType,
+  eventChangeKind?: ClaimedNotification['eventChangeKind']
 ) {
   return Effect.gen(function* () {
-    const [eventRow] = yield* executor
-      .select({ completionStatus: event.completionStatus })
-      .from(event)
-      .where(eq(event.id, eventId))
-      .limit(1)
+    const [eventRow] = yield* executor.select().from(event).where(eq(event.id, eventId)).limit(1)
     if (!eventRow || eventRow.completionStatus === 'complete') return false
+    if (type === 'event_changed') {
+      const [root] = eventRow.parentEventId
+        ? yield* executor
+            .select()
+            .from(event)
+            .where(
+              and(
+                eq(event.id, eventRow.parentEventId),
+                eq(event.organizationId, eventRow.organizationId)
+              )
+            )
+            .limit(1)
+        : [undefined]
+      if (!eventChangeDispatchAllowed(eventRow, root, eventChangeKind ?? undefined)) return false
+    }
     if (type === 'event_announcement') {
       const access = yield* announcementAccess(executor, eventId, recipient)
       if (!access) return false
@@ -463,7 +476,16 @@ export const notificationRepo = {
                 kind: row.recipientKind,
                 id: row.recipientId,
               } satisfies NotificationIdentity
-              if (!(yield* recipientEligible(tx, row.eventId, row.entityId, recipient, row.type))) {
+              if (
+                !(yield* recipientEligible(
+                  tx,
+                  row.eventId,
+                  row.entityId,
+                  recipient,
+                  row.type,
+                  row.eventChangeKind
+                ))
+              ) {
                 yield* tx
                   .update(nativeNotificationOutbox)
                   .set({ state: 'discarded', leaseKey: null, leaseUntil: null })
@@ -535,6 +557,7 @@ export const notificationRepo = {
                 entityId: row.entityId,
                 recipient,
                 type: row.type,
+                eventChangeKind: row.eventChangeKind,
                 leaseKey,
                 acceptedInstallationIds: row.acceptedInstallationIds,
                 installations: installationsWithTokens,
@@ -627,7 +650,14 @@ export const notificationRepo = {
             .limit(1)
           return (
             Boolean(row) &&
-            (yield* recipientEligible(tx, item.eventId, item.entityId, item.recipient, item.type))
+            (yield* recipientEligible(
+              tx,
+              item.eventId,
+              item.entityId,
+              item.recipient,
+              item.type,
+              item.eventChangeKind
+            ))
           )
         })
       )

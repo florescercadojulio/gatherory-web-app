@@ -1,0 +1,2 @@
+ALTER TABLE "blueprint_cover_asset" ADD COLUMN "upload_storage_key" text NOT NULL;--> statement-breakpoint
+CREATE UNIQUE INDEX "blueprint_cover_asset_upload_storage_key_uidx" ON "blueprint_cover_asset" ("upload_storage_key");

@@ -1,0 +1,42 @@
+{
+  "wedding": {
+    "schemaVersion": 1,
+    "label": "Garden wedding — Jen Vazquez, Unsplash uOO5D8UPuMw",
+    "source": {
+      "width": 798,
+      "height": 1200,
+      "checksum": "14c7f943432cd8d6911a23ab094dfba370c0c0d14d834cacef3e15e9c1dc4bc0"
+    },
+    "bucket": "gatherory-public",
+    "processingVersion": "explore-cover-jpeg-v1",
+    "variants": [
+      {
+        "name": "thumbnail",
+        "width": 213,
+        "height": 320,
+        "checksum": "70eefcfcef4af4ee7702c67777782a8f5ddc1af7d8fcb24df4c198b5ad4a4d81",
+        "bucket": "gatherory-public",
+        "key": "explore/covers/garden-wedding/d168d90dbd69f719b04301fe1c173a01aa57102ac86737dc4ceb8bc6ce9e3750/thumbnail.jpg",
+        "url": "https://cdn.gatherory.com/explore/covers/garden-wedding/d168d90dbd69f719b04301fe1c173a01aa57102ac86737dc4ceb8bc6ce9e3750/thumbnail.jpg"
+      },
+      {
+        "name": "card",
+        "width": 638,
+        "height": 960,
+        "checksum": "bdafe9762cf6b81091ca6d0e17d57039959c900bb2803aa94df3babcaa4dd630",
+        "bucket": "gatherory-public",
+        "key": "explore/covers/garden-wedding/d168d90dbd69f719b04301fe1c173a01aa57102ac86737dc4ceb8bc6ce9e3750/card.jpg",
+        "url": "https://cdn.gatherory.com/explore/covers/garden-wedding/d168d90dbd69f719b04301fe1c173a01aa57102ac86737dc4ceb8bc6ce9e3750/card.jpg"
+      },
+      {
+        "name": "hero",
+        "width": 798,
+        "height": 1200,
+        "checksum": "739259135ce85970410e4bb979374ccc2b6dd04ae5115507776f245c6aee6675",
+        "bucket": "gatherory-public",
+        "key": "explore/covers/garden-wedding/d168d90dbd69f719b04301fe1c173a01aa57102ac86737dc4ceb8bc6ce9e3750/hero.jpg",
+        "url": "https://cdn.gatherory.com/explore/covers/garden-wedding/d168d90dbd69f719b04301fe1c173a01aa57102ac86737dc4ceb8bc6ce9e3750/hero.jpg"
+      }
+    ]
+  }
+}

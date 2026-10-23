@@ -55,26 +55,15 @@ test('App Review fixture creates a populated iOS workspace snapshot', () => {
   ).toBeTruthy()
   expect(decoded.eventExpenses.length >= 1).toBeTruthy()
   expect(decoded.registry.length >= 1).toBeTruthy()
-  expect(decoded.mainEventLocation.locationName).toBe('Willow & Stone Estate')
-  expect(
-    (
-      decoded.ideas[1].configuration as {
-        music: {
-          _0: {
-            tracks: Array<{
-              providerID: string
-              catalogID: string
-              title: string
-              artistName: string
-              artworkURL: string
-              duration: number
-            }>
-          }
-        }
-      }
-    ).music._0.tracks[0]?.providerID
-  ).toBe('apple-music')
-  const track = (
+  expect(decoded.mainEventLocation).toMatchObject({
+    placeName: 'Leila Arboretum',
+    address: '928 Michigan Ave W, Battle Creek, MI  49037, United States',
+    shortAddress: '928 Michigan Ave W, Battle Creek',
+    latitude: 42.3351401,
+    longitude: -85.2133352,
+    mapItemIdentifier: 'I23C0AE2C81FA20E5',
+  })
+  const tracks = (
     decoded.ideas[1].configuration as {
       music: {
         _0: {
@@ -83,18 +72,54 @@ test('App Review fixture creates a populated iOS workspace snapshot', () => {
             catalogID: string
             title: string
             artistName: string
-            artworkURL: string
+            artworkURL: string | null
             duration: number
           }>
         }
       }
     }
-  ).music._0.tracks[0]
-  expect(track?.catalogID).toBe('i.4YBN1YWf2a62bq9')
-  expect(track?.title).toBe('BABYDOLL (Speed)')
-  expect(track?.artistName).toBe('Ari Abdul')
-  expect(track?.duration).toBe(156.651)
-  expect(track?.artworkURL ?? '').toMatch(/^musicKit:\/\/artwork\/library\//)
+  ).music._0.tracks
+  expect(tracks).toHaveLength(4)
+  expect(
+    tracks.map(({ providerID, catalogID, title, artistName, duration }) => ({
+      providerID,
+      catalogID,
+      title,
+      artistName,
+      duration,
+    }))
+  ).toEqual([
+    {
+      providerID: 'apple-music',
+      catalogID: 'i.4YBN1YWf2a62bq9',
+      title: 'BABYDOLL (Speed)',
+      artistName: 'Ari Abdul',
+      duration: 156.651,
+    },
+    {
+      providerID: 'apple-music',
+      catalogID: 'i.ldDQxgmf8gp8kM7',
+      title: 'BAILE INoLVIDABLE',
+      artistName: 'Bad Bunny',
+      duration: 367.725,
+    },
+    {
+      providerID: 'apple-music',
+      catalogID: 'i.RBrxbNxT1rk1dGm',
+      title: 'VUELVE CANDY B',
+      artistName: 'Bad Bunny',
+      duration: 266.171,
+    },
+    {
+      providerID: 'apple-music',
+      catalogID: 'i.XMDVeZXSv87vQoq',
+      title: "I'm Fine (feat. Cherry Lena) [IMANU Remix]",
+      artistName: 'Apashe & High Klassified',
+      duration: 243.977,
+    },
+  ])
+  expect(tracks[0]?.artworkURL ?? '').toMatch(/^musicKit:\/\/artwork\/library\//)
+  expect(tracks.slice(1).map((track) => track.artworkURL)).toEqual([null, null, null])
 })
 
 test('App Review snapshot uses Foundation reference dates and valid UUIDs', () => {

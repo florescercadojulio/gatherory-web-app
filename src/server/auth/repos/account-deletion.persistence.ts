@@ -1,8 +1,10 @@
 import { and, asc, eq, inArray, isNull, ne, or, sql } from 'drizzle-orm'
+import { hasOrganizationOwnerRole } from '../organization-role-membership'
 
 import { db } from '@/db'
 import { member, organization } from '@/db/schema/auth.schema'
 import { mediaAsset } from '@/db/schema/media.schema'
+import { blueprintCoverAsset } from '@/db/schema/blueprint-media.schema'
 import { event, eventParticipant, workspacePerson } from '@/db/schema/event.schema'
 import { idea } from '@/db/schema/planning.schema'
 import {
@@ -48,7 +50,7 @@ async function successor(
         ne(eventParticipant.planningPermission, 'view_only')
       )
     )
-    .orderBy(sql`case when ${member.role} = 'owner' then 0 else 1 end`, asc(member.createdAt))
+    .orderBy(sql`case when ${hasOrganizationOwnerRole(member.role)} then 0 else 1 end`, asc(member.createdAt))
     .limit(1)
   return candidate
 }
@@ -78,7 +80,7 @@ export async function prepareGatheroryAccountDeletion(
   const ownedMemberships = await db
     .select({ organizationId: member.organizationId })
     .from(member)
-    .where(and(eq(member.userId, userId), eq(member.role, 'owner')))
+    .where(and(eq(member.userId, userId), hasOrganizationOwnerRole(member.role)))
 
   const dispositions: WorkspaceDisposition[] = []
 
@@ -115,11 +117,31 @@ export async function prepareGatheroryAccountDeletion(
     .from(mediaAsset)
     .where(mediaPredicate)
 
+  const blueprintCoversToDelete = await db
+    .select({
+      bucket: blueprintCoverAsset.bucket,
+      originalStorageKey: blueprintCoverAsset.originalStorageKey,
+      uploadStorageKey: blueprintCoverAsset.uploadStorageKey,
+      variantStorageKeys: blueprintCoverAsset.variantStorageKeys,
+    })
+    .from(blueprintCoverAsset)
+    .where(eq(blueprintCoverAsset.ownerUserId, userId))
+
+  const storageObjectsToDelete = [
+    ...mediaToDelete.map(({ bucket, storageKey }) => ({ bucket, key: storageKey })),
+    ...blueprintCoversToDelete.flatMap((asset) => [
+      { bucket: asset.bucket, key: asset.originalStorageKey },
+      { bucket: asset.bucket, key: asset.uploadStorageKey },
+      ...Object.values(asset.variantStorageKeys ?? {}).map((variant) => ({
+        bucket: asset.bucket,
+        key: variant.storageKey,
+      })),
+    ]),
+  ]
+
   // R2 deletes are idempotent. Finish them before the database transaction so
   // a storage failure leaves retryable metadata instead of orphaned objects.
-  await Promise.all(
-    mediaToDelete.map(({ bucket, storageKey }) => deleteObject({ bucket, key: storageKey }))
-  )
+  await Promise.all(storageObjectsToDelete.map((object) => deleteObject(object)))
 
   await db.transaction(async (transaction) => {
     const people = await transaction

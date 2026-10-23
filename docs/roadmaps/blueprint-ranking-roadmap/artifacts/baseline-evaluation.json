@@ -1,0 +1,2847 @@
+{
+  "formatVersion": 2,
+  "purpose": "Offline deterministic policy evaluation; not simulated traffic, production inventory, or an uplift estimate.",
+  "asOf": "2026-10-22T12:00:00.000Z",
+  "syntheticScenarioVersion": "blueprint-ranking-offline-v2",
+  "activePolicy": {
+    "algorithmVersion": "blueprint-baseline-v2",
+    "configurationVersion": "blueprint-baseline-v2",
+    "configurationFingerprint": "4c85a77f26eb79885e3201fb2d2cdd981b39139ec1a79baf61f4ba624f2e7779",
+    "mode": "baseline_v1"
+  },
+  "actualRepositoryCuratedCatalog": {
+    "fixtureLabel": "Repository curated starter fixtures; not a claim about the deployed or production inventory.",
+    "itemCount": 17,
+    "catalogKeys": [
+      "anniversary_supper",
+      "birthday",
+      "engagement_gathering",
+      "family_cottage_escape",
+      "family_reunion_weekend",
+      "friends_celebration_weekend",
+      "graduation_open_house",
+      "neighborhood_gathering",
+      "park_picnic",
+      "seasonal_dinner_party",
+      "shared_city_break",
+      "small_team_retreat",
+      "thanksgiving",
+      "thoughtful_guest_stay",
+      "wedding",
+      "welcome_baby_shower",
+      "welcoming_game_night"
+    ],
+    "comparison": {
+      "policy": {
+        "algorithmVersion": "blueprint-baseline-v2",
+        "configurationVersion": "blueprint-baseline-v2",
+        "configurationFingerprint": "4c85a77f26eb79885e3201fb2d2cdd981b39139ec1a79baf61f4ba624f2e7779",
+        "editorialPriorities": {
+          "wedding": 30,
+          "birthday": 20,
+          "thanksgiving": 10
+        },
+        "newItemShare": 0.1,
+        "newItemWindowDays": 30,
+        "maxConsecutiveAuthoredPerCreator": 2,
+        "recomputedFingerprint": "4c85a77f26eb79885e3201fb2d2cdd981b39139ec1a79baf61f4ba624f2e7779"
+      },
+      "baseline": {
+        "metrics": {
+          "itemCount": 17,
+          "top10": [
+            "wedding",
+            "birthday",
+            "thanksgiving",
+            "anniversary_supper",
+            "engagement_gathering",
+            "family_cottage_escape",
+            "family_reunion_weekend",
+            "friends_celebration_weekend",
+            "graduation_open_house",
+            "neighborhood_gathering"
+          ],
+          "top20": [
+            "wedding",
+            "birthday",
+            "thanksgiving",
+            "anniversary_supper",
+            "engagement_gathering",
+            "family_cottage_escape",
+            "family_reunion_weekend",
+            "friends_celebration_weekend",
+            "graduation_open_house",
+            "neighborhood_gathering",
+            "park_picnic",
+            "seasonal_dinner_party",
+            "shared_city_break",
+            "small_team_retreat",
+            "thoughtful_guest_stay",
+            "welcome_baby_shower",
+            "welcoming_game_night"
+          ],
+          "top10Coverage": 1,
+          "top20Coverage": 1,
+          "fullCandidateCoverage": 1,
+          "duplicateCount": 0,
+          "unknownKeyCount": 0,
+          "relevanceViolations": 0,
+          "maxConsecutiveAuthoredCreatorRun": 0,
+          "maxAuthoredCreatorRunWithinRelevanceGroup": 0,
+          "promotedItemCount": 0,
+          "promotedItemShare": 0,
+          "firstPromotionRank": null,
+          "inventoryCreatorConcentration": {
+            "eligibleAuthoredCount": 0,
+            "distinctCreators": 0,
+            "maxCreatorShare": null,
+            "hhi": null
+          },
+          "top10CreatorConcentration": {
+            "authoredPositions": 0,
+            "distinctCreators": 0,
+            "maxCreatorShare": null,
+            "hhi": null
+          },
+          "top20CreatorConcentration": {
+            "authoredPositions": 0,
+            "distinctCreators": 0,
+            "maxCreatorShare": null,
+            "hhi": null
+          },
+          "authoredTop10Share": 0,
+          "authoredTop20Share": 0,
+          "trulyNewTop10Share": 0,
+          "trulyNewTop20Share": 0
+        },
+        "promotionRanks": []
+      },
+      "promotionFreeBaselineControl": {
+        "metrics": {
+          "itemCount": 17,
+          "top10": [
+            "wedding",
+            "birthday",
+            "thanksgiving",
+            "anniversary_supper",
+            "engagement_gathering",
+            "family_cottage_escape",
+            "family_reunion_weekend",
+            "friends_celebration_weekend",
+            "graduation_open_house",
+            "neighborhood_gathering"
+          ],
+          "top20": [
+            "wedding",
+            "birthday",
+            "thanksgiving",
+            "anniversary_supper",
+            "engagement_gathering",
+            "family_cottage_escape",
+            "family_reunion_weekend",
+            "friends_celebration_weekend",
+            "graduation_open_house",
+            "neighborhood_gathering",
+            "park_picnic",
+            "seasonal_dinner_party",
+            "shared_city_break",
+            "small_team_retreat",
+            "thoughtful_guest_stay",
+            "welcome_baby_shower",
+            "welcoming_game_night"
+          ],
+          "top10Coverage": 1,
+          "top20Coverage": 1,
+          "fullCandidateCoverage": 1,
+          "duplicateCount": 0,
+          "unknownKeyCount": 0,
+          "relevanceViolations": 0,
+          "maxConsecutiveAuthoredCreatorRun": 0,
+          "maxAuthoredCreatorRunWithinRelevanceGroup": 0,
+          "promotedItemCount": 0,
+          "promotedItemShare": 0,
+          "firstPromotionRank": null,
+          "inventoryCreatorConcentration": {
+            "eligibleAuthoredCount": 0,
+            "distinctCreators": 0,
+            "maxCreatorShare": null,
+            "hhi": null
+          },
+          "top10CreatorConcentration": {
+            "authoredPositions": 0,
+            "distinctCreators": 0,
+            "maxCreatorShare": null,
+            "hhi": null
+          },
+          "top20CreatorConcentration": {
+            "authoredPositions": 0,
+            "distinctCreators": 0,
+            "maxCreatorShare": null,
+            "hhi": null
+          },
+          "authoredTop10Share": 0,
+          "authoredTop20Share": 0,
+          "trulyNewTop10Share": 0,
+          "trulyNewTop20Share": 0
+        }
+      },
+      "unrankedRelevanceKeyControl": {
+        "metrics": {
+          "itemCount": 17,
+          "top10": [
+            "anniversary_supper",
+            "birthday",
+            "engagement_gathering",
+            "family_cottage_escape",
+            "family_reunion_weekend",
+            "friends_celebration_weekend",
+            "graduation_open_house",
+            "neighborhood_gathering",
+            "park_picnic",
+            "seasonal_dinner_party"
+          ],
+          "top20": [
+            "anniversary_supper",
+            "birthday",
+            "engagement_gathering",
+            "family_cottage_escape",
+            "family_reunion_weekend",
+            "friends_celebration_weekend",
+            "graduation_open_house",
+            "neighborhood_gathering",
+            "park_picnic",
+            "seasonal_dinner_party",
+            "shared_city_break",
+            "small_team_retreat",
+            "thanksgiving",
+            "thoughtful_guest_stay",
+            "wedding",
+            "welcome_baby_shower",
+            "welcoming_game_night"
+          ],
+          "top10Coverage": 1,
+          "top20Coverage": 1,
+          "fullCandidateCoverage": 1,
+          "duplicateCount": 0,
+          "unknownKeyCount": 0,
+          "relevanceViolations": 0,
+          "maxConsecutiveAuthoredCreatorRun": 0,
+          "maxAuthoredCreatorRunWithinRelevanceGroup": 0,
+          "promotedItemCount": 0,
+          "promotedItemShare": 0,
+          "firstPromotionRank": null,
+          "inventoryCreatorConcentration": {
+            "eligibleAuthoredCount": 0,
+            "distinctCreators": 0,
+            "maxCreatorShare": null,
+            "hhi": null
+          },
+          "top10CreatorConcentration": {
+            "authoredPositions": 0,
+            "distinctCreators": 0,
+            "maxCreatorShare": null,
+            "hhi": null
+          },
+          "top20CreatorConcentration": {
+            "authoredPositions": 0,
+            "distinctCreators": 0,
+            "maxCreatorShare": null,
+            "hhi": null
+          },
+          "authoredTop10Share": 0,
+          "authoredTop20Share": 0,
+          "trulyNewTop10Share": 0,
+          "trulyNewTop20Share": 0
+        }
+      },
+      "editorialOnlyControl": {
+        "metrics": {
+          "itemCount": 17,
+          "top10": [
+            "wedding",
+            "birthday",
+            "thanksgiving",
+            "anniversary_supper",
+            "engagement_gathering",
+            "family_cottage_escape",
+            "family_reunion_weekend",
+            "friends_celebration_weekend",
+            "graduation_open_house",
+            "neighborhood_gathering"
+          ],
+          "top20": [
+            "wedding",
+            "birthday",
+            "thanksgiving",
+            "anniversary_supper",
+            "engagement_gathering",
+            "family_cottage_escape",
+            "family_reunion_weekend",
+            "friends_celebration_weekend",
+            "graduation_open_house",
+            "neighborhood_gathering",
+            "park_picnic",
+            "seasonal_dinner_party",
+            "shared_city_break",
+            "small_team_retreat",
+            "thoughtful_guest_stay",
+            "welcome_baby_shower",
+            "welcoming_game_night"
+          ],
+          "top10Coverage": 1,
+          "top20Coverage": 1,
+          "fullCandidateCoverage": 1,
+          "duplicateCount": 0,
+          "unknownKeyCount": 0,
+          "relevanceViolations": 0,
+          "maxConsecutiveAuthoredCreatorRun": 0,
+          "maxAuthoredCreatorRunWithinRelevanceGroup": 0,
+          "promotedItemCount": 0,
+          "promotedItemShare": 0,
+          "firstPromotionRank": null,
+          "inventoryCreatorConcentration": {
+            "eligibleAuthoredCount": 0,
+            "distinctCreators": 0,
+            "maxCreatorShare": null,
+            "hhi": null
+          },
+          "top10CreatorConcentration": {
+            "authoredPositions": 0,
+            "distinctCreators": 0,
+            "maxCreatorShare": null,
+            "hhi": null
+          },
+          "top20CreatorConcentration": {
+            "authoredPositions": 0,
+            "distinctCreators": 0,
+            "maxCreatorShare": null,
+            "hhi": null
+          },
+          "authoredTop10Share": 0,
+          "authoredTop20Share": 0,
+          "trulyNewTop10Share": 0,
+          "trulyNewTop20Share": 0
+        }
+      }
+    },
+    "actualSearchAndCategoryRequests": {
+      "method": "pageBlueprintCatalog with ranking enabled and with enabled:false; search relevance is computed by repository searchRank.",
+      "requests": {
+        "outdoors": {
+          "itemCount": 2,
+          "baselineMode": "baseline_v1",
+          "controlMode": "catalog",
+          "baselineTop10": [
+            "small_team_retreat",
+            "park_picnic"
+          ],
+          "baselineTop20": [
+            "small_team_retreat",
+            "park_picnic"
+          ],
+          "unrankedRelevanceKeyTop10": [
+            "small_team_retreat",
+            "park_picnic"
+          ],
+          "unrankedRelevanceKeyTop20": [
+            "small_team_retreat",
+            "park_picnic"
+          ],
+          "baselineDiffersFromControl": false,
+          "baselineDuplicateCount": 0,
+          "controlDuplicateCount": 0,
+          "baselineHasNextPage": false,
+          "controlHasNextPage": false
+        },
+        "wedding": {
+          "itemCount": 1,
+          "baselineMode": "baseline_v1",
+          "controlMode": "catalog",
+          "baselineTop10": [
+            "wedding"
+          ],
+          "baselineTop20": [
+            "wedding"
+          ],
+          "unrankedRelevanceKeyTop10": [
+            "wedding"
+          ],
+          "unrankedRelevanceKeyTop20": [
+            "wedding"
+          ],
+          "baselineDiffersFromControl": false,
+          "baselineDuplicateCount": 0,
+          "controlDuplicateCount": 0,
+          "baselineHasNextPage": false,
+          "controlHasNextPage": false
+        },
+        "picnic": {
+          "itemCount": 1,
+          "baselineMode": "baseline_v1",
+          "controlMode": "catalog",
+          "baselineTop10": [
+            "park_picnic"
+          ],
+          "baselineTop20": [
+            "park_picnic"
+          ],
+          "unrankedRelevanceKeyTop10": [
+            "park_picnic"
+          ],
+          "unrankedRelevanceKeyTop20": [
+            "park_picnic"
+          ],
+          "baselineDiffersFromControl": false,
+          "baselineDuplicateCount": 0,
+          "controlDuplicateCount": 0,
+          "baselineHasNextPage": false,
+          "controlHasNextPage": false
+        },
+        "weddingsCategory": {
+          "itemCount": 1,
+          "baselineMode": "baseline_v1",
+          "controlMode": "catalog",
+          "baselineTop10": [
+            "wedding"
+          ],
+          "baselineTop20": [
+            "wedding"
+          ],
+          "unrankedRelevanceKeyTop10": [
+            "wedding"
+          ],
+          "unrankedRelevanceKeyTop20": [
+            "wedding"
+          ],
+          "baselineDiffersFromControl": false,
+          "baselineDuplicateCount": 0,
+          "controlDuplicateCount": 0,
+          "baselineHasNextPage": false,
+          "controlHasNextPage": false
+        }
+      }
+    },
+    "pageSizes": [
+      1,
+      2,
+      3,
+      7,
+      20
+    ]
+  },
+  "syntheticAuthoredScenarios": {
+    "definitions": {
+      "repeatedCreatorInventory": "30 items from one creator and 8 from another, all published within the 30-day window.",
+      "sparseSingleCreatorInventory": "Seven recent authored items from one creator; demonstrates soft-cap relaxation.",
+      "smallRelevanceGroups": "Nine relevance groups sized one through nine, all authored items recent.",
+      "newItemVsEditorialAndCatalogControl": "18 old authored items, 4 new authored items, and curated wedding/birthday entries in one relevance group.",
+      "overlookedRecentPromotion": "18 old authored items sort ahead of four recent authored items; cumulative global milestones may promote a recent item over older items without demoting any recent item from its ordinary position.",
+      "equalRelevanceBarriers": "Direct [0], related [1], and less relevant [2] vectors with editorial keys across groups.",
+      "creatorRunResetsAtRelevanceGroup": "The same creator spans adjacent relevance groups to test cap scope.",
+      "utcDayTieStability": "60 eligible recent authored items; order remains stable across adjacent UTC days without rotating or holding recent items."
+    },
+    "evaluations": {
+      "repeatedCreatorInventory": {
+        "policy": {
+          "algorithmVersion": "blueprint-baseline-v2",
+          "configurationVersion": "blueprint-baseline-v2",
+          "configurationFingerprint": "4c85a77f26eb79885e3201fb2d2cdd981b39139ec1a79baf61f4ba624f2e7779",
+          "editorialPriorities": {
+            "wedding": 30,
+            "birthday": 20,
+            "thanksgiving": 10
+          },
+          "newItemShare": 0.1,
+          "newItemWindowDays": 30,
+          "maxConsecutiveAuthoredPerCreator": 2,
+          "recomputedFingerprint": "4c85a77f26eb79885e3201fb2d2cdd981b39139ec1a79baf61f4ba624f2e7779"
+        },
+        "baseline": {
+          "metrics": {
+            "itemCount": 38,
+            "top10": [
+              "creator-a-00",
+              "creator-a-01",
+              "creator-b-00",
+              "creator-a-02",
+              "creator-a-03",
+              "creator-b-01",
+              "creator-a-04",
+              "creator-a-05",
+              "creator-b-02",
+              "creator-a-06"
+            ],
+            "top20": [
+              "creator-a-00",
+              "creator-a-01",
+              "creator-b-00",
+              "creator-a-02",
+              "creator-a-03",
+              "creator-b-01",
+              "creator-a-04",
+              "creator-a-05",
+              "creator-b-02",
+              "creator-a-06",
+              "creator-a-07",
+              "creator-b-03",
+              "creator-a-08",
+              "creator-a-09",
+              "creator-b-04",
+              "creator-a-10",
+              "creator-a-11",
+              "creator-b-05",
+              "creator-a-12",
+              "creator-a-13"
+            ],
+            "top10Coverage": 1,
+            "top20Coverage": 1,
+            "fullCandidateCoverage": 1,
+            "duplicateCount": 0,
+            "unknownKeyCount": 0,
+            "relevanceViolations": 0,
+            "maxConsecutiveAuthoredCreatorRun": 14,
+            "maxAuthoredCreatorRunWithinRelevanceGroup": 14,
+            "promotedItemCount": 0,
+            "promotedItemShare": 0,
+            "firstPromotionRank": null,
+            "inventoryCreatorConcentration": {
+              "eligibleAuthoredCount": 38,
+              "distinctCreators": 2,
+              "maxCreatorShare": 0.7895,
+              "hhi": 0.6676
+            },
+            "top10CreatorConcentration": {
+              "authoredPositions": 10,
+              "distinctCreators": 2,
+              "maxCreatorShare": 0.7,
+              "hhi": 0.58
+            },
+            "top20CreatorConcentration": {
+              "authoredPositions": 20,
+              "distinctCreators": 2,
+              "maxCreatorShare": 0.7,
+              "hhi": 0.58
+            },
+            "authoredTop10Share": 1,
+            "authoredTop20Share": 1,
+            "trulyNewTop10Share": 1,
+            "trulyNewTop20Share": 1
+          },
+          "promotionRanks": []
+        },
+        "promotionFreeBaselineControl": {
+          "metrics": {
+            "itemCount": 38,
+            "top10": [
+              "creator-a-00",
+              "creator-a-01",
+              "creator-b-00",
+              "creator-a-02",
+              "creator-a-03",
+              "creator-b-01",
+              "creator-a-04",
+              "creator-a-05",
+              "creator-b-02",
+              "creator-a-06"
+            ],
+            "top20": [
+              "creator-a-00",
+              "creator-a-01",
+              "creator-b-00",
+              "creator-a-02",
+              "creator-a-03",
+              "creator-b-01",
+              "creator-a-04",
+              "creator-a-05",
+              "creator-b-02",
+              "creator-a-06",
+              "creator-a-07",
+              "creator-b-03",
+              "creator-a-08",
+              "creator-a-09",
+              "creator-b-04",
+              "creator-a-10",
+              "creator-a-11",
+              "creator-b-05",
+              "creator-a-12",
+              "creator-a-13"
+            ],
+            "top10Coverage": 1,
+            "top20Coverage": 1,
+            "fullCandidateCoverage": 1,
+            "duplicateCount": 0,
+            "unknownKeyCount": 0,
+            "relevanceViolations": 0,
+            "maxConsecutiveAuthoredCreatorRun": 14,
+            "maxAuthoredCreatorRunWithinRelevanceGroup": 14,
+            "promotedItemCount": 0,
+            "promotedItemShare": 0,
+            "firstPromotionRank": null,
+            "inventoryCreatorConcentration": {
+              "eligibleAuthoredCount": 38,
+              "distinctCreators": 2,
+              "maxCreatorShare": 0.7895,
+              "hhi": 0.6676
+            },
+            "top10CreatorConcentration": {
+              "authoredPositions": 10,
+              "distinctCreators": 2,
+              "maxCreatorShare": 0.7,
+              "hhi": 0.58
+            },
+            "top20CreatorConcentration": {
+              "authoredPositions": 20,
+              "distinctCreators": 2,
+              "maxCreatorShare": 0.7,
+              "hhi": 0.58
+            },
+            "authoredTop10Share": 1,
+            "authoredTop20Share": 1,
+            "trulyNewTop10Share": 1,
+            "trulyNewTop20Share": 1
+          }
+        },
+        "unrankedRelevanceKeyControl": {
+          "metrics": {
+            "itemCount": 38,
+            "top10": [
+              "creator-a-00",
+              "creator-a-01",
+              "creator-a-02",
+              "creator-a-03",
+              "creator-a-04",
+              "creator-a-05",
+              "creator-a-06",
+              "creator-a-07",
+              "creator-a-08",
+              "creator-a-09"
+            ],
+            "top20": [
+              "creator-a-00",
+              "creator-a-01",
+              "creator-a-02",
+              "creator-a-03",
+              "creator-a-04",
+              "creator-a-05",
+              "creator-a-06",
+              "creator-a-07",
+              "creator-a-08",
+              "creator-a-09",
+              "creator-a-10",
+              "creator-a-11",
+              "creator-a-12",
+              "creator-a-13",
+              "creator-a-14",
+              "creator-a-15",
+              "creator-a-16",
+              "creator-a-17",
+              "creator-a-18",
+              "creator-a-19"
+            ],
+            "top10Coverage": 1,
+            "top20Coverage": 1,
+            "fullCandidateCoverage": 1,
+            "duplicateCount": 0,
+            "unknownKeyCount": 0,
+            "relevanceViolations": 0,
+            "maxConsecutiveAuthoredCreatorRun": 30,
+            "maxAuthoredCreatorRunWithinRelevanceGroup": 30,
+            "promotedItemCount": 0,
+            "promotedItemShare": 0,
+            "firstPromotionRank": null,
+            "inventoryCreatorConcentration": {
+              "eligibleAuthoredCount": 38,
+              "distinctCreators": 2,
+              "maxCreatorShare": 0.7895,
+              "hhi": 0.6676
+            },
+            "top10CreatorConcentration": {
+              "authoredPositions": 10,
+              "distinctCreators": 1,
+              "maxCreatorShare": 1,
+              "hhi": 1
+            },
+            "top20CreatorConcentration": {
+              "authoredPositions": 20,
+              "distinctCreators": 1,
+              "maxCreatorShare": 1,
+              "hhi": 1
+            },
+            "authoredTop10Share": 1,
+            "authoredTop20Share": 1,
+            "trulyNewTop10Share": 1,
+            "trulyNewTop20Share": 1
+          }
+        },
+        "editorialOnlyControl": {
+          "metrics": {
+            "itemCount": 38,
+            "top10": [
+              "creator-a-00",
+              "creator-a-01",
+              "creator-a-02",
+              "creator-a-03",
+              "creator-a-04",
+              "creator-a-05",
+              "creator-a-06",
+              "creator-a-07",
+              "creator-a-08",
+              "creator-a-09"
+            ],
+            "top20": [
+              "creator-a-00",
+              "creator-a-01",
+              "creator-a-02",
+              "creator-a-03",
+              "creator-a-04",
+              "creator-a-05",
+              "creator-a-06",
+              "creator-a-07",
+              "creator-a-08",
+              "creator-a-09",
+              "creator-a-10",
+              "creator-a-11",
+              "creator-a-12",
+              "creator-a-13",
+              "creator-a-14",
+              "creator-a-15",
+              "creator-a-16",
+              "creator-a-17",
+              "creator-a-18",
+              "creator-a-19"
+            ],
+            "top10Coverage": 1,
+            "top20Coverage": 1,
+            "fullCandidateCoverage": 1,
+            "duplicateCount": 0,
+            "unknownKeyCount": 0,
+            "relevanceViolations": 0,
+            "maxConsecutiveAuthoredCreatorRun": 30,
+            "maxAuthoredCreatorRunWithinRelevanceGroup": 30,
+            "promotedItemCount": 0,
+            "promotedItemShare": 0,
+            "firstPromotionRank": null,
+            "inventoryCreatorConcentration": {
+              "eligibleAuthoredCount": 38,
+              "distinctCreators": 2,
+              "maxCreatorShare": 0.7895,
+              "hhi": 0.6676
+            },
+            "top10CreatorConcentration": {
+              "authoredPositions": 10,
+              "distinctCreators": 1,
+              "maxCreatorShare": 1,
+              "hhi": 1
+            },
+            "top20CreatorConcentration": {
+              "authoredPositions": 20,
+              "distinctCreators": 1,
+              "maxCreatorShare": 1,
+              "hhi": 1
+            },
+            "authoredTop10Share": 1,
+            "authoredTop20Share": 1,
+            "trulyNewTop10Share": 1,
+            "trulyNewTop20Share": 1
+          }
+        }
+      },
+      "sparseSingleCreatorInventory": {
+        "policy": {
+          "algorithmVersion": "blueprint-baseline-v2",
+          "configurationVersion": "blueprint-baseline-v2",
+          "configurationFingerprint": "4c85a77f26eb79885e3201fb2d2cdd981b39139ec1a79baf61f4ba624f2e7779",
+          "editorialPriorities": {
+            "wedding": 30,
+            "birthday": 20,
+            "thanksgiving": 10
+          },
+          "newItemShare": 0.1,
+          "newItemWindowDays": 30,
+          "maxConsecutiveAuthoredPerCreator": 2,
+          "recomputedFingerprint": "4c85a77f26eb79885e3201fb2d2cdd981b39139ec1a79baf61f4ba624f2e7779"
+        },
+        "baseline": {
+          "metrics": {
+            "itemCount": 7,
+            "top10": [
+              "single-00",
+              "single-01",
+              "single-02",
+              "single-03",
+              "single-04",
+              "single-05",
+              "single-06"
+            ],
+            "top20": [
+              "single-00",
+              "single-01",
+              "single-02",
+              "single-03",
+              "single-04",
+              "single-05",
+              "single-06"
+            ],
+            "top10Coverage": 1,
+            "top20Coverage": 1,
+            "fullCandidateCoverage": 1,
+            "duplicateCount": 0,
+            "unknownKeyCount": 0,
+            "relevanceViolations": 0,
+            "maxConsecutiveAuthoredCreatorRun": 7,
+            "maxAuthoredCreatorRunWithinRelevanceGroup": 7,
+            "promotedItemCount": 0,
+            "promotedItemShare": 0,
+            "firstPromotionRank": null,
+            "inventoryCreatorConcentration": {
+              "eligibleAuthoredCount": 7,
+              "distinctCreators": 1,
+              "maxCreatorShare": 1,
+              "hhi": 1
+            },
+            "top10CreatorConcentration": {
+              "authoredPositions": 7,
+              "distinctCreators": 1,
+              "maxCreatorShare": 1,
+              "hhi": 1
+            },
+            "top20CreatorConcentration": {
+              "authoredPositions": 7,
+              "distinctCreators": 1,
+              "maxCreatorShare": 1,
+              "hhi": 1
+            },
+            "authoredTop10Share": 1,
+            "authoredTop20Share": 1,
+            "trulyNewTop10Share": 1,
+            "trulyNewTop20Share": 1
+          },
+          "promotionRanks": []
+        },
+        "promotionFreeBaselineControl": {
+          "metrics": {
+            "itemCount": 7,
+            "top10": [
+              "single-00",
+              "single-01",
+              "single-02",
+              "single-03",
+              "single-04",
+              "single-05",
+              "single-06"
+            ],
+            "top20": [
+              "single-00",
+              "single-01",
+              "single-02",
+              "single-03",
+              "single-04",
+              "single-05",
+              "single-06"
+            ],
+            "top10Coverage": 1,
+            "top20Coverage": 1,
+            "fullCandidateCoverage": 1,
+            "duplicateCount": 0,
+            "unknownKeyCount": 0,
+            "relevanceViolations": 0,
+            "maxConsecutiveAuthoredCreatorRun": 7,
+            "maxAuthoredCreatorRunWithinRelevanceGroup": 7,
+            "promotedItemCount": 0,
+            "promotedItemShare": 0,
+            "firstPromotionRank": null,
+            "inventoryCreatorConcentration": {
+              "eligibleAuthoredCount": 7,
+              "distinctCreators": 1,
+              "maxCreatorShare": 1,
+              "hhi": 1
+            },
+            "top10CreatorConcentration": {
+              "authoredPositions": 7,
+              "distinctCreators": 1,
+              "maxCreatorShare": 1,
+              "hhi": 1
+            },
+            "top20CreatorConcentration": {
+              "authoredPositions": 7,
+              "distinctCreators": 1,
+              "maxCreatorShare": 1,
+              "hhi": 1
+            },
+            "authoredTop10Share": 1,
+            "authoredTop20Share": 1,
+            "trulyNewTop10Share": 1,
+            "trulyNewTop20Share": 1
+          }
+        },
+        "unrankedRelevanceKeyControl": {
+          "metrics": {
+            "itemCount": 7,
+            "top10": [
+              "single-00",
+              "single-01",
+              "single-02",
+              "single-03",
+              "single-04",
+              "single-05",
+              "single-06"
+            ],
+            "top20": [
+              "single-00",
+              "single-01",
+              "single-02",
+              "single-03",
+              "single-04",
+              "single-05",
+              "single-06"
+            ],
+            "top10Coverage": 1,
+            "top20Coverage": 1,
+            "fullCandidateCoverage": 1,
+            "duplicateCount": 0,
+            "unknownKeyCount": 0,
+            "relevanceViolations": 0,
+            "maxConsecutiveAuthoredCreatorRun": 7,
+            "maxAuthoredCreatorRunWithinRelevanceGroup": 7,
+            "promotedItemCount": 0,
+            "promotedItemShare": 0,
+            "firstPromotionRank": null,
+            "inventoryCreatorConcentration": {
+              "eligibleAuthoredCount": 7,
+              "distinctCreators": 1,
+              "maxCreatorShare": 1,
+              "hhi": 1
+            },
+            "top10CreatorConcentration": {
+              "authoredPositions": 7,
+              "distinctCreators": 1,
+              "maxCreatorShare": 1,
+              "hhi": 1
+            },
+            "top20CreatorConcentration": {
+              "authoredPositions": 7,
+              "distinctCreators": 1,
+              "maxCreatorShare": 1,
+              "hhi": 1
+            },
+            "authoredTop10Share": 1,
+            "authoredTop20Share": 1,
+            "trulyNewTop10Share": 1,
+            "trulyNewTop20Share": 1
+          }
+        },
+        "editorialOnlyControl": {
+          "metrics": {
+            "itemCount": 7,
+            "top10": [
+              "single-00",
+              "single-01",
+              "single-02",
+              "single-03",
+              "single-04",
+              "single-05",
+              "single-06"
+            ],
+            "top20": [
+              "single-00",
+              "single-01",
+              "single-02",
+              "single-03",
+              "single-04",
+              "single-05",
+              "single-06"
+            ],
+            "top10Coverage": 1,
+            "top20Coverage": 1,
+            "fullCandidateCoverage": 1,
+            "duplicateCount": 0,
+            "unknownKeyCount": 0,
+            "relevanceViolations": 0,
+            "maxConsecutiveAuthoredCreatorRun": 7,
+            "maxAuthoredCreatorRunWithinRelevanceGroup": 7,
+            "promotedItemCount": 0,
+            "promotedItemShare": 0,
+            "firstPromotionRank": null,
+            "inventoryCreatorConcentration": {
+              "eligibleAuthoredCount": 7,
+              "distinctCreators": 1,
+              "maxCreatorShare": 1,
+              "hhi": 1
+            },
+            "top10CreatorConcentration": {
+              "authoredPositions": 7,
+              "distinctCreators": 1,
+              "maxCreatorShare": 1,
+              "hhi": 1
+            },
+            "top20CreatorConcentration": {
+              "authoredPositions": 7,
+              "distinctCreators": 1,
+              "maxCreatorShare": 1,
+              "hhi": 1
+            },
+            "authoredTop10Share": 1,
+            "authoredTop20Share": 1,
+            "trulyNewTop10Share": 1,
+            "trulyNewTop20Share": 1
+          }
+        }
+      },
+      "smallRelevanceGroups": {
+        "policy": {
+          "algorithmVersion": "blueprint-baseline-v2",
+          "configurationVersion": "blueprint-baseline-v2",
+          "configurationFingerprint": "4c85a77f26eb79885e3201fb2d2cdd981b39139ec1a79baf61f4ba624f2e7779",
+          "editorialPriorities": {
+            "wedding": 30,
+            "birthday": 20,
+            "thanksgiving": 10
+          },
+          "newItemShare": 0.1,
+          "newItemWindowDays": 30,
+          "maxConsecutiveAuthoredPerCreator": 2,
+          "recomputedFingerprint": "4c85a77f26eb79885e3201fb2d2cdd981b39139ec1a79baf61f4ba624f2e7779"
+        },
+        "baseline": {
+          "metrics": {
+            "itemCount": 45,
+            "top10": [
+              "group-1-1",
+              "group-2-1",
+              "group-2-2",
+              "group-3-1",
+              "group-3-2",
+              "group-3-3",
+              "group-4-1",
+              "group-4-2",
+              "group-4-3",
+              "group-4-4"
+            ],
+            "top20": [
+              "group-1-1",
+              "group-2-1",
+              "group-2-2",
+              "group-3-1",
+              "group-3-2",
+              "group-3-3",
+              "group-4-1",
+              "group-4-2",
+              "group-4-3",
+              "group-4-4",
+              "group-5-1",
+              "group-5-2",
+              "group-5-3",
+              "group-5-4",
+              "group-5-5",
+              "group-6-1",
+              "group-6-2",
+              "group-6-3",
+              "group-6-4",
+              "group-6-5"
+            ],
+            "top10Coverage": 1,
+            "top20Coverage": 1,
+            "fullCandidateCoverage": 1,
+            "duplicateCount": 0,
+            "unknownKeyCount": 0,
+            "relevanceViolations": 0,
+            "maxConsecutiveAuthoredCreatorRun": 1,
+            "maxAuthoredCreatorRunWithinRelevanceGroup": 1,
+            "promotedItemCount": 0,
+            "promotedItemShare": 0,
+            "firstPromotionRank": null,
+            "inventoryCreatorConcentration": {
+              "eligibleAuthoredCount": 45,
+              "distinctCreators": 45,
+              "maxCreatorShare": 0.0222,
+              "hhi": 0.0222
+            },
+            "top10CreatorConcentration": {
+              "authoredPositions": 10,
+              "distinctCreators": 10,
+              "maxCreatorShare": 0.1,
+              "hhi": 0.1
+            },
+            "top20CreatorConcentration": {
+              "authoredPositions": 20,
+              "distinctCreators": 20,
+              "maxCreatorShare": 0.05,
+              "hhi": 0.05
+            },
+            "authoredTop10Share": 1,
+            "authoredTop20Share": 1,
+            "trulyNewTop10Share": 1,
+            "trulyNewTop20Share": 1
+          },
+          "promotionRanks": []
+        },
+        "promotionFreeBaselineControl": {
+          "metrics": {
+            "itemCount": 45,
+            "top10": [
+              "group-1-1",
+              "group-2-1",
+              "group-2-2",
+              "group-3-1",
+              "group-3-2",
+              "group-3-3",
+              "group-4-1",
+              "group-4-2",
+              "group-4-3",
+              "group-4-4"
+            ],
+            "top20": [
+              "group-1-1",
+              "group-2-1",
+              "group-2-2",
+              "group-3-1",
+              "group-3-2",
+              "group-3-3",
+              "group-4-1",
+              "group-4-2",
+              "group-4-3",
+              "group-4-4",
+              "group-5-1",
+              "group-5-2",
+              "group-5-3",
+              "group-5-4",
+              "group-5-5",
+              "group-6-1",
+              "group-6-2",
+              "group-6-3",
+              "group-6-4",
+              "group-6-5"
+            ],
+            "top10Coverage": 1,
+            "top20Coverage": 1,
+            "fullCandidateCoverage": 1,
+            "duplicateCount": 0,
+            "unknownKeyCount": 0,
+            "relevanceViolations": 0,
+            "maxConsecutiveAuthoredCreatorRun": 1,
+            "maxAuthoredCreatorRunWithinRelevanceGroup": 1,
+            "promotedItemCount": 0,
+            "promotedItemShare": 0,
+            "firstPromotionRank": null,
+            "inventoryCreatorConcentration": {
+              "eligibleAuthoredCount": 45,
+              "distinctCreators": 45,
+              "maxCreatorShare": 0.0222,
+              "hhi": 0.0222
+            },
+            "top10CreatorConcentration": {
+              "authoredPositions": 10,
+              "distinctCreators": 10,
+              "maxCreatorShare": 0.1,
+              "hhi": 0.1
+            },
+            "top20CreatorConcentration": {
+              "authoredPositions": 20,
+              "distinctCreators": 20,
+              "maxCreatorShare": 0.05,
+              "hhi": 0.05
+            },
+            "authoredTop10Share": 1,
+            "authoredTop20Share": 1,
+            "trulyNewTop10Share": 1,
+            "trulyNewTop20Share": 1
+          }
+        },
+        "unrankedRelevanceKeyControl": {
+          "metrics": {
+            "itemCount": 45,
+            "top10": [
+              "group-1-1",
+              "group-2-1",
+              "group-2-2",
+              "group-3-1",
+              "group-3-2",
+              "group-3-3",
+              "group-4-1",
+              "group-4-2",
+              "group-4-3",
+              "group-4-4"
+            ],
+            "top20": [
+              "group-1-1",
+              "group-2-1",
+              "group-2-2",
+              "group-3-1",
+              "group-3-2",
+              "group-3-3",
+              "group-4-1",
+              "group-4-2",
+              "group-4-3",
+              "group-4-4",
+              "group-5-1",
+              "group-5-2",
+              "group-5-3",
+              "group-5-4",
+              "group-5-5",
+              "group-6-1",
+              "group-6-2",
+              "group-6-3",
+              "group-6-4",
+              "group-6-5"
+            ],
+            "top10Coverage": 1,
+            "top20Coverage": 1,
+            "fullCandidateCoverage": 1,
+            "duplicateCount": 0,
+            "unknownKeyCount": 0,
+            "relevanceViolations": 0,
+            "maxConsecutiveAuthoredCreatorRun": 1,
+            "maxAuthoredCreatorRunWithinRelevanceGroup": 1,
+            "promotedItemCount": 0,
+            "promotedItemShare": 0,
+            "firstPromotionRank": null,
+            "inventoryCreatorConcentration": {
+              "eligibleAuthoredCount": 45,
+              "distinctCreators": 45,
+              "maxCreatorShare": 0.0222,
+              "hhi": 0.0222
+            },
+            "top10CreatorConcentration": {
+              "authoredPositions": 10,
+              "distinctCreators": 10,
+              "maxCreatorShare": 0.1,
+              "hhi": 0.1
+            },
+            "top20CreatorConcentration": {
+              "authoredPositions": 20,
+              "distinctCreators": 20,
+              "maxCreatorShare": 0.05,
+              "hhi": 0.05
+            },
+            "authoredTop10Share": 1,
+            "authoredTop20Share": 1,
+            "trulyNewTop10Share": 1,
+            "trulyNewTop20Share": 1
+          }
+        },
+        "editorialOnlyControl": {
+          "metrics": {
+            "itemCount": 45,
+            "top10": [
+              "group-1-1",
+              "group-2-1",
+              "group-2-2",
+              "group-3-1",
+              "group-3-2",
+              "group-3-3",
+              "group-4-1",
+              "group-4-2",
+              "group-4-3",
+              "group-4-4"
+            ],
+            "top20": [
+              "group-1-1",
+              "group-2-1",
+              "group-2-2",
+              "group-3-1",
+              "group-3-2",
+              "group-3-3",
+              "group-4-1",
+              "group-4-2",
+              "group-4-3",
+              "group-4-4",
+              "group-5-1",
+              "group-5-2",
+              "group-5-3",
+              "group-5-4",
+              "group-5-5",
+              "group-6-1",
+              "group-6-2",
+              "group-6-3",
+              "group-6-4",
+              "group-6-5"
+            ],
+            "top10Coverage": 1,
+            "top20Coverage": 1,
+            "fullCandidateCoverage": 1,
+            "duplicateCount": 0,
+            "unknownKeyCount": 0,
+            "relevanceViolations": 0,
+            "maxConsecutiveAuthoredCreatorRun": 1,
+            "maxAuthoredCreatorRunWithinRelevanceGroup": 1,
+            "promotedItemCount": 0,
+            "promotedItemShare": 0,
+            "firstPromotionRank": null,
+            "inventoryCreatorConcentration": {
+              "eligibleAuthoredCount": 45,
+              "distinctCreators": 45,
+              "maxCreatorShare": 0.0222,
+              "hhi": 0.0222
+            },
+            "top10CreatorConcentration": {
+              "authoredPositions": 10,
+              "distinctCreators": 10,
+              "maxCreatorShare": 0.1,
+              "hhi": 0.1
+            },
+            "top20CreatorConcentration": {
+              "authoredPositions": 20,
+              "distinctCreators": 20,
+              "maxCreatorShare": 0.05,
+              "hhi": 0.05
+            },
+            "authoredTop10Share": 1,
+            "authoredTop20Share": 1,
+            "trulyNewTop10Share": 1,
+            "trulyNewTop20Share": 1
+          }
+        }
+      },
+      "newItemVsEditorialAndCatalogControl": {
+        "policy": {
+          "algorithmVersion": "blueprint-baseline-v2",
+          "configurationVersion": "blueprint-baseline-v2",
+          "configurationFingerprint": "4c85a77f26eb79885e3201fb2d2cdd981b39139ec1a79baf61f4ba624f2e7779",
+          "editorialPriorities": {
+            "wedding": 30,
+            "birthday": 20,
+            "thanksgiving": 10
+          },
+          "newItemShare": 0.1,
+          "newItemWindowDays": 30,
+          "maxConsecutiveAuthoredPerCreator": 2,
+          "recomputedFingerprint": "4c85a77f26eb79885e3201fb2d2cdd981b39139ec1a79baf61f4ba624f2e7779"
+        },
+        "baseline": {
+          "metrics": {
+            "itemCount": 24,
+            "top10": [
+              "wedding",
+              "birthday",
+              "new-00",
+              "new-01",
+              "new-02",
+              "new-03",
+              "old-00",
+              "old-01",
+              "old-02",
+              "old-03"
+            ],
+            "top20": [
+              "wedding",
+              "birthday",
+              "new-00",
+              "new-01",
+              "new-02",
+              "new-03",
+              "old-00",
+              "old-01",
+              "old-02",
+              "old-03",
+              "old-04",
+              "old-05",
+              "old-06",
+              "old-07",
+              "old-08",
+              "old-09",
+              "old-10",
+              "old-11",
+              "old-12",
+              "old-13"
+            ],
+            "top10Coverage": 1,
+            "top20Coverage": 1,
+            "fullCandidateCoverage": 1,
+            "duplicateCount": 0,
+            "unknownKeyCount": 0,
+            "relevanceViolations": 0,
+            "maxConsecutiveAuthoredCreatorRun": 1,
+            "maxAuthoredCreatorRunWithinRelevanceGroup": 1,
+            "promotedItemCount": 0,
+            "promotedItemShare": 0,
+            "firstPromotionRank": null,
+            "inventoryCreatorConcentration": {
+              "eligibleAuthoredCount": 22,
+              "distinctCreators": 22,
+              "maxCreatorShare": 0.0455,
+              "hhi": 0.0455
+            },
+            "top10CreatorConcentration": {
+              "authoredPositions": 8,
+              "distinctCreators": 8,
+              "maxCreatorShare": 0.125,
+              "hhi": 0.125
+            },
+            "top20CreatorConcentration": {
+              "authoredPositions": 18,
+              "distinctCreators": 18,
+              "maxCreatorShare": 0.0556,
+              "hhi": 0.0556
+            },
+            "authoredTop10Share": 0.8,
+            "authoredTop20Share": 0.9,
+            "trulyNewTop10Share": 0.4,
+            "trulyNewTop20Share": 0.2
+          },
+          "promotionRanks": []
+        },
+        "promotionFreeBaselineControl": {
+          "metrics": {
+            "itemCount": 24,
+            "top10": [
+              "wedding",
+              "birthday",
+              "new-00",
+              "new-01",
+              "new-02",
+              "new-03",
+              "old-00",
+              "old-01",
+              "old-02",
+              "old-03"
+            ],
+            "top20": [
+              "wedding",
+              "birthday",
+              "new-00",
+              "new-01",
+              "new-02",
+              "new-03",
+              "old-00",
+              "old-01",
+              "old-02",
+              "old-03",
+              "old-04",
+              "old-05",
+              "old-06",
+              "old-07",
+              "old-08",
+              "old-09",
+              "old-10",
+              "old-11",
+              "old-12",
+              "old-13"
+            ],
+            "top10Coverage": 1,
+            "top20Coverage": 1,
+            "fullCandidateCoverage": 1,
+            "duplicateCount": 0,
+            "unknownKeyCount": 0,
+            "relevanceViolations": 0,
+            "maxConsecutiveAuthoredCreatorRun": 1,
+            "maxAuthoredCreatorRunWithinRelevanceGroup": 1,
+            "promotedItemCount": 0,
+            "promotedItemShare": 0,
+            "firstPromotionRank": null,
+            "inventoryCreatorConcentration": {
+              "eligibleAuthoredCount": 22,
+              "distinctCreators": 22,
+              "maxCreatorShare": 0.0455,
+              "hhi": 0.0455
+            },
+            "top10CreatorConcentration": {
+              "authoredPositions": 8,
+              "distinctCreators": 8,
+              "maxCreatorShare": 0.125,
+              "hhi": 0.125
+            },
+            "top20CreatorConcentration": {
+              "authoredPositions": 18,
+              "distinctCreators": 18,
+              "maxCreatorShare": 0.0556,
+              "hhi": 0.0556
+            },
+            "authoredTop10Share": 0.8,
+            "authoredTop20Share": 0.9,
+            "trulyNewTop10Share": 0.4,
+            "trulyNewTop20Share": 0.2
+          }
+        },
+        "unrankedRelevanceKeyControl": {
+          "metrics": {
+            "itemCount": 24,
+            "top10": [
+              "birthday",
+              "new-00",
+              "new-01",
+              "new-02",
+              "new-03",
+              "old-00",
+              "old-01",
+              "old-02",
+              "old-03",
+              "old-04"
+            ],
+            "top20": [
+              "birthday",
+              "new-00",
+              "new-01",
+              "new-02",
+              "new-03",
+              "old-00",
+              "old-01",
+              "old-02",
+              "old-03",
+              "old-04",
+              "old-05",
+              "old-06",
+              "old-07",
+              "old-08",
+              "old-09",
+              "old-10",
+              "old-11",
+              "old-12",
+              "old-13",
+              "old-14"
+            ],
+            "top10Coverage": 1,
+            "top20Coverage": 1,
+            "fullCandidateCoverage": 1,
+            "duplicateCount": 0,
+            "unknownKeyCount": 0,
+            "relevanceViolations": 0,
+            "maxConsecutiveAuthoredCreatorRun": 1,
+            "maxAuthoredCreatorRunWithinRelevanceGroup": 1,
+            "promotedItemCount": 0,
+            "promotedItemShare": 0,
+            "firstPromotionRank": null,
+            "inventoryCreatorConcentration": {
+              "eligibleAuthoredCount": 22,
+              "distinctCreators": 22,
+              "maxCreatorShare": 0.0455,
+              "hhi": 0.0455
+            },
+            "top10CreatorConcentration": {
+              "authoredPositions": 9,
+              "distinctCreators": 9,
+              "maxCreatorShare": 0.1111,
+              "hhi": 0.1111
+            },
+            "top20CreatorConcentration": {
+              "authoredPositions": 19,
+              "distinctCreators": 19,
+              "maxCreatorShare": 0.0526,
+              "hhi": 0.0526
+            },
+            "authoredTop10Share": 0.9,
+            "authoredTop20Share": 0.95,
+            "trulyNewTop10Share": 0.4,
+            "trulyNewTop20Share": 0.2
+          }
+        },
+        "editorialOnlyControl": {
+          "metrics": {
+            "itemCount": 24,
+            "top10": [
+              "wedding",
+              "birthday",
+              "new-00",
+              "new-01",
+              "new-02",
+              "new-03",
+              "old-00",
+              "old-01",
+              "old-02",
+              "old-03"
+            ],
+            "top20": [
+              "wedding",
+              "birthday",
+              "new-00",
+              "new-01",
+              "new-02",
+              "new-03",
+              "old-00",
+              "old-01",
+              "old-02",
+              "old-03",
+              "old-04",
+              "old-05",
+              "old-06",
+              "old-07",
+              "old-08",
+              "old-09",
+              "old-10",
+              "old-11",
+              "old-12",
+              "old-13"
+            ],
+            "top10Coverage": 1,
+            "top20Coverage": 1,
+            "fullCandidateCoverage": 1,
+            "duplicateCount": 0,
+            "unknownKeyCount": 0,
+            "relevanceViolations": 0,
+            "maxConsecutiveAuthoredCreatorRun": 1,
+            "maxAuthoredCreatorRunWithinRelevanceGroup": 1,
+            "promotedItemCount": 0,
+            "promotedItemShare": 0,
+            "firstPromotionRank": null,
+            "inventoryCreatorConcentration": {
+              "eligibleAuthoredCount": 22,
+              "distinctCreators": 22,
+              "maxCreatorShare": 0.0455,
+              "hhi": 0.0455
+            },
+            "top10CreatorConcentration": {
+              "authoredPositions": 8,
+              "distinctCreators": 8,
+              "maxCreatorShare": 0.125,
+              "hhi": 0.125
+            },
+            "top20CreatorConcentration": {
+              "authoredPositions": 18,
+              "distinctCreators": 18,
+              "maxCreatorShare": 0.0556,
+              "hhi": 0.0556
+            },
+            "authoredTop10Share": 0.8,
+            "authoredTop20Share": 0.9,
+            "trulyNewTop10Share": 0.4,
+            "trulyNewTop20Share": 0.2
+          }
+        }
+      },
+      "overlookedRecentPromotion": {
+        "policy": {
+          "algorithmVersion": "blueprint-baseline-v2",
+          "configurationVersion": "blueprint-baseline-v2",
+          "configurationFingerprint": "4c85a77f26eb79885e3201fb2d2cdd981b39139ec1a79baf61f4ba624f2e7779",
+          "editorialPriorities": {
+            "wedding": 30,
+            "birthday": 20,
+            "thanksgiving": 10
+          },
+          "newItemShare": 0.1,
+          "newItemWindowDays": 30,
+          "maxConsecutiveAuthoredPerCreator": 2,
+          "recomputedFingerprint": "4c85a77f26eb79885e3201fb2d2cdd981b39139ec1a79baf61f4ba624f2e7779"
+        },
+        "baseline": {
+          "metrics": {
+            "itemCount": 22,
+            "top10": [
+              "old-00",
+              "old-01",
+              "old-02",
+              "old-03",
+              "old-04",
+              "old-05",
+              "old-06",
+              "old-07",
+              "old-08",
+              "z-new-00"
+            ],
+            "top20": [
+              "old-00",
+              "old-01",
+              "old-02",
+              "old-03",
+              "old-04",
+              "old-05",
+              "old-06",
+              "old-07",
+              "old-08",
+              "z-new-00",
+              "old-09",
+              "old-10",
+              "old-11",
+              "old-12",
+              "old-13",
+              "old-14",
+              "old-15",
+              "old-16",
+              "old-17",
+              "z-new-01"
+            ],
+            "top10Coverage": 1,
+            "top20Coverage": 1,
+            "fullCandidateCoverage": 1,
+            "duplicateCount": 0,
+            "unknownKeyCount": 0,
+            "relevanceViolations": 0,
+            "maxConsecutiveAuthoredCreatorRun": 1,
+            "maxAuthoredCreatorRunWithinRelevanceGroup": 1,
+            "promotedItemCount": 1,
+            "promotedItemShare": 0.0455,
+            "firstPromotionRank": 10,
+            "inventoryCreatorConcentration": {
+              "eligibleAuthoredCount": 22,
+              "distinctCreators": 22,
+              "maxCreatorShare": 0.0455,
+              "hhi": 0.0455
+            },
+            "top10CreatorConcentration": {
+              "authoredPositions": 10,
+              "distinctCreators": 10,
+              "maxCreatorShare": 0.1,
+              "hhi": 0.1
+            },
+            "top20CreatorConcentration": {
+              "authoredPositions": 20,
+              "distinctCreators": 20,
+              "maxCreatorShare": 0.05,
+              "hhi": 0.05
+            },
+            "authoredTop10Share": 1,
+            "authoredTop20Share": 1,
+            "trulyNewTop10Share": 0.1,
+            "trulyNewTop20Share": 0.1
+          },
+          "promotionRanks": [
+            {
+              "catalogKey": "z-new-00",
+              "rank": 10
+            }
+          ]
+        },
+        "promotionFreeBaselineControl": {
+          "metrics": {
+            "itemCount": 22,
+            "top10": [
+              "old-00",
+              "old-01",
+              "old-02",
+              "old-03",
+              "old-04",
+              "old-05",
+              "old-06",
+              "old-07",
+              "old-08",
+              "old-09"
+            ],
+            "top20": [
+              "old-00",
+              "old-01",
+              "old-02",
+              "old-03",
+              "old-04",
+              "old-05",
+              "old-06",
+              "old-07",
+              "old-08",
+              "old-09",
+              "old-10",
+              "old-11",
+              "old-12",
+              "old-13",
+              "old-14",
+              "old-15",
+              "old-16",
+              "old-17",
+              "z-new-00",
+              "z-new-01"
+            ],
+            "top10Coverage": 1,
+            "top20Coverage": 1,
+            "fullCandidateCoverage": 1,
+            "duplicateCount": 0,
+            "unknownKeyCount": 0,
+            "relevanceViolations": 0,
+            "maxConsecutiveAuthoredCreatorRun": 1,
+            "maxAuthoredCreatorRunWithinRelevanceGroup": 1,
+            "promotedItemCount": 0,
+            "promotedItemShare": 0,
+            "firstPromotionRank": null,
+            "inventoryCreatorConcentration": {
+              "eligibleAuthoredCount": 22,
+              "distinctCreators": 22,
+              "maxCreatorShare": 0.0455,
+              "hhi": 0.0455
+            },
+            "top10CreatorConcentration": {
+              "authoredPositions": 10,
+              "distinctCreators": 10,
+              "maxCreatorShare": 0.1,
+              "hhi": 0.1
+            },
+            "top20CreatorConcentration": {
+              "authoredPositions": 20,
+              "distinctCreators": 20,
+              "maxCreatorShare": 0.05,
+              "hhi": 0.05
+            },
+            "authoredTop10Share": 1,
+            "authoredTop20Share": 1,
+            "trulyNewTop10Share": 0,
+            "trulyNewTop20Share": 0.1
+          }
+        },
+        "unrankedRelevanceKeyControl": {
+          "metrics": {
+            "itemCount": 22,
+            "top10": [
+              "old-00",
+              "old-01",
+              "old-02",
+              "old-03",
+              "old-04",
+              "old-05",
+              "old-06",
+              "old-07",
+              "old-08",
+              "old-09"
+            ],
+            "top20": [
+              "old-00",
+              "old-01",
+              "old-02",
+              "old-03",
+              "old-04",
+              "old-05",
+              "old-06",
+              "old-07",
+              "old-08",
+              "old-09",
+              "old-10",
+              "old-11",
+              "old-12",
+              "old-13",
+              "old-14",
+              "old-15",
+              "old-16",
+              "old-17",
+              "z-new-00",
+              "z-new-01"
+            ],
+            "top10Coverage": 1,
+            "top20Coverage": 1,
+            "fullCandidateCoverage": 1,
+            "duplicateCount": 0,
+            "unknownKeyCount": 0,
+            "relevanceViolations": 0,
+            "maxConsecutiveAuthoredCreatorRun": 1,
+            "maxAuthoredCreatorRunWithinRelevanceGroup": 1,
+            "promotedItemCount": 0,
+            "promotedItemShare": 0,
+            "firstPromotionRank": null,
+            "inventoryCreatorConcentration": {
+              "eligibleAuthoredCount": 22,
+              "distinctCreators": 22,
+              "maxCreatorShare": 0.0455,
+              "hhi": 0.0455
+            },
+            "top10CreatorConcentration": {
+              "authoredPositions": 10,
+              "distinctCreators": 10,
+              "maxCreatorShare": 0.1,
+              "hhi": 0.1
+            },
+            "top20CreatorConcentration": {
+              "authoredPositions": 20,
+              "distinctCreators": 20,
+              "maxCreatorShare": 0.05,
+              "hhi": 0.05
+            },
+            "authoredTop10Share": 1,
+            "authoredTop20Share": 1,
+            "trulyNewTop10Share": 0,
+            "trulyNewTop20Share": 0.1
+          }
+        },
+        "editorialOnlyControl": {
+          "metrics": {
+            "itemCount": 22,
+            "top10": [
+              "old-00",
+              "old-01",
+              "old-02",
+              "old-03",
+              "old-04",
+              "old-05",
+              "old-06",
+              "old-07",
+              "old-08",
+              "old-09"
+            ],
+            "top20": [
+              "old-00",
+              "old-01",
+              "old-02",
+              "old-03",
+              "old-04",
+              "old-05",
+              "old-06",
+              "old-07",
+              "old-08",
+              "old-09",
+              "old-10",
+              "old-11",
+              "old-12",
+              "old-13",
+              "old-14",
+              "old-15",
+              "old-16",
+              "old-17",
+              "z-new-00",
+              "z-new-01"
+            ],
+            "top10Coverage": 1,
+            "top20Coverage": 1,
+            "fullCandidateCoverage": 1,
+            "duplicateCount": 0,
+            "unknownKeyCount": 0,
+            "relevanceViolations": 0,
+            "maxConsecutiveAuthoredCreatorRun": 1,
+            "maxAuthoredCreatorRunWithinRelevanceGroup": 1,
+            "promotedItemCount": 0,
+            "promotedItemShare": 0,
+            "firstPromotionRank": null,
+            "inventoryCreatorConcentration": {
+              "eligibleAuthoredCount": 22,
+              "distinctCreators": 22,
+              "maxCreatorShare": 0.0455,
+              "hhi": 0.0455
+            },
+            "top10CreatorConcentration": {
+              "authoredPositions": 10,
+              "distinctCreators": 10,
+              "maxCreatorShare": 0.1,
+              "hhi": 0.1
+            },
+            "top20CreatorConcentration": {
+              "authoredPositions": 20,
+              "distinctCreators": 20,
+              "maxCreatorShare": 0.05,
+              "hhi": 0.05
+            },
+            "authoredTop10Share": 1,
+            "authoredTop20Share": 1,
+            "trulyNewTop10Share": 0,
+            "trulyNewTop20Share": 0.1
+          }
+        }
+      },
+      "equalRelevanceBarriers": {
+        "policy": {
+          "algorithmVersion": "blueprint-baseline-v2",
+          "configurationVersion": "blueprint-baseline-v2",
+          "configurationFingerprint": "4c85a77f26eb79885e3201fb2d2cdd981b39139ec1a79baf61f4ba624f2e7779",
+          "editorialPriorities": {
+            "wedding": 30,
+            "birthday": 20,
+            "thanksgiving": 10
+          },
+          "newItemShare": 0.1,
+          "newItemWindowDays": 30,
+          "maxConsecutiveAuthoredPerCreator": 2,
+          "recomputedFingerprint": "4c85a77f26eb79885e3201fb2d2cdd981b39139ec1a79baf61f4ba624f2e7779"
+        },
+        "baseline": {
+          "metrics": {
+            "itemCount": 4,
+            "top10": [
+              "birthday",
+              "a-direct-match",
+              "z-related-match",
+              "wedding"
+            ],
+            "top20": [
+              "birthday",
+              "a-direct-match",
+              "z-related-match",
+              "wedding"
+            ],
+            "top10Coverage": 1,
+            "top20Coverage": 1,
+            "fullCandidateCoverage": 1,
+            "duplicateCount": 0,
+            "unknownKeyCount": 0,
+            "relevanceViolations": 0,
+            "maxConsecutiveAuthoredCreatorRun": 1,
+            "maxAuthoredCreatorRunWithinRelevanceGroup": 1,
+            "promotedItemCount": 0,
+            "promotedItemShare": 0,
+            "firstPromotionRank": null,
+            "inventoryCreatorConcentration": {
+              "eligibleAuthoredCount": 2,
+              "distinctCreators": 2,
+              "maxCreatorShare": 0.5,
+              "hhi": 0.5
+            },
+            "top10CreatorConcentration": {
+              "authoredPositions": 2,
+              "distinctCreators": 2,
+              "maxCreatorShare": 0.5,
+              "hhi": 0.5
+            },
+            "top20CreatorConcentration": {
+              "authoredPositions": 2,
+              "distinctCreators": 2,
+              "maxCreatorShare": 0.5,
+              "hhi": 0.5
+            },
+            "authoredTop10Share": 0.5,
+            "authoredTop20Share": 0.5,
+            "trulyNewTop10Share": 0.5,
+            "trulyNewTop20Share": 0.5
+          },
+          "promotionRanks": []
+        },
+        "promotionFreeBaselineControl": {
+          "metrics": {
+            "itemCount": 4,
+            "top10": [
+              "birthday",
+              "a-direct-match",
+              "z-related-match",
+              "wedding"
+            ],
+            "top20": [
+              "birthday",
+              "a-direct-match",
+              "z-related-match",
+              "wedding"
+            ],
+            "top10Coverage": 1,
+            "top20Coverage": 1,
+            "fullCandidateCoverage": 1,
+            "duplicateCount": 0,
+            "unknownKeyCount": 0,
+            "relevanceViolations": 0,
+            "maxConsecutiveAuthoredCreatorRun": 1,
+            "maxAuthoredCreatorRunWithinRelevanceGroup": 1,
+            "promotedItemCount": 0,
+            "promotedItemShare": 0,
+            "firstPromotionRank": null,
+            "inventoryCreatorConcentration": {
+              "eligibleAuthoredCount": 2,
+              "distinctCreators": 2,
+              "maxCreatorShare": 0.5,
+              "hhi": 0.5
+            },
+            "top10CreatorConcentration": {
+              "authoredPositions": 2,
+              "distinctCreators": 2,
+              "maxCreatorShare": 0.5,
+              "hhi": 0.5
+            },
+            "top20CreatorConcentration": {
+              "authoredPositions": 2,
+              "distinctCreators": 2,
+              "maxCreatorShare": 0.5,
+              "hhi": 0.5
+            },
+            "authoredTop10Share": 0.5,
+            "authoredTop20Share": 0.5,
+            "trulyNewTop10Share": 0.5,
+            "trulyNewTop20Share": 0.5
+          }
+        },
+        "unrankedRelevanceKeyControl": {
+          "metrics": {
+            "itemCount": 4,
+            "top10": [
+              "a-direct-match",
+              "birthday",
+              "z-related-match",
+              "wedding"
+            ],
+            "top20": [
+              "a-direct-match",
+              "birthday",
+              "z-related-match",
+              "wedding"
+            ],
+            "top10Coverage": 1,
+            "top20Coverage": 1,
+            "fullCandidateCoverage": 1,
+            "duplicateCount": 0,
+            "unknownKeyCount": 0,
+            "relevanceViolations": 0,
+            "maxConsecutiveAuthoredCreatorRun": 1,
+            "maxAuthoredCreatorRunWithinRelevanceGroup": 1,
+            "promotedItemCount": 0,
+            "promotedItemShare": 0,
+            "firstPromotionRank": null,
+            "inventoryCreatorConcentration": {
+              "eligibleAuthoredCount": 2,
+              "distinctCreators": 2,
+              "maxCreatorShare": 0.5,
+              "hhi": 0.5
+            },
+            "top10CreatorConcentration": {
+              "authoredPositions": 2,
+              "distinctCreators": 2,
+              "maxCreatorShare": 0.5,
+              "hhi": 0.5
+            },
+            "top20CreatorConcentration": {
+              "authoredPositions": 2,
+              "distinctCreators": 2,
+              "maxCreatorShare": 0.5,
+              "hhi": 0.5
+            },
+            "authoredTop10Share": 0.5,
+            "authoredTop20Share": 0.5,
+            "trulyNewTop10Share": 0.5,
+            "trulyNewTop20Share": 0.5
+          }
+        },
+        "editorialOnlyControl": {
+          "metrics": {
+            "itemCount": 4,
+            "top10": [
+              "birthday",
+              "a-direct-match",
+              "z-related-match",
+              "wedding"
+            ],
+            "top20": [
+              "birthday",
+              "a-direct-match",
+              "z-related-match",
+              "wedding"
+            ],
+            "top10Coverage": 1,
+            "top20Coverage": 1,
+            "fullCandidateCoverage": 1,
+            "duplicateCount": 0,
+            "unknownKeyCount": 0,
+            "relevanceViolations": 0,
+            "maxConsecutiveAuthoredCreatorRun": 1,
+            "maxAuthoredCreatorRunWithinRelevanceGroup": 1,
+            "promotedItemCount": 0,
+            "promotedItemShare": 0,
+            "firstPromotionRank": null,
+            "inventoryCreatorConcentration": {
+              "eligibleAuthoredCount": 2,
+              "distinctCreators": 2,
+              "maxCreatorShare": 0.5,
+              "hhi": 0.5
+            },
+            "top10CreatorConcentration": {
+              "authoredPositions": 2,
+              "distinctCreators": 2,
+              "maxCreatorShare": 0.5,
+              "hhi": 0.5
+            },
+            "top20CreatorConcentration": {
+              "authoredPositions": 2,
+              "distinctCreators": 2,
+              "maxCreatorShare": 0.5,
+              "hhi": 0.5
+            },
+            "authoredTop10Share": 0.5,
+            "authoredTop20Share": 0.5,
+            "trulyNewTop10Share": 0.5,
+            "trulyNewTop20Share": 0.5
+          }
+        }
+      },
+      "creatorRunResetsAtRelevanceGroup": {
+        "policy": {
+          "algorithmVersion": "blueprint-baseline-v2",
+          "configurationVersion": "blueprint-baseline-v2",
+          "configurationFingerprint": "4c85a77f26eb79885e3201fb2d2cdd981b39139ec1a79baf61f4ba624f2e7779",
+          "editorialPriorities": {
+            "wedding": 30,
+            "birthday": 20,
+            "thanksgiving": 10
+          },
+          "newItemShare": 0.1,
+          "newItemWindowDays": 30,
+          "maxConsecutiveAuthoredPerCreator": 2,
+          "recomputedFingerprint": "4c85a77f26eb79885e3201fb2d2cdd981b39139ec1a79baf61f4ba624f2e7779"
+        },
+        "baseline": {
+          "metrics": {
+            "itemCount": 6,
+            "top10": [
+              "a-group-one",
+              "b-group-one",
+              "d-group-one",
+              "c-group-one",
+              "e-group-two",
+              "f-group-two"
+            ],
+            "top20": [
+              "a-group-one",
+              "b-group-one",
+              "d-group-one",
+              "c-group-one",
+              "e-group-two",
+              "f-group-two"
+            ],
+            "top10Coverage": 1,
+            "top20Coverage": 1,
+            "fullCandidateCoverage": 1,
+            "duplicateCount": 0,
+            "unknownKeyCount": 0,
+            "relevanceViolations": 0,
+            "maxConsecutiveAuthoredCreatorRun": 3,
+            "maxAuthoredCreatorRunWithinRelevanceGroup": 2,
+            "promotedItemCount": 0,
+            "promotedItemShare": 0,
+            "firstPromotionRank": null,
+            "inventoryCreatorConcentration": {
+              "eligibleAuthoredCount": 6,
+              "distinctCreators": 2,
+              "maxCreatorShare": 0.8333,
+              "hhi": 0.7222
+            },
+            "top10CreatorConcentration": {
+              "authoredPositions": 6,
+              "distinctCreators": 2,
+              "maxCreatorShare": 0.8333,
+              "hhi": 0.7222
+            },
+            "top20CreatorConcentration": {
+              "authoredPositions": 6,
+              "distinctCreators": 2,
+              "maxCreatorShare": 0.8333,
+              "hhi": 0.7222
+            },
+            "authoredTop10Share": 1,
+            "authoredTop20Share": 1,
+            "trulyNewTop10Share": 0,
+            "trulyNewTop20Share": 0
+          },
+          "promotionRanks": []
+        },
+        "promotionFreeBaselineControl": {
+          "metrics": {
+            "itemCount": 6,
+            "top10": [
+              "a-group-one",
+              "b-group-one",
+              "d-group-one",
+              "c-group-one",
+              "e-group-two",
+              "f-group-two"
+            ],
+            "top20": [
+              "a-group-one",
+              "b-group-one",
+              "d-group-one",
+              "c-group-one",
+              "e-group-two",
+              "f-group-two"
+            ],
+            "top10Coverage": 1,
+            "top20Coverage": 1,
+            "fullCandidateCoverage": 1,
+            "duplicateCount": 0,
+            "unknownKeyCount": 0,
+            "relevanceViolations": 0,
+            "maxConsecutiveAuthoredCreatorRun": 3,
+            "maxAuthoredCreatorRunWithinRelevanceGroup": 2,
+            "promotedItemCount": 0,
+            "promotedItemShare": 0,
+            "firstPromotionRank": null,
+            "inventoryCreatorConcentration": {
+              "eligibleAuthoredCount": 6,
+              "distinctCreators": 2,
+              "maxCreatorShare": 0.8333,
+              "hhi": 0.7222
+            },
+            "top10CreatorConcentration": {
+              "authoredPositions": 6,
+              "distinctCreators": 2,
+              "maxCreatorShare": 0.8333,
+              "hhi": 0.7222
+            },
+            "top20CreatorConcentration": {
+              "authoredPositions": 6,
+              "distinctCreators": 2,
+              "maxCreatorShare": 0.8333,
+              "hhi": 0.7222
+            },
+            "authoredTop10Share": 1,
+            "authoredTop20Share": 1,
+            "trulyNewTop10Share": 0,
+            "trulyNewTop20Share": 0
+          }
+        },
+        "unrankedRelevanceKeyControl": {
+          "metrics": {
+            "itemCount": 6,
+            "top10": [
+              "a-group-one",
+              "b-group-one",
+              "c-group-one",
+              "d-group-one",
+              "e-group-two",
+              "f-group-two"
+            ],
+            "top20": [
+              "a-group-one",
+              "b-group-one",
+              "c-group-one",
+              "d-group-one",
+              "e-group-two",
+              "f-group-two"
+            ],
+            "top10Coverage": 1,
+            "top20Coverage": 1,
+            "fullCandidateCoverage": 1,
+            "duplicateCount": 0,
+            "unknownKeyCount": 0,
+            "relevanceViolations": 0,
+            "maxConsecutiveAuthoredCreatorRun": 3,
+            "maxAuthoredCreatorRunWithinRelevanceGroup": 3,
+            "promotedItemCount": 0,
+            "promotedItemShare": 0,
+            "firstPromotionRank": null,
+            "inventoryCreatorConcentration": {
+              "eligibleAuthoredCount": 6,
+              "distinctCreators": 2,
+              "maxCreatorShare": 0.8333,
+              "hhi": 0.7222
+            },
+            "top10CreatorConcentration": {
+              "authoredPositions": 6,
+              "distinctCreators": 2,
+              "maxCreatorShare": 0.8333,
+              "hhi": 0.7222
+            },
+            "top20CreatorConcentration": {
+              "authoredPositions": 6,
+              "distinctCreators": 2,
+              "maxCreatorShare": 0.8333,
+              "hhi": 0.7222
+            },
+            "authoredTop10Share": 1,
+            "authoredTop20Share": 1,
+            "trulyNewTop10Share": 0,
+            "trulyNewTop20Share": 0
+          }
+        },
+        "editorialOnlyControl": {
+          "metrics": {
+            "itemCount": 6,
+            "top10": [
+              "a-group-one",
+              "b-group-one",
+              "c-group-one",
+              "d-group-one",
+              "e-group-two",
+              "f-group-two"
+            ],
+            "top20": [
+              "a-group-one",
+              "b-group-one",
+              "c-group-one",
+              "d-group-one",
+              "e-group-two",
+              "f-group-two"
+            ],
+            "top10Coverage": 1,
+            "top20Coverage": 1,
+            "fullCandidateCoverage": 1,
+            "duplicateCount": 0,
+            "unknownKeyCount": 0,
+            "relevanceViolations": 0,
+            "maxConsecutiveAuthoredCreatorRun": 3,
+            "maxAuthoredCreatorRunWithinRelevanceGroup": 3,
+            "promotedItemCount": 0,
+            "promotedItemShare": 0,
+            "firstPromotionRank": null,
+            "inventoryCreatorConcentration": {
+              "eligibleAuthoredCount": 6,
+              "distinctCreators": 2,
+              "maxCreatorShare": 0.8333,
+              "hhi": 0.7222
+            },
+            "top10CreatorConcentration": {
+              "authoredPositions": 6,
+              "distinctCreators": 2,
+              "maxCreatorShare": 0.8333,
+              "hhi": 0.7222
+            },
+            "top20CreatorConcentration": {
+              "authoredPositions": 6,
+              "distinctCreators": 2,
+              "maxCreatorShare": 0.8333,
+              "hhi": 0.7222
+            },
+            "authoredTop10Share": 1,
+            "authoredTop20Share": 1,
+            "trulyNewTop10Share": 0,
+            "trulyNewTop20Share": 0
+          }
+        }
+      },
+      "utcDayTieStability": {
+        "policy": {
+          "algorithmVersion": "blueprint-baseline-v2",
+          "configurationVersion": "blueprint-baseline-v2",
+          "configurationFingerprint": "4c85a77f26eb79885e3201fb2d2cdd981b39139ec1a79baf61f4ba624f2e7779",
+          "editorialPriorities": {
+            "wedding": 30,
+            "birthday": 20,
+            "thanksgiving": 10
+          },
+          "newItemShare": 0.1,
+          "newItemWindowDays": 30,
+          "maxConsecutiveAuthoredPerCreator": 2,
+          "recomputedFingerprint": "4c85a77f26eb79885e3201fb2d2cdd981b39139ec1a79baf61f4ba624f2e7779"
+        },
+        "baseline": {
+          "metrics": {
+            "itemCount": 60,
+            "top10": [
+              "daily-00",
+              "daily-01",
+              "daily-02",
+              "daily-03",
+              "daily-04",
+              "daily-05",
+              "daily-06",
+              "daily-07",
+              "daily-08",
+              "daily-09"
+            ],
+            "top20": [
+              "daily-00",
+              "daily-01",
+              "daily-02",
+              "daily-03",
+              "daily-04",
+              "daily-05",
+              "daily-06",
+              "daily-07",
+              "daily-08",
+              "daily-09",
+              "daily-10",
+              "daily-11",
+              "daily-12",
+              "daily-13",
+              "daily-14",
+              "daily-15",
+              "daily-16",
+              "daily-17",
+              "daily-18",
+              "daily-19"
+            ],
+            "top10Coverage": 1,
+            "top20Coverage": 1,
+            "fullCandidateCoverage": 1,
+            "duplicateCount": 0,
+            "unknownKeyCount": 0,
+            "relevanceViolations": 0,
+            "maxConsecutiveAuthoredCreatorRun": 1,
+            "maxAuthoredCreatorRunWithinRelevanceGroup": 1,
+            "promotedItemCount": 0,
+            "promotedItemShare": 0,
+            "firstPromotionRank": null,
+            "inventoryCreatorConcentration": {
+              "eligibleAuthoredCount": 60,
+              "distinctCreators": 60,
+              "maxCreatorShare": 0.0167,
+              "hhi": 0.0167
+            },
+            "top10CreatorConcentration": {
+              "authoredPositions": 10,
+              "distinctCreators": 10,
+              "maxCreatorShare": 0.1,
+              "hhi": 0.1
+            },
+            "top20CreatorConcentration": {
+              "authoredPositions": 20,
+              "distinctCreators": 20,
+              "maxCreatorShare": 0.05,
+              "hhi": 0.05
+            },
+            "authoredTop10Share": 1,
+            "authoredTop20Share": 1,
+            "trulyNewTop10Share": 1,
+            "trulyNewTop20Share": 1
+          },
+          "promotionRanks": []
+        },
+        "promotionFreeBaselineControl": {
+          "metrics": {
+            "itemCount": 60,
+            "top10": [
+              "daily-00",
+              "daily-01",
+              "daily-02",
+              "daily-03",
+              "daily-04",
+              "daily-05",
+              "daily-06",
+              "daily-07",
+              "daily-08",
+              "daily-09"
+            ],
+            "top20": [
+              "daily-00",
+              "daily-01",
+              "daily-02",
+              "daily-03",
+              "daily-04",
+              "daily-05",
+              "daily-06",
+              "daily-07",
+              "daily-08",
+              "daily-09",
+              "daily-10",
+              "daily-11",
+              "daily-12",
+              "daily-13",
+              "daily-14",
+              "daily-15",
+              "daily-16",
+              "daily-17",
+              "daily-18",
+              "daily-19"
+            ],
+            "top10Coverage": 1,
+            "top20Coverage": 1,
+            "fullCandidateCoverage": 1,
+            "duplicateCount": 0,
+            "unknownKeyCount": 0,
+            "relevanceViolations": 0,
+            "maxConsecutiveAuthoredCreatorRun": 1,
+            "maxAuthoredCreatorRunWithinRelevanceGroup": 1,
+            "promotedItemCount": 0,
+            "promotedItemShare": 0,
+            "firstPromotionRank": null,
+            "inventoryCreatorConcentration": {
+              "eligibleAuthoredCount": 60,
+              "distinctCreators": 60,
+              "maxCreatorShare": 0.0167,
+              "hhi": 0.0167
+            },
+            "top10CreatorConcentration": {
+              "authoredPositions": 10,
+              "distinctCreators": 10,
+              "maxCreatorShare": 0.1,
+              "hhi": 0.1
+            },
+            "top20CreatorConcentration": {
+              "authoredPositions": 20,
+              "distinctCreators": 20,
+              "maxCreatorShare": 0.05,
+              "hhi": 0.05
+            },
+            "authoredTop10Share": 1,
+            "authoredTop20Share": 1,
+            "trulyNewTop10Share": 1,
+            "trulyNewTop20Share": 1
+          }
+        },
+        "unrankedRelevanceKeyControl": {
+          "metrics": {
+            "itemCount": 60,
+            "top10": [
+              "daily-00",
+              "daily-01",
+              "daily-02",
+              "daily-03",
+              "daily-04",
+              "daily-05",
+              "daily-06",
+              "daily-07",
+              "daily-08",
+              "daily-09"
+            ],
+            "top20": [
+              "daily-00",
+              "daily-01",
+              "daily-02",
+              "daily-03",
+              "daily-04",
+              "daily-05",
+              "daily-06",
+              "daily-07",
+              "daily-08",
+              "daily-09",
+              "daily-10",
+              "daily-11",
+              "daily-12",
+              "daily-13",
+              "daily-14",
+              "daily-15",
+              "daily-16",
+              "daily-17",
+              "daily-18",
+              "daily-19"
+            ],
+            "top10Coverage": 1,
+            "top20Coverage": 1,
+            "fullCandidateCoverage": 1,
+            "duplicateCount": 0,
+            "unknownKeyCount": 0,
+            "relevanceViolations": 0,
+            "maxConsecutiveAuthoredCreatorRun": 1,
+            "maxAuthoredCreatorRunWithinRelevanceGroup": 1,
+            "promotedItemCount": 0,
+            "promotedItemShare": 0,
+            "firstPromotionRank": null,
+            "inventoryCreatorConcentration": {
+              "eligibleAuthoredCount": 60,
+              "distinctCreators": 60,
+              "maxCreatorShare": 0.0167,
+              "hhi": 0.0167
+            },
+            "top10CreatorConcentration": {
+              "authoredPositions": 10,
+              "distinctCreators": 10,
+              "maxCreatorShare": 0.1,
+              "hhi": 0.1
+            },
+            "top20CreatorConcentration": {
+              "authoredPositions": 20,
+              "distinctCreators": 20,
+              "maxCreatorShare": 0.05,
+              "hhi": 0.05
+            },
+            "authoredTop10Share": 1,
+            "authoredTop20Share": 1,
+            "trulyNewTop10Share": 1,
+            "trulyNewTop20Share": 1
+          }
+        },
+        "editorialOnlyControl": {
+          "metrics": {
+            "itemCount": 60,
+            "top10": [
+              "daily-00",
+              "daily-01",
+              "daily-02",
+              "daily-03",
+              "daily-04",
+              "daily-05",
+              "daily-06",
+              "daily-07",
+              "daily-08",
+              "daily-09"
+            ],
+            "top20": [
+              "daily-00",
+              "daily-01",
+              "daily-02",
+              "daily-03",
+              "daily-04",
+              "daily-05",
+              "daily-06",
+              "daily-07",
+              "daily-08",
+              "daily-09",
+              "daily-10",
+              "daily-11",
+              "daily-12",
+              "daily-13",
+              "daily-14",
+              "daily-15",
+              "daily-16",
+              "daily-17",
+              "daily-18",
+              "daily-19"
+            ],
+            "top10Coverage": 1,
+            "top20Coverage": 1,
+            "fullCandidateCoverage": 1,
+            "duplicateCount": 0,
+            "unknownKeyCount": 0,
+            "relevanceViolations": 0,
+            "maxConsecutiveAuthoredCreatorRun": 1,
+            "maxAuthoredCreatorRunWithinRelevanceGroup": 1,
+            "promotedItemCount": 0,
+            "promotedItemShare": 0,
+            "firstPromotionRank": null,
+            "inventoryCreatorConcentration": {
+              "eligibleAuthoredCount": 60,
+              "distinctCreators": 60,
+              "maxCreatorShare": 0.0167,
+              "hhi": 0.0167
+            },
+            "top10CreatorConcentration": {
+              "authoredPositions": 10,
+              "distinctCreators": 10,
+              "maxCreatorShare": 0.1,
+              "hhi": 0.1
+            },
+            "top20CreatorConcentration": {
+              "authoredPositions": 20,
+              "distinctCreators": 20,
+              "maxCreatorShare": 0.05,
+              "hhi": 0.05
+            },
+            "authoredTop10Share": 1,
+            "authoredTop20Share": 1,
+            "trulyNewTop10Share": 1,
+            "trulyNewTop20Share": 1
+          }
+        }
+      }
+    },
+    "previousBaselineV1Finding": {
+      "provenance": "Historical offline result recorded in slice 05 before this version; it is carried forward as a prior fixture finding and is not recomputed by the current policy.",
+      "oldPolicy": {
+        "algorithmVersion": "blueprint-baseline-v1",
+        "newItemVsEditorialAndCatalogControl": {
+          "baselineTrulyNewTop10Share": 0.2,
+          "editorialAndCatalogControlTrulyNewTop10Share": 0.4,
+          "reservedRanks": [
+            10,
+            20,
+            24
+          ]
+        }
+      },
+      "currentPolicyOnSameNamedScenario": {
+        "algorithmVersion": "blueprint-baseline-v2",
+        "baselineTrulyNewTop10Share": 0.4,
+        "promotionFreeControlTrulyNewTop10Share": 0.4,
+        "promotedItemCount": 0
+      }
+    },
+    "utcDayTieStability": {
+      "dayOne": "2026-10-22",
+      "dayTwo": "2026-10-23",
+      "sameTop20Order": true,
+      "perDayRotation": false
+    }
+  },
+  "paging": {
+    "mode": "baseline_v1",
+    "asOf": "2026-10-22T12:00:00.000Z",
+    "snapshotId": "bc552998bd53f9230830d2869fcc09de80f3c2e6e890bcab97f46828449268ec",
+    "traversals": [
+      {
+        "pageSize": 1,
+        "result": {
+          "pageSize": 1,
+          "pageCount": 17,
+          "itemCount": 17,
+          "duplicateCount": 0,
+          "complete": true,
+          "orderedKeys": [
+            "wedding",
+            "birthday",
+            "thanksgiving",
+            "anniversary_supper",
+            "engagement_gathering",
+            "family_cottage_escape",
+            "family_reunion_weekend",
+            "friends_celebration_weekend",
+            "graduation_open_house",
+            "neighborhood_gathering",
+            "park_picnic",
+            "seasonal_dinner_party",
+            "shared_city_break",
+            "small_team_retreat",
+            "thoughtful_guest_stay",
+            "welcome_baby_shower",
+            "welcoming_game_night"
+          ]
+        }
+      },
+      {
+        "pageSize": 2,
+        "result": {
+          "pageSize": 2,
+          "pageCount": 9,
+          "itemCount": 17,
+          "duplicateCount": 0,
+          "complete": true,
+          "orderedKeys": [
+            "wedding",
+            "birthday",
+            "thanksgiving",
+            "anniversary_supper",
+            "engagement_gathering",
+            "family_cottage_escape",
+            "family_reunion_weekend",
+            "friends_celebration_weekend",
+            "graduation_open_house",
+            "neighborhood_gathering",
+            "park_picnic",
+            "seasonal_dinner_party",
+            "shared_city_break",
+            "small_team_retreat",
+            "thoughtful_guest_stay",
+            "welcome_baby_shower",
+            "welcoming_game_night"
+          ]
+        }
+      },
+      {
+        "pageSize": 3,
+        "result": {
+          "pageSize": 3,
+          "pageCount": 6,
+          "itemCount": 17,
+          "duplicateCount": 0,
+          "complete": true,
+          "orderedKeys": [
+            "wedding",
+            "birthday",
+            "thanksgiving",
+            "anniversary_supper",
+            "engagement_gathering",
+            "family_cottage_escape",
+            "family_reunion_weekend",
+            "friends_celebration_weekend",
+            "graduation_open_house",
+            "neighborhood_gathering",
+            "park_picnic",
+            "seasonal_dinner_party",
+            "shared_city_break",
+            "small_team_retreat",
+            "thoughtful_guest_stay",
+            "welcome_baby_shower",
+            "welcoming_game_night"
+          ]
+        }
+      },
+      {
+        "pageSize": 7,
+        "result": {
+          "pageSize": 7,
+          "pageCount": 3,
+          "itemCount": 17,
+          "duplicateCount": 0,
+          "complete": true,
+          "orderedKeys": [
+            "wedding",
+            "birthday",
+            "thanksgiving",
+            "anniversary_supper",
+            "engagement_gathering",
+            "family_cottage_escape",
+            "family_reunion_weekend",
+            "friends_celebration_weekend",
+            "graduation_open_house",
+            "neighborhood_gathering",
+            "park_picnic",
+            "seasonal_dinner_party",
+            "shared_city_break",
+            "small_team_retreat",
+            "thoughtful_guest_stay",
+            "welcome_baby_shower",
+            "welcoming_game_night"
+          ]
+        }
+      },
+      {
+        "pageSize": 20,
+        "result": {
+          "pageSize": 20,
+          "pageCount": 1,
+          "itemCount": 17,
+          "duplicateCount": 0,
+          "complete": true,
+          "orderedKeys": [
+            "wedding",
+            "birthday",
+            "thanksgiving",
+            "anniversary_supper",
+            "engagement_gathering",
+            "family_cottage_escape",
+            "family_reunion_weekend",
+            "friends_celebration_weekend",
+            "graduation_open_house",
+            "neighborhood_gathering",
+            "park_picnic",
+            "seasonal_dinner_party",
+            "shared_city_break",
+            "small_team_retreat",
+            "thoughtful_guest_stay",
+            "welcome_baby_shower",
+            "welcoming_game_night"
+          ]
+        }
+      }
+    ],
+    "stableOrderAcrossPageSizes": true
+  }
+}

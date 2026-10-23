@@ -5,6 +5,10 @@ event change or explicit announcement is saved. If delivery fails or a person
 does not receive it, accept that for V1. No scheduled retry, dead-letter replay,
 periodic polling, new hosting service or cron job is required.
 
+The subsequent [mobile notification policy](05-mobile-notification-policy.md)
+keeps draft event edits quiet and distinguishes schedule, location, cancellation
+and reopening alerts. Assignments and explicit sends retain their existing rules.
+
 This replaces the active plan in [automatic dispatch](03-automatic-dispatch.md).
 That infrastructure is retained for a later release. Nothing was deployed,
 committed or pushed as part of this change, and no live credentials were edited.

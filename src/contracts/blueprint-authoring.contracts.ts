@@ -20,6 +20,7 @@ export const BlueprintDraftContentSchema = z
     name: characterString(1, 120),
     description: characterString(0, 2_000),
     experienceType: z.enum(['wedding', 'birthday', 'holiday', 'custom']),
+    coverAssetId: UUIDSchema.nullable().optional(),
     children: BlueprintExperienceTreeModuleSchema.shape.config.shape.children,
     ideas: BlueprintIdeasModuleSchema.shape.config.shape.ideas,
     instructions: BlueprintInstructionsModuleSchema.shape.config.shape.sections,
@@ -46,6 +47,9 @@ export function draftDefinition(
     blueprint: { id: catalogKey, revision, name: content.name },
     experienceDefaults: { type: content.experienceType },
     roles: [],
+    ...(content.coverAssetId !== undefined
+      ? { presentation: { coverAssetId: content.coverAssetId } }
+      : {}),
     modules: [
       {
         key: 'event_tree',
@@ -138,7 +142,7 @@ export type BlueprintDraft = {
   source:
     | { catalogKey: string; revision: number }
     | BlueprintCaptureMetadata
-    | { kind: 'setup_copy' }
+    | { kind: 'setup_copy'; source?: { catalogKey: string; revision: number } }
     | null
 }
 export type BlueprintAuthoringRow = {

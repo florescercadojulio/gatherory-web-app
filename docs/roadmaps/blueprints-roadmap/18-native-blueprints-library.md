@@ -88,3 +88,7 @@ backfill used templates.
 UI tests, deployment, live database integration and physical-device acceptance
 were not run. Historical backfill requires a deployed endpoint and a successful
 authenticated read; it cannot be inferred from older local archive metadata.
+
+## Follow-up: Yours, Saved and Liked
+
+The accepted library navigation follow-up keeps the title **Blueprints** fixed and adds visible primary **Yours**, **Saved** and **Liked** filters. Yours owns editable authored and copied plans; Saved bookmarks and Liked remain independent references to public sources, and a source may appear in both. Both open the existing preview, with bookmark removal and unlike independent. **Not interested** remains managed separately in Account. See [Blueprint library collections](../blueprint-ranking-roadmap/10-blueprint-library-collections.md) for privacy boundaries and acceptance checks. Implemented locally. The follow-up’s targeted native tests passed (89/89, 0 skipped), along with web/server checks, localization verification, and the simulator Release build; Xcode Canvas crashed, so visual acceptance remains pending. Live device and VoiceOver acceptance also remain open. The verification record for the earlier library slice above is historical and does not cover this follow-up. See [Blueprint library collections](../blueprint-ranking-roadmap/10-blueprint-library-collections.md) for exact results and limitations.

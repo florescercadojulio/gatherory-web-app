@@ -1,0 +1,1797 @@
+{
+  "formatVersion": 1,
+  "purpose": "Deterministic, hand-judged offline fixture comparison. These small authored cases do not estimate universal or production search uplift.",
+  "challengeSetStatus": "The separately named challenge queries were reviewed during matcher tuning; they are not a blind held-out estimate.",
+  "metricsMethod": "Precision@5 uses a fixed denominator of 5 (unfilled result slots count as misses). Precision@5, recall@5, MRR, and nDCG@5 macro averages include only cases with at least one judged relevant item. Empty-judgment cases are reported separately as negative-query false-positive counts and rates.",
+  "frozenLegacySource": {
+    "path": "/tmp/gatherory-search-v1-source.ts",
+    "sha256": "1c606eeec95358e856f3cbd9c394608f2f725407a53331972b5e777017318e18",
+    "copiedScorer": "scripts/blueprint-search-legacy-v1.ts"
+  },
+  "candidate": "pageBlueprintCatalog from current workspace source; unranked catalog search",
+  "corpus": {
+    "count": 19,
+    "keys": [
+      "award_ceremony",
+      "boda_aire_libre",
+      "boda_jardin",
+      "bridal_bouquet",
+      "camping",
+      "child_only_wedding",
+      "cider_tasting",
+      "clamp_workshop",
+      "engagement",
+      "idea_only_wedding",
+      "multi_event_weekend",
+      "office_award_wedding_note",
+      "office_reception",
+      "parts_inventory",
+      "party_planning",
+      "picnic",
+      "wedding_beach",
+      "wedding_garden",
+      "wedding_woodland"
+    ]
+  },
+  "development": {
+    "caseCount": 26,
+    "positiveRelevanceCaseCount": 24,
+    "negativeQueryMetrics": {
+      "legacy": {
+        "queryCount": 2,
+        "falsePositiveCount": 0,
+        "falsePositiveRate": 0
+      },
+      "candidate": {
+        "queryCount": 2,
+        "falsePositiveCount": 0,
+        "falsePositiveRate": 0
+      }
+    },
+    "meanLegacyMetrics": {
+      "precisionAt5": 0.3417,
+      "recallAt5": 0.7527,
+      "reciprocalRank": 0.75,
+      "ndcgAt5": 0.734
+    },
+    "meanCandidateMetrics": {
+      "precisionAt5": 0.375,
+      "recallAt5": 0.836,
+      "reciprocalRank": 0.8125,
+      "ndcgAt5": 0.797
+    },
+    "candidateDelta": {
+      "precisionAt5": 0.0333,
+      "recallAt5": 0.0833,
+      "reciprocalRank": 0.0625,
+      "ndcgAt5": 0.063
+    },
+    "cases": [
+      {
+        "id": "exact-title",
+        "query": "Woodland wedding",
+        "family": "exact-title",
+        "relevant": [
+          "wedding-woodland"
+        ],
+        "legacy": {
+          "top5": [
+            "wedding_woodland"
+          ],
+          "metrics": {
+            "precisionAt5": 0.2,
+            "recallAt5": 1,
+            "reciprocalRank": 1,
+            "ndcgAt5": 1,
+            "returnedCount": 1,
+            "falsePositive": false
+          }
+        },
+        "candidate": {
+          "top5": [
+            "wedding_woodland"
+          ],
+          "metrics": {
+            "precisionAt5": 0.2,
+            "recallAt5": 1,
+            "reciprocalRank": 1,
+            "ndcgAt5": 1,
+            "returnedCount": 1,
+            "falsePositive": false
+          }
+        },
+        "candidateOnly": [],
+        "legacyOnly": []
+      },
+      {
+        "id": "phrase-in-title",
+        "query": "garden wedding",
+        "family": "phrase",
+        "relevant": [
+          "wedding-garden",
+          "boda-jardin"
+        ],
+        "legacy": {
+          "top5": [
+            "boda_jardin",
+            "wedding_garden",
+            "boda_aire_libre",
+            "office_award_wedding_note"
+          ],
+          "metrics": {
+            "precisionAt5": 0.4,
+            "recallAt5": 1,
+            "reciprocalRank": 1,
+            "ndcgAt5": 1,
+            "returnedCount": 4,
+            "falsePositive": false
+          }
+        },
+        "candidate": {
+          "top5": [
+            "wedding_garden",
+            "boda_jardin",
+            "boda_aire_libre",
+            "office_award_wedding_note"
+          ],
+          "metrics": {
+            "precisionAt5": 0.4,
+            "recallAt5": 1,
+            "reciprocalRank": 1,
+            "ndcgAt5": 1,
+            "returnedCount": 4,
+            "falsePositive": false
+          }
+        },
+        "candidateOnly": [],
+        "legacyOnly": []
+      },
+      {
+        "id": "scattered-concepts",
+        "query": "wedding outdoor",
+        "family": "concepts",
+        "relevant": [
+          "wedding-woodland",
+          "wedding-garden",
+          "wedding-beach",
+          "boda-jardin"
+        ],
+        "legacy": {
+          "top5": [
+            "boda_aire_libre",
+            "wedding_garden",
+            "boda_jardin",
+            "wedding_woodland",
+            "office_award_wedding_note"
+          ],
+          "metrics": {
+            "precisionAt5": 0.6,
+            "recallAt5": 0.75,
+            "reciprocalRank": 0.5,
+            "ndcgAt5": 0.6096199500078984,
+            "returnedCount": 5,
+            "falsePositive": false
+          }
+        },
+        "candidate": {
+          "top5": [
+            "boda_aire_libre",
+            "wedding_garden",
+            "boda_jardin",
+            "wedding_woodland",
+            "office_award_wedding_note"
+          ],
+          "metrics": {
+            "precisionAt5": 0.6,
+            "recallAt5": 0.75,
+            "reciprocalRank": 0.5,
+            "ndcgAt5": 0.6096199500078984,
+            "returnedCount": 5,
+            "falsePositive": false
+          }
+        },
+        "candidateOnly": [],
+        "legacyOnly": []
+      },
+      {
+        "id": "wedding-alias",
+        "query": "weddings",
+        "family": "alias",
+        "relevant": [
+          "wedding-woodland",
+          "wedding-garden",
+          "wedding-beach",
+          "boda-jardin"
+        ],
+        "legacy": {
+          "top5": [
+            "boda_aire_libre",
+            "boda_jardin",
+            "bridal_bouquet",
+            "wedding_beach",
+            "wedding_garden"
+          ],
+          "metrics": {
+            "precisionAt5": 0.6,
+            "recallAt5": 0.75,
+            "reciprocalRank": 0.5,
+            "ndcgAt5": 0.5654495432396527,
+            "returnedCount": 10,
+            "falsePositive": false
+          }
+        },
+        "candidate": {
+          "top5": [
+            "boda_aire_libre",
+            "boda_jardin",
+            "bridal_bouquet",
+            "wedding_beach",
+            "wedding_garden"
+          ],
+          "metrics": {
+            "precisionAt5": 0.6,
+            "recallAt5": 0.75,
+            "reciprocalRank": 0.5,
+            "ndcgAt5": 0.5654495432396527,
+            "returnedCount": 10,
+            "falsePositive": false
+          }
+        },
+        "candidateOnly": [],
+        "legacyOnly": []
+      },
+      {
+        "id": "spanish-alias",
+        "query": "bodas",
+        "family": "alias",
+        "relevant": [
+          "wedding-woodland",
+          "wedding-garden",
+          "wedding-beach",
+          "boda-jardin"
+        ],
+        "legacy": {
+          "top5": [
+            "boda_aire_libre",
+            "boda_jardin",
+            "bridal_bouquet",
+            "wedding_beach",
+            "wedding_garden"
+          ],
+          "metrics": {
+            "precisionAt5": 0.6,
+            "recallAt5": 0.75,
+            "reciprocalRank": 0.5,
+            "ndcgAt5": 0.5654495432396527,
+            "returnedCount": 10,
+            "falsePositive": false
+          }
+        },
+        "candidate": {
+          "top5": [
+            "boda_aire_libre",
+            "boda_jardin",
+            "bridal_bouquet",
+            "wedding_beach",
+            "wedding_garden"
+          ],
+          "metrics": {
+            "precisionAt5": 0.6,
+            "recallAt5": 0.75,
+            "reciprocalRank": 0.5,
+            "ndcgAt5": 0.5654495432396527,
+            "returnedCount": 10,
+            "falsePositive": false
+          }
+        },
+        "candidateOnly": [],
+        "legacyOnly": []
+      },
+      {
+        "id": "outdoor-related",
+        "query": "outdoors",
+        "family": "related",
+        "relevant": [
+          "wedding-woodland",
+          "wedding-garden",
+          "wedding-beach",
+          "picnic",
+          "boda-jardin"
+        ],
+        "legacy": {
+          "top5": [
+            "boda_aire_libre",
+            "wedding_garden",
+            "boda_jardin",
+            "office_award_wedding_note",
+            "picnic"
+          ],
+          "metrics": {
+            "precisionAt5": 0.6,
+            "recallAt5": 0.6,
+            "reciprocalRank": 0.5,
+            "ndcgAt5": 0.5147714448836774,
+            "returnedCount": 7,
+            "falsePositive": false
+          }
+        },
+        "candidate": {
+          "top5": [
+            "boda_aire_libre",
+            "wedding_garden",
+            "boda_jardin",
+            "office_award_wedding_note",
+            "picnic"
+          ],
+          "metrics": {
+            "precisionAt5": 0.6,
+            "recallAt5": 0.6,
+            "reciprocalRank": 0.5,
+            "ndcgAt5": 0.5147714448836774,
+            "returnedCount": 7,
+            "falsePositive": false
+          }
+        },
+        "candidateOnly": [],
+        "legacyOnly": []
+      },
+      {
+        "id": "outdoors-wedding",
+        "query": "outdoor wedding",
+        "family": "concepts",
+        "relevant": [
+          "wedding-woodland",
+          "wedding-garden",
+          "wedding-beach",
+          "boda-jardin"
+        ],
+        "legacy": {
+          "top5": [
+            "boda_aire_libre",
+            "wedding_garden",
+            "boda_jardin",
+            "wedding_woodland",
+            "office_award_wedding_note"
+          ],
+          "metrics": {
+            "precisionAt5": 0.6,
+            "recallAt5": 0.75,
+            "reciprocalRank": 0.5,
+            "ndcgAt5": 0.6096199500078984,
+            "returnedCount": 5,
+            "falsePositive": false
+          }
+        },
+        "candidate": {
+          "top5": [
+            "boda_aire_libre",
+            "wedding_garden",
+            "boda_jardin",
+            "wedding_woodland",
+            "office_award_wedding_note"
+          ],
+          "metrics": {
+            "precisionAt5": 0.6,
+            "recallAt5": 0.75,
+            "reciprocalRank": 0.5,
+            "ndcgAt5": 0.6096199500078984,
+            "returnedCount": 5,
+            "falsePositive": false
+          }
+        },
+        "candidateOnly": [],
+        "legacyOnly": []
+      },
+      {
+        "id": "office-reception-bounded",
+        "query": "wedding reception",
+        "family": "bounded-relation",
+        "relevant": [
+          "wedding-woodland",
+          "wedding-beach"
+        ],
+        "legacy": {
+          "top5": [
+            "wedding_beach",
+            "office_award_wedding_note"
+          ],
+          "metrics": {
+            "precisionAt5": 0.2,
+            "recallAt5": 0.5,
+            "reciprocalRank": 1,
+            "ndcgAt5": 0.6131471927654584,
+            "returnedCount": 2,
+            "falsePositive": false
+          }
+        },
+        "candidate": {
+          "top5": [
+            "wedding_beach",
+            "office_award_wedding_note"
+          ],
+          "metrics": {
+            "precisionAt5": 0.2,
+            "recallAt5": 0.5,
+            "reciprocalRank": 1,
+            "ndcgAt5": 0.6131471927654584,
+            "returnedCount": 2,
+            "falsePositive": false
+          }
+        },
+        "candidateOnly": [],
+        "legacyOnly": []
+      },
+      {
+        "id": "real-word-reception",
+        "query": "reception",
+        "family": "real-word",
+        "relevant": [
+          "wedding-woodland",
+          "wedding-beach",
+          "office-reception",
+          "office-award-wedding-note"
+        ],
+        "legacy": {
+          "top5": [
+            "office_reception",
+            "office_award_wedding_note",
+            "wedding_beach"
+          ],
+          "metrics": {
+            "precisionAt5": 0.6,
+            "recallAt5": 0.75,
+            "reciprocalRank": 1,
+            "ndcgAt5": 0.8318724637288826,
+            "returnedCount": 3,
+            "falsePositive": false
+          }
+        },
+        "candidate": {
+          "top5": [
+            "office_reception",
+            "office_award_wedding_note",
+            "wedding_beach"
+          ],
+          "metrics": {
+            "precisionAt5": 0.6,
+            "recallAt5": 0.75,
+            "reciprocalRank": 1,
+            "ndcgAt5": 0.8318724637288826,
+            "returnedCount": 3,
+            "falsePositive": false
+          }
+        },
+        "candidateOnly": [],
+        "legacyOnly": []
+      },
+      {
+        "id": "one-edit-typo",
+        "query": "weddng",
+        "family": "typo",
+        "relevant": [
+          "wedding-woodland",
+          "wedding-garden",
+          "wedding-beach",
+          "boda-jardin"
+        ],
+        "legacy": {
+          "top5": [],
+          "metrics": {
+            "precisionAt5": 0,
+            "recallAt5": 0,
+            "reciprocalRank": 0,
+            "ndcgAt5": 0,
+            "returnedCount": 0,
+            "falsePositive": false
+          }
+        },
+        "candidate": {
+          "top5": [
+            "boda_aire_libre",
+            "boda_jardin",
+            "bridal_bouquet",
+            "child_only_wedding",
+            "idea_only_wedding"
+          ],
+          "metrics": {
+            "precisionAt5": 0.2,
+            "recallAt5": 0.25,
+            "reciprocalRank": 0.5,
+            "ndcgAt5": 0.24630238874073,
+            "returnedCount": 10,
+            "falsePositive": false
+          }
+        },
+        "candidateOnly": [
+          "boda_aire_libre",
+          "boda_jardin",
+          "bridal_bouquet",
+          "child_only_wedding",
+          "idea_only_wedding",
+          "multi_event_weekend",
+          "office_award_wedding_note",
+          "wedding_beach",
+          "wedding_garden",
+          "wedding_woodland"
+        ],
+        "legacyOnly": []
+      },
+      {
+        "id": "transposition-typo",
+        "query": "weedding",
+        "family": "typo",
+        "relevant": [
+          "wedding-woodland",
+          "wedding-garden",
+          "wedding-beach",
+          "boda-jardin"
+        ],
+        "legacy": {
+          "top5": [],
+          "metrics": {
+            "precisionAt5": 0,
+            "recallAt5": 0,
+            "reciprocalRank": 0,
+            "ndcgAt5": 0,
+            "returnedCount": 0,
+            "falsePositive": false
+          }
+        },
+        "candidate": {
+          "top5": [
+            "boda_aire_libre",
+            "boda_jardin",
+            "bridal_bouquet",
+            "child_only_wedding",
+            "idea_only_wedding"
+          ],
+          "metrics": {
+            "precisionAt5": 0.2,
+            "recallAt5": 0.25,
+            "reciprocalRank": 0.5,
+            "ndcgAt5": 0.24630238874073,
+            "returnedCount": 10,
+            "falsePositive": false
+          }
+        },
+        "candidateOnly": [
+          "boda_aire_libre",
+          "boda_jardin",
+          "bridal_bouquet",
+          "child_only_wedding",
+          "idea_only_wedding",
+          "multi_event_weekend",
+          "office_award_wedding_note",
+          "wedding_beach",
+          "wedding_garden",
+          "wedding_woodland"
+        ],
+        "legacyOnly": []
+      },
+      {
+        "id": "multiword-typo-anchor",
+        "query": "weddng garden",
+        "family": "typo-anchor",
+        "relevant": [
+          "wedding-garden"
+        ],
+        "legacy": {
+          "top5": [],
+          "metrics": {
+            "precisionAt5": 0,
+            "recallAt5": 0,
+            "reciprocalRank": 0,
+            "ndcgAt5": 0,
+            "returnedCount": 0,
+            "falsePositive": false
+          }
+        },
+        "candidate": {
+          "top5": [
+            "boda_jardin",
+            "wedding_garden",
+            "boda_aire_libre",
+            "office_award_wedding_note"
+          ],
+          "metrics": {
+            "precisionAt5": 0.2,
+            "recallAt5": 1,
+            "reciprocalRank": 0.5,
+            "ndcgAt5": 0.6309297535714575,
+            "returnedCount": 4,
+            "falsePositive": false
+          }
+        },
+        "candidateOnly": [
+          "boda_jardin",
+          "wedding_garden",
+          "boda_aire_libre",
+          "office_award_wedding_note"
+        ],
+        "legacyOnly": []
+      },
+      {
+        "id": "short-query",
+        "query": "wed",
+        "family": "short-query",
+        "relevant": [],
+        "legacy": {
+          "top5": [],
+          "metrics": {
+            "precisionAt5": 0,
+            "recallAt5": null,
+            "reciprocalRank": null,
+            "ndcgAt5": null,
+            "returnedCount": 0,
+            "falsePositive": false
+          }
+        },
+        "candidate": {
+          "top5": [],
+          "metrics": {
+            "precisionAt5": 0,
+            "recallAt5": null,
+            "reciprocalRank": null,
+            "ndcgAt5": null,
+            "returnedCount": 0,
+            "falsePositive": false
+          }
+        },
+        "candidateOnly": [],
+        "legacyOnly": []
+      },
+      {
+        "id": "nonsense",
+        "query": "xqzvplm",
+        "family": "nonsense",
+        "relevant": [],
+        "legacy": {
+          "top5": [],
+          "metrics": {
+            "precisionAt5": 0,
+            "recallAt5": null,
+            "reciprocalRank": null,
+            "ndcgAt5": null,
+            "returnedCount": 0,
+            "falsePositive": false
+          }
+        },
+        "candidate": {
+          "top5": [],
+          "metrics": {
+            "precisionAt5": 0,
+            "recallAt5": null,
+            "reciprocalRank": null,
+            "ndcgAt5": null,
+            "returnedCount": 0,
+            "falsePositive": false
+          }
+        },
+        "candidateOnly": [],
+        "legacyOnly": []
+      },
+      {
+        "id": "diacritic",
+        "query": "jardin",
+        "family": "diacritics",
+        "relevant": [
+          "boda-jardin",
+          "wedding-garden"
+        ],
+        "legacy": {
+          "top5": [
+            "boda_jardin",
+            "wedding_garden",
+            "boda_aire_libre",
+            "office_award_wedding_note"
+          ],
+          "metrics": {
+            "precisionAt5": 0.4,
+            "recallAt5": 1,
+            "reciprocalRank": 1,
+            "ndcgAt5": 1,
+            "returnedCount": 4,
+            "falsePositive": false
+          }
+        },
+        "candidate": {
+          "top5": [
+            "boda_jardin",
+            "wedding_garden",
+            "boda_aire_libre",
+            "office_award_wedding_note"
+          ],
+          "metrics": {
+            "precisionAt5": 0.4,
+            "recallAt5": 1,
+            "reciprocalRank": 1,
+            "ndcgAt5": 1,
+            "returnedCount": 4,
+            "falsePositive": false
+          }
+        },
+        "candidateOnly": [],
+        "legacyOnly": []
+      },
+      {
+        "id": "idea-title-boundary",
+        "query": "wedding flowers",
+        "family": "idea-only",
+        "relevant": [
+          "idea-only-wedding"
+        ],
+        "legacy": {
+          "top5": [
+            "idea_only_wedding"
+          ],
+          "metrics": {
+            "precisionAt5": 0.2,
+            "recallAt5": 1,
+            "reciprocalRank": 1,
+            "ndcgAt5": 1,
+            "returnedCount": 1,
+            "falsePositive": false
+          }
+        },
+        "candidate": {
+          "top5": [
+            "idea_only_wedding"
+          ],
+          "metrics": {
+            "precisionAt5": 0.2,
+            "recallAt5": 1,
+            "reciprocalRank": 1,
+            "ndcgAt5": 1,
+            "returnedCount": 1,
+            "falsePositive": false
+          }
+        },
+        "candidateOnly": [],
+        "legacyOnly": []
+      },
+      {
+        "id": "title-versus-scattered",
+        "query": "garden outdoors",
+        "family": "title-specialization",
+        "relevant": [
+          "wedding-garden",
+          "boda-aire-libre"
+        ],
+        "legacy": {
+          "top5": [
+            "wedding_garden",
+            "boda_aire_libre",
+            "boda_jardin",
+            "office_award_wedding_note"
+          ],
+          "metrics": {
+            "precisionAt5": 0.4,
+            "recallAt5": 1,
+            "reciprocalRank": 1,
+            "ndcgAt5": 1,
+            "returnedCount": 4,
+            "falsePositive": false
+          }
+        },
+        "candidate": {
+          "top5": [
+            "wedding_garden",
+            "boda_aire_libre",
+            "boda_jardin",
+            "office_award_wedding_note"
+          ],
+          "metrics": {
+            "precisionAt5": 0.4,
+            "recallAt5": 1,
+            "reciprocalRank": 1,
+            "ndcgAt5": 1,
+            "returnedCount": 4,
+            "falsePositive": false
+          }
+        },
+        "candidateOnly": [],
+        "legacyOnly": []
+      },
+      {
+        "id": "spanish-outdoor-phrase",
+        "query": "boda al aire libre",
+        "family": "spanish-related",
+        "relevant": [
+          "boda-aire-libre"
+        ],
+        "legacy": {
+          "top5": [
+            "boda_aire_libre",
+            "wedding_garden",
+            "boda_jardin",
+            "wedding_woodland",
+            "office_award_wedding_note"
+          ],
+          "metrics": {
+            "precisionAt5": 0.2,
+            "recallAt5": 1,
+            "reciprocalRank": 1,
+            "ndcgAt5": 1,
+            "returnedCount": 5,
+            "falsePositive": false
+          }
+        },
+        "candidate": {
+          "top5": [
+            "boda_aire_libre",
+            "wedding_garden",
+            "boda_jardin",
+            "wedding_woodland",
+            "office_award_wedding_note"
+          ],
+          "metrics": {
+            "precisionAt5": 0.2,
+            "recallAt5": 1,
+            "reciprocalRank": 1,
+            "ndcgAt5": 1,
+            "returnedCount": 5,
+            "falsePositive": false
+          }
+        },
+        "candidateOnly": [],
+        "legacyOnly": []
+      },
+      {
+        "id": "bridal-content",
+        "query": "bridal bouquet",
+        "family": "bridal",
+        "relevant": [
+          "bridal-bouquet"
+        ],
+        "legacy": {
+          "top5": [
+            "bridal_bouquet"
+          ],
+          "metrics": {
+            "precisionAt5": 0.2,
+            "recallAt5": 1,
+            "reciprocalRank": 1,
+            "ndcgAt5": 1,
+            "returnedCount": 1,
+            "falsePositive": false
+          }
+        },
+        "candidate": {
+          "top5": [
+            "bridal_bouquet"
+          ],
+          "metrics": {
+            "precisionAt5": 0.2,
+            "recallAt5": 1,
+            "reciprocalRank": 1,
+            "ndcgAt5": 1,
+            "returnedCount": 1,
+            "falsePositive": false
+          }
+        },
+        "candidateOnly": [],
+        "legacyOnly": []
+      },
+      {
+        "id": "multiple-event-child",
+        "query": "wedding ceremony",
+        "family": "nested-event",
+        "relevant": [
+          "multi-event-weekend",
+          "wedding-beach"
+        ],
+        "legacy": {
+          "top5": [
+            "wedding_garden",
+            "multi_event_weekend",
+            "wedding_beach"
+          ],
+          "metrics": {
+            "precisionAt5": 0.4,
+            "recallAt5": 1,
+            "reciprocalRank": 0.5,
+            "ndcgAt5": 0.6934264036172708,
+            "returnedCount": 3,
+            "falsePositive": false
+          }
+        },
+        "candidate": {
+          "top5": [
+            "wedding_garden",
+            "multi_event_weekend",
+            "wedding_beach"
+          ],
+          "metrics": {
+            "precisionAt5": 0.4,
+            "recallAt5": 1,
+            "reciprocalRank": 0.5,
+            "ndcgAt5": 0.6934264036172708,
+            "returnedCount": 3,
+            "falsePositive": false
+          }
+        },
+        "candidateOnly": [],
+        "legacyOnly": []
+      },
+      {
+        "id": "metadata-fallback",
+        "query": "weddings",
+        "family": "metadata-fallback",
+        "relevant": [
+          "wedding-woodland",
+          "wedding-garden",
+          "wedding-beach",
+          "boda-jardin",
+          "boda-aire-libre",
+          "multi-event-weekend",
+          "bridal-bouquet"
+        ],
+        "legacy": {
+          "top5": [
+            "boda_aire_libre",
+            "boda_jardin",
+            "bridal_bouquet",
+            "wedding_beach",
+            "wedding_garden"
+          ],
+          "metrics": {
+            "precisionAt5": 1,
+            "recallAt5": 0.7142857142857143,
+            "reciprocalRank": 1,
+            "ndcgAt5": 1,
+            "returnedCount": 10,
+            "falsePositive": false
+          }
+        },
+        "candidate": {
+          "top5": [
+            "boda_aire_libre",
+            "boda_jardin",
+            "bridal_bouquet",
+            "wedding_beach",
+            "wedding_garden"
+          ],
+          "metrics": {
+            "precisionAt5": 1,
+            "recallAt5": 0.7142857142857143,
+            "reciprocalRank": 1,
+            "ndcgAt5": 1,
+            "returnedCount": 10,
+            "falsePositive": false
+          }
+        },
+        "candidateOnly": [],
+        "legacyOnly": []
+      },
+      {
+        "id": "camp-vs-clamp",
+        "query": "camp",
+        "family": "negative-fuzzy",
+        "relevant": [
+          "camping"
+        ],
+        "legacy": {
+          "top5": [
+            "camping"
+          ],
+          "metrics": {
+            "precisionAt5": 0.2,
+            "recallAt5": 1,
+            "reciprocalRank": 1,
+            "ndcgAt5": 1,
+            "returnedCount": 1,
+            "falsePositive": false
+          }
+        },
+        "candidate": {
+          "top5": [
+            "camping"
+          ],
+          "metrics": {
+            "precisionAt5": 0.2,
+            "recallAt5": 1,
+            "reciprocalRank": 1,
+            "ndcgAt5": 1,
+            "returnedCount": 1,
+            "falsePositive": false
+          }
+        },
+        "candidateOnly": [],
+        "legacyOnly": []
+      },
+      {
+        "id": "party-vs-parts",
+        "query": "party",
+        "family": "negative-fuzzy",
+        "relevant": [
+          "party-planning"
+        ],
+        "legacy": {
+          "top5": [
+            "party_planning"
+          ],
+          "metrics": {
+            "precisionAt5": 0.2,
+            "recallAt5": 1,
+            "reciprocalRank": 1,
+            "ndcgAt5": 1,
+            "returnedCount": 1,
+            "falsePositive": false
+          }
+        },
+        "candidate": {
+          "top5": [
+            "party_planning"
+          ],
+          "metrics": {
+            "precisionAt5": 0.2,
+            "recallAt5": 1,
+            "reciprocalRank": 1,
+            "ndcgAt5": 1,
+            "returnedCount": 1,
+            "falsePositive": false
+          }
+        },
+        "candidateOnly": [],
+        "legacyOnly": []
+      },
+      {
+        "id": "cider-unrelated",
+        "query": "cider",
+        "family": "real-word",
+        "relevant": [
+          "cider-tasting"
+        ],
+        "legacy": {
+          "top5": [
+            "cider_tasting"
+          ],
+          "metrics": {
+            "precisionAt5": 0.2,
+            "recallAt5": 1,
+            "reciprocalRank": 1,
+            "ndcgAt5": 1,
+            "returnedCount": 1,
+            "falsePositive": false
+          }
+        },
+        "candidate": {
+          "top5": [
+            "cider_tasting"
+          ],
+          "metrics": {
+            "precisionAt5": 0.2,
+            "recallAt5": 1,
+            "reciprocalRank": 1,
+            "ndcgAt5": 1,
+            "returnedCount": 1,
+            "falsePositive": false
+          }
+        },
+        "candidateOnly": [],
+        "legacyOnly": []
+      },
+      {
+        "id": "office-reception-alone",
+        "query": "office reception",
+        "family": "negative-wedding-expansion",
+        "relevant": [
+          "office-reception"
+        ],
+        "legacy": {
+          "top5": [
+            "office_reception",
+            "office_award_wedding_note"
+          ],
+          "metrics": {
+            "precisionAt5": 0.2,
+            "recallAt5": 1,
+            "reciprocalRank": 1,
+            "ndcgAt5": 1,
+            "returnedCount": 2,
+            "falsePositive": false
+          }
+        },
+        "candidate": {
+          "top5": [
+            "office_reception"
+          ],
+          "metrics": {
+            "precisionAt5": 0.2,
+            "recallAt5": 1,
+            "reciprocalRank": 1,
+            "ndcgAt5": 1,
+            "returnedCount": 1,
+            "falsePositive": false
+          }
+        },
+        "candidateOnly": [],
+        "legacyOnly": [
+          "office_award_wedding_note"
+        ]
+      },
+      {
+        "id": "award-ceremony-alone",
+        "query": "award ceremony",
+        "family": "negative-wedding-expansion",
+        "relevant": [
+          "award-ceremony",
+          "office-reception"
+        ],
+        "legacy": {
+          "top5": [
+            "award_ceremony"
+          ],
+          "metrics": {
+            "precisionAt5": 0.2,
+            "recallAt5": 0.5,
+            "reciprocalRank": 1,
+            "ndcgAt5": 0.6131471927654584,
+            "returnedCount": 1,
+            "falsePositive": false
+          }
+        },
+        "candidate": {
+          "top5": [
+            "award_ceremony",
+            "office_reception"
+          ],
+          "metrics": {
+            "precisionAt5": 0.4,
+            "recallAt5": 1,
+            "reciprocalRank": 1,
+            "ndcgAt5": 1,
+            "returnedCount": 2,
+            "falsePositive": false
+          }
+        },
+        "candidateOnly": [
+          "office_reception"
+        ],
+        "legacyOnly": []
+      }
+    ]
+  },
+  "freshChallenge": {
+    "interpretation": "Tuning-reviewed challenge cases, included to expose regressions and current gaps; not blind held-out evidence.",
+    "caseCount": 12,
+    "positiveRelevanceCaseCount": 12,
+    "negativeQueryMetrics": {
+      "legacy": {
+        "queryCount": 0,
+        "falsePositiveCount": 0,
+        "falsePositiveRate": null
+      },
+      "candidate": {
+        "queryCount": 0,
+        "falsePositiveCount": 0,
+        "falsePositiveRate": null
+      }
+    },
+    "meanLegacyMetrics": {
+      "precisionAt5": 0.25,
+      "recallAt5": 0.369,
+      "reciprocalRank": 0.4583,
+      "ndcgAt5": 0.4352
+    },
+    "meanCandidateMetrics": {
+      "precisionAt5": 0.5333,
+      "recallAt5": 0.6892,
+      "reciprocalRank": 0.8333,
+      "ndcgAt5": 0.8277
+    },
+    "candidateDelta": {
+      "precisionAt5": 0.2833,
+      "recallAt5": 0.3202,
+      "reciprocalRank": 0.375,
+      "ndcgAt5": 0.3925
+    },
+    "cases": [
+      {
+        "id": "fresh-spelling",
+        "query": "weddong",
+        "family": "substitution-typo",
+        "relevant": [
+          "wedding-woodland",
+          "wedding-garden",
+          "wedding-beach",
+          "child-only-wedding",
+          "idea-only-wedding",
+          "multi-event-weekend",
+          "bridal-bouquet"
+        ],
+        "legacy": {
+          "top5": [],
+          "metrics": {
+            "precisionAt5": 0,
+            "recallAt5": 0,
+            "reciprocalRank": 0,
+            "ndcgAt5": 0,
+            "returnedCount": 0,
+            "falsePositive": false
+          }
+        },
+        "candidate": {
+          "top5": [
+            "boda_aire_libre",
+            "boda_jardin",
+            "bridal_bouquet",
+            "child_only_wedding",
+            "idea_only_wedding"
+          ],
+          "metrics": {
+            "precisionAt5": 0.6,
+            "recallAt5": 0.42857142857142855,
+            "reciprocalRank": 0.3333333333333333,
+            "ndcgAt5": 0.4468535299918563,
+            "returnedCount": 10,
+            "falsePositive": false
+          }
+        },
+        "candidateOnly": [
+          "boda_aire_libre",
+          "boda_jardin",
+          "bridal_bouquet",
+          "child_only_wedding",
+          "idea_only_wedding",
+          "multi_event_weekend",
+          "office_award_wedding_note",
+          "wedding_beach",
+          "wedding_garden",
+          "wedding_woodland"
+        ],
+        "legacyOnly": []
+      },
+      {
+        "id": "fresh-transposition",
+        "query": "weddnig",
+        "family": "transposition-typo",
+        "relevant": [
+          "wedding-woodland",
+          "wedding-garden",
+          "wedding-beach",
+          "child-only-wedding",
+          "idea-only-wedding",
+          "multi-event-weekend",
+          "bridal-bouquet"
+        ],
+        "legacy": {
+          "top5": [],
+          "metrics": {
+            "precisionAt5": 0,
+            "recallAt5": 0,
+            "reciprocalRank": 0,
+            "ndcgAt5": 0,
+            "returnedCount": 0,
+            "falsePositive": false
+          }
+        },
+        "candidate": {
+          "top5": [
+            "boda_aire_libre",
+            "boda_jardin",
+            "bridal_bouquet",
+            "child_only_wedding",
+            "idea_only_wedding"
+          ],
+          "metrics": {
+            "precisionAt5": 0.6,
+            "recallAt5": 0.42857142857142855,
+            "reciprocalRank": 0.3333333333333333,
+            "ndcgAt5": 0.4468535299918563,
+            "returnedCount": 10,
+            "falsePositive": false
+          }
+        },
+        "candidateOnly": [
+          "boda_aire_libre",
+          "boda_jardin",
+          "bridal_bouquet",
+          "child_only_wedding",
+          "idea_only_wedding",
+          "multi_event_weekend",
+          "office_award_wedding_note",
+          "wedding_beach",
+          "wedding_garden",
+          "wedding_woodland"
+        ],
+        "legacyOnly": []
+      },
+      {
+        "id": "fresh-deletion",
+        "query": "weding",
+        "family": "deletion-typo",
+        "relevant": [
+          "wedding-woodland",
+          "wedding-garden",
+          "wedding-beach",
+          "child-only-wedding",
+          "idea-only-wedding",
+          "multi-event-weekend",
+          "bridal-bouquet"
+        ],
+        "legacy": {
+          "top5": [],
+          "metrics": {
+            "precisionAt5": 0,
+            "recallAt5": 0,
+            "reciprocalRank": 0,
+            "ndcgAt5": 0,
+            "returnedCount": 0,
+            "falsePositive": false
+          }
+        },
+        "candidate": {
+          "top5": [
+            "boda_aire_libre",
+            "boda_jardin",
+            "bridal_bouquet",
+            "child_only_wedding",
+            "idea_only_wedding"
+          ],
+          "metrics": {
+            "precisionAt5": 0.6,
+            "recallAt5": 0.42857142857142855,
+            "reciprocalRank": 0.3333333333333333,
+            "ndcgAt5": 0.4468535299918563,
+            "returnedCount": 10,
+            "falsePositive": false
+          }
+        },
+        "candidateOnly": [
+          "boda_aire_libre",
+          "boda_jardin",
+          "bridal_bouquet",
+          "child_only_wedding",
+          "idea_only_wedding",
+          "multi_event_weekend",
+          "office_award_wedding_note",
+          "wedding_beach",
+          "wedding_garden",
+          "wedding_woodland"
+        ],
+        "legacyOnly": []
+      },
+      {
+        "id": "fresh-canonical-spanish-typo",
+        "query": "bodaa",
+        "family": "fuzzy-canonical-alias",
+        "relevant": [
+          "wedding-woodland",
+          "wedding-garden",
+          "wedding-beach",
+          "boda-jardin",
+          "boda-aire-libre",
+          "child-only-wedding",
+          "idea-only-wedding",
+          "multi-event-weekend",
+          "bridal-bouquet"
+        ],
+        "legacy": {
+          "top5": [],
+          "metrics": {
+            "precisionAt5": 0,
+            "recallAt5": 0,
+            "reciprocalRank": 0,
+            "ndcgAt5": 0,
+            "returnedCount": 0,
+            "falsePositive": false
+          }
+        },
+        "candidate": {
+          "top5": [
+            "boda_aire_libre",
+            "boda_jardin",
+            "bridal_bouquet",
+            "child_only_wedding",
+            "idea_only_wedding"
+          ],
+          "metrics": {
+            "precisionAt5": 1,
+            "recallAt5": 0.5555555555555556,
+            "reciprocalRank": 1,
+            "ndcgAt5": 1,
+            "returnedCount": 10,
+            "falsePositive": false
+          }
+        },
+        "candidateOnly": [
+          "boda_aire_libre",
+          "boda_jardin",
+          "bridal_bouquet",
+          "child_only_wedding",
+          "idea_only_wedding",
+          "multi_event_weekend",
+          "office_award_wedding_note",
+          "wedding_beach",
+          "wedding_garden",
+          "wedding_woodland"
+        ],
+        "legacyOnly": []
+      },
+      {
+        "id": "fresh-mixed-order",
+        "query": "garden weddng",
+        "family": "typo-anchor",
+        "relevant": [
+          "wedding-garden",
+          "boda-jardin"
+        ],
+        "legacy": {
+          "top5": [],
+          "metrics": {
+            "precisionAt5": 0,
+            "recallAt5": 0,
+            "reciprocalRank": 0,
+            "ndcgAt5": 0,
+            "returnedCount": 0,
+            "falsePositive": false
+          }
+        },
+        "candidate": {
+          "top5": [
+            "boda_jardin",
+            "wedding_garden",
+            "boda_aire_libre",
+            "office_award_wedding_note"
+          ],
+          "metrics": {
+            "precisionAt5": 0.4,
+            "recallAt5": 1,
+            "reciprocalRank": 1,
+            "ndcgAt5": 1,
+            "returnedCount": 4,
+            "falsePositive": false
+          }
+        },
+        "candidateOnly": [
+          "boda_jardin",
+          "wedding_garden",
+          "boda_aire_libre",
+          "office_award_wedding_note"
+        ],
+        "legacyOnly": []
+      },
+      {
+        "id": "fresh-spanish-diacritic",
+        "query": "bodá",
+        "family": "alias-diacritics",
+        "relevant": [
+          "boda-jardin",
+          "boda-aire-libre",
+          "wedding-woodland",
+          "wedding-garden",
+          "wedding-beach",
+          "child-only-wedding",
+          "idea-only-wedding",
+          "multi-event-weekend",
+          "bridal-bouquet"
+        ],
+        "legacy": {
+          "top5": [
+            "boda_aire_libre",
+            "boda_jardin",
+            "bridal_bouquet",
+            "wedding_beach",
+            "wedding_garden"
+          ],
+          "metrics": {
+            "precisionAt5": 1,
+            "recallAt5": 0.5555555555555556,
+            "reciprocalRank": 1,
+            "ndcgAt5": 1,
+            "returnedCount": 10,
+            "falsePositive": false
+          }
+        },
+        "candidate": {
+          "top5": [
+            "boda_aire_libre",
+            "boda_jardin",
+            "bridal_bouquet",
+            "wedding_beach",
+            "wedding_garden"
+          ],
+          "metrics": {
+            "precisionAt5": 1,
+            "recallAt5": 0.5555555555555556,
+            "reciprocalRank": 1,
+            "ndcgAt5": 1,
+            "returnedCount": 10,
+            "falsePositive": false
+          }
+        },
+        "candidateOnly": [],
+        "legacyOnly": []
+      },
+      {
+        "id": "fresh-generic-ceremony",
+        "query": "wedding ceremony",
+        "family": "bounded-relation",
+        "relevant": [
+          "wedding-woodland",
+          "wedding-garden",
+          "wedding-beach",
+          "boda-jardin",
+          "boda-aire-libre",
+          "multi-event-weekend",
+          "child-only-wedding"
+        ],
+        "legacy": {
+          "top5": [
+            "wedding_garden",
+            "multi_event_weekend",
+            "wedding_beach"
+          ],
+          "metrics": {
+            "precisionAt5": 0.6,
+            "recallAt5": 0.42857142857142855,
+            "reciprocalRank": 1,
+            "ndcgAt5": 0.7227265726449519,
+            "returnedCount": 3,
+            "falsePositive": false
+          }
+        },
+        "candidate": {
+          "top5": [
+            "wedding_garden",
+            "multi_event_weekend",
+            "wedding_beach"
+          ],
+          "metrics": {
+            "precisionAt5": 0.6,
+            "recallAt5": 0.42857142857142855,
+            "reciprocalRank": 1,
+            "ndcgAt5": 0.7227265726449519,
+            "returnedCount": 3,
+            "falsePositive": false
+          }
+        },
+        "candidateOnly": [],
+        "legacyOnly": []
+      },
+      {
+        "id": "fresh-spanish-outdoor",
+        "query": "bodas al aire libre",
+        "family": "spanish-multiword",
+        "relevant": [
+          "boda-aire-libre"
+        ],
+        "legacy": {
+          "top5": [
+            "boda_aire_libre",
+            "wedding_garden",
+            "boda_jardin",
+            "wedding_woodland",
+            "office_award_wedding_note"
+          ],
+          "metrics": {
+            "precisionAt5": 0.2,
+            "recallAt5": 1,
+            "reciprocalRank": 1,
+            "ndcgAt5": 1,
+            "returnedCount": 5,
+            "falsePositive": false
+          }
+        },
+        "candidate": {
+          "top5": [
+            "boda_aire_libre",
+            "wedding_garden",
+            "boda_jardin",
+            "wedding_woodland",
+            "office_award_wedding_note"
+          ],
+          "metrics": {
+            "precisionAt5": 0.2,
+            "recallAt5": 1,
+            "reciprocalRank": 1,
+            "ndcgAt5": 1,
+            "returnedCount": 5,
+            "falsePositive": false
+          }
+        },
+        "candidateOnly": [],
+        "legacyOnly": []
+      },
+      {
+        "id": "fresh-related-bridal",
+        "query": "bride bouquet",
+        "family": "related-bridal",
+        "relevant": [
+          "bridal-bouquet"
+        ],
+        "legacy": {
+          "top5": [],
+          "metrics": {
+            "precisionAt5": 0,
+            "recallAt5": 0,
+            "reciprocalRank": 0,
+            "ndcgAt5": 0,
+            "returnedCount": 0,
+            "falsePositive": false
+          }
+        },
+        "candidate": {
+          "top5": [
+            "bridal_bouquet"
+          ],
+          "metrics": {
+            "precisionAt5": 0.2,
+            "recallAt5": 1,
+            "reciprocalRank": 1,
+            "ndcgAt5": 1,
+            "returnedCount": 1,
+            "falsePositive": false
+          }
+        },
+        "candidateOnly": [
+          "bridal_bouquet"
+        ],
+        "legacyOnly": []
+      },
+      {
+        "id": "fresh-specific-phrase",
+        "query": "Garden wedding",
+        "family": "exact-phrase",
+        "relevant": [
+          "wedding-garden"
+        ],
+        "legacy": {
+          "top5": [
+            "boda_jardin",
+            "wedding_garden",
+            "boda_aire_libre",
+            "office_award_wedding_note"
+          ],
+          "metrics": {
+            "precisionAt5": 0.2,
+            "recallAt5": 1,
+            "reciprocalRank": 0.5,
+            "ndcgAt5": 0.6309297535714575,
+            "returnedCount": 4,
+            "falsePositive": false
+          }
+        },
+        "candidate": {
+          "top5": [
+            "wedding_garden",
+            "boda_jardin",
+            "boda_aire_libre",
+            "office_award_wedding_note"
+          ],
+          "metrics": {
+            "precisionAt5": 0.2,
+            "recallAt5": 1,
+            "reciprocalRank": 1,
+            "ndcgAt5": 1,
+            "returnedCount": 4,
+            "falsePositive": false
+          }
+        },
+        "candidateOnly": [],
+        "legacyOnly": []
+      },
+      {
+        "id": "fresh-generic-office-reception",
+        "query": "office reception",
+        "family": "notes-spam-negative",
+        "relevant": [
+          "office-reception"
+        ],
+        "legacy": {
+          "top5": [
+            "office_reception",
+            "office_award_wedding_note"
+          ],
+          "metrics": {
+            "precisionAt5": 0.2,
+            "recallAt5": 1,
+            "reciprocalRank": 1,
+            "ndcgAt5": 1,
+            "returnedCount": 2,
+            "falsePositive": false
+          }
+        },
+        "candidate": {
+          "top5": [
+            "office_reception"
+          ],
+          "metrics": {
+            "precisionAt5": 0.2,
+            "recallAt5": 1,
+            "reciprocalRank": 1,
+            "ndcgAt5": 1,
+            "returnedCount": 1,
+            "falsePositive": false
+          }
+        },
+        "candidateOnly": [],
+        "legacyOnly": [
+          "office_award_wedding_note"
+        ]
+      },
+      {
+        "id": "fresh-query-order",
+        "query": "outdoors wedding",
+        "family": "query-permutation",
+        "relevant": [
+          "wedding-woodland",
+          "wedding-garden",
+          "wedding-beach",
+          "boda-jardin",
+          "boda-aire-libre",
+          "child-only-wedding",
+          "idea-only-wedding",
+          "multi-event-weekend",
+          "bridal-bouquet"
+        ],
+        "legacy": {
+          "top5": [
+            "boda_aire_libre",
+            "wedding_garden",
+            "boda_jardin",
+            "wedding_woodland",
+            "office_award_wedding_note"
+          ],
+          "metrics": {
+            "precisionAt5": 0.8,
+            "recallAt5": 0.4444444444444444,
+            "reciprocalRank": 1,
+            "ndcgAt5": 0.8687949224876582,
+            "returnedCount": 5,
+            "falsePositive": false
+          }
+        },
+        "candidate": {
+          "top5": [
+            "boda_aire_libre",
+            "wedding_garden",
+            "boda_jardin",
+            "wedding_woodland",
+            "office_award_wedding_note"
+          ],
+          "metrics": {
+            "precisionAt5": 0.8,
+            "recallAt5": 0.4444444444444444,
+            "reciprocalRank": 1,
+            "ndcgAt5": 0.8687949224876582,
+            "returnedCount": 5,
+            "falsePositive": false
+          }
+        },
+        "candidateOnly": [],
+        "legacyOnly": []
+      }
+    ]
+  },
+  "safety": {
+    "orphanTargetIdeaNotSearchable": true,
+    "orphanFixtureRejectedByPublicBrowseResponse": true,
+    "shortQueryHasNoFuzzyExpansion": true,
+    "pagingStableAcrossSizes": true,
+    "pagingUnique": true,
+    "nonemptySearchPagingStableAcrossSizes": true,
+    "nonemptySearchPagingUnique": true,
+    "pageSizes": [
+      1,
+      2,
+      3,
+      5
+    ],
+    "searchPageSizes": [
+      1,
+      2,
+      3,
+      5
+    ]
+  },
+  "limitations": [
+    "Hand-authored synthetic catalog, not deployed inventory or traffic.",
+    "Relevance judgments are local to this fixture and require human review.",
+    "Mean metrics combine diverse query families and can hide individual regressions.",
+    "Empty-judgment negative cases are excluded from relevance metric averages and summarized with false-positive rates.",
+    "The legacy scorer is a frozen source-derived comparator; fixture data is shared by both systems.",
+    "Orphan child-target fixture is rejected by public response validation; this does not test private or draft authorization."
+  ]
+}

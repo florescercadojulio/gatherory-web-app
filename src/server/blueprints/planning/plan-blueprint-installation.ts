@@ -194,6 +194,7 @@ export function expandBlueprintInstallation(
         purpose: child.purpose,
         category: child.category,
         planningStatus: 'approved',
+        coverAssetId: child.coverAssetId ?? null,
       })
     }
   } else {
@@ -227,6 +228,7 @@ export function expandBlueprintInstallation(
         targetSourceKey,
         configuration: idea.configuration,
         status: 'new',
+        coverAssetId: idea.coverAssetId ?? null,
       })
     }
   } else {
@@ -298,6 +300,7 @@ export function expandBlueprintInstallation(
       purpose: null,
       category: null,
       planningStatus: null,
+      coverAssetId: definition.presentation?.coverAssetId ?? null,
     },
     children,
     ideas,
@@ -359,7 +362,17 @@ function applyCustomizations(
     return module
   })
 
-  const effective = BlueprintCatalogDefinitionSchema.safeParse({ ...source, modules })
+  const presentation = { ...(source.presentation ?? {}) }
+  if (Object.hasOwn(customizations, 'coverAssetId')) {
+    presentation.coverAssetId = customizations.coverAssetId
+  }
+  const effective = BlueprintCatalogDefinitionSchema.safeParse({
+    ...source,
+    modules,
+    ...(source.presentation || Object.hasOwn(customizations, 'coverAssetId')
+      ? { presentation }
+      : {}),
+  })
   if (!effective.success) {
     throw new BlueprintPlanningError('invalid_customization', effective.error.message)
   }

@@ -2,6 +2,7 @@ import { Effect, Layer } from 'effect'
 import { InvalidInputError } from '@/lib/domain-errors'
 import type {
   ClaimedNotification,
+  EventChangeKind,
   NativeNotificationPayload,
   NotificationDispatchScope,
 } from '../contracts/notification.contracts'
@@ -17,6 +18,25 @@ import {
 import { NotificationService, type NotificationServiceShape } from './notification.service'
 
 export const NOTIFICATION_DISPATCH_BUDGET_MS = 25_000
+
+export function eventChangeNotificationBody(
+  kind: EventChangeKind | null | undefined,
+  locale: 'en' | 'es'
+) {
+  const copy = {
+    schedule: ['Event date or time changed.', 'Cambió la fecha o la hora del evento.'],
+    location: ['Event location changed.', 'Cambió la ubicación del evento.'],
+    schedule_and_location: [
+      'Event schedule and location changed.',
+      'Cambiaron el horario y la ubicación del evento.',
+    ],
+    cancelled: ['Event cancelled.', 'Evento cancelado.'],
+    reopened: ['Event is back on.', 'El evento vuelve a estar en pie.'],
+  } as const
+  const text = kind && Object.hasOwn(copy, kind) ? copy[kind] : undefined
+  if (text) return locale === 'es' ? text[1] : text[0]
+  return locale === 'es' ? 'Se actualizaron los detalles del evento.' : 'Event details changed.'
+}
 
 export function createNotificationService(
   repo: NotificationRepositoryShape,
@@ -85,9 +105,7 @@ export function createNotificationService(
                     ? installation.locale === 'es'
                       ? 'Hay una nueva actualización del evento.'
                       : 'There’s a new event update.'
-                    : installation.locale === 'es'
-                      ? 'Se actualizaron los detalles del evento.'
-                      : 'Event details changed.',
+                    : eventChangeNotificationBody(item.eventChangeKind, installation.locale),
             }
             const sent = yield* Effect.uninterruptibleMask((restore) =>
               restore(

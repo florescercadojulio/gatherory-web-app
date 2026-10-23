@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, test, vi } from 'vitest'
 const mocks = vi.hoisted(() => ({
   createBlueprintDraft: vi.fn(),
   publishBlueprintDraft: vi.fn(),
+  materializeTrustedSeedImagesLive: vi.fn(),
 }))
 
 vi.mock('@/db', async () => {
@@ -11,6 +12,7 @@ vi.mock('@/db', async () => {
   return { PgClientLive: Layer.empty }
 })
 vi.mock('@/server/blueprints/workflows/blueprint-authoring.workflows.live', () => mocks)
+vi.mock('@/server/blueprint-media/blueprint-cover.service', () => mocks)
 
 import { seedPrivateTemplates } from '@/db/seeds/private-templates'
 
@@ -52,6 +54,17 @@ const initialSeedDraft = {
 describe('private template seed', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    mocks.materializeTrustedSeedImagesLive.mockImplementation(
+      (input: { images: Array<{ assetKey: string }> }) =>
+        Effect.succeed(
+          Object.fromEntries(
+            input.images.map(({ assetKey }, index) => [
+              assetKey,
+              `00000000-0000-4000-8000-${String(index + 1).padStart(12, '0')}`,
+            ])
+          )
+        )
+    )
   })
 
   test('publishes only the initial untouched seed version', async () => {

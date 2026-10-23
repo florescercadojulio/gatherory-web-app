@@ -1,0 +1,1874 @@
+{
+  "main-ceremony": {
+    "file": "scripts/seed/assets/main-ceremony.jpg",
+    "license": {
+      "name": "Unsplash License",
+      "url": "https://unsplash.com/license",
+      "sourceURL": "https://unsplash.com/photos/outdoor-wedding-ceremony-setup-with-chairs-and-floral-decorations-EQcRRfDLIts",
+      "photographer": "Jonathan Borba",
+      "photoID": "photo-1769812344142-00c7f6584885",
+      "checkedAt": "2026-10-22T16:35:00Z"
+    },
+    "manifest": {
+      "schemaVersion": 1,
+      "label": "Rows of chairs lead to a flower-framed garden wedding ceremony beneath the trees.",
+      "source": {
+        "width": 1024,
+        "height": 681,
+        "checksum": "f4fe3382feee429c4a73c70c25e4cfb91256d7423023b0140d7f72ab0abdebef"
+      },
+      "bucket": "gatherory-public",
+      "processingVersion": "explore-cover-jpeg-v1",
+      "variants": [
+        {
+          "name": "thumbnail",
+          "width": 320,
+          "height": 213,
+          "checksum": "b1e3b1328dc6ed0f7195d9c77a0fa790706e0dad361af8ff3218cca0ea1c4abb",
+          "bucket": "gatherory-public",
+          "key": "explore/covers/main-ceremony/a3c7bdd914be9b0a173ab2ba49e167702320419d90e2c55431acd37690947d89/thumbnail.jpg",
+          "url": "https://cdn.gatherory.com/explore/covers/main-ceremony/a3c7bdd914be9b0a173ab2ba49e167702320419d90e2c55431acd37690947d89/thumbnail.jpg"
+        },
+        {
+          "name": "card",
+          "width": 960,
+          "height": 638,
+          "checksum": "069b3abd08ec0ba1813104d50ded3044f403266396a512737102720ed92f6ce2",
+          "bucket": "gatherory-public",
+          "key": "explore/covers/main-ceremony/a3c7bdd914be9b0a173ab2ba49e167702320419d90e2c55431acd37690947d89/card.jpg",
+          "url": "https://cdn.gatherory.com/explore/covers/main-ceremony/a3c7bdd914be9b0a173ab2ba49e167702320419d90e2c55431acd37690947d89/card.jpg"
+        },
+        {
+          "name": "hero",
+          "width": 1024,
+          "height": 681,
+          "checksum": "f3097e39d170f095081bc65429d0368edd9e340d5ab9055bf106f73ca8df957a",
+          "bucket": "gatherory-public",
+          "key": "explore/covers/main-ceremony/a3c7bdd914be9b0a173ab2ba49e167702320419d90e2c55431acd37690947d89/hero.jpg",
+          "url": "https://cdn.gatherory.com/explore/covers/main-ceremony/a3c7bdd914be9b0a173ab2ba49e167702320419d90e2c55431acd37690947d89/hero.jpg"
+        }
+      ]
+    },
+    "fileChecksum": "019904fc7fa324ed9df7eaade2630f8345f13986ab5287d8f12a427d6217d8d2"
+  },
+  "venue-estate": {
+    "file": "scripts/seed/assets/venue-estate.jpg",
+    "license": {
+      "name": "Unsplash License",
+      "url": "https://unsplash.com/license",
+      "sourceURL": "https://unsplash.com/photos/a-large-building-with-a-bunch-of-plants-in-front-of-it-vjR9LUbOwrU",
+      "photographer": "Zoshua Colah",
+      "photoID": "photo-1719297202790-f3ac268d3001",
+      "checkedAt": "2026-10-22T16:35:00Z"
+    },
+    "manifest": {
+      "schemaVersion": 1,
+      "label": "A Mediterranean-style estate entrance framed by greenery.",
+      "source": {
+        "width": 1024,
+        "height": 682,
+        "checksum": "d78cadc5ad1cca98cc7ce4d8d9ab4766062fce614615cd660d6e64c6a3e5c5a7"
+      },
+      "bucket": "gatherory-public",
+      "processingVersion": "explore-cover-jpeg-v1",
+      "variants": [
+        {
+          "name": "thumbnail",
+          "width": 320,
+          "height": 213,
+          "checksum": "fbe1b805bed0a0e054ddf66ad826899d777b25b6b83af518f3a33860e30c66ac",
+          "bucket": "gatherory-public",
+          "key": "explore/covers/venue-estate/01608300d20f7e43b245eb95124926ec3505fd5209b6ee8f83be9c9cd5283392/thumbnail.jpg",
+          "url": "https://cdn.gatherory.com/explore/covers/venue-estate/01608300d20f7e43b245eb95124926ec3505fd5209b6ee8f83be9c9cd5283392/thumbnail.jpg"
+        },
+        {
+          "name": "card",
+          "width": 960,
+          "height": 639,
+          "checksum": "454c4a8f0a820718d7ea477304791c719095936a87bc204b9930565d3169dd65",
+          "bucket": "gatherory-public",
+          "key": "explore/covers/venue-estate/01608300d20f7e43b245eb95124926ec3505fd5209b6ee8f83be9c9cd5283392/card.jpg",
+          "url": "https://cdn.gatherory.com/explore/covers/venue-estate/01608300d20f7e43b245eb95124926ec3505fd5209b6ee8f83be9c9cd5283392/card.jpg"
+        },
+        {
+          "name": "hero",
+          "width": 1024,
+          "height": 682,
+          "checksum": "ce88bde51b6fcd5173e590485c340498b93c078cf2b82e45b5b524e5a878ea58",
+          "bucket": "gatherory-public",
+          "key": "explore/covers/venue-estate/01608300d20f7e43b245eb95124926ec3505fd5209b6ee8f83be9c9cd5283392/hero.jpg",
+          "url": "https://cdn.gatherory.com/explore/covers/venue-estate/01608300d20f7e43b245eb95124926ec3505fd5209b6ee8f83be9c9cd5283392/hero.jpg"
+        }
+      ]
+    },
+    "fileChecksum": "94e8a54552576e6b6207d3d8fc82e0cf4a82a6e53d1dc8e7b8f4882419cf92d3"
+  },
+  "dinner-tasting": {
+    "file": "scripts/seed/assets/dinner-tasting.jpg",
+    "license": {
+      "name": "Unsplash License",
+      "url": "https://unsplash.com/license",
+      "sourceURL": "https://unsplash.com/photos/dinner-is-served-with-white-wine-and-food-Hl4eg9Up4s0",
+      "photographer": "Tommaso Ubezio",
+      "photoID": "photo-1750943024048-a4c9912b1425",
+      "checkedAt": "2026-10-22T16:35:00Z"
+    },
+    "manifest": {
+      "schemaVersion": 1,
+      "label": "A plated dinner with wine at a restaurant table.",
+      "source": {
+        "width": 682,
+        "height": 1024,
+        "checksum": "834f4b058291b7bbf04e17d10ed8d71042dce4fc3f739c68fc8cdc812c4063d8"
+      },
+      "bucket": "gatherory-public",
+      "processingVersion": "explore-cover-jpeg-v1",
+      "variants": [
+        {
+          "name": "thumbnail",
+          "width": 213,
+          "height": 320,
+          "checksum": "b581d8154b66cac0daed42f5bc423e63e6c69299e9eb672fc841ef763c115605",
+          "bucket": "gatherory-public",
+          "key": "explore/covers/dinner-tasting/bdd1fb1624a08a66e4e2ed0d304ed51c863082a129fc6e302d6ff2961c28b057/thumbnail.jpg",
+          "url": "https://cdn.gatherory.com/explore/covers/dinner-tasting/bdd1fb1624a08a66e4e2ed0d304ed51c863082a129fc6e302d6ff2961c28b057/thumbnail.jpg"
+        },
+        {
+          "name": "card",
+          "width": 639,
+          "height": 960,
+          "checksum": "febd60e06026c319e396b91bf58b560e336f022880640f79756549170e7d88d8",
+          "bucket": "gatherory-public",
+          "key": "explore/covers/dinner-tasting/bdd1fb1624a08a66e4e2ed0d304ed51c863082a129fc6e302d6ff2961c28b057/card.jpg",
+          "url": "https://cdn.gatherory.com/explore/covers/dinner-tasting/bdd1fb1624a08a66e4e2ed0d304ed51c863082a129fc6e302d6ff2961c28b057/card.jpg"
+        },
+        {
+          "name": "hero",
+          "width": 682,
+          "height": 1024,
+          "checksum": "dbace1899595adce8088cbc930a2dd895b7f5fc7feafa79b6df672ca79a56b97",
+          "bucket": "gatherory-public",
+          "key": "explore/covers/dinner-tasting/bdd1fb1624a08a66e4e2ed0d304ed51c863082a129fc6e302d6ff2961c28b057/hero.jpg",
+          "url": "https://cdn.gatherory.com/explore/covers/dinner-tasting/bdd1fb1624a08a66e4e2ed0d304ed51c863082a129fc6e302d6ff2961c28b057/hero.jpg"
+        }
+      ]
+    },
+    "fileChecksum": "4fa1e6ac4090b764addd746e7e08969c9dbd871e46ef436d4898b69c57575b10"
+  },
+  "reception-decor": {
+    "file": "scripts/seed/assets/reception-decor.jpg",
+    "license": {
+      "name": "Unsplash License",
+      "url": "https://unsplash.com/license",
+      "sourceURL": "https://unsplash.com/photos/a-table-is-set-with-flowers-and-candles-5RfyQ9urdx0",
+      "photographer": "Joshua Manjgo",
+      "photoID": "photo-1738669469820-259d9c7189bb",
+      "checkedAt": "2026-10-22T16:35:00Z"
+    },
+    "manifest": {
+      "schemaVersion": 1,
+      "label": "Flowers and taper candles decorate an outdoor dinner table.",
+      "source": {
+        "width": 682,
+        "height": 1024,
+        "checksum": "9317cdec6e4ce314126f4a8a56519bd916d51cc95344e472a01f24eae11fc848"
+      },
+      "bucket": "gatherory-public",
+      "processingVersion": "explore-cover-jpeg-v1",
+      "variants": [
+        {
+          "name": "thumbnail",
+          "width": 213,
+          "height": 320,
+          "checksum": "db387acb296aff6c82501c59573c575136b153cdbbd4a63272f549580e025478",
+          "bucket": "gatherory-public",
+          "key": "explore/covers/reception-decor/5c330de407975ed073eb420f44b1b5b396102b8f1d3eb0232e1f4bed275aee40/thumbnail.jpg",
+          "url": "https://cdn.gatherory.com/explore/covers/reception-decor/5c330de407975ed073eb420f44b1b5b396102b8f1d3eb0232e1f4bed275aee40/thumbnail.jpg"
+        },
+        {
+          "name": "card",
+          "width": 639,
+          "height": 960,
+          "checksum": "3367ce09ed7dd09e7f70e3158956d10f7cc423780c0f8cee502832c16199ab60",
+          "bucket": "gatherory-public",
+          "key": "explore/covers/reception-decor/5c330de407975ed073eb420f44b1b5b396102b8f1d3eb0232e1f4bed275aee40/card.jpg",
+          "url": "https://cdn.gatherory.com/explore/covers/reception-decor/5c330de407975ed073eb420f44b1b5b396102b8f1d3eb0232e1f4bed275aee40/card.jpg"
+        },
+        {
+          "name": "hero",
+          "width": 682,
+          "height": 1024,
+          "checksum": "ab7029a8c91d5a20c12b0acf58ccf7cbe364f7db625b9c2a92530e9f05281ba1",
+          "bucket": "gatherory-public",
+          "key": "explore/covers/reception-decor/5c330de407975ed073eb420f44b1b5b396102b8f1d3eb0232e1f4bed275aee40/hero.jpg",
+          "url": "https://cdn.gatherory.com/explore/covers/reception-decor/5c330de407975ed073eb420f44b1b5b396102b8f1d3eb0232e1f4bed275aee40/hero.jpg"
+        }
+      ]
+    },
+    "fileChecksum": "4320ef4c4104576adc128ccc5b110383dbeb584f3db49c196fe51e351b870285"
+  },
+  "ceremony-couple": {
+    "file": "scripts/seed/assets/ceremony-couple.jpg",
+    "license": {
+      "name": "Unsplash License",
+      "url": "https://unsplash.com/license",
+      "sourceURL": "https://unsplash.com/photos/a-bride-and-groom-stand-at-an-outdoor-wedding-ceremony-5ICctTdtgjI",
+      "photographer": "Alexander Mass",
+      "photoID": "photo-1777312378804-7b31809db220",
+      "checkedAt": "2026-10-22T16:35:00Z"
+    },
+    "manifest": {
+      "schemaVersion": 1,
+      "label": "A couple exchange vows in an outdoor garden ceremony.",
+      "source": {
+        "width": 682,
+        "height": 1024,
+        "checksum": "365c3744e354bed2d44a08ddf4821464f8b55b9d215f5239adc3ae148e53035e"
+      },
+      "bucket": "gatherory-public",
+      "processingVersion": "explore-cover-jpeg-v1",
+      "variants": [
+        {
+          "name": "thumbnail",
+          "width": 213,
+          "height": 320,
+          "checksum": "924ba8f9b39ee0868b62731e95879170c66fab9b05c5c88e15fe1cc166704ba6",
+          "bucket": "gatherory-public",
+          "key": "explore/covers/ceremony-couple/310a0c45e873bf5caf0644f21f904a78114e4347538bff20e1c136b1922d9166/thumbnail.jpg",
+          "url": "https://cdn.gatherory.com/explore/covers/ceremony-couple/310a0c45e873bf5caf0644f21f904a78114e4347538bff20e1c136b1922d9166/thumbnail.jpg"
+        },
+        {
+          "name": "card",
+          "width": 639,
+          "height": 960,
+          "checksum": "718ec9bbb1f24abaae7d5c6b7b6221a2273d8c7119a9f0d34d164ba39c903fa7",
+          "bucket": "gatherory-public",
+          "key": "explore/covers/ceremony-couple/310a0c45e873bf5caf0644f21f904a78114e4347538bff20e1c136b1922d9166/card.jpg",
+          "url": "https://cdn.gatherory.com/explore/covers/ceremony-couple/310a0c45e873bf5caf0644f21f904a78114e4347538bff20e1c136b1922d9166/card.jpg"
+        },
+        {
+          "name": "hero",
+          "width": 682,
+          "height": 1024,
+          "checksum": "2c567178d93666f112e00415c17271ac93584a41641e1e34fad142207f004b48",
+          "bucket": "gatherory-public",
+          "key": "explore/covers/ceremony-couple/310a0c45e873bf5caf0644f21f904a78114e4347538bff20e1c136b1922d9166/hero.jpg",
+          "url": "https://cdn.gatherory.com/explore/covers/ceremony-couple/310a0c45e873bf5caf0644f21f904a78114e4347538bff20e1c136b1922d9166/hero.jpg"
+        }
+      ]
+    },
+    "fileChecksum": "8f67c859d0b0befc59a6c7f6e48c25c79782ef55c7cb1a2d18b2ecff57d2a3ab"
+  },
+  "reception-tables": {
+    "file": "scripts/seed/assets/reception-tables.jpg",
+    "license": {
+      "name": "Unsplash License",
+      "url": "https://unsplash.com/license",
+      "sourceURL": "https://unsplash.com/photos/a-beautifully-set-table-for-a-wedding-reception-zjJiX9txwRU",
+      "photographer": "Ben Atkins",
+      "photoID": "photo-1775126964424-913480443772",
+      "checkedAt": "2026-10-22T16:35:00Z"
+    },
+    "manifest": {
+      "schemaVersion": 1,
+      "label": "A long wedding reception table set with flowers, wine glasses, and place settings.",
+      "source": {
+        "width": 768,
+        "height": 1024,
+        "checksum": "85bfd94a2803cb670f90a1a8e1efd8a62fed78785f08a78f02d488affa4ec9cc"
+      },
+      "bucket": "gatherory-public",
+      "processingVersion": "explore-cover-jpeg-v1",
+      "variants": [
+        {
+          "name": "thumbnail",
+          "width": 240,
+          "height": 320,
+          "checksum": "d2ce2d619334c13041f987be4445433ae0341f4230a6b40f900b42b8f70f4106",
+          "bucket": "gatherory-public",
+          "key": "explore/covers/reception-tables/66795902ad4107f96fed20c6af4ca4ce9ddf4ddca9ccfde0c0eca0e6b9f04603/thumbnail.jpg",
+          "url": "https://cdn.gatherory.com/explore/covers/reception-tables/66795902ad4107f96fed20c6af4ca4ce9ddf4ddca9ccfde0c0eca0e6b9f04603/thumbnail.jpg"
+        },
+        {
+          "name": "card",
+          "width": 720,
+          "height": 960,
+          "checksum": "997f1dd2601acc752d4cc7d3e584e23a1e55dca5487a1527a5e301ab05616e29",
+          "bucket": "gatherory-public",
+          "key": "explore/covers/reception-tables/66795902ad4107f96fed20c6af4ca4ce9ddf4ddca9ccfde0c0eca0e6b9f04603/card.jpg",
+          "url": "https://cdn.gatherory.com/explore/covers/reception-tables/66795902ad4107f96fed20c6af4ca4ce9ddf4ddca9ccfde0c0eca0e6b9f04603/card.jpg"
+        },
+        {
+          "name": "hero",
+          "width": 768,
+          "height": 1024,
+          "checksum": "824a6c2fe419d60ec82a49df6c7b9452ef499aea13534e15d0b4fdf176453210",
+          "bucket": "gatherory-public",
+          "key": "explore/covers/reception-tables/66795902ad4107f96fed20c6af4ca4ce9ddf4ddca9ccfde0c0eca0e6b9f04603/hero.jpg",
+          "url": "https://cdn.gatherory.com/explore/covers/reception-tables/66795902ad4107f96fed20c6af4ca4ce9ddf4ddca9ccfde0c0eca0e6b9f04603/hero.jpg"
+        }
+      ]
+    },
+    "fileChecksum": "7d15509796e83952a7e133073fd0ba0fa1c4c8fc8582b3b0f6b11325d18ec674"
+  },
+  "afterparty-drinks": {
+    "file": "scripts/seed/assets/afterparty-drinks.jpg",
+    "license": {
+      "name": "Unsplash License",
+      "url": "https://unsplash.com/license",
+      "sourceURL": "https://unsplash.com/photos/friends-enjoying-cocktails-and-snacks-at-a-table-hJqfore3SH4",
+      "photographer": "Diana Díaz",
+      "photoID": "photo-1771395999627-a57a7c6739d1",
+      "checkedAt": "2026-10-22T16:35:00Z"
+    },
+    "manifest": {
+      "schemaVersion": 1,
+      "label": "Friends share drinks and snacks around a table.",
+      "source": {
+        "width": 683,
+        "height": 1024,
+        "checksum": "5cfa2d4d5dce59a0f20965115ddf6cddeeb5ee2b7383e3f6cf2b88ad50347769"
+      },
+      "bucket": "gatherory-public",
+      "processingVersion": "explore-cover-jpeg-v1",
+      "variants": [
+        {
+          "name": "thumbnail",
+          "width": 213,
+          "height": 320,
+          "checksum": "52b43ff76e57bbeae822fe0aaead312222fb2cbd906dd3bb113ec304045a1094",
+          "bucket": "gatherory-public",
+          "key": "explore/covers/afterparty-drinks/be21576477762d66fe0bab02ade5b2b2f2824ab9a0e362bb3d2b81ba013956ba/thumbnail.jpg",
+          "url": "https://cdn.gatherory.com/explore/covers/afterparty-drinks/be21576477762d66fe0bab02ade5b2b2f2824ab9a0e362bb3d2b81ba013956ba/thumbnail.jpg"
+        },
+        {
+          "name": "card",
+          "width": 640,
+          "height": 960,
+          "checksum": "63b97845d745fa9d189622dcd8c4185c167884a7f303d0edc25b405d3411c3ce",
+          "bucket": "gatherory-public",
+          "key": "explore/covers/afterparty-drinks/be21576477762d66fe0bab02ade5b2b2f2824ab9a0e362bb3d2b81ba013956ba/card.jpg",
+          "url": "https://cdn.gatherory.com/explore/covers/afterparty-drinks/be21576477762d66fe0bab02ade5b2b2f2824ab9a0e362bb3d2b81ba013956ba/card.jpg"
+        },
+        {
+          "name": "hero",
+          "width": 683,
+          "height": 1024,
+          "checksum": "b235688c942a37c9834cfacef8552054ff9ba6404f7d7290b6f5f5c1630c639c",
+          "bucket": "gatherory-public",
+          "key": "explore/covers/afterparty-drinks/be21576477762d66fe0bab02ade5b2b2f2824ab9a0e362bb3d2b81ba013956ba/hero.jpg",
+          "url": "https://cdn.gatherory.com/explore/covers/afterparty-drinks/be21576477762d66fe0bab02ade5b2b2f2824ab9a0e362bb3d2b81ba013956ba/hero.jpg"
+        }
+      ]
+    },
+    "fileChecksum": "65e5e6caacd697bf9e7b8a69a71145bfa19402b76b761b0081ba1c51f3f1c186"
+  },
+  "venue-garden": {
+    "file": "scripts/seed/assets/venue-garden.jpg",
+    "license": {
+      "name": "Unsplash License",
+      "url": "https://unsplash.com/license",
+      "sourceURL": "https://unsplash.com/photos/a-garden-filled-with-lots-of-white-flowers-96IKWQOvmVk",
+      "photographer": "Brittney Weng",
+      "photoID": "photo-1696271026783-794d41d5598e",
+      "checkedAt": "2026-10-22T16:35:00Z"
+    },
+    "manifest": {
+      "schemaVersion": 1,
+      "label": "A fountain sits among flowering garden paths and mature trees.",
+      "source": {
+        "width": 682,
+        "height": 1024,
+        "checksum": "f24ea5f1f1f04a0b7cd48ad68e00cb1be20d9e6fd5020a6b01415778ffc71030"
+      },
+      "bucket": "gatherory-public",
+      "processingVersion": "explore-cover-jpeg-v1",
+      "variants": [
+        {
+          "name": "thumbnail",
+          "width": 213,
+          "height": 320,
+          "checksum": "d0f02e4a19a5790b29c3115b01a29114e89938f9fc4563d84c0b1b803eefeeec",
+          "bucket": "gatherory-public",
+          "key": "explore/covers/venue-garden/ca327ac86a493e2bf5176013c75d93e22264cf0c7c7c943fda399efcb6ec2764/thumbnail.jpg",
+          "url": "https://cdn.gatherory.com/explore/covers/venue-garden/ca327ac86a493e2bf5176013c75d93e22264cf0c7c7c943fda399efcb6ec2764/thumbnail.jpg"
+        },
+        {
+          "name": "card",
+          "width": 639,
+          "height": 960,
+          "checksum": "f75107fb6edbc7861f71f0e3112fec5f5fdbeb467aac29f3167904846aecae86",
+          "bucket": "gatherory-public",
+          "key": "explore/covers/venue-garden/ca327ac86a493e2bf5176013c75d93e22264cf0c7c7c943fda399efcb6ec2764/card.jpg",
+          "url": "https://cdn.gatherory.com/explore/covers/venue-garden/ca327ac86a493e2bf5176013c75d93e22264cf0c7c7c943fda399efcb6ec2764/card.jpg"
+        },
+        {
+          "name": "hero",
+          "width": 682,
+          "height": 1024,
+          "checksum": "7ea253b35ec9f96bd13e3713fb329cd2b56076838f85ff339c5fb1e31241a921",
+          "bucket": "gatherory-public",
+          "key": "explore/covers/venue-garden/ca327ac86a493e2bf5176013c75d93e22264cf0c7c7c943fda399efcb6ec2764/hero.jpg",
+          "url": "https://cdn.gatherory.com/explore/covers/venue-garden/ca327ac86a493e2bf5176013c75d93e22264cf0c7c7c943fda399efcb6ec2764/hero.jpg"
+        }
+      ]
+    },
+    "fileChecksum": "79e868d85daa830aef3364bbfb915e2d9d1e05ee2b3f4abc777e9a9ea1f27296"
+  },
+  "music-playlist": {
+    "file": "scripts/seed/assets/music-playlist.jpg",
+    "license": {
+      "name": "Unsplash License",
+      "url": "https://unsplash.com/license",
+      "sourceURL": "https://unsplash.com/photos/vinyl-record-on-turntable--ja1xVOENMo",
+      "photographer": "Vincent Chan",
+      "photoID": "photo-1520354127549-fcecfe79d058",
+      "checkedAt": "2026-10-22T16:35:00Z"
+    },
+    "manifest": {
+      "schemaVersion": 1,
+      "label": "A vinyl record rests on a turntable.",
+      "source": {
+        "width": 1024,
+        "height": 682,
+        "checksum": "dea66e3629ca4dd54ecdeddc10d3aa8d6fbad36c232e1f45dff1aa095d0f8c4e"
+      },
+      "bucket": "gatherory-public",
+      "processingVersion": "explore-cover-jpeg-v1",
+      "variants": [
+        {
+          "name": "thumbnail",
+          "width": 320,
+          "height": 213,
+          "checksum": "8b8684d8830cbc85b1e7ff73705f26928a236468563cf1c4b90037f83020ebd0",
+          "bucket": "gatherory-public",
+          "key": "explore/covers/music-playlist/4534ef595a68df96143781325345a06b509d27cc7a6071c97f14ee68c9d275ed/thumbnail.jpg",
+          "url": "https://cdn.gatherory.com/explore/covers/music-playlist/4534ef595a68df96143781325345a06b509d27cc7a6071c97f14ee68c9d275ed/thumbnail.jpg"
+        },
+        {
+          "name": "card",
+          "width": 960,
+          "height": 639,
+          "checksum": "674bb2d53110eaccb61d39e5930f8458c79a18473c18f69265e3d83cbf8603d8",
+          "bucket": "gatherory-public",
+          "key": "explore/covers/music-playlist/4534ef595a68df96143781325345a06b509d27cc7a6071c97f14ee68c9d275ed/card.jpg",
+          "url": "https://cdn.gatherory.com/explore/covers/music-playlist/4534ef595a68df96143781325345a06b509d27cc7a6071c97f14ee68c9d275ed/card.jpg"
+        },
+        {
+          "name": "hero",
+          "width": 1024,
+          "height": 682,
+          "checksum": "e48e883e42f835663ca2fb7322b8a2f887acd5027669a795cb2261fec1c3eb3f",
+          "bucket": "gatherory-public",
+          "key": "explore/covers/music-playlist/4534ef595a68df96143781325345a06b509d27cc7a6071c97f14ee68c9d275ed/hero.jpg",
+          "url": "https://cdn.gatherory.com/explore/covers/music-playlist/4534ef595a68df96143781325345a06b509d27cc7a6071c97f14ee68c9d275ed/hero.jpg"
+        }
+      ]
+    },
+    "fileChecksum": "d72c72f88334330ed4da14ef0b15ace5afba83d7d8d9f0ce7ffa9b06a26807ad"
+  },
+  "attire-garden": {
+    "file": "scripts/seed/assets/attire-garden.jpg",
+    "license": {
+      "name": "Unsplash License",
+      "url": "https://unsplash.com/license",
+      "sourceURL": "https://unsplash.com/photos/bride-in-a-flowing-gown-walks-through-doorway-to-garden-NOknLmkVDaA",
+      "photographer": "Denisa-Elena Ficau",
+      "photoID": "photo-1759054713286-713c4ceeb5ba",
+      "checkedAt": "2026-10-22T16:35:00Z"
+    },
+    "manifest": {
+      "schemaVersion": 1,
+      "label": "A bride in a flowing wedding dress walks from a doorway into a garden.",
+      "source": {
+        "width": 681,
+        "height": 1024,
+        "checksum": "acc095bd2eff9a5fee5746796c751fd9dcb39b52bc7b21f244c33d243d4f7b74"
+      },
+      "bucket": "gatherory-public",
+      "processingVersion": "explore-cover-jpeg-v1",
+      "variants": [
+        {
+          "name": "thumbnail",
+          "width": 213,
+          "height": 320,
+          "checksum": "badb10d9f56fc5a1011c3676f9f420d9c3d7c036ab5d0393d69cdcd5184b97d0",
+          "bucket": "gatherory-public",
+          "key": "explore/covers/attire-garden/f880923aea2c1427069691761a0550c6cf8a9b8011474beedff314c4b29a3bfa/thumbnail.jpg",
+          "url": "https://cdn.gatherory.com/explore/covers/attire-garden/f880923aea2c1427069691761a0550c6cf8a9b8011474beedff314c4b29a3bfa/thumbnail.jpg"
+        },
+        {
+          "name": "card",
+          "width": 638,
+          "height": 960,
+          "checksum": "af2c9c8e978f3cb32280507ba782ca0022b5ece8dbea14bdabb702b43c890f4a",
+          "bucket": "gatherory-public",
+          "key": "explore/covers/attire-garden/f880923aea2c1427069691761a0550c6cf8a9b8011474beedff314c4b29a3bfa/card.jpg",
+          "url": "https://cdn.gatherory.com/explore/covers/attire-garden/f880923aea2c1427069691761a0550c6cf8a9b8011474beedff314c4b29a3bfa/card.jpg"
+        },
+        {
+          "name": "hero",
+          "width": 681,
+          "height": 1024,
+          "checksum": "42e4f28a76aedb1e8381ec829fcefaa82b87392b04abe569e92d97b950143802",
+          "bucket": "gatherory-public",
+          "key": "explore/covers/attire-garden/f880923aea2c1427069691761a0550c6cf8a9b8011474beedff314c4b29a3bfa/hero.jpg",
+          "url": "https://cdn.gatherory.com/explore/covers/attire-garden/f880923aea2c1427069691761a0550c6cf8a9b8011474beedff314c4b29a3bfa/hero.jpg"
+        }
+      ]
+    },
+    "fileChecksum": "db444782e2b123f1dfcac48a3f99fb139d5c9c3129c9fdddbaf6cd204b81e4b4"
+  },
+  "honeymoon-amalfi": {
+    "file": "scripts/seed/assets/honeymoon-amalfi.jpg",
+    "license": {
+      "name": "Unsplash License",
+      "url": "https://unsplash.com/license",
+      "sourceURL": "https://unsplash.com/photos/a-small-village-on-a-cliff-overlooking-the-ocean-jnwHRs7eVtw",
+      "photographer": "Alexander Voronov",
+      "photoID": "photo-1729763077607-63597d3201be",
+      "checkedAt": "2026-10-22T16:35:00Z"
+    },
+    "manifest": {
+      "schemaVersion": 1,
+      "label": "Colorful Amalfi Coast buildings overlook the Mediterranean Sea.",
+      "source": {
+        "width": 1024,
+        "height": 682,
+        "checksum": "889b72d492008529c884d30cb2039449fe1df5c88876b84d97c6f28ecac07ced"
+      },
+      "bucket": "gatherory-public",
+      "processingVersion": "explore-cover-jpeg-v1",
+      "variants": [
+        {
+          "name": "thumbnail",
+          "width": 320,
+          "height": 213,
+          "checksum": "b3039f10366c1fb32fbd2b38d5f2b43668d4df7a5dcb02a2fc1afdad52976590",
+          "bucket": "gatherory-public",
+          "key": "explore/covers/honeymoon-amalfi/ee3d3756261bda5151a5cf82eb992c7e4d8c5a729f7a487862ca93f37896a5ee/thumbnail.jpg",
+          "url": "https://cdn.gatherory.com/explore/covers/honeymoon-amalfi/ee3d3756261bda5151a5cf82eb992c7e4d8c5a729f7a487862ca93f37896a5ee/thumbnail.jpg"
+        },
+        {
+          "name": "card",
+          "width": 960,
+          "height": 639,
+          "checksum": "6a857302aafb26216a1ea34234a94d6800aa8464035dbd3a92dc71129491a341",
+          "bucket": "gatherory-public",
+          "key": "explore/covers/honeymoon-amalfi/ee3d3756261bda5151a5cf82eb992c7e4d8c5a729f7a487862ca93f37896a5ee/card.jpg",
+          "url": "https://cdn.gatherory.com/explore/covers/honeymoon-amalfi/ee3d3756261bda5151a5cf82eb992c7e4d8c5a729f7a487862ca93f37896a5ee/card.jpg"
+        },
+        {
+          "name": "hero",
+          "width": 1024,
+          "height": 682,
+          "checksum": "fd682d5370b3e303da8c3a805b9dd5d61767fced1f69214198909a7f2761e34f",
+          "bucket": "gatherory-public",
+          "key": "explore/covers/honeymoon-amalfi/ee3d3756261bda5151a5cf82eb992c7e4d8c5a729f7a487862ca93f37896a5ee/hero.jpg",
+          "url": "https://cdn.gatherory.com/explore/covers/honeymoon-amalfi/ee3d3756261bda5151a5cf82eb992c7e4d8c5a729f7a487862ca93f37896a5ee/hero.jpg"
+        }
+      ]
+    },
+    "fileChecksum": "c81da064980cbc0fa2477474fc6991012a62e1bc78bae2246e08ad75bf6dbdf5"
+  },
+  "garden-ceremony": {
+    "file": "scripts/seed/assets/garden-ceremony.jpg",
+    "license": {
+      "name": "Unsplash License",
+      "url": "https://unsplash.com/license",
+      "sourceURL": "https://unsplash.com/photos/a-woman-in-a-wedding-dress-standing-in-a-garden-MJKzzcEkXLY",
+      "photographer": "Joeyy Lee",
+      "photoID": "photo-1640654514825-426e31176e31",
+      "checkedAt": "2026-10-22T16:35:00Z"
+    },
+    "manifest": {
+      "schemaVersion": 1,
+      "label": "A bride in a wedding dress stands in a garden among flowering trees.",
+      "source": {
+        "width": 682,
+        "height": 1024,
+        "checksum": "3618e47369998ebf3a6c01856b8ef1d7411d65f0bdd937b082403f20733317a0"
+      },
+      "bucket": "gatherory-public",
+      "processingVersion": "explore-cover-jpeg-v1",
+      "variants": [
+        {
+          "name": "thumbnail",
+          "width": 213,
+          "height": 320,
+          "checksum": "9a7a4c196f3f9393e5a4b4e0d04f0045cfd3d84e576f1b60f6260ab7dd2cdf63",
+          "bucket": "gatherory-public",
+          "key": "explore/covers/garden-ceremony/5870ba1cb0dfe03ee892c3065443ac184df3990d3f17992cb3663f485b5b3ead/thumbnail.jpg",
+          "url": "https://cdn.gatherory.com/explore/covers/garden-ceremony/5870ba1cb0dfe03ee892c3065443ac184df3990d3f17992cb3663f485b5b3ead/thumbnail.jpg"
+        },
+        {
+          "name": "card",
+          "width": 639,
+          "height": 960,
+          "checksum": "f5859692c4c4343ecc1a069de0d77549f1c03c538d998939143139a24f329130",
+          "bucket": "gatherory-public",
+          "key": "explore/covers/garden-ceremony/5870ba1cb0dfe03ee892c3065443ac184df3990d3f17992cb3663f485b5b3ead/card.jpg",
+          "url": "https://cdn.gatherory.com/explore/covers/garden-ceremony/5870ba1cb0dfe03ee892c3065443ac184df3990d3f17992cb3663f485b5b3ead/card.jpg"
+        },
+        {
+          "name": "hero",
+          "width": 682,
+          "height": 1024,
+          "checksum": "1ca10cd38b91af9c91ae84f2b8335d5c475edb63984efe872190332d26e12cb7",
+          "bucket": "gatherory-public",
+          "key": "explore/covers/garden-ceremony/5870ba1cb0dfe03ee892c3065443ac184df3990d3f17992cb3663f485b5b3ead/hero.jpg",
+          "url": "https://cdn.gatherory.com/explore/covers/garden-ceremony/5870ba1cb0dfe03ee892c3065443ac184df3990d3f17992cb3663f485b5b3ead/hero.jpg"
+        }
+      ]
+    },
+    "fileChecksum": "b02ec6a2ac42ecf41c19da619084b7bac0b23b0fadb2c563338eb370d74699f0"
+  },
+  "welcome-drinks": {
+    "file": "scripts/seed/assets/welcome-drinks.jpg",
+    "license": {
+      "name": "Unsplash License",
+      "url": "https://unsplash.com/license",
+      "sourceURL": "https://unsplash.com/photos/a-glass-of-wine-sitting-on-top-of-a-table-Pe2y3pk2lbQ",
+      "photographer": "Luwadlin Bosman",
+      "photoID": "photo-1639947866585-433f2432ce7c",
+      "checkedAt": "2026-10-22T16:35:00Z"
+    },
+    "manifest": {
+      "schemaVersion": 1,
+      "label": "A glass of champagne catches the light on a wedding table.",
+      "source": {
+        "width": 778,
+        "height": 1024,
+        "checksum": "5f9c12e8f13c952107b2161851d385870601aece78bdcc5c51d122466737738b"
+      },
+      "bucket": "gatherory-public",
+      "processingVersion": "explore-cover-jpeg-v1",
+      "variants": [
+        {
+          "name": "thumbnail",
+          "width": 243,
+          "height": 320,
+          "checksum": "fa2c92f3cc5d7695a39b6598794c3d011505ae090979056c15f4c38979ae1957",
+          "bucket": "gatherory-public",
+          "key": "explore/covers/welcome-drinks/e4e9d659fd455feb57bbd72b42aea753d23260baa7e8b36ccd3ae8327b633192/thumbnail.jpg",
+          "url": "https://cdn.gatherory.com/explore/covers/welcome-drinks/e4e9d659fd455feb57bbd72b42aea753d23260baa7e8b36ccd3ae8327b633192/thumbnail.jpg"
+        },
+        {
+          "name": "card",
+          "width": 729,
+          "height": 960,
+          "checksum": "ea7566807af86e2a6a14a1b0d9e2c0076519de4e63b221f598871d1db949dfbc",
+          "bucket": "gatherory-public",
+          "key": "explore/covers/welcome-drinks/e4e9d659fd455feb57bbd72b42aea753d23260baa7e8b36ccd3ae8327b633192/card.jpg",
+          "url": "https://cdn.gatherory.com/explore/covers/welcome-drinks/e4e9d659fd455feb57bbd72b42aea753d23260baa7e8b36ccd3ae8327b633192/card.jpg"
+        },
+        {
+          "name": "hero",
+          "width": 778,
+          "height": 1024,
+          "checksum": "750414eb5cb61801d68dd351a2341a89aa4804a2753df5683127aa2d2dd9c150",
+          "bucket": "gatherory-public",
+          "key": "explore/covers/welcome-drinks/e4e9d659fd455feb57bbd72b42aea753d23260baa7e8b36ccd3ae8327b633192/hero.jpg",
+          "url": "https://cdn.gatherory.com/explore/covers/welcome-drinks/e4e9d659fd455feb57bbd72b42aea753d23260baa7e8b36ccd3ae8327b633192/hero.jpg"
+        }
+      ]
+    },
+    "fileChecksum": "452930c8d0013a889aa26e2c4cbab316609f11ab232eda3a536ffc1d90e1e08d"
+  },
+  "flowers": {
+    "file": "scripts/seed/assets/flowers.jpg",
+    "license": {
+      "name": "Unsplash License",
+      "url": "https://unsplash.com/license",
+      "sourceURL": "https://unsplash.com/photos/a-close-up-of-a-colorful-bouquet-of-various-flowers-NTkFwBWZ7nE",
+      "photographer": "Harshit Maurya",
+      "photoID": "photo-1771603074775-9194aae19678",
+      "checkedAt": "2026-10-22T16:35:00Z"
+    },
+    "manifest": {
+      "schemaVersion": 1,
+      "label": "A close-up bouquet of white, yellow, orange, and purple flowers.",
+      "source": {
+        "width": 1024,
+        "height": 768,
+        "checksum": "aad0492146f28b2d6d34a5b4f7f5cf122679160e9f4d1bc37befb7a64b41d651"
+      },
+      "bucket": "gatherory-public",
+      "processingVersion": "explore-cover-jpeg-v1",
+      "variants": [
+        {
+          "name": "thumbnail",
+          "width": 320,
+          "height": 240,
+          "checksum": "473a865408825e56199d4eb84e6c4570208e4916ec435bcab2ace06547312a23",
+          "bucket": "gatherory-public",
+          "key": "explore/covers/flowers/d36598aa3a91ec2ed0f5cadde1c8009b7f9e1a0f055ce8363d278a8cccb19afa/thumbnail.jpg",
+          "url": "https://cdn.gatherory.com/explore/covers/flowers/d36598aa3a91ec2ed0f5cadde1c8009b7f9e1a0f055ce8363d278a8cccb19afa/thumbnail.jpg"
+        },
+        {
+          "name": "card",
+          "width": 960,
+          "height": 720,
+          "checksum": "3d12248586d8a198d740170404f59231a31b0e93e185c3a328a0372a65ab842e",
+          "bucket": "gatherory-public",
+          "key": "explore/covers/flowers/d36598aa3a91ec2ed0f5cadde1c8009b7f9e1a0f055ce8363d278a8cccb19afa/card.jpg",
+          "url": "https://cdn.gatherory.com/explore/covers/flowers/d36598aa3a91ec2ed0f5cadde1c8009b7f9e1a0f055ce8363d278a8cccb19afa/card.jpg"
+        },
+        {
+          "name": "hero",
+          "width": 1024,
+          "height": 768,
+          "checksum": "aab8d2f3f6646eb607a0fce4fb969d32736ec7c48278b8fbf974abd083990e17",
+          "bucket": "gatherory-public",
+          "key": "explore/covers/flowers/d36598aa3a91ec2ed0f5cadde1c8009b7f9e1a0f055ce8363d278a8cccb19afa/hero.jpg",
+          "url": "https://cdn.gatherory.com/explore/covers/flowers/d36598aa3a91ec2ed0f5cadde1c8009b7f9e1a0f055ce8363d278a8cccb19afa/hero.jpg"
+        }
+      ]
+    },
+    "fileChecksum": "90bc43db2b2173759ff3f610147fdcc6aeb86c08dec9ab9b695219d3509e4253"
+  },
+  "food": {
+    "file": "scripts/seed/assets/food.jpg",
+    "license": {
+      "name": "Unsplash License",
+      "url": "https://unsplash.com/license",
+      "sourceURL": "https://unsplash.com/photos/two-pasta-dishes-and-drinks-on-a-table-89PS_ZfaxHs",
+      "photographer": "Ruby Huang",
+      "photoID": "photo-1770889068715-3c6e5f2ab05f",
+      "checkedAt": "2026-10-22T16:35:00Z"
+    },
+    "manifest": {
+      "schemaVersion": 1,
+      "label": "Pasta dishes and drinks are arranged on a restaurant table.",
+      "source": {
+        "width": 1024,
+        "height": 682,
+        "checksum": "281f017dd272baaac76699ee90a68b3d3fd1447beb0da396fbf4e8b0d940a08e"
+      },
+      "bucket": "gatherory-public",
+      "processingVersion": "explore-cover-jpeg-v1",
+      "variants": [
+        {
+          "name": "thumbnail",
+          "width": 320,
+          "height": 213,
+          "checksum": "8769b2b74dc99d32f7db2ef220f37045ebfd328b3c1d0819b59b265504dd83c5",
+          "bucket": "gatherory-public",
+          "key": "explore/covers/food/38c1dde60af39956b5f26a753086e4f1ca2d5b70e50f0fc077385eeab25428ed/thumbnail.jpg",
+          "url": "https://cdn.gatherory.com/explore/covers/food/38c1dde60af39956b5f26a753086e4f1ca2d5b70e50f0fc077385eeab25428ed/thumbnail.jpg"
+        },
+        {
+          "name": "card",
+          "width": 960,
+          "height": 639,
+          "checksum": "78ebc9f118dcbf5c246793f2cc47add6584863b633bf1db72f5338db36cb9e55",
+          "bucket": "gatherory-public",
+          "key": "explore/covers/food/38c1dde60af39956b5f26a753086e4f1ca2d5b70e50f0fc077385eeab25428ed/card.jpg",
+          "url": "https://cdn.gatherory.com/explore/covers/food/38c1dde60af39956b5f26a753086e4f1ca2d5b70e50f0fc077385eeab25428ed/card.jpg"
+        },
+        {
+          "name": "hero",
+          "width": 1024,
+          "height": 682,
+          "checksum": "2030c92d458767bfcc1bdf6960d0e479593f1ae14cf4fc788eddbbf886f3b078",
+          "bucket": "gatherory-public",
+          "key": "explore/covers/food/38c1dde60af39956b5f26a753086e4f1ca2d5b70e50f0fc077385eeab25428ed/hero.jpg",
+          "url": "https://cdn.gatherory.com/explore/covers/food/38c1dde60af39956b5f26a753086e4f1ca2d5b70e50f0fc077385eeab25428ed/hero.jpg"
+        }
+      ]
+    },
+    "fileChecksum": "a87c104dbe1a8c95bcd30b6cdcbc285cd01fa87d18a8a5c5500bd2414a9caab0"
+  },
+  "photography": {
+    "file": "scripts/seed/assets/photography.jpg",
+    "license": {
+      "name": "Unsplash License",
+      "url": "https://unsplash.com/license",
+      "sourceURL": "https://unsplash.com/photos/a-diverse-group-of-friends-taking-a-selfie-together-PpQyCTcADtw",
+      "photographer": "Vitaly Gariev",
+      "photoID": "photo-1758272133833-3a2277d426e4",
+      "checkedAt": "2026-10-22T16:35:00Z"
+    },
+    "manifest": {
+      "schemaVersion": 1,
+      "label": "A group of friends gather together for a selfie.",
+      "source": {
+        "width": 1024,
+        "height": 576,
+        "checksum": "f198383db322f3f9d38f8c47df4fdb89de3460df28fc741e331ec81829025a49"
+      },
+      "bucket": "gatherory-public",
+      "processingVersion": "explore-cover-jpeg-v1",
+      "variants": [
+        {
+          "name": "thumbnail",
+          "width": 320,
+          "height": 180,
+          "checksum": "031a6544d7a21847367846c92fea61bc2ccff166593154cbac93ef2ef864e8e6",
+          "bucket": "gatherory-public",
+          "key": "explore/covers/photography/27ec09e82a6beb313a4e7c9230b8ce95e7b7562315f2a570c137609ed9d0102b/thumbnail.jpg",
+          "url": "https://cdn.gatherory.com/explore/covers/photography/27ec09e82a6beb313a4e7c9230b8ce95e7b7562315f2a570c137609ed9d0102b/thumbnail.jpg"
+        },
+        {
+          "name": "card",
+          "width": 960,
+          "height": 540,
+          "checksum": "a40a9324d85cd34149d4563d7dce10a0fde68895ae99457f96674ef90a08284c",
+          "bucket": "gatherory-public",
+          "key": "explore/covers/photography/27ec09e82a6beb313a4e7c9230b8ce95e7b7562315f2a570c137609ed9d0102b/card.jpg",
+          "url": "https://cdn.gatherory.com/explore/covers/photography/27ec09e82a6beb313a4e7c9230b8ce95e7b7562315f2a570c137609ed9d0102b/card.jpg"
+        },
+        {
+          "name": "hero",
+          "width": 1024,
+          "height": 576,
+          "checksum": "51f4d4997f1e793d84f6dfe8e5e889c64c11df079153a92e075b6d2d0b62f733",
+          "bucket": "gatherory-public",
+          "key": "explore/covers/photography/27ec09e82a6beb313a4e7c9230b8ce95e7b7562315f2a570c137609ed9d0102b/hero.jpg",
+          "url": "https://cdn.gatherory.com/explore/covers/photography/27ec09e82a6beb313a4e7c9230b8ce95e7b7562315f2a570c137609ed9d0102b/hero.jpg"
+        }
+      ]
+    },
+    "fileChecksum": "c48e06942073dd43e75e1e0be344496dc62998bbf472cfaa972f6eff7678ec64"
+  },
+  "decor": {
+    "file": "scripts/seed/assets/decor.jpg",
+    "license": {
+      "name": "Unsplash License",
+      "url": "https://unsplash.com/license",
+      "sourceURL": "https://unsplash.com/photos/friends-gathered-around-a-table-with-food-and-candles-YfidYnwtXok",
+      "photographer": "Andrii Solok",
+      "photoID": "photo-1771837602933-c1cc6293702b",
+      "checkedAt": "2026-10-22T16:35:00Z"
+    },
+    "manifest": {
+      "schemaVersion": 1,
+      "label": "Friends share a meal around a candlelit dinner table.",
+      "source": {
+        "width": 768,
+        "height": 1024,
+        "checksum": "2343bd152f1e30f0a310784404f4449aa74e900a23f3f00f3667f8b5bc3b5800"
+      },
+      "bucket": "gatherory-public",
+      "processingVersion": "explore-cover-jpeg-v1",
+      "variants": [
+        {
+          "name": "thumbnail",
+          "width": 240,
+          "height": 320,
+          "checksum": "a22eca29848b6910804f9e4d461b2470d580ad8a416b6b7dc8075ef55671e93d",
+          "bucket": "gatherory-public",
+          "key": "explore/covers/decor/afb0d7b80fed1dd00960ab705b330478e0e07021dd5ccb0cbd38500cb0164760/thumbnail.jpg",
+          "url": "https://cdn.gatherory.com/explore/covers/decor/afb0d7b80fed1dd00960ab705b330478e0e07021dd5ccb0cbd38500cb0164760/thumbnail.jpg"
+        },
+        {
+          "name": "card",
+          "width": 720,
+          "height": 960,
+          "checksum": "b2dc0b70d2627eb3c518fe0f070593ad0709ce3ea8f550ed7685907acb5fc97c",
+          "bucket": "gatherory-public",
+          "key": "explore/covers/decor/afb0d7b80fed1dd00960ab705b330478e0e07021dd5ccb0cbd38500cb0164760/card.jpg",
+          "url": "https://cdn.gatherory.com/explore/covers/decor/afb0d7b80fed1dd00960ab705b330478e0e07021dd5ccb0cbd38500cb0164760/card.jpg"
+        },
+        {
+          "name": "hero",
+          "width": 768,
+          "height": 1024,
+          "checksum": "c9fc4b47c0d257096cf965f4262fea9f2956e73c65f71543c6a9ef75cd276ef5",
+          "bucket": "gatherory-public",
+          "key": "explore/covers/decor/afb0d7b80fed1dd00960ab705b330478e0e07021dd5ccb0cbd38500cb0164760/hero.jpg",
+          "url": "https://cdn.gatherory.com/explore/covers/decor/afb0d7b80fed1dd00960ab705b330478e0e07021dd5ccb0cbd38500cb0164760/hero.jpg"
+        }
+      ]
+    },
+    "fileChecksum": "114043b4ad203066a4d405a8e080dfe2a1b1928a9c9d2eca0efa7e8a6b61b765"
+  },
+  "invitations": {
+    "file": "scripts/seed/assets/invitations.jpg",
+    "license": {
+      "name": "Unsplash License",
+      "url": "https://unsplash.com/license",
+      "sourceURL": "https://unsplash.com/photos/wedding-invitations-and-stationery-displayed-with-greenery-5ZribvTyQVQ",
+      "photographer": "Micah & Sammie Chaffin",
+      "photoID": "photo-1742581659446-6260fc707e7d",
+      "checkedAt": "2026-10-22T16:35:00Z"
+    },
+    "manifest": {
+      "schemaVersion": 1,
+      "label": "A botanical wedding invitation suite on white paper.",
+      "source": {
+        "width": 1024,
+        "height": 682,
+        "checksum": "dd6d98709cfee9dba097f87f2f41534e0858e706b103a3dfc42a68ab53708c78"
+      },
+      "bucket": "gatherory-public",
+      "processingVersion": "explore-cover-jpeg-v1",
+      "variants": [
+        {
+          "name": "thumbnail",
+          "width": 320,
+          "height": 213,
+          "checksum": "eefad0c64f61d1a261e6cc2196241f9bd95ba3d8bc7196f1454fbdde3201e656",
+          "bucket": "gatherory-public",
+          "key": "explore/covers/invitations/058538161d6148a42f5adf557082439a6033e74eda9e8032a8ffc836e9040a6e/thumbnail.jpg",
+          "url": "https://cdn.gatherory.com/explore/covers/invitations/058538161d6148a42f5adf557082439a6033e74eda9e8032a8ffc836e9040a6e/thumbnail.jpg"
+        },
+        {
+          "name": "card",
+          "width": 960,
+          "height": 639,
+          "checksum": "ae91a5c3b4aca026928a10c3778d8b3212ec8dd51052f82d5ac6c71891c5fac9",
+          "bucket": "gatherory-public",
+          "key": "explore/covers/invitations/058538161d6148a42f5adf557082439a6033e74eda9e8032a8ffc836e9040a6e/card.jpg",
+          "url": "https://cdn.gatherory.com/explore/covers/invitations/058538161d6148a42f5adf557082439a6033e74eda9e8032a8ffc836e9040a6e/card.jpg"
+        },
+        {
+          "name": "hero",
+          "width": 1024,
+          "height": 682,
+          "checksum": "c7763cde301dbbc2da6cfa0c5025f520733313f43ae1e1d0651c21de152d5fb1",
+          "bucket": "gatherory-public",
+          "key": "explore/covers/invitations/058538161d6148a42f5adf557082439a6033e74eda9e8032a8ffc836e9040a6e/hero.jpg",
+          "url": "https://cdn.gatherory.com/explore/covers/invitations/058538161d6148a42f5adf557082439a6033e74eda9e8032a8ffc836e9040a6e/hero.jpg"
+        }
+      ]
+    },
+    "fileChecksum": "ecaeaa7cfe6ac03b39acda8b8159a518126a264376d66547cd0231373da9a6e0"
+  },
+  "registry-travel": {
+    "file": "scripts/seed/assets/registry-travel.jpg",
+    "license": {
+      "name": "Unsplash License",
+      "url": "https://unsplash.com/license",
+      "sourceURL": "https://unsplash.com/photos/a-woman-standing-on-a-balcony-looking-at-the-ocean-3dIF0zSQoeI",
+      "photographer": "Christopher Pap de Pestény",
+      "photoID": "photo-1661693800506-61cf41d97cb4",
+      "checkedAt": "2026-10-22T16:35:00Z"
+    },
+    "manifest": {
+      "schemaVersion": 1,
+      "label": "A traveler looks over the sea from a Positano balcony.",
+      "source": {
+        "width": 769,
+        "height": 1024,
+        "checksum": "04005685a8b8b6109d16f21a5aba29b839c73f5d88a64ef763dcf3d83b8c9e07"
+      },
+      "bucket": "gatherory-public",
+      "processingVersion": "explore-cover-jpeg-v1",
+      "variants": [
+        {
+          "name": "thumbnail",
+          "width": 240,
+          "height": 320,
+          "checksum": "f5f0e88f77527412effbd7901881c87efb81273e08f57f1c2f9ae96e8ddedee2",
+          "bucket": "gatherory-public",
+          "key": "explore/covers/registry-travel/35b497d86eed961ba0ab3d4f12c6991c3b78cd21b41b8f80bace99799534bf90/thumbnail.jpg",
+          "url": "https://cdn.gatherory.com/explore/covers/registry-travel/35b497d86eed961ba0ab3d4f12c6991c3b78cd21b41b8f80bace99799534bf90/thumbnail.jpg"
+        },
+        {
+          "name": "card",
+          "width": 721,
+          "height": 960,
+          "checksum": "6fe1a21b76dd34695ed8116d03dd68f20c0c5e04adec19710643fe898d2a9b45",
+          "bucket": "gatherory-public",
+          "key": "explore/covers/registry-travel/35b497d86eed961ba0ab3d4f12c6991c3b78cd21b41b8f80bace99799534bf90/card.jpg",
+          "url": "https://cdn.gatherory.com/explore/covers/registry-travel/35b497d86eed961ba0ab3d4f12c6991c3b78cd21b41b8f80bace99799534bf90/card.jpg"
+        },
+        {
+          "name": "hero",
+          "width": 769,
+          "height": 1024,
+          "checksum": "ab7dda797ea1a0999ae43d9fc1cec626e08ab712da895c4d78c9977d5eacf307",
+          "bucket": "gatherory-public",
+          "key": "explore/covers/registry-travel/35b497d86eed961ba0ab3d4f12c6991c3b78cd21b41b8f80bace99799534bf90/hero.jpg",
+          "url": "https://cdn.gatherory.com/explore/covers/registry-travel/35b497d86eed961ba0ab3d4f12c6991c3b78cd21b41b8f80bace99799534bf90/hero.jpg"
+        }
+      ]
+    },
+    "fileChecksum": "10f8ee3e98840453074327c8509bd5d9458e9013ee79a1b5603b1ab593762757"
+  },
+  "coffee-bar": {
+    "file": "scripts/seed/assets/coffee-bar.jpg",
+    "license": {
+      "name": "Unsplash License",
+      "url": "https://unsplash.com/license",
+      "sourceURL": "https://unsplash.com/photos/a-espresso-machine-making-a-cup-of-coffee-3b1mi9obsgA",
+      "photographer": "Ryan Spaulding",
+      "photoID": "photo-1649882453801-d5f84502c3f0",
+      "checkedAt": "2026-10-22T16:35:00Z"
+    },
+    "manifest": {
+      "schemaVersion": 1,
+      "label": "An espresso machine pours coffee into a small glass.",
+      "source": {
+        "width": 1024,
+        "height": 682,
+        "checksum": "98763a01f7016921fd01e2a7dd8ca37b26a6d2ddce81d2da3f2b00628758f850"
+      },
+      "bucket": "gatherory-public",
+      "processingVersion": "explore-cover-jpeg-v1",
+      "variants": [
+        {
+          "name": "thumbnail",
+          "width": 320,
+          "height": 213,
+          "checksum": "38754addb874fb97fe20efa99769023612ff43188187a158bf49c8cb0bb42ee2",
+          "bucket": "gatherory-public",
+          "key": "explore/covers/coffee-bar/9d56d49698c9302dc6dcf60bc0087c1e50c9db628220d5910f5fe93b6e7f6b30/thumbnail.jpg",
+          "url": "https://cdn.gatherory.com/explore/covers/coffee-bar/9d56d49698c9302dc6dcf60bc0087c1e50c9db628220d5910f5fe93b6e7f6b30/thumbnail.jpg"
+        },
+        {
+          "name": "card",
+          "width": 960,
+          "height": 639,
+          "checksum": "48b31e38fd9e145a9a42dfefb30654cf8f8b3793d7b873537e82888bdb0e2dcd",
+          "bucket": "gatherory-public",
+          "key": "explore/covers/coffee-bar/9d56d49698c9302dc6dcf60bc0087c1e50c9db628220d5910f5fe93b6e7f6b30/card.jpg",
+          "url": "https://cdn.gatherory.com/explore/covers/coffee-bar/9d56d49698c9302dc6dcf60bc0087c1e50c9db628220d5910f5fe93b6e7f6b30/card.jpg"
+        },
+        {
+          "name": "hero",
+          "width": 1024,
+          "height": 682,
+          "checksum": "2fca2a1b28076f1180286899ed69b14a2f05e0cf3d7038eb17782e8a72c291f3",
+          "bucket": "gatherory-public",
+          "key": "explore/covers/coffee-bar/9d56d49698c9302dc6dcf60bc0087c1e50c9db628220d5910f5fe93b6e7f6b30/hero.jpg",
+          "url": "https://cdn.gatherory.com/explore/covers/coffee-bar/9d56d49698c9302dc6dcf60bc0087c1e50c9db628220d5910f5fe93b6e7f6b30/hero.jpg"
+        }
+      ]
+    },
+    "fileChecksum": "f65514881279d0fa48cb8097e7a4993899a589e860d4aa518d42860fc151d046"
+  },
+  "registry-item-travel": {
+    "file": "scripts/seed/assets/registry-item-travel.jpg",
+    "license": {
+      "name": "Unsplash License",
+      "url": "https://unsplash.com/license",
+      "sourceURL": "https://unsplash.com/photos/amalfi-coast-town-with-white-buildings-clinging-to-a-mountainside-b0kgh7xb8QA",
+      "photographer": "Rafael Peier",
+      "photoID": "photo-1782053492020-79777ed4411c",
+      "checkedAt": "2026-10-22T16:35:00Z"
+    },
+    "manifest": {
+      "schemaVersion": 1,
+      "label": "White buildings climb a mountainside above the Amalfi Coast.",
+      "source": {
+        "width": 1024,
+        "height": 682,
+        "checksum": "a431f6520c2fce7266410567ecfa424a548857c8a98fc7e288643b69da4737b0"
+      },
+      "bucket": "gatherory-public",
+      "processingVersion": "explore-cover-jpeg-v1",
+      "variants": [
+        {
+          "name": "thumbnail",
+          "width": 320,
+          "height": 213,
+          "checksum": "017142d0b2e039746a458200f609a2684c156897c6ef26d38fdcd6b1303e2c26",
+          "bucket": "gatherory-public",
+          "key": "explore/covers/registry-item-travel/ba79bb556093826296427d13b327b249ba8e8b3c48ad9bc1cdae2d2eb66b9015/thumbnail.jpg",
+          "url": "https://cdn.gatherory.com/explore/covers/registry-item-travel/ba79bb556093826296427d13b327b249ba8e8b3c48ad9bc1cdae2d2eb66b9015/thumbnail.jpg"
+        },
+        {
+          "name": "card",
+          "width": 960,
+          "height": 639,
+          "checksum": "1488f9ba94110cd05015a6bd8e5c7798cc51f3e1fd09b966feb4ed9fd700ff04",
+          "bucket": "gatherory-public",
+          "key": "explore/covers/registry-item-travel/ba79bb556093826296427d13b327b249ba8e8b3c48ad9bc1cdae2d2eb66b9015/card.jpg",
+          "url": "https://cdn.gatherory.com/explore/covers/registry-item-travel/ba79bb556093826296427d13b327b249ba8e8b3c48ad9bc1cdae2d2eb66b9015/card.jpg"
+        },
+        {
+          "name": "hero",
+          "width": 1024,
+          "height": 682,
+          "checksum": "a8f48c356d9437efff9f76c1edaf8946411593f3d28561adad7fcc424b51bc76",
+          "bucket": "gatherory-public",
+          "key": "explore/covers/registry-item-travel/ba79bb556093826296427d13b327b249ba8e8b3c48ad9bc1cdae2d2eb66b9015/hero.jpg",
+          "url": "https://cdn.gatherory.com/explore/covers/registry-item-travel/ba79bb556093826296427d13b327b249ba8e8b3c48ad9bc1cdae2d2eb66b9015/hero.jpg"
+        }
+      ]
+    },
+    "fileChecksum": "830eb146db2d2dae316e8bc9e254bf1e6ad349643c3f14134e45cca19705b892"
+  },
+  "garden-wedding": {
+    "file": "scripts/seed/blueprint-assets/garden-wedding.jpg",
+    "license": {
+      "name": "Unsplash License",
+      "url": "https://unsplash.com/license",
+      "sourceURL": "https://unsplash.com/photos/a-decorated-table-set-for-a-wedding-in-a-forest-uOO5D8UPuMw",
+      "photographer": "Jen Vazquez",
+      "photoID": "uOO5D8UPuMw",
+      "checkedAt": "2026-10-22T16:35:00Z"
+    },
+    "manifest": {
+      "schemaVersion": 1,
+      "label": "Garden wedding reception table beneath forest trees.",
+      "source": {
+        "width": 798,
+        "height": 1200,
+        "checksum": "14c7f943432cd8d6911a23ab094dfba370c0c0d14d834cacef3e15e9c1dc4bc0"
+      },
+      "bucket": "gatherory-public",
+      "processingVersion": "explore-cover-jpeg-v1",
+      "variants": [
+        {
+          "name": "thumbnail",
+          "width": 213,
+          "height": 320,
+          "checksum": "70eefcfcef4af4ee7702c67777782a8f5ddc1af7d8fcb24df4c198b5ad4a4d81",
+          "bucket": "gatherory-public",
+          "key": "explore/covers/garden-wedding/d168d90dbd69f719b04301fe1c173a01aa57102ac86737dc4ceb8bc6ce9e3750/thumbnail.jpg",
+          "url": "https://cdn.gatherory.com/explore/covers/garden-wedding/d168d90dbd69f719b04301fe1c173a01aa57102ac86737dc4ceb8bc6ce9e3750/thumbnail.jpg"
+        },
+        {
+          "name": "card",
+          "width": 638,
+          "height": 960,
+          "checksum": "bdafe9762cf6b81091ca6d0e17d57039959c900bb2803aa94df3babcaa4dd630",
+          "bucket": "gatherory-public",
+          "key": "explore/covers/garden-wedding/d168d90dbd69f719b04301fe1c173a01aa57102ac86737dc4ceb8bc6ce9e3750/card.jpg",
+          "url": "https://cdn.gatherory.com/explore/covers/garden-wedding/d168d90dbd69f719b04301fe1c173a01aa57102ac86737dc4ceb8bc6ce9e3750/card.jpg"
+        },
+        {
+          "name": "hero",
+          "width": 798,
+          "height": 1200,
+          "checksum": "739259135ce85970410e4bb979374ccc2b6dd04ae5115507776f245c6aee6675",
+          "bucket": "gatherory-public",
+          "key": "explore/covers/garden-wedding/d168d90dbd69f719b04301fe1c173a01aa57102ac86737dc4ceb8bc6ce9e3750/hero.jpg",
+          "url": "https://cdn.gatherory.com/explore/covers/garden-wedding/d168d90dbd69f719b04301fe1c173a01aa57102ac86737dc4ceb8bc6ce9e3750/hero.jpg"
+        }
+      ]
+    },
+    "fileChecksum": "89591b01b966d8b70c8e1cac2c577eb066f2795c0903399f9610dcef748e2c34"
+  },
+  "birthday": {
+    "file": "scripts/seed/blueprint-assets/birthday.jpg",
+    "license": {
+      "name": "Unsplash License",
+      "url": "https://unsplash.com/license",
+      "sourceURL": "https://unsplash.com/photos/elegant-dessert-table-with-a-white-cake-and-various-pastries-HKes9_amYnE",
+      "photographer": "Jonathan Borba",
+      "photoID": "HKes9_amYnE",
+      "checkedAt": "2026-10-22T16:35:00Z"
+    },
+    "manifest": {
+      "schemaVersion": 1,
+      "label": "Birthday cake and elegant dessert table.",
+      "source": {
+        "width": 1200,
+        "height": 800,
+        "checksum": "2f3a75f076a0fe4b029bad510ded49f76a12aed1f270516e806c4cc0bc812dd4"
+      },
+      "bucket": "gatherory-public",
+      "processingVersion": "explore-cover-jpeg-v1",
+      "variants": [
+        {
+          "name": "thumbnail",
+          "width": 320,
+          "height": 213,
+          "checksum": "3a9bd3236a52ee090e7eb8db9b7a561e1191386c31c9c50fd5337bf97317e8c5",
+          "bucket": "gatherory-public",
+          "key": "explore/covers/birthday/242060a2df01bdb28ab1a2cff74c86de5010935c2724135cfb34e1b61b100c42/thumbnail.jpg",
+          "url": "https://cdn.gatherory.com/explore/covers/birthday/242060a2df01bdb28ab1a2cff74c86de5010935c2724135cfb34e1b61b100c42/thumbnail.jpg"
+        },
+        {
+          "name": "card",
+          "width": 960,
+          "height": 640,
+          "checksum": "479e62aed8286736dc305932333be8e8e3d39ccf1dc9beba56e66a70d30a5a4e",
+          "bucket": "gatherory-public",
+          "key": "explore/covers/birthday/242060a2df01bdb28ab1a2cff74c86de5010935c2724135cfb34e1b61b100c42/card.jpg",
+          "url": "https://cdn.gatherory.com/explore/covers/birthday/242060a2df01bdb28ab1a2cff74c86de5010935c2724135cfb34e1b61b100c42/card.jpg"
+        },
+        {
+          "name": "hero",
+          "width": 1200,
+          "height": 800,
+          "checksum": "976765d63f4b0de8c3447ac6929962915291034bf17b47bdb5aeeac6fb7d49a9",
+          "bucket": "gatherory-public",
+          "key": "explore/covers/birthday/242060a2df01bdb28ab1a2cff74c86de5010935c2724135cfb34e1b61b100c42/hero.jpg",
+          "url": "https://cdn.gatherory.com/explore/covers/birthday/242060a2df01bdb28ab1a2cff74c86de5010935c2724135cfb34e1b61b100c42/hero.jpg"
+        }
+      ]
+    },
+    "fileChecksum": "4d241f9ec4a29e7e8e9816bee7981ee56470778cec1e8097e51befd8618f2014"
+  },
+  "cottage": {
+    "file": "scripts/seed/blueprint-assets/cottage.jpg",
+    "license": {
+      "name": "Unsplash License",
+      "url": "https://unsplash.com/license",
+      "sourceURL": "https://unsplash.com/photos/a-quaint-cottage-surrounded-by-a-lush-garden-9xOOZr-ZQLU",
+      "photographer": "mana5280",
+      "photoID": "9xOOZr-ZQLU",
+      "checkedAt": "2026-10-22T16:35:00Z"
+    },
+    "manifest": {
+      "schemaVersion": 1,
+      "label": "Cottage surrounded by a lush green garden.",
+      "source": {
+        "width": 1200,
+        "height": 921,
+        "checksum": "cf4c80c046d946344dfc19ac50ff90fcf935888be92fdfacfba379740715aeaf"
+      },
+      "bucket": "gatherory-public",
+      "processingVersion": "explore-cover-jpeg-v1",
+      "variants": [
+        {
+          "name": "thumbnail",
+          "width": 320,
+          "height": 245,
+          "checksum": "be418c5240918d556e1bae490075598b5ff008ccba79e51b88516f56fbb48aed",
+          "bucket": "gatherory-public",
+          "key": "explore/covers/cottage/284e24cc5afa2083d6fc2880b26d287b5f98064343997b0797cba2363cd1e21f/thumbnail.jpg",
+          "url": "https://cdn.gatherory.com/explore/covers/cottage/284e24cc5afa2083d6fc2880b26d287b5f98064343997b0797cba2363cd1e21f/thumbnail.jpg"
+        },
+        {
+          "name": "card",
+          "width": 960,
+          "height": 737,
+          "checksum": "cbc2d88647183a8f801d7e53312012255fce0ca0ba196d06cebfb2897c9dbe50",
+          "bucket": "gatherory-public",
+          "key": "explore/covers/cottage/284e24cc5afa2083d6fc2880b26d287b5f98064343997b0797cba2363cd1e21f/card.jpg",
+          "url": "https://cdn.gatherory.com/explore/covers/cottage/284e24cc5afa2083d6fc2880b26d287b5f98064343997b0797cba2363cd1e21f/card.jpg"
+        },
+        {
+          "name": "hero",
+          "width": 1200,
+          "height": 921,
+          "checksum": "e5aa89f3b28258ba9a470d2770f9c023c4eb51baae938a206f4c53e9bb31188d",
+          "bucket": "gatherory-public",
+          "key": "explore/covers/cottage/284e24cc5afa2083d6fc2880b26d287b5f98064343997b0797cba2363cd1e21f/hero.jpg",
+          "url": "https://cdn.gatherory.com/explore/covers/cottage/284e24cc5afa2083d6fc2880b26d287b5f98064343997b0797cba2363cd1e21f/hero.jpg"
+        }
+      ]
+    },
+    "fileChecksum": "bdbe5dd60e787436cf473560c72b2213e9b0b92d9d5e3e1ea555334b5310b5da"
+  },
+  "coast": {
+    "file": "scripts/seed/blueprint-assets/coast.jpg",
+    "license": {
+      "name": "Unsplash License",
+      "url": "https://unsplash.com/license",
+      "sourceURL": "https://unsplash.com/photos/coastal-landscape-with-ocean-beach-and-rolling-hills-E1o6iAT17e0",
+      "photographer": "Moritz Kindler",
+      "photoID": "E1o6iAT17e0",
+      "checkedAt": "2026-10-22T16:35:00Z"
+    },
+    "manifest": {
+      "schemaVersion": 1,
+      "label": "Ocean beach and rolling coastal hills.",
+      "source": {
+        "width": 900,
+        "height": 1200,
+        "checksum": "77bb631b26b01f36e1a711a0f757868225556c5348b5ca4bc18beb041d33a90f"
+      },
+      "bucket": "gatherory-public",
+      "processingVersion": "explore-cover-jpeg-v1",
+      "variants": [
+        {
+          "name": "thumbnail",
+          "width": 240,
+          "height": 320,
+          "checksum": "ef045e429da91761e85f61386ed9725c8e881e98b67c23171df77d41fa515007",
+          "bucket": "gatherory-public",
+          "key": "explore/covers/coast/bb6560f9a6c47d0059d662d27ba1d8b132ae6c4034353adc8e384919d083b927/thumbnail.jpg",
+          "url": "https://cdn.gatherory.com/explore/covers/coast/bb6560f9a6c47d0059d662d27ba1d8b132ae6c4034353adc8e384919d083b927/thumbnail.jpg"
+        },
+        {
+          "name": "card",
+          "width": 720,
+          "height": 960,
+          "checksum": "22427a16ca8a804eaaca4fe05b57468423d2c98ac1ef97ab859807454ad84314",
+          "bucket": "gatherory-public",
+          "key": "explore/covers/coast/bb6560f9a6c47d0059d662d27ba1d8b132ae6c4034353adc8e384919d083b927/card.jpg",
+          "url": "https://cdn.gatherory.com/explore/covers/coast/bb6560f9a6c47d0059d662d27ba1d8b132ae6c4034353adc8e384919d083b927/card.jpg"
+        },
+        {
+          "name": "hero",
+          "width": 900,
+          "height": 1200,
+          "checksum": "15e204becef7f1f9ca4b8ae7f35e71b2bedc8aad019457a6c2f68e4d945d128c",
+          "bucket": "gatherory-public",
+          "key": "explore/covers/coast/bb6560f9a6c47d0059d662d27ba1d8b132ae6c4034353adc8e384919d083b927/hero.jpg",
+          "url": "https://cdn.gatherory.com/explore/covers/coast/bb6560f9a6c47d0059d662d27ba1d8b132ae6c4034353adc8e384919d083b927/hero.jpg"
+        }
+      ]
+    },
+    "fileChecksum": "8e7c9a871a16508dc4418c4b4dd48475fe1212e116d839bba8caf58de1b507f9"
+  },
+  "gathering": {
+    "file": "scripts/seed/blueprint-assets/gathering.jpg",
+    "license": {
+      "name": "Unsplash License",
+      "url": "https://unsplash.com/license",
+      "sourceURL": "https://unsplash.com/photos/a-picnic-table-is-set-for-an-outdoor-party-VnfrBpaKvZ8",
+      "photographer": "Katya Azimova",
+      "photoID": "VnfrBpaKvZ8",
+      "checkedAt": "2026-10-22T16:35:00Z"
+    },
+    "manifest": {
+      "schemaVersion": 1,
+      "label": "Outdoor picnic table set for a shared gathering.",
+      "source": {
+        "width": 800,
+        "height": 1200,
+        "checksum": "10816ec1ed8548c4559820671dca5ebecafb39385a5084e5ca68b7c385e86178"
+      },
+      "bucket": "gatherory-public",
+      "processingVersion": "explore-cover-jpeg-v1",
+      "variants": [
+        {
+          "name": "thumbnail",
+          "width": 213,
+          "height": 320,
+          "checksum": "b037a3af2590bd2038e00a536887faeb2000f49ba35b4065f52c57c7d46704c9",
+          "bucket": "gatherory-public",
+          "key": "explore/covers/gathering/40a163134276f57809efcb635947c0d6590e63066f3f208a3411e46528033468/thumbnail.jpg",
+          "url": "https://cdn.gatherory.com/explore/covers/gathering/40a163134276f57809efcb635947c0d6590e63066f3f208a3411e46528033468/thumbnail.jpg"
+        },
+        {
+          "name": "card",
+          "width": 640,
+          "height": 960,
+          "checksum": "a8c32c87eb9444b5a439e4a32f4b0dbb22b10eb3c61e44927e8feb0635ee2a7c",
+          "bucket": "gatherory-public",
+          "key": "explore/covers/gathering/40a163134276f57809efcb635947c0d6590e63066f3f208a3411e46528033468/card.jpg",
+          "url": "https://cdn.gatherory.com/explore/covers/gathering/40a163134276f57809efcb635947c0d6590e63066f3f208a3411e46528033468/card.jpg"
+        },
+        {
+          "name": "hero",
+          "width": 800,
+          "height": 1200,
+          "checksum": "001d7160fc07fcc80e02ba151ccf52360b0327c5727b040b50954b6dc6a88293",
+          "bucket": "gatherory-public",
+          "key": "explore/covers/gathering/40a163134276f57809efcb635947c0d6590e63066f3f208a3411e46528033468/hero.jpg",
+          "url": "https://cdn.gatherory.com/explore/covers/gathering/40a163134276f57809efcb635947c0d6590e63066f3f208a3411e46528033468/hero.jpg"
+        }
+      ]
+    },
+    "fileChecksum": "6578c0f3948b9398218d4622c0624a87a11f40353600dd594a4a87edffc537fd"
+  },
+  "garden": {
+    "file": "scripts/seed/blueprint-assets/garden.jpg",
+    "license": {
+      "name": "Unsplash License",
+      "url": "https://unsplash.com/license",
+      "sourceURL": "https://unsplash.com/photos/a-charming-cottage-with-climbing-plants-and-a-garden-axZOHkGyAIY",
+      "photographer": "Tanya Barrow",
+      "photoID": "axZOHkGyAIY",
+      "checkedAt": "2026-10-22T16:35:00Z"
+    },
+    "manifest": {
+      "schemaVersion": 1,
+      "label": "Cottage with climbing plants and a flower garden.",
+      "source": {
+        "width": 1200,
+        "height": 800,
+        "checksum": "5dab70f497f911394bc238a2d58cf4b7fb385c58d31b45a1adc8a1a050e036ef"
+      },
+      "bucket": "gatherory-public",
+      "processingVersion": "explore-cover-jpeg-v1",
+      "variants": [
+        {
+          "name": "thumbnail",
+          "width": 320,
+          "height": 213,
+          "checksum": "27026caff0b483a4c8a8327008ce359546c6ca6b2767862a6bd2832461363b59",
+          "bucket": "gatherory-public",
+          "key": "explore/covers/garden/001bf2dca09340dbaf038245a8b5d157a6ebe78488c623e185102676f6263665/thumbnail.jpg",
+          "url": "https://cdn.gatherory.com/explore/covers/garden/001bf2dca09340dbaf038245a8b5d157a6ebe78488c623e185102676f6263665/thumbnail.jpg"
+        },
+        {
+          "name": "card",
+          "width": 960,
+          "height": 640,
+          "checksum": "ca3499dd57c055707bcd3d97bf98a51336b9391702ee3b83327d0d917d207a70",
+          "bucket": "gatherory-public",
+          "key": "explore/covers/garden/001bf2dca09340dbaf038245a8b5d157a6ebe78488c623e185102676f6263665/card.jpg",
+          "url": "https://cdn.gatherory.com/explore/covers/garden/001bf2dca09340dbaf038245a8b5d157a6ebe78488c623e185102676f6263665/card.jpg"
+        },
+        {
+          "name": "hero",
+          "width": 1200,
+          "height": 800,
+          "checksum": "205d1479d3adf5c2c337ab2f9be72c0fdd4dd9377e49a7d5c53c36028d308ad2",
+          "bucket": "gatherory-public",
+          "key": "explore/covers/garden/001bf2dca09340dbaf038245a8b5d157a6ebe78488c623e185102676f6263665/hero.jpg",
+          "url": "https://cdn.gatherory.com/explore/covers/garden/001bf2dca09340dbaf038245a8b5d157a6ebe78488c623e185102676f6263665/hero.jpg"
+        }
+      ]
+    },
+    "fileChecksum": "8b27ac5650a9f25623e43d6184ad5444ca9c7b11be01ff0b88c813a33951f53a"
+  },
+  "travel": {
+    "file": "scripts/seed/blueprint-assets/travel.jpg",
+    "license": {
+      "name": "Unsplash License",
+      "url": "https://unsplash.com/license",
+      "sourceURL": "https://unsplash.com/photos/coastal-town-nestled-into-steep-mountains-with-ocean-in-foreground-dis_sHK2oQM",
+      "photographer": "Ahmet Yüksek",
+      "photoID": "dis_sHK2oQM",
+      "checkedAt": "2026-10-22T16:35:00Z"
+    },
+    "manifest": {
+      "schemaVersion": 1,
+      "label": "Coastal town below steep mountains beside the sea.",
+      "source": {
+        "width": 1200,
+        "height": 800,
+        "checksum": "75c0dde23989918a7267f44cf43cc01a7c26e47882f26e2ac67066c35b7a7ebf"
+      },
+      "bucket": "gatherory-public",
+      "processingVersion": "explore-cover-jpeg-v1",
+      "variants": [
+        {
+          "name": "thumbnail",
+          "width": 320,
+          "height": 213,
+          "checksum": "75ebc5d8a6a0bc4016740df89608f9a65cec741251c03a5c3893079354c40c1b",
+          "bucket": "gatherory-public",
+          "key": "explore/covers/travel/6e4132b6b9557cf00cbc007b60901ca8a43b2b1a6c6bb29818fdffc54c085919/thumbnail.jpg",
+          "url": "https://cdn.gatherory.com/explore/covers/travel/6e4132b6b9557cf00cbc007b60901ca8a43b2b1a6c6bb29818fdffc54c085919/thumbnail.jpg"
+        },
+        {
+          "name": "card",
+          "width": 960,
+          "height": 640,
+          "checksum": "7bf42314cbb71b46c675988a0ac6f1cbab1b2388cb03d8a69dc1646e18b4f24e",
+          "bucket": "gatherory-public",
+          "key": "explore/covers/travel/6e4132b6b9557cf00cbc007b60901ca8a43b2b1a6c6bb29818fdffc54c085919/card.jpg",
+          "url": "https://cdn.gatherory.com/explore/covers/travel/6e4132b6b9557cf00cbc007b60901ca8a43b2b1a6c6bb29818fdffc54c085919/card.jpg"
+        },
+        {
+          "name": "hero",
+          "width": 1200,
+          "height": 800,
+          "checksum": "2c8825befbab41384f757ecdd7fb8e1dd8f5ec73763e5e0a256f779fd7669220",
+          "bucket": "gatherory-public",
+          "key": "explore/covers/travel/6e4132b6b9557cf00cbc007b60901ca8a43b2b1a6c6bb29818fdffc54c085919/hero.jpg",
+          "url": "https://cdn.gatherory.com/explore/covers/travel/6e4132b6b9557cf00cbc007b60901ca8a43b2b1a6c6bb29818fdffc54c085919/hero.jpg"
+        }
+      ]
+    },
+    "fileChecksum": "3ba7cea08f4a286622fb8970702d7eab96dc61b218f729f2726944e127ea0d7a"
+  },
+  "holiday": {
+    "file": "scripts/seed/blueprint-assets/holiday.jpg",
+    "license": {
+      "name": "Pexels License",
+      "url": "https://www.pexels.com/license/",
+      "sourceURL": "https://www.pexels.com/photo/festive-christmas-scene-with-gifts-and-ornaments-29396745/",
+      "photographer": "Elvis KAMBIRE",
+      "photoID": "29396745",
+      "checkedAt": "2026-10-22T16:35:00Z"
+    },
+    "manifest": {
+      "schemaVersion": 1,
+      "label": "Wrapped holiday gifts with red ribbons and a star ornament.",
+      "source": {
+        "width": 1600,
+        "height": 1067,
+        "checksum": "4b17cb415d704d575cc781ecbdd9514984e8ad13d34c6127f6e0fcc282870a90"
+      },
+      "bucket": "gatherory-public",
+      "processingVersion": "explore-cover-jpeg-v1",
+      "variants": [
+        {
+          "name": "thumbnail",
+          "width": 320,
+          "height": 213,
+          "checksum": "290a39d2b9190f719d6d441840f9e90a1644a0b2b7ddce82d393986c30e4afa5",
+          "bucket": "gatherory-public",
+          "key": "explore/covers/holiday/d2fa65ee2f4e0090cbea3e1e737ce1ce74629a2fbc18d04d2d45c0d55d3bd885/thumbnail.jpg",
+          "url": "https://cdn.gatherory.com/explore/covers/holiday/d2fa65ee2f4e0090cbea3e1e737ce1ce74629a2fbc18d04d2d45c0d55d3bd885/thumbnail.jpg"
+        },
+        {
+          "name": "card",
+          "width": 960,
+          "height": 640,
+          "checksum": "b1fc022145ee76c941fe56954a19992c8be74577018c56a2e30389a920114ec8",
+          "bucket": "gatherory-public",
+          "key": "explore/covers/holiday/d2fa65ee2f4e0090cbea3e1e737ce1ce74629a2fbc18d04d2d45c0d55d3bd885/card.jpg",
+          "url": "https://cdn.gatherory.com/explore/covers/holiday/d2fa65ee2f4e0090cbea3e1e737ce1ce74629a2fbc18d04d2d45c0d55d3bd885/card.jpg"
+        },
+        {
+          "name": "hero",
+          "width": 1600,
+          "height": 1067,
+          "checksum": "bc7bb78d52f1edcf12f73c67757a1dc66dc2904055f2631ac67c288b3f50a429",
+          "bucket": "gatherory-public",
+          "key": "explore/covers/holiday/d2fa65ee2f4e0090cbea3e1e737ce1ce74629a2fbc18d04d2d45c0d55d3bd885/hero.jpg",
+          "url": "https://cdn.gatherory.com/explore/covers/holiday/d2fa65ee2f4e0090cbea3e1e737ce1ce74629a2fbc18d04d2d45c0d55d3bd885/hero.jpg"
+        }
+      ]
+    },
+    "fileChecksum": "0845d227a1a0ac2a085ba13f1977fa7e4a640c5cb7072f1ff852e4cd4a23ac23"
+  },
+  "graduation": {
+    "file": "scripts/seed/blueprint-assets/graduation.jpg",
+    "license": {
+      "name": "Pexels License",
+      "url": "https://www.pexels.com/license/",
+      "sourceURL": "https://www.pexels.com/photo/graduation-cap-and-scarf-on-white-background-7713415/",
+      "photographer": "RDNE Stock project",
+      "photoID": "7713415",
+      "checkedAt": "2026-10-22T16:35:00Z"
+    },
+    "manifest": {
+      "schemaVersion": 1,
+      "label": "Graduation cap, tassel, gown and book.",
+      "source": {
+        "width": 1600,
+        "height": 1067,
+        "checksum": "2b6712f2de69197efcd3854f47aebd04cc532c2d6680e66bad59a0606349c7a0"
+      },
+      "bucket": "gatherory-public",
+      "processingVersion": "explore-cover-jpeg-v1",
+      "variants": [
+        {
+          "name": "thumbnail",
+          "width": 320,
+          "height": 213,
+          "checksum": "4bc687a390f0ba5cce00b17be386fb30add4829ee8f0c2b2491c9b1bdb5bf82e",
+          "bucket": "gatherory-public",
+          "key": "explore/covers/graduation/4586ec3c6115ddb58b857a4268d25d66fed6a4dcc7513a946a9d000febd8e661/thumbnail.jpg",
+          "url": "https://cdn.gatherory.com/explore/covers/graduation/4586ec3c6115ddb58b857a4268d25d66fed6a4dcc7513a946a9d000febd8e661/thumbnail.jpg"
+        },
+        {
+          "name": "card",
+          "width": 960,
+          "height": 640,
+          "checksum": "b08eb40c7fb8792b4f35846719c2da562926137302dc55a42c3915cc4c52499b",
+          "bucket": "gatherory-public",
+          "key": "explore/covers/graduation/4586ec3c6115ddb58b857a4268d25d66fed6a4dcc7513a946a9d000febd8e661/card.jpg",
+          "url": "https://cdn.gatherory.com/explore/covers/graduation/4586ec3c6115ddb58b857a4268d25d66fed6a4dcc7513a946a9d000febd8e661/card.jpg"
+        },
+        {
+          "name": "hero",
+          "width": 1600,
+          "height": 1067,
+          "checksum": "19b3d72ffcd9bcbf64474db1b5aaab271059d86818ff1fba73ec3ab720d2f563",
+          "bucket": "gatherory-public",
+          "key": "explore/covers/graduation/4586ec3c6115ddb58b857a4268d25d66fed6a4dcc7513a946a9d000febd8e661/hero.jpg",
+          "url": "https://cdn.gatherory.com/explore/covers/graduation/4586ec3c6115ddb58b857a4268d25d66fed6a4dcc7513a946a9d000febd8e661/hero.jpg"
+        }
+      ]
+    },
+    "fileChecksum": "0597c969ee09abb9230eb923dff334515f24da9b40d8ab93255b8278bce95b8e"
+  },
+  "chess": {
+    "file": "scripts/seed/blueprint-assets/chess.jpg",
+    "license": {
+      "name": "Pexels License",
+      "url": "https://www.pexels.com/license/",
+      "sourceURL": "https://www.pexels.com/photo/chess-pieces-on-chess-board-8438872/",
+      "photographer": "Pavel Danilyuk",
+      "photoID": "8438872",
+      "checkedAt": "2026-10-22T16:35:00Z"
+    },
+    "manifest": {
+      "schemaVersion": 1,
+      "label": "Wooden chess pieces on a chess board.",
+      "source": {
+        "width": 1600,
+        "height": 1068,
+        "checksum": "1258de826a7b10835a14d6b46ff93612b1dbfaeb118424bcda3fa23f21413622"
+      },
+      "bucket": "gatherory-public",
+      "processingVersion": "explore-cover-jpeg-v1",
+      "variants": [
+        {
+          "name": "thumbnail",
+          "width": 320,
+          "height": 214,
+          "checksum": "82c9b75201ca4c8e771710992c815e8d660a52aa86b2c406ae80ddd2cebce2e0",
+          "bucket": "gatherory-public",
+          "key": "explore/covers/chess/96917957a3ef2825663c6380ef98e6781b12de0d09e21a72aa1de2ddb9ebe6a0/thumbnail.jpg",
+          "url": "https://cdn.gatherory.com/explore/covers/chess/96917957a3ef2825663c6380ef98e6781b12de0d09e21a72aa1de2ddb9ebe6a0/thumbnail.jpg"
+        },
+        {
+          "name": "card",
+          "width": 960,
+          "height": 641,
+          "checksum": "7b3d566e6eade72e2031cf072f50093c0091c0eab6544dacc72e4c6ed3533082",
+          "bucket": "gatherory-public",
+          "key": "explore/covers/chess/96917957a3ef2825663c6380ef98e6781b12de0d09e21a72aa1de2ddb9ebe6a0/card.jpg",
+          "url": "https://cdn.gatherory.com/explore/covers/chess/96917957a3ef2825663c6380ef98e6781b12de0d09e21a72aa1de2ddb9ebe6a0/card.jpg"
+        },
+        {
+          "name": "hero",
+          "width": 1600,
+          "height": 1068,
+          "checksum": "9957d7f0f1138071e106e7dbcef2d4cd056076fe38c446d4d7c8cf1e80cf015a",
+          "bucket": "gatherory-public",
+          "key": "explore/covers/chess/96917957a3ef2825663c6380ef98e6781b12de0d09e21a72aa1de2ddb9ebe6a0/hero.jpg",
+          "url": "https://cdn.gatherory.com/explore/covers/chess/96917957a3ef2825663c6380ef98e6781b12de0d09e21a72aa1de2ddb9ebe6a0/hero.jpg"
+        }
+      ]
+    },
+    "fileChecksum": "a8c3e140e3b547e49e5f2be4ea9ceeb831ac8bfb2335ac5b2186d9eed78ba52e"
+  },
+  "campfire": {
+    "file": "scripts/seed/blueprint-assets/campfire.jpg",
+    "license": {
+      "name": "Pexels License",
+      "url": "https://www.pexels.com/license/",
+      "sourceURL": "https://www.pexels.com/photo/vibrant-campfire-in-a-dense-forest-setting-34162901/",
+      "photographer": "neslihan ໒꒱",
+      "photoID": "34162901",
+      "checkedAt": "2026-10-22T16:35:00Z"
+    },
+    "manifest": {
+      "schemaVersion": 1,
+      "label": "Bright campfire surrounded by logs in a forest.",
+      "source": {
+        "width": 1600,
+        "height": 2400,
+        "checksum": "29463bc8a7fc9740397158a99e89ce3ec6c0d59536a64b46d9abb1b24e9a7aeb"
+      },
+      "bucket": "gatherory-public",
+      "processingVersion": "explore-cover-jpeg-v1",
+      "variants": [
+        {
+          "name": "thumbnail",
+          "width": 213,
+          "height": 320,
+          "checksum": "241c55c966a7ffdddb2c32c84f1d874e9fffab907be8f721cfa0d1b636b73e6c",
+          "bucket": "gatherory-public",
+          "key": "explore/covers/campfire/d6ad95a267b517b6747d475a8510f44b508c54a92ce26c4b5b36527a2693da3d/thumbnail.jpg",
+          "url": "https://cdn.gatherory.com/explore/covers/campfire/d6ad95a267b517b6747d475a8510f44b508c54a92ce26c4b5b36527a2693da3d/thumbnail.jpg"
+        },
+        {
+          "name": "card",
+          "width": 640,
+          "height": 960,
+          "checksum": "8f7745a31062b0ad7085764f2e1d9a4cf7941d413c76165cc7f9c7fa8d9d9ce6",
+          "bucket": "gatherory-public",
+          "key": "explore/covers/campfire/d6ad95a267b517b6747d475a8510f44b508c54a92ce26c4b5b36527a2693da3d/card.jpg",
+          "url": "https://cdn.gatherory.com/explore/covers/campfire/d6ad95a267b517b6747d475a8510f44b508c54a92ce26c4b5b36527a2693da3d/card.jpg"
+        },
+        {
+          "name": "hero",
+          "width": 1067,
+          "height": 1600,
+          "checksum": "d45fd28e8d1f701ae10f91500c9408102015c62a76ef910804f9147b228374da",
+          "bucket": "gatherory-public",
+          "key": "explore/covers/campfire/d6ad95a267b517b6747d475a8510f44b508c54a92ce26c4b5b36527a2693da3d/hero.jpg",
+          "url": "https://cdn.gatherory.com/explore/covers/campfire/d6ad95a267b517b6747d475a8510f44b508c54a92ce26c4b5b36527a2693da3d/hero.jpg"
+        }
+      ]
+    },
+    "fileChecksum": "99fbba941ddb4ea2d68961294af1d6108b7db86958d176ca30db9b213bb7af5b"
+  },
+  "team-workshop": {
+    "file": "scripts/seed/blueprint-assets/team-workshop.jpg",
+    "license": {
+      "name": "Pexels License",
+      "url": "https://www.pexels.com/license/",
+      "sourceURL": "https://www.pexels.com/photo/office-team-sitting-at-the-table-7988240/",
+      "photographer": "Mikhail Nilov",
+      "photoID": "7988240",
+      "checkedAt": "2026-10-22T16:35:00Z"
+    },
+    "manifest": {
+      "schemaVersion": 1,
+      "label": "A team sharing ideas around a workshop table.",
+      "source": {
+        "width": 1600,
+        "height": 1068,
+        "checksum": "060e7a2457f4d7c7c04513d68273e5ec384c0ebba550c45c07143a07d2f0a9db"
+      },
+      "bucket": "gatherory-public",
+      "processingVersion": "explore-cover-jpeg-v1",
+      "variants": [
+        {
+          "name": "thumbnail",
+          "width": 320,
+          "height": 214,
+          "checksum": "0041c5fa63765c2f45957f53f251c6ddbceb068f42962c818edf51dc280b311c",
+          "bucket": "gatherory-public",
+          "key": "explore/covers/team-workshop/81cc9d7ecc3694a26dba88a4566e3447c4d88b3155b463c2452552ec4f550d2a/thumbnail.jpg",
+          "url": "https://cdn.gatherory.com/explore/covers/team-workshop/81cc9d7ecc3694a26dba88a4566e3447c4d88b3155b463c2452552ec4f550d2a/thumbnail.jpg"
+        },
+        {
+          "name": "card",
+          "width": 960,
+          "height": 641,
+          "checksum": "fe0d125bf29cdb2f7c6c11b08a69a7559ed939d3772ca03c3356620712a797d2",
+          "bucket": "gatherory-public",
+          "key": "explore/covers/team-workshop/81cc9d7ecc3694a26dba88a4566e3447c4d88b3155b463c2452552ec4f550d2a/card.jpg",
+          "url": "https://cdn.gatherory.com/explore/covers/team-workshop/81cc9d7ecc3694a26dba88a4566e3447c4d88b3155b463c2452552ec4f550d2a/card.jpg"
+        },
+        {
+          "name": "hero",
+          "width": 1600,
+          "height": 1068,
+          "checksum": "c9fbf8ee4a6cd7ea2e382eb2ab556b5bf010fc3ecfd978c9d88519fced574e70",
+          "bucket": "gatherory-public",
+          "key": "explore/covers/team-workshop/81cc9d7ecc3694a26dba88a4566e3447c4d88b3155b463c2452552ec4f550d2a/hero.jpg",
+          "url": "https://cdn.gatherory.com/explore/covers/team-workshop/81cc9d7ecc3694a26dba88a4566e3447c4d88b3155b463c2452552ec4f550d2a/hero.jpg"
+        }
+      ]
+    },
+    "fileChecksum": "72d98a06e3381aec25099a58c829b686461b5c00ae047323aab00dcbe696dc0e"
+  },
+  "engagement-rings": {
+    "file": "scripts/seed/blueprint-assets/engagement-rings.jpg",
+    "license": {
+      "name": "Pexels License",
+      "url": "https://www.pexels.com/license/",
+      "sourceURL": "https://www.pexels.com/photo/wedding-and-engagement-rings-on-white-flat-21928764/",
+      "photographer": "Kenneth Surillo",
+      "photoID": "21928764",
+      "checkedAt": "2026-10-22T16:35:00Z"
+    },
+    "manifest": {
+      "schemaVersion": 1,
+      "label": "Gold wedding bands and a diamond engagement ring.",
+      "source": {
+        "width": 1600,
+        "height": 1066,
+        "checksum": "4310820af7d75b58da2191851a21de8a26e7e2bea7c29e5920384e161f945ada"
+      },
+      "bucket": "gatherory-public",
+      "processingVersion": "explore-cover-jpeg-v1",
+      "variants": [
+        {
+          "name": "thumbnail",
+          "width": 320,
+          "height": 213,
+          "checksum": "a0c22b0135af8be20b3d89190e962f2e7e6f768cfa6e4cd312b2b133deb9a590",
+          "bucket": "gatherory-public",
+          "key": "explore/covers/engagement-rings/9c29edd810eb95604b8c83f3dba84b5b67542ace6f9020328306b37ab9191752/thumbnail.jpg",
+          "url": "https://cdn.gatherory.com/explore/covers/engagement-rings/9c29edd810eb95604b8c83f3dba84b5b67542ace6f9020328306b37ab9191752/thumbnail.jpg"
+        },
+        {
+          "name": "card",
+          "width": 960,
+          "height": 640,
+          "checksum": "87abacb6466bf3783d96bec2f6faca9d0b3b0d68d388a7847da8a4fc9b443c60",
+          "bucket": "gatherory-public",
+          "key": "explore/covers/engagement-rings/9c29edd810eb95604b8c83f3dba84b5b67542ace6f9020328306b37ab9191752/card.jpg",
+          "url": "https://cdn.gatherory.com/explore/covers/engagement-rings/9c29edd810eb95604b8c83f3dba84b5b67542ace6f9020328306b37ab9191752/card.jpg"
+        },
+        {
+          "name": "hero",
+          "width": 1600,
+          "height": 1066,
+          "checksum": "f4f2422476a3b4258c1f2a1cf600ea60aa29231aa8ba5faee95c07fcb6ce24cb",
+          "bucket": "gatherory-public",
+          "key": "explore/covers/engagement-rings/9c29edd810eb95604b8c83f3dba84b5b67542ace6f9020328306b37ab9191752/hero.jpg",
+          "url": "https://cdn.gatherory.com/explore/covers/engagement-rings/9c29edd810eb95604b8c83f3dba84b5b67542ace6f9020328306b37ab9191752/hero.jpg"
+        }
+      ]
+    },
+    "fileChecksum": "387d0cc8d03099319a030ed5fa53865f6f444f16608b797cf43cd1a86c19e4a5"
+  },
+  "books": {
+    "file": "scripts/seed/blueprint-assets/books.jpg",
+    "license": {
+      "name": "Pexels License",
+      "url": "https://www.pexels.com/license/",
+      "sourceURL": "https://www.pexels.com/photo/stacked-books-1333742/",
+      "photographer": "Suzy Hazelwood",
+      "photoID": "1333742",
+      "checkedAt": "2026-10-22T16:35:00Z"
+    },
+    "manifest": {
+      "schemaVersion": 1,
+      "label": "A stack of vintage books with worn bindings.",
+      "source": {
+        "width": 1600,
+        "height": 1008,
+        "checksum": "d2d5e371e4919debcf78cfb365c53e4a98661ab8e96467a9e85737d5b6ac0f84"
+      },
+      "bucket": "gatherory-public",
+      "processingVersion": "explore-cover-jpeg-v1",
+      "variants": [
+        {
+          "name": "thumbnail",
+          "width": 320,
+          "height": 202,
+          "checksum": "f0edc2b5d36bf17f8e607e88f57f5af6a40f94bdbd343de6f5a64064b1634d4d",
+          "bucket": "gatherory-public",
+          "key": "explore/covers/books/d4d1058e2e13af9c9f69b25df44b8d7be2c9ca020d3b896839bfef10c6e55237/thumbnail.jpg",
+          "url": "https://cdn.gatherory.com/explore/covers/books/d4d1058e2e13af9c9f69b25df44b8d7be2c9ca020d3b896839bfef10c6e55237/thumbnail.jpg"
+        },
+        {
+          "name": "card",
+          "width": 960,
+          "height": 605,
+          "checksum": "c5544fd74c2d2b5bdb0cd7f3e65e6f4ea32131b66f51584f802ceee92372222c",
+          "bucket": "gatherory-public",
+          "key": "explore/covers/books/d4d1058e2e13af9c9f69b25df44b8d7be2c9ca020d3b896839bfef10c6e55237/card.jpg",
+          "url": "https://cdn.gatherory.com/explore/covers/books/d4d1058e2e13af9c9f69b25df44b8d7be2c9ca020d3b896839bfef10c6e55237/card.jpg"
+        },
+        {
+          "name": "hero",
+          "width": 1600,
+          "height": 1008,
+          "checksum": "0f11dc184648f2374875e9bef330147b88771bafb1c53c04464d3545746574e5",
+          "bucket": "gatherory-public",
+          "key": "explore/covers/books/d4d1058e2e13af9c9f69b25df44b8d7be2c9ca020d3b896839bfef10c6e55237/hero.jpg",
+          "url": "https://cdn.gatherory.com/explore/covers/books/d4d1058e2e13af9c9f69b25df44b8d7be2c9ca020d3b896839bfef10c6e55237/hero.jpg"
+        }
+      ]
+    },
+    "fileChecksum": "33594cbe1ae1c820dc0669aad7539548bb8283566a0090b8ac8137f7db1b9886"
+  },
+  "farmers-market": {
+    "file": "scripts/seed/blueprint-assets/farmers-market.jpg",
+    "license": {
+      "name": "Pexels License",
+      "url": "https://www.pexels.com/license/",
+      "sourceURL": "https://www.pexels.com/photo/vibrant-display-of-fresh-vegetables-at-farmers-market-31404675/",
+      "photographer": "Jonathan David",
+      "photoID": "31404675",
+      "checkedAt": "2026-10-22T16:35:00Z"
+    },
+    "manifest": {
+      "schemaVersion": 1,
+      "label": "Fresh vegetables displayed at a farmers market.",
+      "source": {
+        "width": 1600,
+        "height": 2133,
+        "checksum": "b0cda0ec67a504ce980ed62ad1d55310df7a62ccd8f1879931058d8c39e76749"
+      },
+      "bucket": "gatherory-public",
+      "processingVersion": "explore-cover-jpeg-v1",
+      "variants": [
+        {
+          "name": "thumbnail",
+          "width": 240,
+          "height": 320,
+          "checksum": "ea3eb4bf00b40ea80837ed03c56d1ab79c4b72e748e6967345258931f9de4aa8",
+          "bucket": "gatherory-public",
+          "key": "explore/covers/farmers-market/e7c2a7827b5c8d41770d6ab4526b81ab46b877f24161b14f2bdbfb376523c5b8/thumbnail.jpg",
+          "url": "https://cdn.gatherory.com/explore/covers/farmers-market/e7c2a7827b5c8d41770d6ab4526b81ab46b877f24161b14f2bdbfb376523c5b8/thumbnail.jpg"
+        },
+        {
+          "name": "card",
+          "width": 720,
+          "height": 960,
+          "checksum": "53237167cfbd24592478648ce7f55a28a382dc0c85722549e99d6e6b5e28fea3",
+          "bucket": "gatherory-public",
+          "key": "explore/covers/farmers-market/e7c2a7827b5c8d41770d6ab4526b81ab46b877f24161b14f2bdbfb376523c5b8/card.jpg",
+          "url": "https://cdn.gatherory.com/explore/covers/farmers-market/e7c2a7827b5c8d41770d6ab4526b81ab46b877f24161b14f2bdbfb376523c5b8/card.jpg"
+        },
+        {
+          "name": "hero",
+          "width": 1200,
+          "height": 1600,
+          "checksum": "da2b4b46810dd3892b57a726a69bb5badac707f11d42cc8c039a99428565315a",
+          "bucket": "gatherory-public",
+          "key": "explore/covers/farmers-market/e7c2a7827b5c8d41770d6ab4526b81ab46b877f24161b14f2bdbfb376523c5b8/hero.jpg",
+          "url": "https://cdn.gatherory.com/explore/covers/farmers-market/e7c2a7827b5c8d41770d6ab4526b81ab46b877f24161b14f2bdbfb376523c5b8/hero.jpg"
+        }
+      ]
+    },
+    "fileChecksum": "3d73aa02cb9889b0302151a00059c6cba8d2c96f6233d7486b957e7883846869"
+  }
+}

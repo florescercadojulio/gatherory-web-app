@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "enabled": {
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "enabled"
+  ],
+  "additionalProperties": false,
+  "$id": "https://schemas.gatherory.com/blueprint-measurement-settings/v1.json",
+  "title": "Gatherory Blueprint Measurement Settings v1"
+}

@@ -15,7 +15,7 @@ async function fixture() {
     await import('@/db/schema/notification.schema')
   const { notificationRepo } = await import('@/server/notifications/repos/notification.repo.live')
   const { Effect } = await import('effect')
-  const { eq } = await import('drizzle-orm')
+  const { eq, sql } = await import('drizzle-orm')
   const id = randomUUID()
   const recipientId = `dispatch-user-${id}`
   const otherRecipientId = `dispatch-other-${id}`
@@ -54,7 +54,7 @@ async function fixture() {
     id,
     organizationId,
     title: 'Dispatch test',
-    status: 'draft',
+    status: 'ongoing',
     timeZone: 'UTC',
     startsAt: new Date('2031-01-01T00:00:00Z'),
     createdByUserId: recipientId,
@@ -69,6 +69,7 @@ async function fixture() {
   return {
     db,
     eq,
+    sql,
     event,
     eventParticipant,
     nativeNotificationOutbox,
@@ -93,7 +94,7 @@ async function fixture() {
           recipientKind: 'user',
           recipientId,
           type: 'event_changed',
-          nextAttemptAt: new Date(Date.now() - 5_000),
+          nextAttemptAt: sql`clock_timestamp() - interval '5 seconds'`,
           ...overrides,
         })
         .returning()
@@ -155,7 +156,7 @@ test(
       }
       await f.db
         .update(f.nativeNotificationOutbox)
-        .set({ leaseUntil: new Date(Date.now() - 1) })
+        .set({ leaseUntil: f.sql`clock_timestamp() - interval '1 second'` })
         .where(f.eq(f.nativeNotificationOutbox.id, old.id))
       expect(await f.run(f.notificationRepo.isStillBound(old, old.installations[0]!))).toBe(false)
       // An ack that wins before replacement still prevents a later retry from resending.
@@ -189,7 +190,13 @@ test(
       const pending = await f.enqueue()
       const [first] = await f.run(f.notificationRepo.claimPending(1))
       await f.run(f.notificationRepo.markInstallationAccepted(first!, f.installationId))
-      const before = Date.now()
+      const before = (
+        await f.db
+          .select({
+            now: f.sql<number>`(extract(epoch from clock_timestamp()) * 1000)::double precision`,
+          })
+          .from(f.sql`(select 1) as notification_clock`)
+      )[0]!.now
       await f.run(f.notificationRepo.retry(first!, 'provider_failure', false, 180_000))
       expect(await f.row(pending.id)).toMatchObject({
         state: 'pending',
@@ -202,7 +209,10 @@ test(
       expect(await f.run(f.notificationRepo.claimPending(1))).toEqual([])
       await f.db
         .update(f.nativeNotificationOutbox)
-        .set({ nextAttemptAt: new Date(Date.now() - 1), attempts: 7 })
+        .set({
+          nextAttemptAt: f.sql`clock_timestamp() - interval '1 second'`,
+          attempts: 7,
+        })
         .where(f.eq(f.nativeNotificationOutbox.id, pending.id))
       const [eighth] = await f.run(f.notificationRepo.claimPending(1))
       expect(eighth?.acceptedInstallationIds).toEqual([f.installationId])
@@ -213,10 +223,14 @@ test(
         leaseKey: null,
         lastFailure: 'retry_exhausted',
       })
-      const stale = await f.enqueue({
-        createdAt: new Date(Date.now() - 24 * 3_600_000),
-        nextAttemptAt: new Date(Date.now() + 3_600_000),
-      })
+      const stale = await f.enqueue()
+      await f.db
+        .update(f.nativeNotificationOutbox)
+        .set({
+          createdAt: f.sql`clock_timestamp() - interval '24 hours 1 second'`,
+          nextAttemptAt: f.sql`clock_timestamp() + interval '1 hour'`,
+        })
+        .where(f.eq(f.nativeNotificationOutbox.id, stale.id))
       const exhausted = await f.enqueue({ state: 'leased', attempts: 8, leaseUntil: null })
       const abandoned = await f.enqueue({
         state: 'leased',
@@ -230,7 +244,9 @@ test(
       // A pending retry approaching TTL can never schedule beyond the TTL.
       await f.db
         .update(f.nativeNotificationOutbox)
-        .set({ createdAt: new Date(Date.now() - 24 * 3_600_000 + 30_000) })
+        .set({
+          createdAt: f.sql`clock_timestamp() - interval '23 hours 59 minutes 30 seconds'`,
+        })
         .where(f.eq(f.nativeNotificationOutbox.id, abandoned.id))
       await f.run(
         f.notificationRepo.retry(recovered!, 'provider response contains secrets', false, 3_600_000)
@@ -276,7 +292,7 @@ test(
       await f.run(f.notificationRepo.retry(item!, 'provider_failure'))
       await f.db
         .update(f.nativeNotificationOutbox)
-        .set({ nextAttemptAt: new Date(Date.now() - 1) })
+        .set({ nextAttemptAt: f.sql`clock_timestamp() - interval '1 second'` })
         .where(f.eq(f.nativeNotificationOutbox.id, item!.id))
       const [current] = await f.run(f.notificationRepo.claimPending(1))
       const currentInstallation = current!.installations[0]!
@@ -320,6 +336,93 @@ test(
       })
       expect(await f.row(eligible.id)).toMatchObject({ state: 'leased', attempts: 1 })
     } finally {
+      await f.cleanup()
+    }
+  }
+)
+
+test(
+  'event-change dispatch rechecks current lifecycle, reason, and child parent state',
+  { skip: !enabled, timeout: 30_000 },
+  async () => {
+    const f = await fixture()
+    const childId = randomUUID()
+    try {
+      // A draft edit after claim revokes an ordinary schedule alert before provider access.
+      const draftEdit = await f.enqueue({ eventChangeKind: 'schedule' })
+      const [draftClaim] = await f.run(f.notificationRepo.claimPending(1))
+      expect(draftClaim?.eventChangeKind).toBe('schedule')
+      await f.db.update(f.event).set({ status: 'draft' }).where(f.eq(f.event.id, f.id))
+      expect(
+        await f.run(f.notificationRepo.isStillBound(draftClaim!, draftClaim!.installations[0]!))
+      ).toBe(false)
+      expect(await f.row(draftEdit.id)).toMatchObject({ state: 'leased' })
+
+      // A captured cancellation remains eligible only while the event is currently cancelled.
+      await f.db.update(f.event).set({ status: 'cancelled' }).where(f.eq(f.event.id, f.id))
+      const cancellation = await f.enqueue({ eventChangeKind: 'cancelled' })
+      const [cancelClaim] = await f.run(f.notificationRepo.claimPending(1))
+      expect(cancelClaim?.id).toBe(cancellation.id)
+      expect(
+        await f.run(f.notificationRepo.isStillBound(cancelClaim!, cancelClaim!.installations[0]!))
+      ).toBe(true)
+      await f.db.update(f.event).set({ status: 'ongoing' }).where(f.eq(f.event.id, f.id))
+      expect(
+        await f.run(f.notificationRepo.isStillBound(cancelClaim!, cancelClaim!.installations[0]!))
+      ).toBe(false)
+
+      // A reopened alert is valid for a live event, but is revoked if it is cancelled again.
+      const reopened = await f.enqueue({ eventChangeKind: 'reopened' })
+      const [reopenClaim] = await f.run(f.notificationRepo.claimPending(1))
+      expect(reopenClaim?.id).toBe(reopened.id)
+      expect(
+        await f.run(f.notificationRepo.isStillBound(reopenClaim!, reopenClaim!.installations[0]!))
+      ).toBe(true)
+      await f.db.update(f.event).set({ status: 'cancelled' }).where(f.eq(f.event.id, f.id))
+      expect(
+        await f.run(f.notificationRepo.isStillBound(reopenClaim!, reopenClaim!.installations[0]!))
+      ).toBe(false)
+
+      // Approved child alerts still require the root event to remain live.
+      await f.db.update(f.event).set({ status: 'ongoing' }).where(f.eq(f.event.id, f.id))
+      await f.db.insert(f.event).values({
+        id: childId,
+        organizationId: (
+          await f.db
+            .select({ organizationId: f.event.organizationId })
+            .from(f.event)
+            .where(f.eq(f.event.id, f.id))
+        )[0]!.organizationId,
+        parentEventId: f.id,
+        title: 'Child dispatch test',
+        category: 'other',
+        purpose: 'part_of_event',
+        planningStatus: 'approved',
+        timeZone: 'UTC',
+        startsAt: new Date('2031-01-02T00:00:00Z'),
+        createdByUserId: f.recipientId,
+      })
+      await f.db.insert(f.eventParticipant).values({
+        eventId: childId,
+        personId: f.personId,
+        role: 'host',
+        planningPermission: 'manage',
+      })
+      const childAlert = await f.enqueue({ eventId: childId, eventChangeKind: 'location' })
+      const [childClaim] = await f.run(f.notificationRepo.claimPending(1))
+      expect(childClaim?.id).toBe(childAlert.id)
+      expect(
+        await f.run(f.notificationRepo.isStillBound(childClaim!, childClaim!.installations[0]!))
+      ).toBe(true)
+      await f.db.update(f.event).set({ status: 'cancelled' }).where(f.eq(f.event.id, f.id))
+      expect(
+        await f.run(f.notificationRepo.isStillBound(childClaim!, childClaim!.installations[0]!))
+      ).toBe(false)
+    } finally {
+      await f.db
+        .delete(f.nativeNotificationOutbox)
+        .where(f.eq(f.nativeNotificationOutbox.eventId, childId))
+      await f.db.delete(f.event).where(f.eq(f.event.id, childId))
       await f.cleanup()
     }
   }

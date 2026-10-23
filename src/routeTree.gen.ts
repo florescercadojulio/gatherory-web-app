@@ -13,7 +13,9 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProtectedRouteRouteImport } from './routes/_protected/route'
 import { Route as DotwellKnownAppleAppSiteAssociationRouteImport } from './routes/[.]well-known/apple-app-site-association'
 import { Route as AdminReportsRouteImport } from './routes/admin/reports'
+import { Route as AdminWaitlistRouteImport } from './routes/admin/waitlist'
 import { Route as ApiInvitationsRouteImport } from './routes/api/invitations'
+import { Route as ApiWaitlistRouteImport } from './routes/api/waitlist'
 import { Route as JoinTokenRouteImport } from './routes/join/$token'
 import { Route as ProtectedAccountIndexRouteImport } from './routes/_protected/account/index'
 import { Route as ProtectedBlueprintsIndexRouteImport } from './routes/_protected/blueprints/index'
@@ -21,6 +23,7 @@ import { Route as ProtectedWorkspacesIndexRouteImport } from './routes/_protecte
 import { Route as ProtectedWorkspacesWorkspaceSlugRouteRouteImport } from './routes/_protected/workspaces/$workspaceSlug/route'
 import { Route as ApiAdminReportImageRouteImport } from './routes/api/admin/report-image'
 import { Route as ApiAdminReportsRouteImport } from './routes/api/admin/reports'
+import { Route as ApiAdminWaitlistRouteImport } from './routes/api/admin/waitlist'
 import { Route as ApiAuthSplatRouteRouteImport } from './routes/api/auth/$/route'
 import { Route as ApiAuthAppleTokenRouteImport } from './routes/api/auth/apple-token'
 import { Route as ApiBlueprintsCatalogRouteImport } from './routes/api/blueprints/catalog'
@@ -28,7 +31,9 @@ import { Route as ApiBlueprintsCopiesRouteImport } from './routes/api/blueprints
 import { Route as ApiBlueprintsCreateTemplateRouteImport } from './routes/api/blueprints/create-template'
 import { Route as ApiBlueprintsInstallRouteImport } from './routes/api/blueprints/install'
 import { Route as ApiBlueprintsLibraryRouteImport } from './routes/api/blueprints/library'
+import { Route as ApiBlueprintsMeasurementRouteImport } from './routes/api/blueprints/measurement'
 import { Route as ApiBlueprintsPersonalRouteImport } from './routes/api/blueprints/personal'
+import { Route as ApiBlueprintsPreferencesRouteImport } from './routes/api/blueprints/preferences'
 import { Route as ApiBlueprintsPreviewRouteImport } from './routes/api/blueprints/preview'
 import { Route as ApiBlueprintsScheduleRouteImport } from './routes/api/blueprints/schedule'
 import { Route as ApiBlueprintsSharingRouteImport } from './routes/api/blueprints/sharing'
@@ -51,6 +56,8 @@ import { Route as ProtectedBlueprintsCaptureIndexRouteImport } from './routes/_p
 import { Route as ProtectedBlueprintsNewIndexRouteImport } from './routes/_protected/blueprints/new/index'
 import { Route as ProtectedWorkspacesWorkspaceSlugIndexRouteImport } from './routes/_protected/workspaces/$workspaceSlug/index'
 import { Route as ApiBlueprintsInstallationsRequestIdRouteImport } from './routes/api/blueprints/installations/$requestId'
+import { Route as ApiBlueprintsMeasurementSignalsRouteImport } from './routes/api/blueprints/measurement/signals'
+import { Route as ApiBlueprintsMediaActionRouteImport } from './routes/api/blueprints/media/$action'
 import { Route as ApiBlueprintsSharedTokenRouteImport } from './routes/api/blueprints/shared/$token'
 import { Route as ApiEventsEventIdAnnouncementsRouteImport } from './routes/api/events/$eventId/announcements'
 import { Route as ApiInternalNotificationsDispatchRouteImport } from './routes/api/internal/notifications/dispatch'
@@ -80,9 +87,19 @@ const AdminReportsRoute = AdminReportsRouteImport.update({
   path: '/admin/reports',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminWaitlistRoute = AdminWaitlistRouteImport.update({
+  id: '/admin/waitlist',
+  path: '/admin/waitlist',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiInvitationsRoute = ApiInvitationsRouteImport.update({
   id: '/api/invitations',
   path: '/api/invitations',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiWaitlistRoute = ApiWaitlistRouteImport.update({
+  id: '/api/waitlist',
+  path: '/api/waitlist',
   getParentRoute: () => rootRouteImport,
 } as any)
 const JoinTokenRoute = JoinTokenRouteImport.update({
@@ -123,6 +140,11 @@ const ApiAdminReportsRoute = ApiAdminReportsRouteImport.update({
   path: '/api/admin/reports',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAdminWaitlistRoute = ApiAdminWaitlistRouteImport.update({
+  id: '/api/admin/waitlist',
+  path: '/api/admin/waitlist',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiAuthSplatRouteRoute = ApiAuthSplatRouteRouteImport.update({
   id: '/api/auth/$',
   path: '/api/auth/$',
@@ -159,11 +181,23 @@ const ApiBlueprintsLibraryRoute = ApiBlueprintsLibraryRouteImport.update({
   path: '/api/blueprints/library',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiBlueprintsMeasurementRoute =
+  ApiBlueprintsMeasurementRouteImport.update({
+    id: '/api/blueprints/measurement',
+    path: '/api/blueprints/measurement',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiBlueprintsPersonalRoute = ApiBlueprintsPersonalRouteImport.update({
   id: '/api/blueprints/personal',
   path: '/api/blueprints/personal',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiBlueprintsPreferencesRoute =
+  ApiBlueprintsPreferencesRouteImport.update({
+    id: '/api/blueprints/preferences',
+    path: '/api/blueprints/preferences',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiBlueprintsPreviewRoute = ApiBlueprintsPreviewRouteImport.update({
   id: '/api/blueprints/preview',
   path: '/api/blueprints/preview',
@@ -280,6 +314,18 @@ const ApiBlueprintsInstallationsRequestIdRoute =
     path: '/api/blueprints/installations/$requestId',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiBlueprintsMeasurementSignalsRoute =
+  ApiBlueprintsMeasurementSignalsRouteImport.update({
+    id: '/signals',
+    path: '/signals',
+    getParentRoute: () => ApiBlueprintsMeasurementRoute,
+  } as any)
+const ApiBlueprintsMediaActionRoute =
+  ApiBlueprintsMediaActionRouteImport.update({
+    id: '/api/blueprints/media/$action',
+    path: '/api/blueprints/media/$action',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiBlueprintsSharedTokenRoute =
   ApiBlueprintsSharedTokenRouteImport.update({
     id: '/api/blueprints/shared/$token',
@@ -330,19 +376,24 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/.well-known/apple-app-site-association': typeof DotwellKnownAppleAppSiteAssociationRoute
   '/admin/reports': typeof AdminReportsRoute
+  '/admin/waitlist': typeof AdminWaitlistRoute
   '/api/invitations': typeof ApiInvitationsRouteWithChildren
+  '/api/waitlist': typeof ApiWaitlistRoute
   '/join/$token': typeof JoinTokenRoute
   '/workspaces/$workspaceSlug': typeof ProtectedWorkspacesWorkspaceSlugRouteRouteWithChildren
   '/api/auth/$': typeof ApiAuthSplatRouteRoute
   '/api/admin/report-image': typeof ApiAdminReportImageRoute
   '/api/admin/reports': typeof ApiAdminReportsRoute
+  '/api/admin/waitlist': typeof ApiAdminWaitlistRoute
   '/api/auth/apple-token': typeof ApiAuthAppleTokenRoute
   '/api/blueprints/catalog': typeof ApiBlueprintsCatalogRoute
   '/api/blueprints/copies': typeof ApiBlueprintsCopiesRoute
   '/api/blueprints/create-template': typeof ApiBlueprintsCreateTemplateRoute
   '/api/blueprints/install': typeof ApiBlueprintsInstallRoute
   '/api/blueprints/library': typeof ApiBlueprintsLibraryRoute
+  '/api/blueprints/measurement': typeof ApiBlueprintsMeasurementRouteWithChildren
   '/api/blueprints/personal': typeof ApiBlueprintsPersonalRoute
+  '/api/blueprints/preferences': typeof ApiBlueprintsPreferencesRoute
   '/api/blueprints/preview': typeof ApiBlueprintsPreviewRoute
   '/api/blueprints/schedule': typeof ApiBlueprintsScheduleRoute
   '/api/blueprints/sharing': typeof ApiBlueprintsSharingRoute
@@ -364,6 +415,8 @@ export interface FileRoutesByFullPath {
   '/workspaces/': typeof ProtectedWorkspacesIndexRoute
   '/auth/$path/': typeof AuthPathIndexRoute
   '/api/blueprints/installations/$requestId': typeof ApiBlueprintsInstallationsRequestIdRoute
+  '/api/blueprints/measurement/signals': typeof ApiBlueprintsMeasurementSignalsRoute
+  '/api/blueprints/media/$action': typeof ApiBlueprintsMediaActionRoute
   '/api/blueprints/shared/$token': typeof ApiBlueprintsSharedTokenRoute
   '/api/events/$eventId/announcements': typeof ApiEventsEventIdAnnouncementsRoute
   '/api/internal/notifications/dispatch': typeof ApiInternalNotificationsDispatchRoute
@@ -381,18 +434,23 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/.well-known/apple-app-site-association': typeof DotwellKnownAppleAppSiteAssociationRoute
   '/admin/reports': typeof AdminReportsRoute
+  '/admin/waitlist': typeof AdminWaitlistRoute
   '/api/invitations': typeof ApiInvitationsRouteWithChildren
+  '/api/waitlist': typeof ApiWaitlistRoute
   '/join/$token': typeof JoinTokenRoute
   '/api/auth/$': typeof ApiAuthSplatRouteRoute
   '/api/admin/report-image': typeof ApiAdminReportImageRoute
   '/api/admin/reports': typeof ApiAdminReportsRoute
+  '/api/admin/waitlist': typeof ApiAdminWaitlistRoute
   '/api/auth/apple-token': typeof ApiAuthAppleTokenRoute
   '/api/blueprints/catalog': typeof ApiBlueprintsCatalogRoute
   '/api/blueprints/copies': typeof ApiBlueprintsCopiesRoute
   '/api/blueprints/create-template': typeof ApiBlueprintsCreateTemplateRoute
   '/api/blueprints/install': typeof ApiBlueprintsInstallRoute
   '/api/blueprints/library': typeof ApiBlueprintsLibraryRoute
+  '/api/blueprints/measurement': typeof ApiBlueprintsMeasurementRouteWithChildren
   '/api/blueprints/personal': typeof ApiBlueprintsPersonalRoute
+  '/api/blueprints/preferences': typeof ApiBlueprintsPreferencesRoute
   '/api/blueprints/preview': typeof ApiBlueprintsPreviewRoute
   '/api/blueprints/schedule': typeof ApiBlueprintsScheduleRoute
   '/api/blueprints/sharing': typeof ApiBlueprintsSharingRoute
@@ -414,6 +472,8 @@ export interface FileRoutesByTo {
   '/workspaces': typeof ProtectedWorkspacesIndexRoute
   '/auth/$path': typeof AuthPathIndexRoute
   '/api/blueprints/installations/$requestId': typeof ApiBlueprintsInstallationsRequestIdRoute
+  '/api/blueprints/measurement/signals': typeof ApiBlueprintsMeasurementSignalsRoute
+  '/api/blueprints/media/$action': typeof ApiBlueprintsMediaActionRoute
   '/api/blueprints/shared/$token': typeof ApiBlueprintsSharedTokenRoute
   '/api/events/$eventId/announcements': typeof ApiEventsEventIdAnnouncementsRoute
   '/api/internal/notifications/dispatch': typeof ApiInternalNotificationsDispatchRoute
@@ -433,19 +493,24 @@ export interface FileRoutesById {
   '/_protected': typeof ProtectedRouteRouteWithChildren
   '/.well-known/apple-app-site-association': typeof DotwellKnownAppleAppSiteAssociationRoute
   '/admin/reports': typeof AdminReportsRoute
+  '/admin/waitlist': typeof AdminWaitlistRoute
   '/api/invitations': typeof ApiInvitationsRouteWithChildren
+  '/api/waitlist': typeof ApiWaitlistRoute
   '/join/$token': typeof JoinTokenRoute
   '/_protected/workspaces/$workspaceSlug': typeof ProtectedWorkspacesWorkspaceSlugRouteRouteWithChildren
   '/api/auth/$': typeof ApiAuthSplatRouteRoute
   '/api/admin/report-image': typeof ApiAdminReportImageRoute
   '/api/admin/reports': typeof ApiAdminReportsRoute
+  '/api/admin/waitlist': typeof ApiAdminWaitlistRoute
   '/api/auth/apple-token': typeof ApiAuthAppleTokenRoute
   '/api/blueprints/catalog': typeof ApiBlueprintsCatalogRoute
   '/api/blueprints/copies': typeof ApiBlueprintsCopiesRoute
   '/api/blueprints/create-template': typeof ApiBlueprintsCreateTemplateRoute
   '/api/blueprints/install': typeof ApiBlueprintsInstallRoute
   '/api/blueprints/library': typeof ApiBlueprintsLibraryRoute
+  '/api/blueprints/measurement': typeof ApiBlueprintsMeasurementRouteWithChildren
   '/api/blueprints/personal': typeof ApiBlueprintsPersonalRoute
+  '/api/blueprints/preferences': typeof ApiBlueprintsPreferencesRoute
   '/api/blueprints/preview': typeof ApiBlueprintsPreviewRoute
   '/api/blueprints/schedule': typeof ApiBlueprintsScheduleRoute
   '/api/blueprints/sharing': typeof ApiBlueprintsSharingRoute
@@ -467,6 +532,8 @@ export interface FileRoutesById {
   '/_protected/workspaces/': typeof ProtectedWorkspacesIndexRoute
   '/auth/$path/': typeof AuthPathIndexRoute
   '/api/blueprints/installations/$requestId': typeof ApiBlueprintsInstallationsRequestIdRoute
+  '/api/blueprints/measurement/signals': typeof ApiBlueprintsMeasurementSignalsRoute
+  '/api/blueprints/media/$action': typeof ApiBlueprintsMediaActionRoute
   '/api/blueprints/shared/$token': typeof ApiBlueprintsSharedTokenRoute
   '/api/events/$eventId/announcements': typeof ApiEventsEventIdAnnouncementsRoute
   '/api/internal/notifications/dispatch': typeof ApiInternalNotificationsDispatchRoute
@@ -486,19 +553,24 @@ export interface FileRouteTypes {
     | '/'
     | '/.well-known/apple-app-site-association'
     | '/admin/reports'
+    | '/admin/waitlist'
     | '/api/invitations'
+    | '/api/waitlist'
     | '/join/$token'
     | '/workspaces/$workspaceSlug'
     | '/api/auth/$'
     | '/api/admin/report-image'
     | '/api/admin/reports'
+    | '/api/admin/waitlist'
     | '/api/auth/apple-token'
     | '/api/blueprints/catalog'
     | '/api/blueprints/copies'
     | '/api/blueprints/create-template'
     | '/api/blueprints/install'
     | '/api/blueprints/library'
+    | '/api/blueprints/measurement'
     | '/api/blueprints/personal'
+    | '/api/blueprints/preferences'
     | '/api/blueprints/preview'
     | '/api/blueprints/schedule'
     | '/api/blueprints/sharing'
@@ -520,6 +592,8 @@ export interface FileRouteTypes {
     | '/workspaces/'
     | '/auth/$path/'
     | '/api/blueprints/installations/$requestId'
+    | '/api/blueprints/measurement/signals'
+    | '/api/blueprints/media/$action'
     | '/api/blueprints/shared/$token'
     | '/api/events/$eventId/announcements'
     | '/api/internal/notifications/dispatch'
@@ -537,18 +611,23 @@ export interface FileRouteTypes {
     | '/'
     | '/.well-known/apple-app-site-association'
     | '/admin/reports'
+    | '/admin/waitlist'
     | '/api/invitations'
+    | '/api/waitlist'
     | '/join/$token'
     | '/api/auth/$'
     | '/api/admin/report-image'
     | '/api/admin/reports'
+    | '/api/admin/waitlist'
     | '/api/auth/apple-token'
     | '/api/blueprints/catalog'
     | '/api/blueprints/copies'
     | '/api/blueprints/create-template'
     | '/api/blueprints/install'
     | '/api/blueprints/library'
+    | '/api/blueprints/measurement'
     | '/api/blueprints/personal'
+    | '/api/blueprints/preferences'
     | '/api/blueprints/preview'
     | '/api/blueprints/schedule'
     | '/api/blueprints/sharing'
@@ -570,6 +649,8 @@ export interface FileRouteTypes {
     | '/workspaces'
     | '/auth/$path'
     | '/api/blueprints/installations/$requestId'
+    | '/api/blueprints/measurement/signals'
+    | '/api/blueprints/media/$action'
     | '/api/blueprints/shared/$token'
     | '/api/events/$eventId/announcements'
     | '/api/internal/notifications/dispatch'
@@ -588,19 +669,24 @@ export interface FileRouteTypes {
     | '/_protected'
     | '/.well-known/apple-app-site-association'
     | '/admin/reports'
+    | '/admin/waitlist'
     | '/api/invitations'
+    | '/api/waitlist'
     | '/join/$token'
     | '/_protected/workspaces/$workspaceSlug'
     | '/api/auth/$'
     | '/api/admin/report-image'
     | '/api/admin/reports'
+    | '/api/admin/waitlist'
     | '/api/auth/apple-token'
     | '/api/blueprints/catalog'
     | '/api/blueprints/copies'
     | '/api/blueprints/create-template'
     | '/api/blueprints/install'
     | '/api/blueprints/library'
+    | '/api/blueprints/measurement'
     | '/api/blueprints/personal'
+    | '/api/blueprints/preferences'
     | '/api/blueprints/preview'
     | '/api/blueprints/schedule'
     | '/api/blueprints/sharing'
@@ -622,6 +708,8 @@ export interface FileRouteTypes {
     | '/_protected/workspaces/'
     | '/auth/$path/'
     | '/api/blueprints/installations/$requestId'
+    | '/api/blueprints/measurement/signals'
+    | '/api/blueprints/media/$action'
     | '/api/blueprints/shared/$token'
     | '/api/events/$eventId/announcements'
     | '/api/internal/notifications/dispatch'
@@ -641,18 +729,23 @@ export interface RootRouteChildren {
   ProtectedRouteRoute: typeof ProtectedRouteRouteWithChildren
   DotwellKnownAppleAppSiteAssociationRoute: typeof DotwellKnownAppleAppSiteAssociationRoute
   AdminReportsRoute: typeof AdminReportsRoute
+  AdminWaitlistRoute: typeof AdminWaitlistRoute
   ApiInvitationsRoute: typeof ApiInvitationsRouteWithChildren
+  ApiWaitlistRoute: typeof ApiWaitlistRoute
   JoinTokenRoute: typeof JoinTokenRoute
   ApiAuthSplatRouteRoute: typeof ApiAuthSplatRouteRoute
   ApiAdminReportImageRoute: typeof ApiAdminReportImageRoute
   ApiAdminReportsRoute: typeof ApiAdminReportsRoute
+  ApiAdminWaitlistRoute: typeof ApiAdminWaitlistRoute
   ApiAuthAppleTokenRoute: typeof ApiAuthAppleTokenRoute
   ApiBlueprintsCatalogRoute: typeof ApiBlueprintsCatalogRoute
   ApiBlueprintsCopiesRoute: typeof ApiBlueprintsCopiesRoute
   ApiBlueprintsCreateTemplateRoute: typeof ApiBlueprintsCreateTemplateRoute
   ApiBlueprintsInstallRoute: typeof ApiBlueprintsInstallRoute
   ApiBlueprintsLibraryRoute: typeof ApiBlueprintsLibraryRoute
+  ApiBlueprintsMeasurementRoute: typeof ApiBlueprintsMeasurementRouteWithChildren
   ApiBlueprintsPersonalRoute: typeof ApiBlueprintsPersonalRoute
+  ApiBlueprintsPreferencesRoute: typeof ApiBlueprintsPreferencesRoute
   ApiBlueprintsPreviewRoute: typeof ApiBlueprintsPreviewRoute
   ApiBlueprintsScheduleRoute: typeof ApiBlueprintsScheduleRoute
   ApiBlueprintsSharingRoute: typeof ApiBlueprintsSharingRoute
@@ -669,6 +762,7 @@ export interface RootRouteChildren {
   ApiSyncPushRoute: typeof ApiSyncPushRoute
   AuthPathIndexRoute: typeof AuthPathIndexRoute
   ApiBlueprintsInstallationsRequestIdRoute: typeof ApiBlueprintsInstallationsRequestIdRoute
+  ApiBlueprintsMediaActionRoute: typeof ApiBlueprintsMediaActionRoute
   ApiBlueprintsSharedTokenRoute: typeof ApiBlueprintsSharedTokenRoute
   ApiEventsEventIdAnnouncementsRoute: typeof ApiEventsEventIdAnnouncementsRoute
   ApiInternalNotificationsDispatchRoute: typeof ApiInternalNotificationsDispatchRoute
@@ -708,11 +802,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminReportsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/waitlist': {
+      id: '/admin/waitlist'
+      path: '/admin/waitlist'
+      fullPath: '/admin/waitlist'
+      preLoaderRoute: typeof AdminWaitlistRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/invitations': {
       id: '/api/invitations'
       path: '/api/invitations'
       fullPath: '/api/invitations'
       preLoaderRoute: typeof ApiInvitationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/waitlist': {
+      id: '/api/waitlist'
+      path: '/api/waitlist'
+      fullPath: '/api/waitlist'
+      preLoaderRoute: typeof ApiWaitlistRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/join/$token': {
@@ -764,6 +872,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAdminReportsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/admin/waitlist': {
+      id: '/api/admin/waitlist'
+      path: '/api/admin/waitlist'
+      fullPath: '/api/admin/waitlist'
+      preLoaderRoute: typeof ApiAdminWaitlistRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/auth/$': {
       id: '/api/auth/$'
       path: '/api/auth/$'
@@ -813,11 +928,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiBlueprintsLibraryRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/blueprints/measurement': {
+      id: '/api/blueprints/measurement'
+      path: '/api/blueprints/measurement'
+      fullPath: '/api/blueprints/measurement'
+      preLoaderRoute: typeof ApiBlueprintsMeasurementRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/blueprints/personal': {
       id: '/api/blueprints/personal'
       path: '/api/blueprints/personal'
       fullPath: '/api/blueprints/personal'
       preLoaderRoute: typeof ApiBlueprintsPersonalRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/blueprints/preferences': {
+      id: '/api/blueprints/preferences'
+      path: '/api/blueprints/preferences'
+      fullPath: '/api/blueprints/preferences'
+      preLoaderRoute: typeof ApiBlueprintsPreferencesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/blueprints/preview': {
@@ -974,6 +1103,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiBlueprintsInstallationsRequestIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/blueprints/measurement/signals': {
+      id: '/api/blueprints/measurement/signals'
+      path: '/signals'
+      fullPath: '/api/blueprints/measurement/signals'
+      preLoaderRoute: typeof ApiBlueprintsMeasurementSignalsRouteImport
+      parentRoute: typeof ApiBlueprintsMeasurementRoute
+    }
+    '/api/blueprints/media/$action': {
+      id: '/api/blueprints/media/$action'
+      path: '/api/blueprints/media/$action'
+      fullPath: '/api/blueprints/media/$action'
+      preLoaderRoute: typeof ApiBlueprintsMediaActionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/blueprints/shared/$token': {
       id: '/api/blueprints/shared/$token'
       path: '/api/blueprints/shared/$token'
@@ -1088,6 +1231,20 @@ const ApiInvitationsRouteWithChildren = ApiInvitationsRoute._addFileChildren(
   ApiInvitationsRouteChildren,
 )
 
+interface ApiBlueprintsMeasurementRouteChildren {
+  ApiBlueprintsMeasurementSignalsRoute: typeof ApiBlueprintsMeasurementSignalsRoute
+}
+
+const ApiBlueprintsMeasurementRouteChildren: ApiBlueprintsMeasurementRouteChildren =
+  {
+    ApiBlueprintsMeasurementSignalsRoute: ApiBlueprintsMeasurementSignalsRoute,
+  }
+
+const ApiBlueprintsMeasurementRouteWithChildren =
+  ApiBlueprintsMeasurementRoute._addFileChildren(
+    ApiBlueprintsMeasurementRouteChildren,
+  )
+
 interface ApiGuestEventsRouteChildren {
   ApiGuestEventsEventIdAnnouncementsRoute: typeof ApiGuestEventsEventIdAnnouncementsRoute
 }
@@ -1107,18 +1264,23 @@ const rootRouteChildren: RootRouteChildren = {
   DotwellKnownAppleAppSiteAssociationRoute:
     DotwellKnownAppleAppSiteAssociationRoute,
   AdminReportsRoute: AdminReportsRoute,
+  AdminWaitlistRoute: AdminWaitlistRoute,
   ApiInvitationsRoute: ApiInvitationsRouteWithChildren,
+  ApiWaitlistRoute: ApiWaitlistRoute,
   JoinTokenRoute: JoinTokenRoute,
   ApiAuthSplatRouteRoute: ApiAuthSplatRouteRoute,
   ApiAdminReportImageRoute: ApiAdminReportImageRoute,
   ApiAdminReportsRoute: ApiAdminReportsRoute,
+  ApiAdminWaitlistRoute: ApiAdminWaitlistRoute,
   ApiAuthAppleTokenRoute: ApiAuthAppleTokenRoute,
   ApiBlueprintsCatalogRoute: ApiBlueprintsCatalogRoute,
   ApiBlueprintsCopiesRoute: ApiBlueprintsCopiesRoute,
   ApiBlueprintsCreateTemplateRoute: ApiBlueprintsCreateTemplateRoute,
   ApiBlueprintsInstallRoute: ApiBlueprintsInstallRoute,
   ApiBlueprintsLibraryRoute: ApiBlueprintsLibraryRoute,
+  ApiBlueprintsMeasurementRoute: ApiBlueprintsMeasurementRouteWithChildren,
   ApiBlueprintsPersonalRoute: ApiBlueprintsPersonalRoute,
+  ApiBlueprintsPreferencesRoute: ApiBlueprintsPreferencesRoute,
   ApiBlueprintsPreviewRoute: ApiBlueprintsPreviewRoute,
   ApiBlueprintsScheduleRoute: ApiBlueprintsScheduleRoute,
   ApiBlueprintsSharingRoute: ApiBlueprintsSharingRoute,
@@ -1136,6 +1298,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthPathIndexRoute: AuthPathIndexRoute,
   ApiBlueprintsInstallationsRequestIdRoute:
     ApiBlueprintsInstallationsRequestIdRoute,
+  ApiBlueprintsMediaActionRoute: ApiBlueprintsMediaActionRoute,
   ApiBlueprintsSharedTokenRoute: ApiBlueprintsSharedTokenRoute,
   ApiEventsEventIdAnnouncementsRoute: ApiEventsEventIdAnnouncementsRoute,
   ApiInternalNotificationsDispatchRoute: ApiInternalNotificationsDispatchRoute,

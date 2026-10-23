@@ -7,6 +7,7 @@ import {
   BlueprintSaveDraftSchema,
   BlueprintPreviewDraftSchema,
   BlueprintDraftContentSchema,
+  type BlueprintDraftContent,
   draftDefinition,
   BlueprintStarterInputSchema,
 } from '@/contracts/blueprint-authoring.contracts'
@@ -70,6 +71,7 @@ export const getBlueprintStarterWorkflow = (actorId: string, input: unknown) =>
       name: document.blueprint.name,
       description: revision.description ?? '',
       experienceType: document.experienceDefaults.type,
+      coverAssetId: document.presentation?.coverAssetId,
       children: tree?.data?.config.children ?? [],
       ideas: ideas?.data?.config.ideas ?? [],
       instructions: instructions?.data?.config.sections ?? [],
@@ -79,28 +81,27 @@ export const getBlueprintStarterWorkflow = (actorId: string, input: unknown) =>
 export const createBlueprintDraftWorkflow = (actorId: string, input: unknown) =>
   Effect.gen(function* () {
     const request = yield* validateInput(BlueprintCreateDraftSchema, input)
-    // Attribution is checked against a real accessible revision, never trusted client metadata.
-    if (request.source)
+    if (request.source) {
       yield* (yield* BlueprintRepo).revision(
         request.source.catalogKey,
         request.source.revision,
         actorId
       )
+    }
     return yield* (yield* BlueprintAuthoringRepo).create(actorId, request)
   })
 export const saveBlueprintDraftWorkflow = (actorId: string, input: unknown) =>
   Effect.gen(function* () {
-    return yield* (yield* BlueprintAuthoringRepo).save(
-      actorId,
-      yield* validateInput(BlueprintSaveDraftSchema, input)
-    )
+    const request = yield* validateInput(BlueprintSaveDraftSchema, input)
+    return yield* (yield* BlueprintAuthoringRepo).save(actorId, request)
   })
 export const publishBlueprintDraftWorkflow = (actorId: string, input: unknown) =>
   Effect.gen(function* () {
-    return yield* (yield* BlueprintAuthoringRepo).publish(
-      actorId,
-      yield* validateInput(BlueprintPublishDraftSchema, input)
-    )
+    const request = yield* validateInput(BlueprintPublishDraftSchema, input)
+    const authoring = yield* BlueprintAuthoringRepo
+    // The repository resolves an already-published version before checking the
+    // current draft version, so a retried publication survives later edits.
+    return yield* authoring.publish(actorId, request)
   })
 export const retireBlueprintTemplateWorkflow = (actorId: string, input: unknown) =>
   Effect.gen(function* () {
@@ -121,7 +122,8 @@ export const deleteBlueprintDraftWorkflow = (actorId: string, input: unknown) =>
 export const previewBlueprintDraftWorkflow = (actorId: string, input: unknown) =>
   Effect.gen(function* () {
     const request = yield* validateInput(BlueprintPreviewDraftSchema, input)
-    const draft = yield* (yield* BlueprintAuthoringRepo).get(actorId, request.id)
+    const authoring = yield* BlueprintAuthoringRepo
+    const draft = yield* authoring.get(actorId, request.id)
     if (request.expectedVersion !== draft.draftVersion)
       return yield* Effect.fail(
         new ConflictError({
@@ -130,6 +132,18 @@ export const previewBlueprintDraftWorkflow = (actorId: string, input: unknown) =
           userMessageKey: 'serverErrors.CONFLICT',
         })
       )
+    const assetIds = coverAssetIds(draft.content)
+    if (assetIds.length) {
+      if (!authoring.validateCoverReferences)
+        return yield* Effect.fail(
+          new InvalidInputError({
+            category: 'validation',
+            code: 'BLUEPRINT_COVER_UNAVAILABLE',
+            userMessageKey: 'serverErrors.MEDIA_NOT_FOUND',
+          })
+        )
+      yield* authoring.validateCoverReferences(actorId, assetIds)
+    }
     const definition = draftDefinition(
       draft.content,
       draft.catalogKey,
@@ -173,6 +187,14 @@ export const previewBlueprintDraftWorkflow = (actorId: string, input: unknown) =
     })
     return { plan, contentHash, previewOnly: true as const }
   })
+
+function coverAssetIds(content: BlueprintDraftContent) {
+  return [
+    content.coverAssetId,
+    ...content.children.map((child) => child.coverAssetId),
+    ...content.ideas.map((idea) => idea.coverAssetId),
+  ].filter((id): id is string => typeof id === 'string')
+}
 
 /** Explicit, recoverable owner-workspace creation. Never called by a read and never switches sessions. */
 export const createBlueprintAuthoringWorkspaceWorkflow = (actor: { id: string; name: string }) =>

@@ -13,5 +13,9 @@ export const createBlueprintCopyWorkflow = (actor: { id: string; name: string },
     )
     const request = yield* validateInput(BlueprintCopyRequestSchema, input)
     yield* personalTemplateOwner(validatedActor)
-    return yield* (yield* BlueprintPersonalRepo).copy(validatedActor.id, request)
+    return yield* (yield* BlueprintPersonalRepo).copy(validatedActor.id, {
+      requestId: request.requestId,
+      content: request.content,
+      ...(request.source ? { source: request.source } : {}),
+    })
   })

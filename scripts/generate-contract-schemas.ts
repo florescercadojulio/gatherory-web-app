@@ -12,7 +12,20 @@ import {
   BlueprintLinkManagementInputSchema,
   BlueprintLinkManagementResponseSchema,
 } from '../src/contracts/blueprint-link-management.contracts'
-import { BlueprintCatalogResponseSchema } from '../src/contracts/blueprint-discovery.contracts'
+import {
+  BlueprintCatalogPageRequestSchema,
+  BlueprintCatalogResponseSchema,
+} from '../src/contracts/blueprint-discovery.contracts'
+import {
+  BlueprintMeasurementSettingsMutationSchema,
+  BlueprintMeasurementSignalSchema,
+  BlueprintMeasurementSettingsSchema,
+} from '../src/contracts/blueprint-measurement.contracts'
+import {
+  BlueprintPreferenceListResponseSchema,
+  BlueprintPreferenceMutationResponseSchema,
+  BlueprintPreferenceMutationSchema,
+} from '../src/contracts/blueprint-preferences.contracts'
 import { blueprintStarters } from '../src/server/blueprints/catalog/starters'
 import { buildBlueprintCatalog } from '../src/server/blueprints/services/blueprint-discovery'
 import {
@@ -160,6 +173,52 @@ const contracts = [
     id: 'https://schemas.gatherory.com/blueprint-catalog/v1.json',
     title: 'Gatherory Blueprint Discovery Catalog v1',
     schema: BlueprintCatalogResponseSchema,
+  },
+  {
+    file: 'blueprint-catalog-page-input.v1.schema.json',
+    id: 'https://schemas.gatherory.com/blueprint-catalog-page-input/v1.json',
+    title: 'Gatherory Blueprint Catalog Page Request v1',
+    schema: BlueprintCatalogPageRequestSchema,
+    io: 'input' as const,
+  },
+  {
+    file: 'blueprint-preference-mutation.v1.schema.json',
+    id: 'https://schemas.gatherory.com/blueprint-preference-mutation/v1.json',
+    title: 'Gatherory Blueprint Preference Mutation v1',
+    schema: BlueprintPreferenceMutationSchema,
+    io: 'input' as const,
+  },
+  {
+    file: 'blueprint-preference-response.v1.schema.json',
+    id: 'https://schemas.gatherory.com/blueprint-preference-response/v1.json',
+    title: 'Gatherory Blueprint Preferences v1',
+    schema: BlueprintPreferenceListResponseSchema,
+  },
+  {
+    file: 'blueprint-preference-mutation-response.v1.schema.json',
+    id: 'https://schemas.gatherory.com/blueprint-preference-mutation-response/v1.json',
+    title: 'Gatherory Blueprint Preference Mutation Response v1',
+    schema: BlueprintPreferenceMutationResponseSchema,
+  },
+  {
+    file: 'blueprint-measurement-settings.v1.schema.json',
+    id: 'https://schemas.gatherory.com/blueprint-measurement-settings/v1.json',
+    title: 'Gatherory Blueprint Measurement Settings v1',
+    schema: BlueprintMeasurementSettingsSchema,
+  },
+  {
+    file: 'blueprint-measurement-settings-mutation.v1.schema.json',
+    id: 'https://schemas.gatherory.com/blueprint-measurement-settings-mutation/v1.json',
+    title: 'Gatherory Blueprint Measurement Settings Mutation v1',
+    schema: BlueprintMeasurementSettingsMutationSchema,
+    io: 'input' as const,
+  },
+  {
+    file: 'blueprint-measurement-signal.v1.schema.json',
+    id: 'https://schemas.gatherory.com/blueprint-measurement-signal/v1.json',
+    title: 'Gatherory Blueprint Measurement Signal v1',
+    schema: BlueprintMeasurementSignalSchema,
+    io: 'input' as const,
   },
   {
     file: 'blueprint-library.v1.schema.json',

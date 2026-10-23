@@ -38,6 +38,8 @@ export const env = createEnv({
     CLOUDFLARE_R2_PUBLIC_BUCKET_NAME: z.string().min(1),
     NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
     SERVER_URL: z.url().optional(),
+    /** Exact comma-separated account IDs excluded from discovery measurement. */
+    BLUEPRINT_DISCOVERY_EXCLUDED_ACCOUNT_IDS: z.string().default(''),
   },
 
   /**

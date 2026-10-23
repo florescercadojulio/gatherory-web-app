@@ -8,6 +8,27 @@ This document owns the product rules; the [implementation roadmap](../roadmaps/m
 owns delivery and the [blueprint sequencing assessment](../roadmaps/blueprints-roadmap/05-product-experience-and-billing-sequence.md)
 owns the recommendation about what to build first.
 
+## Explore advertising experiment — October 22, 2026
+
+The user approved Google AdMob native cards within iPhone Explore, using
+Google's dedicated test IDs first. Browse and category feeds page through real
+blueprints and insert clearly attributed ads after six organic results, then
+every twelve. Search, recent history, and private planning screens stay ad-free.
+Catalog exhaustion stops the feed; it does not recycle content to show more ads.
+
+The AdMob account is now approved; the app still Requires review because no
+public App Store listing is linked. European and US privacy messages are
+published in English/Spanish with Google-only initial partner lists. The public
+publisher file and advertising disclosure are live. Debug uses Gatherory's app
+ID with Google's native test unit so real app-specific UMP messages can be
+validated. Production IDs are prepared behind disabled Release advertising;
+no live requests, native release, billing change or backend deployment occurred.
+Consent uses UMP, with privacy choices when required. Private event and account
+data are not ad request targeting. See the native
+[implementation and release requirements](../../../ios-apps/gatherory/docs/explore-advertising.md)
+for consent, SDK disclosures, configuration, and runtime acceptance still needed
+before live advertising. The Event Pass direction below remains separate.
+
 ## Agreed offering
 
 | Offering            | Product boundary                                                                                                                                             |

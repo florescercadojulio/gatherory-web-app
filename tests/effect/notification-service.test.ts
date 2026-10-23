@@ -13,11 +13,13 @@ import {
 } from '@/server/notifications/repos/notification.repo.contract'
 import type {
   ClaimedNotification,
+  EventChangeKind,
   NotificationDispatchScope,
 } from '@/server/notifications/contracts/notification.contracts'
 import { NotificationService } from '@/server/notifications/services/notification.service'
 import {
   createNotificationService,
+  eventChangeNotificationBody,
   NotificationServiceLive,
 } from '@/server/notifications/services/notification.service.live'
 
@@ -117,6 +119,67 @@ function fixture() {
     },
     service: () => createNotificationService(repo, connector, () => time),
   }
+}
+
+const eventChangeBodies: Array<[EventChangeKind | null, 'en' | 'es', string]> = [
+  ['schedule', 'en', 'Event date or time changed.'],
+  ['schedule', 'es', 'Cambió la fecha o la hora del evento.'],
+  ['location', 'en', 'Event location changed.'],
+  ['location', 'es', 'Cambió la ubicación del evento.'],
+  ['schedule_and_location', 'en', 'Event schedule and location changed.'],
+  ['schedule_and_location', 'es', 'Cambiaron el horario y la ubicación del evento.'],
+  ['cancelled', 'en', 'Event cancelled.'],
+  ['cancelled', 'es', 'Evento cancelado.'],
+  ['reopened', 'en', 'Event is back on.'],
+  ['reopened', 'es', 'El evento vuelve a estar en pie.'],
+  [null, 'en', 'Event details changed.'],
+  [null, 'es', 'Se actualizaron los detalles del evento.'],
+  ['legacy_unknown' as EventChangeKind, 'en', 'Event details changed.'],
+  ['legacy_unknown' as EventChangeKind, 'es', 'Se actualizaron los detalles del evento.'],
+  ['constructor' as EventChangeKind, 'en', 'Event details changed.'],
+  ['__proto__' as EventChangeKind, 'es', 'Se actualizaron los detalles del evento.'],
+]
+
+for (const [kind, locale, body] of eventChangeBodies) {
+  it.effect(
+    `sends ${kind ?? 'legacy'} event-change copy in ${locale} without private content`,
+    () => {
+      const f = fixture()
+      f.item.type = 'event_changed'
+      f.item.eventChangeKind = kind
+      f.item.installations.forEach((installation) => {
+        installation.locale = locale
+      })
+      const payloads: unknown[] = []
+      f.connector.send = (input) =>
+        Effect.sync(() => {
+          payloads.push(input.payload)
+        })
+      return Effect.gen(function* () {
+        expect(eventChangeNotificationBody(kind, locale)).toBe(body)
+        expect((yield* f.service().dispatchPending()).delivered).toBe(1)
+        expect(payloads).toHaveLength(2)
+        expect(payloads[0]).toEqual({
+          type: 'event_changed',
+          eventId: 'event-1',
+          entityId: 'todo-1',
+          recipientKind: 'user',
+          recipientId: 'user-1',
+          title: 'Gatherory',
+          body,
+        })
+        expect(Object.keys(payloads[0] as object).sort()).toEqual([
+          'body',
+          'entityId',
+          'eventId',
+          'recipientId',
+          'recipientKind',
+          'title',
+          'type',
+        ])
+      })
+    }
+  )
 }
 
 for (const [locale, body] of [

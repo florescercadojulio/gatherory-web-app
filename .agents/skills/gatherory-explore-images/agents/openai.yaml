@@ -1,0 +1,4 @@
+interface:
+  display_name: 'Gatherory Explore Images'
+  short_description: 'Upload curated Explore covers to Gatherory CDN'
+  default_prompt: 'Use $gatherory-explore-images to upload my cover image and attach it to an Explore blueprint.'

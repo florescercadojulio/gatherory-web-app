@@ -77,9 +77,26 @@ to archive members or participation before approval.
 
 To change fixture content, edit the archive and derive any supplemental web rows
 from it; do not restore separate copies of the event/idea/note data in `seed.ts`.
-The ordinary database-only seed creates no media uploads, sync mutation receipts,
-moderation staff grants, or simulated outbox acknowledgements. The optional image
-step below uploads only bundled fixture photos into private development storage.
+The default `pnpm db:seed` also seeds the bundled event covers and shared album.
+It validates image coverage, local source checksums, the local target, and private
+development storage configuration before the destructive reset. The legacy
+`pnpm db:seed -- --without-images` option skips workspace cover and album uploads;
+private Blueprint fixtures still require their covers and configured storage.
+Use the default command for the complete presentation seed. Neither seed creates sync mutation receipts, moderation
+staff grants, or simulated outbox acknowledgements. The separate
+`pnpm db:reset` command remains reset-only and does not seed fixtures or images.
+
+The App Review archive uses the map and music captured from the current local
+`gatherory` database on October 21, 2026. The root-event venue is Leila Arboretum,
+928 Michigan Ave W, Battle Creek, MI 49037 (42.3351401, -85.2133352; map item
+`I23C0AE2C81FA20E5`). Its music idea contains four Apple Music library
+references: “BABYDOLL (Speed)” by Ari Abdul, “BAILE INoLVIDABLE” and “VUELVE
+CANDY B” by Bad Bunny, and “I'm Fine (feat. Cherry Lena) [IMANU Remix]” by
+Apashe & High Klassified. These catalog IDs and the first track's MusicKit
+artwork URL are account-specific library references, not portable public
+catalog URLs. Missing artwork, preview, and external URLs remain `null`; no
+catalog links were invented and no metadata was fetched. The destructive reset
+seed was not run to capture this data.
 
 ## Event, idea, and registry images
 
@@ -95,6 +112,19 @@ so they do not download from Unsplash at runtime or require the landing/iOS
 repositories to be present. Replacing a photo means updating its catalog entry
 and bundled file.
 
+`src/db/seeds/development-shared-album.ts` adds six of those bundled garden
+wedding photos to the root event's shared gallery. Their source credits and alt
+text refer to the existing cover catalog, and their fixture dates are fixed.
+Attribution is split evenly across the three active root planners: Alex Morgan
+(host), Jordan Lee (co-host), and Maya Chen (contributor). The updater verifies
+each exact fixture account, active event role and permission, root sync membership,
+and matching archive participant before adding that person's photos. The name,
+account ID, media uploader, and sync actor all refer to the same participant.
+The image command previews/applies both the 21 covers and six gallery photos;
+it only fills missing fixture media and preserves existing or deleted records.
+Changing contributor assignments applies only to missing stable photo IDs; it
+does not rewrite existing album photos or their authors.
+
 ### Fill missing photos without a reset
 
 ```sh
@@ -109,12 +139,37 @@ media references are preserved. Deleted records and records whose fixture
 identity no longer matches are skipped. Re-running after a successful apply
 should report zero candidates.
 
-The updater verifies the local database, exact seed owner/workspace/scope, and
-the `gatherory-private-dev` bucket. It uploads immutable private objects, verifies
-their metadata, then writes ready media assets and typed cover placements.
-Bootstrap snapshots, native workspace/entity payloads, versions, and change-log
-records are updated together in one database transaction. It never calls the
-reset seed, rewrites planning content, or creates mutation receipts/notifications.
+The cover and gallery updaters verify the local database, exact seed
+owner/workspace/scope, and the `gatherory-private-dev` bucket. They upload
+immutable private objects, verify their metadata, then write ready media assets
+and typed placements. The cover updater updates bootstrap snapshots, native
+workspace/entity payloads, versions, and change-log records together in one
+database transaction. The gallery updater atomically adds moments to the root
+archive snapshot and writes their individual moment create entities and change
+records. It emits no workspace entity change, which could overwrite current root
+fields from a stale baseline. Neither updater creates mutation
+receipts/notifications.
+
+## Explore Blueprint covers
+
+Every production and development Blueprint root, child event, and idea has an
+explicit licensed image assignment: 334 searchable targets across 25 Blueprints.
+The private cottage adds 8 targets, applied to both its published template and
+editable draft. Missing assignments, revision mismatches, and changed local
+source files fail validation before a reset starts.
+
+The same checked-in image registry is used by the additive production
+`pnpm blueprints:seed` command, which inserts only the 17 production starters.
+It does not include development templates or reset existing data. Images are
+served from Gatherory's public CDN, with originals and photographer/license
+records retained in this repository. Creating an event imports assigned images
+into the user's private media storage and preserves explicit image removal or
+replacement.
+
+Run `pnpm blueprints:images` for an offline asset check, or add
+`-- --verify-public` to verify public delivery. See
+[Blueprint seed images](../architecture/blueprint-seed-images.md) for publication
+and verification instructions and [source credits](seed-image-sources.md).
 An interrupted storage/transaction attempt may leave an unplaced object; a retry
 reuses its verified immutable key rather than overwriting it.
 
@@ -125,17 +180,38 @@ pnpm db:seed:portraits
 pnpm db:seed:portraits --apply
 ```
 
-### Fresh database seed with photos
+### Fresh database seed (includes photos)
 
 ```sh
-pnpm db:seed:with-images
+pnpm db:seed
 ```
 
-This is explicitly **destructive**, just like `pnpm db:seed`. It checks the image
-configuration and bundled files before the reset, creates the regular fixtures
-and portraits, then runs the same media updater. The ordinary `pnpm db:seed`
-remains available for database-only development. For an existing database,
-always use the fill-only commands above.
+This command is **destructive**. It checks both image catalogs, bundled
+files, local database target, and private development storage configuration
+before resetting. The seed restores the archived venue and Apple Music data,
+creates the regular fixtures and portraits, and fills the event/idea/registry
+covers plus shared gallery. For an existing database, use the fill-only commands
+above.
+
+An intentional database-only reset and seed is available separately:
+
+```sh
+pnpm db:seed -- --without-images
+```
+
+It uses the previous database-only seed behavior and does not upload or place
+event images. It is still destructive. Use it when private development storage
+is unavailable and you deliberately want fixtures without photos.
+
+### Command consolidation
+
+There are four seed entry points in `package.json`: the full development seed,
+fill-only images, fill-only portraits, and the additive curated catalog seed.
+The redundant `db:seed:with-images` alias and separate database-only alias were
+removed. The database-only mode is now an option on the default command. Direct
+script callers may still pass legacy `--with-images`; image uploads are already
+the default. Duplicate, conflicting, and unknown flags fail before the reset.
+No reset or seed was performed as part of this command cleanup.
 
 These tools target the local fictional App Review account, not the credentials
 or database used for a live App Store review. They reject production targets.
@@ -146,6 +222,10 @@ A second apply reported zero candidates and writes. All 21 private signed reads
 returned the expected bytes. A before/after comparison found no changes in the
 44 non-media tables or the non-image content of native snapshots/entities.
 The eight account portraits were already populated; no database reset ran.
+
+For the shared-gallery addition, an October 21, 2026 dry run found all 21 covers
+preserved and six album candidates. Typecheck passed. No apply, reset, or uploads
+were run.
 
 ## Sample profile pictures
 

@@ -1,0 +1,1 @@
+ALTER TABLE "blueprint_cover_asset" ADD COLUMN "processing_token" uuid;

@@ -33,6 +33,7 @@ export async function enqueueNativeNotification(
       recipientKind: input.recipient.kind,
       recipientId: input.recipient.id,
       type: input.notificationType,
+      eventChangeKind: input.eventChangeKind,
     })
     .onConflictDoNothing({ target: nativeNotificationOutbox.dedupeKey })
 }

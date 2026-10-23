@@ -1,0 +1,1766 @@
+{
+  "formatVersion": 1,
+  "purpose": "Offline deterministic policy evaluation using repository curated fixtures and authored synthetic scenarios. It is not traffic, production inventory, an engagement measure, or a quality/uplift estimate.",
+  "asOf": "2026-10-22T12:00:00.000Z",
+  "scenarioVersion": "personal-like-offline-v1",
+  "activePolicies": {
+    "baselineAlgorithmVersion": "blueprint-baseline-v2",
+    "baselineConfigurationFingerprint": "4c85a77f26eb79885e3201fb2d2cdd981b39139ec1a79baf61f4ba624f2e7779",
+    "personalLikePolicyVersion": "blueprint-personal-likes-v1",
+    "personalLikePolicyFingerprint": "06038dda577b036a3ab9dfa82c950195411aeb828b602e19c738f0e8853547a3"
+  },
+  "measuredBehavior": {
+    "content": "Only public name/summary and event/idea titles and notes; no category, tag, creator, or bookmark features.",
+    "scoring": "Distinct normalized token overlap; at least two shared meaningful tokens; each matching seed contributes sharedCount minus one; total score capped at three.",
+    "limits": "At most 64 meaningful distinct tokens per source, selected in alphabetical order; at most 50 exact current Likes, selected by catalog key. No title weighting or semantic matching.",
+    "position": "Affinity is a tie-break after editorial priority, within identical relevance vectors and before catalog key; creator diversity and recent-item promotion follow.",
+    "recentInteraction": "The baseline recent-item opportunity is not a personalized top-K share cap: a recent item that earns an ordinary position through Like affinity keeps it there."
+  },
+  "repositoryCuratedFixture": {
+    "label": "Actual repository curated starter fixtures; not production inventory.",
+    "itemCount": 17,
+    "profileEvaluations": {
+      "noHistory": {
+        "description": "No Like rows; exact baseline ordering must remain unchanged.",
+        "itemCount": 17,
+        "orderChangedCount": 0,
+        "top10ChangedCount": 0,
+        "positionChanges": 0,
+        "top10MembershipOverlapCount": 10,
+        "maxCreatorRun": {
+          "baseline": 0,
+          "personal": 0
+        },
+        "relevanceViolations": {
+          "baseline": 0,
+          "personal": 0
+        },
+        "top10": {
+          "baselineKeys": [
+            "wedding",
+            "birthday",
+            "thanksgiving",
+            "anniversary_supper",
+            "engagement_gathering",
+            "family_cottage_escape",
+            "family_reunion_weekend",
+            "friends_celebration_weekend",
+            "graduation_open_house",
+            "neighborhood_gathering"
+          ],
+          "personalKeys": [
+            "wedding",
+            "birthday",
+            "thanksgiving",
+            "anniversary_supper",
+            "engagement_gathering",
+            "family_cottage_escape",
+            "family_reunion_weekend",
+            "friends_celebration_weekend",
+            "graduation_open_house",
+            "neighborhood_gathering"
+          ],
+          "baselineAuthoredShare": 0,
+          "personalAuthoredShare": 0,
+          "baselineCreatorConcentration": {
+            "authoredCount": 0,
+            "distinctCreatorCount": 0,
+            "topCreatorShare": 0,
+            "creatorHhi": 0
+          },
+          "personalCreatorConcentration": {
+            "authoredCount": 0,
+            "distinctCreatorCount": 0,
+            "topCreatorShare": 0,
+            "creatorHhi": 0
+          }
+        },
+        "top20": {
+          "baselineKeys": [
+            "wedding",
+            "birthday",
+            "thanksgiving",
+            "anniversary_supper",
+            "engagement_gathering",
+            "family_cottage_escape",
+            "family_reunion_weekend",
+            "friends_celebration_weekend",
+            "graduation_open_house",
+            "neighborhood_gathering",
+            "park_picnic",
+            "seasonal_dinner_party",
+            "shared_city_break",
+            "small_team_retreat",
+            "thoughtful_guest_stay",
+            "welcome_baby_shower",
+            "welcoming_game_night"
+          ],
+          "personalKeys": [
+            "wedding",
+            "birthday",
+            "thanksgiving",
+            "anniversary_supper",
+            "engagement_gathering",
+            "family_cottage_escape",
+            "family_reunion_weekend",
+            "friends_celebration_weekend",
+            "graduation_open_house",
+            "neighborhood_gathering",
+            "park_picnic",
+            "seasonal_dinner_party",
+            "shared_city_break",
+            "small_team_retreat",
+            "thoughtful_guest_stay",
+            "welcome_baby_shower",
+            "welcoming_game_night"
+          ],
+          "baselineAuthoredShare": 0,
+          "personalAuthoredShare": 0,
+          "baselineCreatorConcentration": {
+            "authoredCount": 0,
+            "distinctCreatorCount": 0,
+            "topCreatorShare": 0,
+            "creatorHhi": 0
+          },
+          "personalCreatorConcentration": {
+            "authoredCount": 0,
+            "distinctCreatorCount": 0,
+            "topCreatorShare": 0,
+            "creatorHhi": 0
+          }
+        },
+        "recentItemShare": {
+          "baselineTop10": 0,
+          "personalTop10": 0,
+          "baselineTop20": 0,
+          "personalTop20": 0
+        },
+        "affinity": {
+          "sourceCount": 17,
+          "ambiguousSourceCount": 0,
+          "likeRowCount": 0,
+          "eligibleLikeCount": 0,
+          "invalidLikeCount": 0,
+          "ineligibleLikeCount": 0,
+          "unlikedRowCount": 0,
+          "selectedSeedCount": 0,
+          "seedLimitApplied": false,
+          "tokenCappedSourceCount": 13,
+          "matchedCandidateCount": 0,
+          "boostedCandidateCount": 0,
+          "maxScore": 0,
+          "scoreDistribution": [
+            {
+              "score": 0,
+              "candidateCount": 17
+            },
+            {
+              "score": 1,
+              "candidateCount": 0
+            },
+            {
+              "score": 2,
+              "candidateCount": 0
+            },
+            {
+              "score": 3,
+              "candidateCount": 0
+            }
+          ]
+        }
+      },
+      "sparseOneLike": {
+        "description": "One exact current curated Like.",
+        "itemCount": 17,
+        "orderChangedCount": 9,
+        "top10ChangedCount": 4,
+        "positionChanges": 9,
+        "top10MembershipOverlapCount": 7,
+        "maxCreatorRun": {
+          "baseline": 0,
+          "personal": 0
+        },
+        "relevanceViolations": {
+          "baseline": 0,
+          "personal": 0
+        },
+        "top10": {
+          "baselineKeys": [
+            "wedding",
+            "birthday",
+            "thanksgiving",
+            "anniversary_supper",
+            "engagement_gathering",
+            "family_cottage_escape",
+            "family_reunion_weekend",
+            "friends_celebration_weekend",
+            "graduation_open_house",
+            "neighborhood_gathering"
+          ],
+          "personalKeys": [
+            "wedding",
+            "birthday",
+            "thanksgiving",
+            "anniversary_supper",
+            "engagement_gathering",
+            "family_cottage_escape",
+            "friends_celebration_weekend",
+            "seasonal_dinner_party",
+            "shared_city_break",
+            "thoughtful_guest_stay"
+          ],
+          "baselineAuthoredShare": 0,
+          "personalAuthoredShare": 0,
+          "baselineCreatorConcentration": {
+            "authoredCount": 0,
+            "distinctCreatorCount": 0,
+            "topCreatorShare": 0,
+            "creatorHhi": 0
+          },
+          "personalCreatorConcentration": {
+            "authoredCount": 0,
+            "distinctCreatorCount": 0,
+            "topCreatorShare": 0,
+            "creatorHhi": 0
+          }
+        },
+        "top20": {
+          "baselineKeys": [
+            "wedding",
+            "birthday",
+            "thanksgiving",
+            "anniversary_supper",
+            "engagement_gathering",
+            "family_cottage_escape",
+            "family_reunion_weekend",
+            "friends_celebration_weekend",
+            "graduation_open_house",
+            "neighborhood_gathering",
+            "park_picnic",
+            "seasonal_dinner_party",
+            "shared_city_break",
+            "small_team_retreat",
+            "thoughtful_guest_stay",
+            "welcome_baby_shower",
+            "welcoming_game_night"
+          ],
+          "personalKeys": [
+            "wedding",
+            "birthday",
+            "thanksgiving",
+            "anniversary_supper",
+            "engagement_gathering",
+            "family_cottage_escape",
+            "friends_celebration_weekend",
+            "seasonal_dinner_party",
+            "shared_city_break",
+            "thoughtful_guest_stay",
+            "neighborhood_gathering",
+            "small_team_retreat",
+            "family_reunion_weekend",
+            "graduation_open_house",
+            "park_picnic",
+            "welcome_baby_shower",
+            "welcoming_game_night"
+          ],
+          "baselineAuthoredShare": 0,
+          "personalAuthoredShare": 0,
+          "baselineCreatorConcentration": {
+            "authoredCount": 0,
+            "distinctCreatorCount": 0,
+            "topCreatorShare": 0,
+            "creatorHhi": 0
+          },
+          "personalCreatorConcentration": {
+            "authoredCount": 0,
+            "distinctCreatorCount": 0,
+            "topCreatorShare": 0,
+            "creatorHhi": 0
+          }
+        },
+        "recentItemShare": {
+          "baselineTop10": 0,
+          "personalTop10": 0,
+          "baselineTop20": 0,
+          "personalTop20": 0
+        },
+        "affinity": {
+          "sourceCount": 17,
+          "ambiguousSourceCount": 0,
+          "likeRowCount": 1,
+          "eligibleLikeCount": 1,
+          "invalidLikeCount": 0,
+          "ineligibleLikeCount": 0,
+          "unlikedRowCount": 0,
+          "selectedSeedCount": 1,
+          "seedLimitApplied": false,
+          "tokenCappedSourceCount": 13,
+          "matchedCandidateCount": 11,
+          "boostedCandidateCount": 11,
+          "maxScore": 3,
+          "scoreDistribution": [
+            {
+              "score": 0,
+              "candidateCount": 6
+            },
+            {
+              "score": 1,
+              "candidateCount": 0
+            },
+            {
+              "score": 2,
+              "candidateCount": 2
+            },
+            {
+              "score": 3,
+              "candidateCount": 9
+            }
+          ]
+        }
+      },
+      "denseThreeLikes": {
+        "description": "Three independent exact current Likes, scoped to one synthetic account.",
+        "itemCount": 17,
+        "orderChangedCount": 9,
+        "top10ChangedCount": 2,
+        "positionChanges": 9,
+        "top10MembershipOverlapCount": 9,
+        "maxCreatorRun": {
+          "baseline": 0,
+          "personal": 0
+        },
+        "relevanceViolations": {
+          "baseline": 0,
+          "personal": 0
+        },
+        "top10": {
+          "baselineKeys": [
+            "wedding",
+            "birthday",
+            "thanksgiving",
+            "anniversary_supper",
+            "engagement_gathering",
+            "family_cottage_escape",
+            "family_reunion_weekend",
+            "friends_celebration_weekend",
+            "graduation_open_house",
+            "neighborhood_gathering"
+          ],
+          "personalKeys": [
+            "wedding",
+            "birthday",
+            "thanksgiving",
+            "anniversary_supper",
+            "engagement_gathering",
+            "family_cottage_escape",
+            "family_reunion_weekend",
+            "friends_celebration_weekend",
+            "neighborhood_gathering",
+            "seasonal_dinner_party"
+          ],
+          "baselineAuthoredShare": 0,
+          "personalAuthoredShare": 0,
+          "baselineCreatorConcentration": {
+            "authoredCount": 0,
+            "distinctCreatorCount": 0,
+            "topCreatorShare": 0,
+            "creatorHhi": 0
+          },
+          "personalCreatorConcentration": {
+            "authoredCount": 0,
+            "distinctCreatorCount": 0,
+            "topCreatorShare": 0,
+            "creatorHhi": 0
+          }
+        },
+        "top20": {
+          "baselineKeys": [
+            "wedding",
+            "birthday",
+            "thanksgiving",
+            "anniversary_supper",
+            "engagement_gathering",
+            "family_cottage_escape",
+            "family_reunion_weekend",
+            "friends_celebration_weekend",
+            "graduation_open_house",
+            "neighborhood_gathering",
+            "park_picnic",
+            "seasonal_dinner_party",
+            "shared_city_break",
+            "small_team_retreat",
+            "thoughtful_guest_stay",
+            "welcome_baby_shower",
+            "welcoming_game_night"
+          ],
+          "personalKeys": [
+            "wedding",
+            "birthday",
+            "thanksgiving",
+            "anniversary_supper",
+            "engagement_gathering",
+            "family_cottage_escape",
+            "family_reunion_weekend",
+            "friends_celebration_weekend",
+            "neighborhood_gathering",
+            "seasonal_dinner_party",
+            "shared_city_break",
+            "small_team_retreat",
+            "thoughtful_guest_stay",
+            "welcome_baby_shower",
+            "welcoming_game_night",
+            "graduation_open_house",
+            "park_picnic"
+          ],
+          "baselineAuthoredShare": 0,
+          "personalAuthoredShare": 0,
+          "baselineCreatorConcentration": {
+            "authoredCount": 0,
+            "distinctCreatorCount": 0,
+            "topCreatorShare": 0,
+            "creatorHhi": 0
+          },
+          "personalCreatorConcentration": {
+            "authoredCount": 0,
+            "distinctCreatorCount": 0,
+            "topCreatorShare": 0,
+            "creatorHhi": 0
+          }
+        },
+        "recentItemShare": {
+          "baselineTop10": 0,
+          "personalTop10": 0,
+          "baselineTop20": 0,
+          "personalTop20": 0
+        },
+        "affinity": {
+          "sourceCount": 17,
+          "ambiguousSourceCount": 0,
+          "likeRowCount": 3,
+          "eligibleLikeCount": 3,
+          "invalidLikeCount": 0,
+          "ineligibleLikeCount": 0,
+          "unlikedRowCount": 0,
+          "selectedSeedCount": 3,
+          "seedLimitApplied": false,
+          "tokenCappedSourceCount": 13,
+          "matchedCandidateCount": 14,
+          "boostedCandidateCount": 14,
+          "maxScore": 3,
+          "scoreDistribution": [
+            {
+              "score": 0,
+              "candidateCount": 3
+            },
+            {
+              "score": 1,
+              "candidateCount": 0
+            },
+            {
+              "score": 2,
+              "candidateCount": 1
+            },
+            {
+              "score": 3,
+              "candidateCount": 13
+            }
+          ]
+        }
+      },
+      "unliked": {
+        "description": "A previously stored unliked state contributes no seed or boost.",
+        "itemCount": 17,
+        "orderChangedCount": 0,
+        "top10ChangedCount": 0,
+        "positionChanges": 0,
+        "top10MembershipOverlapCount": 10,
+        "maxCreatorRun": {
+          "baseline": 0,
+          "personal": 0
+        },
+        "relevanceViolations": {
+          "baseline": 0,
+          "personal": 0
+        },
+        "top10": {
+          "baselineKeys": [
+            "wedding",
+            "birthday",
+            "thanksgiving",
+            "anniversary_supper",
+            "engagement_gathering",
+            "family_cottage_escape",
+            "family_reunion_weekend",
+            "friends_celebration_weekend",
+            "graduation_open_house",
+            "neighborhood_gathering"
+          ],
+          "personalKeys": [
+            "wedding",
+            "birthday",
+            "thanksgiving",
+            "anniversary_supper",
+            "engagement_gathering",
+            "family_cottage_escape",
+            "family_reunion_weekend",
+            "friends_celebration_weekend",
+            "graduation_open_house",
+            "neighborhood_gathering"
+          ],
+          "baselineAuthoredShare": 0,
+          "personalAuthoredShare": 0,
+          "baselineCreatorConcentration": {
+            "authoredCount": 0,
+            "distinctCreatorCount": 0,
+            "topCreatorShare": 0,
+            "creatorHhi": 0
+          },
+          "personalCreatorConcentration": {
+            "authoredCount": 0,
+            "distinctCreatorCount": 0,
+            "topCreatorShare": 0,
+            "creatorHhi": 0
+          }
+        },
+        "top20": {
+          "baselineKeys": [
+            "wedding",
+            "birthday",
+            "thanksgiving",
+            "anniversary_supper",
+            "engagement_gathering",
+            "family_cottage_escape",
+            "family_reunion_weekend",
+            "friends_celebration_weekend",
+            "graduation_open_house",
+            "neighborhood_gathering",
+            "park_picnic",
+            "seasonal_dinner_party",
+            "shared_city_break",
+            "small_team_retreat",
+            "thoughtful_guest_stay",
+            "welcome_baby_shower",
+            "welcoming_game_night"
+          ],
+          "personalKeys": [
+            "wedding",
+            "birthday",
+            "thanksgiving",
+            "anniversary_supper",
+            "engagement_gathering",
+            "family_cottage_escape",
+            "family_reunion_weekend",
+            "friends_celebration_weekend",
+            "graduation_open_house",
+            "neighborhood_gathering",
+            "park_picnic",
+            "seasonal_dinner_party",
+            "shared_city_break",
+            "small_team_retreat",
+            "thoughtful_guest_stay",
+            "welcome_baby_shower",
+            "welcoming_game_night"
+          ],
+          "baselineAuthoredShare": 0,
+          "personalAuthoredShare": 0,
+          "baselineCreatorConcentration": {
+            "authoredCount": 0,
+            "distinctCreatorCount": 0,
+            "topCreatorShare": 0,
+            "creatorHhi": 0
+          },
+          "personalCreatorConcentration": {
+            "authoredCount": 0,
+            "distinctCreatorCount": 0,
+            "topCreatorShare": 0,
+            "creatorHhi": 0
+          }
+        },
+        "recentItemShare": {
+          "baselineTop10": 0,
+          "personalTop10": 0,
+          "baselineTop20": 0,
+          "personalTop20": 0
+        },
+        "affinity": {
+          "sourceCount": 17,
+          "ambiguousSourceCount": 0,
+          "likeRowCount": 1,
+          "eligibleLikeCount": 0,
+          "invalidLikeCount": 0,
+          "ineligibleLikeCount": 0,
+          "unlikedRowCount": 1,
+          "selectedSeedCount": 0,
+          "seedLimitApplied": false,
+          "tokenCappedSourceCount": 13,
+          "matchedCandidateCount": 0,
+          "boostedCandidateCount": 0,
+          "maxScore": 0,
+          "scoreDistribution": [
+            {
+              "score": 0,
+              "candidateCount": 17
+            },
+            {
+              "score": 1,
+              "candidateCount": 0
+            },
+            {
+              "score": 2,
+              "candidateCount": 0
+            },
+            {
+              "score": 3,
+              "candidateCount": 0
+            }
+          ]
+        }
+      },
+      "revisedLike": {
+        "description": "A Like bound to an older source revision is rejected.",
+        "itemCount": 17,
+        "orderChangedCount": 0,
+        "top10ChangedCount": 0,
+        "positionChanges": 0,
+        "top10MembershipOverlapCount": 10,
+        "maxCreatorRun": {
+          "baseline": 0,
+          "personal": 0
+        },
+        "relevanceViolations": {
+          "baseline": 0,
+          "personal": 0
+        },
+        "top10": {
+          "baselineKeys": [
+            "wedding",
+            "birthday",
+            "thanksgiving",
+            "anniversary_supper",
+            "engagement_gathering",
+            "family_cottage_escape",
+            "family_reunion_weekend",
+            "friends_celebration_weekend",
+            "graduation_open_house",
+            "neighborhood_gathering"
+          ],
+          "personalKeys": [
+            "wedding",
+            "birthday",
+            "thanksgiving",
+            "anniversary_supper",
+            "engagement_gathering",
+            "family_cottage_escape",
+            "family_reunion_weekend",
+            "friends_celebration_weekend",
+            "graduation_open_house",
+            "neighborhood_gathering"
+          ],
+          "baselineAuthoredShare": 0,
+          "personalAuthoredShare": 0,
+          "baselineCreatorConcentration": {
+            "authoredCount": 0,
+            "distinctCreatorCount": 0,
+            "topCreatorShare": 0,
+            "creatorHhi": 0
+          },
+          "personalCreatorConcentration": {
+            "authoredCount": 0,
+            "distinctCreatorCount": 0,
+            "topCreatorShare": 0,
+            "creatorHhi": 0
+          }
+        },
+        "top20": {
+          "baselineKeys": [
+            "wedding",
+            "birthday",
+            "thanksgiving",
+            "anniversary_supper",
+            "engagement_gathering",
+            "family_cottage_escape",
+            "family_reunion_weekend",
+            "friends_celebration_weekend",
+            "graduation_open_house",
+            "neighborhood_gathering",
+            "park_picnic",
+            "seasonal_dinner_party",
+            "shared_city_break",
+            "small_team_retreat",
+            "thoughtful_guest_stay",
+            "welcome_baby_shower",
+            "welcoming_game_night"
+          ],
+          "personalKeys": [
+            "wedding",
+            "birthday",
+            "thanksgiving",
+            "anniversary_supper",
+            "engagement_gathering",
+            "family_cottage_escape",
+            "family_reunion_weekend",
+            "friends_celebration_weekend",
+            "graduation_open_house",
+            "neighborhood_gathering",
+            "park_picnic",
+            "seasonal_dinner_party",
+            "shared_city_break",
+            "small_team_retreat",
+            "thoughtful_guest_stay",
+            "welcome_baby_shower",
+            "welcoming_game_night"
+          ],
+          "baselineAuthoredShare": 0,
+          "personalAuthoredShare": 0,
+          "baselineCreatorConcentration": {
+            "authoredCount": 0,
+            "distinctCreatorCount": 0,
+            "topCreatorShare": 0,
+            "creatorHhi": 0
+          },
+          "personalCreatorConcentration": {
+            "authoredCount": 0,
+            "distinctCreatorCount": 0,
+            "topCreatorShare": 0,
+            "creatorHhi": 0
+          }
+        },
+        "recentItemShare": {
+          "baselineTop10": 0,
+          "personalTop10": 0,
+          "baselineTop20": 0,
+          "personalTop20": 0
+        },
+        "affinity": {
+          "sourceCount": 17,
+          "ambiguousSourceCount": 0,
+          "likeRowCount": 1,
+          "eligibleLikeCount": 0,
+          "invalidLikeCount": 1,
+          "ineligibleLikeCount": 0,
+          "unlikedRowCount": 0,
+          "selectedSeedCount": 0,
+          "seedLimitApplied": false,
+          "tokenCappedSourceCount": 13,
+          "matchedCandidateCount": 0,
+          "boostedCandidateCount": 0,
+          "maxScore": 0,
+          "scoreDistribution": [
+            {
+              "score": 0,
+              "candidateCount": 17
+            },
+            {
+              "score": 1,
+              "candidateCount": 0
+            },
+            {
+              "score": 2,
+              "candidateCount": 0
+            },
+            {
+              "score": 3,
+              "candidateCount": 0
+            }
+          ]
+        }
+      },
+      "withdrawnSource": {
+        "description": "A Like whose source is absent from the current public catalog is rejected.",
+        "itemCount": 17,
+        "orderChangedCount": 0,
+        "top10ChangedCount": 0,
+        "positionChanges": 0,
+        "top10MembershipOverlapCount": 10,
+        "maxCreatorRun": {
+          "baseline": 0,
+          "personal": 0
+        },
+        "relevanceViolations": {
+          "baseline": 0,
+          "personal": 0
+        },
+        "top10": {
+          "baselineKeys": [
+            "wedding",
+            "birthday",
+            "thanksgiving",
+            "anniversary_supper",
+            "engagement_gathering",
+            "family_cottage_escape",
+            "family_reunion_weekend",
+            "friends_celebration_weekend",
+            "graduation_open_house",
+            "neighborhood_gathering"
+          ],
+          "personalKeys": [
+            "wedding",
+            "birthday",
+            "thanksgiving",
+            "anniversary_supper",
+            "engagement_gathering",
+            "family_cottage_escape",
+            "family_reunion_weekend",
+            "friends_celebration_weekend",
+            "graduation_open_house",
+            "neighborhood_gathering"
+          ],
+          "baselineAuthoredShare": 0,
+          "personalAuthoredShare": 0,
+          "baselineCreatorConcentration": {
+            "authoredCount": 0,
+            "distinctCreatorCount": 0,
+            "topCreatorShare": 0,
+            "creatorHhi": 0
+          },
+          "personalCreatorConcentration": {
+            "authoredCount": 0,
+            "distinctCreatorCount": 0,
+            "topCreatorShare": 0,
+            "creatorHhi": 0
+          }
+        },
+        "top20": {
+          "baselineKeys": [
+            "wedding",
+            "birthday",
+            "thanksgiving",
+            "anniversary_supper",
+            "engagement_gathering",
+            "family_cottage_escape",
+            "family_reunion_weekend",
+            "friends_celebration_weekend",
+            "graduation_open_house",
+            "neighborhood_gathering",
+            "park_picnic",
+            "seasonal_dinner_party",
+            "shared_city_break",
+            "small_team_retreat",
+            "thoughtful_guest_stay",
+            "welcome_baby_shower",
+            "welcoming_game_night"
+          ],
+          "personalKeys": [
+            "wedding",
+            "birthday",
+            "thanksgiving",
+            "anniversary_supper",
+            "engagement_gathering",
+            "family_cottage_escape",
+            "family_reunion_weekend",
+            "friends_celebration_weekend",
+            "graduation_open_house",
+            "neighborhood_gathering",
+            "park_picnic",
+            "seasonal_dinner_party",
+            "shared_city_break",
+            "small_team_retreat",
+            "thoughtful_guest_stay",
+            "welcome_baby_shower",
+            "welcoming_game_night"
+          ],
+          "baselineAuthoredShare": 0,
+          "personalAuthoredShare": 0,
+          "baselineCreatorConcentration": {
+            "authoredCount": 0,
+            "distinctCreatorCount": 0,
+            "topCreatorShare": 0,
+            "creatorHhi": 0
+          },
+          "personalCreatorConcentration": {
+            "authoredCount": 0,
+            "distinctCreatorCount": 0,
+            "topCreatorShare": 0,
+            "creatorHhi": 0
+          }
+        },
+        "recentItemShare": {
+          "baselineTop10": 0,
+          "personalTop10": 0,
+          "baselineTop20": 0,
+          "personalTop20": 0
+        },
+        "affinity": {
+          "sourceCount": 17,
+          "ambiguousSourceCount": 0,
+          "likeRowCount": 1,
+          "eligibleLikeCount": 0,
+          "invalidLikeCount": 1,
+          "ineligibleLikeCount": 0,
+          "unlikedRowCount": 0,
+          "selectedSeedCount": 0,
+          "seedLimitApplied": false,
+          "tokenCappedSourceCount": 13,
+          "matchedCandidateCount": 0,
+          "boostedCandidateCount": 0,
+          "maxScore": 0,
+          "scoreDistribution": [
+            {
+              "score": 0,
+              "candidateCount": 17
+            },
+            {
+              "score": 1,
+              "candidateCount": 0
+            },
+            {
+              "score": 2,
+              "candidateCount": 0
+            },
+            {
+              "score": 3,
+              "candidateCount": 0
+            }
+          ]
+        }
+      },
+      "otherAccount": {
+        "description": "A separate account profile with a distinct Like set; profiles never combine.",
+        "itemCount": 17,
+        "orderChangedCount": 9,
+        "top10ChangedCount": 2,
+        "positionChanges": 9,
+        "top10MembershipOverlapCount": 9,
+        "maxCreatorRun": {
+          "baseline": 0,
+          "personal": 0
+        },
+        "relevanceViolations": {
+          "baseline": 0,
+          "personal": 0
+        },
+        "top10": {
+          "baselineKeys": [
+            "wedding",
+            "birthday",
+            "thanksgiving",
+            "anniversary_supper",
+            "engagement_gathering",
+            "family_cottage_escape",
+            "family_reunion_weekend",
+            "friends_celebration_weekend",
+            "graduation_open_house",
+            "neighborhood_gathering"
+          ],
+          "personalKeys": [
+            "wedding",
+            "birthday",
+            "thanksgiving",
+            "anniversary_supper",
+            "engagement_gathering",
+            "family_cottage_escape",
+            "family_reunion_weekend",
+            "friends_celebration_weekend",
+            "neighborhood_gathering",
+            "seasonal_dinner_party"
+          ],
+          "baselineAuthoredShare": 0,
+          "personalAuthoredShare": 0,
+          "baselineCreatorConcentration": {
+            "authoredCount": 0,
+            "distinctCreatorCount": 0,
+            "topCreatorShare": 0,
+            "creatorHhi": 0
+          },
+          "personalCreatorConcentration": {
+            "authoredCount": 0,
+            "distinctCreatorCount": 0,
+            "topCreatorShare": 0,
+            "creatorHhi": 0
+          }
+        },
+        "top20": {
+          "baselineKeys": [
+            "wedding",
+            "birthday",
+            "thanksgiving",
+            "anniversary_supper",
+            "engagement_gathering",
+            "family_cottage_escape",
+            "family_reunion_weekend",
+            "friends_celebration_weekend",
+            "graduation_open_house",
+            "neighborhood_gathering",
+            "park_picnic",
+            "seasonal_dinner_party",
+            "shared_city_break",
+            "small_team_retreat",
+            "thoughtful_guest_stay",
+            "welcome_baby_shower",
+            "welcoming_game_night"
+          ],
+          "personalKeys": [
+            "wedding",
+            "birthday",
+            "thanksgiving",
+            "anniversary_supper",
+            "engagement_gathering",
+            "family_cottage_escape",
+            "family_reunion_weekend",
+            "friends_celebration_weekend",
+            "neighborhood_gathering",
+            "seasonal_dinner_party",
+            "shared_city_break",
+            "small_team_retreat",
+            "thoughtful_guest_stay",
+            "welcome_baby_shower",
+            "welcoming_game_night",
+            "graduation_open_house",
+            "park_picnic"
+          ],
+          "baselineAuthoredShare": 0,
+          "personalAuthoredShare": 0,
+          "baselineCreatorConcentration": {
+            "authoredCount": 0,
+            "distinctCreatorCount": 0,
+            "topCreatorShare": 0,
+            "creatorHhi": 0
+          },
+          "personalCreatorConcentration": {
+            "authoredCount": 0,
+            "distinctCreatorCount": 0,
+            "topCreatorShare": 0,
+            "creatorHhi": 0
+          }
+        },
+        "recentItemShare": {
+          "baselineTop10": 0,
+          "personalTop10": 0,
+          "baselineTop20": 0,
+          "personalTop20": 0
+        },
+        "affinity": {
+          "sourceCount": 17,
+          "ambiguousSourceCount": 0,
+          "likeRowCount": 2,
+          "eligibleLikeCount": 2,
+          "invalidLikeCount": 0,
+          "ineligibleLikeCount": 0,
+          "unlikedRowCount": 0,
+          "selectedSeedCount": 2,
+          "seedLimitApplied": false,
+          "tokenCappedSourceCount": 13,
+          "matchedCandidateCount": 15,
+          "boostedCandidateCount": 15,
+          "maxScore": 3,
+          "scoreDistribution": [
+            {
+              "score": 0,
+              "candidateCount": 2
+            },
+            {
+              "score": 1,
+              "candidateCount": 0
+            },
+            {
+              "score": 2,
+              "candidateCount": 1
+            },
+            {
+              "score": 3,
+              "candidateCount": 14
+            }
+          ]
+        }
+      }
+    },
+    "deterministicPaging": [
+      {
+        "seedKey": "wedding",
+        "traversals": [
+          {
+            "pageSize": 1,
+            "baselineComplete": true,
+            "personalComplete": true,
+            "baselineDuplicates": 0,
+            "personalDuplicates": 0,
+            "orderMatchesAcrossPageSizes": true,
+            "top10ChangedCount": 4
+          },
+          {
+            "pageSize": 2,
+            "baselineComplete": true,
+            "personalComplete": true,
+            "baselineDuplicates": 0,
+            "personalDuplicates": 0,
+            "orderMatchesAcrossPageSizes": true,
+            "top10ChangedCount": 4
+          },
+          {
+            "pageSize": 3,
+            "baselineComplete": true,
+            "personalComplete": true,
+            "baselineDuplicates": 0,
+            "personalDuplicates": 0,
+            "orderMatchesAcrossPageSizes": true,
+            "top10ChangedCount": 4
+          },
+          {
+            "pageSize": 7,
+            "baselineComplete": true,
+            "personalComplete": true,
+            "baselineDuplicates": 0,
+            "personalDuplicates": 0,
+            "orderMatchesAcrossPageSizes": true,
+            "top10ChangedCount": 4
+          },
+          {
+            "pageSize": 20,
+            "baselineComplete": true,
+            "personalComplete": true,
+            "baselineDuplicates": 0,
+            "personalDuplicates": 0,
+            "orderMatchesAcrossPageSizes": true,
+            "top10ChangedCount": 4
+          }
+        ]
+      },
+      {
+        "seedKey": "birthday",
+        "traversals": [
+          {
+            "pageSize": 1,
+            "baselineComplete": true,
+            "personalComplete": true,
+            "baselineDuplicates": 0,
+            "personalDuplicates": 0,
+            "orderMatchesAcrossPageSizes": true,
+            "top10ChangedCount": 2
+          },
+          {
+            "pageSize": 2,
+            "baselineComplete": true,
+            "personalComplete": true,
+            "baselineDuplicates": 0,
+            "personalDuplicates": 0,
+            "orderMatchesAcrossPageSizes": true,
+            "top10ChangedCount": 2
+          },
+          {
+            "pageSize": 3,
+            "baselineComplete": true,
+            "personalComplete": true,
+            "baselineDuplicates": 0,
+            "personalDuplicates": 0,
+            "orderMatchesAcrossPageSizes": true,
+            "top10ChangedCount": 2
+          },
+          {
+            "pageSize": 7,
+            "baselineComplete": true,
+            "personalComplete": true,
+            "baselineDuplicates": 0,
+            "personalDuplicates": 0,
+            "orderMatchesAcrossPageSizes": true,
+            "top10ChangedCount": 2
+          },
+          {
+            "pageSize": 20,
+            "baselineComplete": true,
+            "personalComplete": true,
+            "baselineDuplicates": 0,
+            "personalDuplicates": 0,
+            "orderMatchesAcrossPageSizes": true,
+            "top10ChangedCount": 2
+          }
+        ]
+      },
+      {
+        "seedKey": "park_picnic",
+        "traversals": [
+          {
+            "pageSize": 1,
+            "baselineComplete": true,
+            "personalComplete": true,
+            "baselineDuplicates": 0,
+            "personalDuplicates": 0,
+            "orderMatchesAcrossPageSizes": true,
+            "top10ChangedCount": 7
+          },
+          {
+            "pageSize": 2,
+            "baselineComplete": true,
+            "personalComplete": true,
+            "baselineDuplicates": 0,
+            "personalDuplicates": 0,
+            "orderMatchesAcrossPageSizes": true,
+            "top10ChangedCount": 7
+          },
+          {
+            "pageSize": 3,
+            "baselineComplete": true,
+            "personalComplete": true,
+            "baselineDuplicates": 0,
+            "personalDuplicates": 0,
+            "orderMatchesAcrossPageSizes": true,
+            "top10ChangedCount": 7
+          },
+          {
+            "pageSize": 7,
+            "baselineComplete": true,
+            "personalComplete": true,
+            "baselineDuplicates": 0,
+            "personalDuplicates": 0,
+            "orderMatchesAcrossPageSizes": true,
+            "top10ChangedCount": 7
+          },
+          {
+            "pageSize": 20,
+            "baselineComplete": true,
+            "personalComplete": true,
+            "baselineDuplicates": 0,
+            "personalDuplicates": 0,
+            "orderMatchesAcrossPageSizes": true,
+            "top10ChangedCount": 7
+          }
+        ]
+      }
+    ]
+  },
+  "syntheticAuthoredScenarios": {
+    "definition": "Seven hand-authored catalog-like text examples with a repeated creator, one lower-relevance candidate, and an intentionally stuffed keyword source, plus a 28-item mixed old/recent creator scenario.",
+    "baseTextScenarioItemCount": 7,
+    "evaluations": {
+      "oneSeed": {
+        "description": "One seed matches a repeated-creator inventory; affinity cannot cross a lower-relevance barrier.",
+        "itemCount": 7,
+        "orderChangedCount": 6,
+        "top10ChangedCount": 6,
+        "positionChanges": 6,
+        "top10MembershipOverlapCount": 7,
+        "maxCreatorRun": {
+          "baseline": 2,
+          "personal": 2
+        },
+        "relevanceViolations": {
+          "baseline": 0,
+          "personal": 0
+        },
+        "top10": {
+          "baselineKeys": [
+            "synthetic-birthday",
+            "synthetic-outdoor",
+            "synthetic-seed",
+            "synthetic-stuffing",
+            "synthetic-unrelated",
+            "synthetic-wedding",
+            "synthetic-relevance-lower"
+          ],
+          "personalKeys": [
+            "synthetic-outdoor",
+            "synthetic-birthday",
+            "synthetic-stuffing",
+            "synthetic-wedding",
+            "synthetic-seed",
+            "synthetic-unrelated",
+            "synthetic-relevance-lower"
+          ],
+          "baselineAuthoredShare": 0.8571428571428571,
+          "personalAuthoredShare": 0.8571428571428571,
+          "baselineCreatorConcentration": {
+            "authoredCount": 6,
+            "distinctCreatorCount": 3,
+            "topCreatorShare": 0.5,
+            "creatorHhi": 0.3888888888888889
+          },
+          "personalCreatorConcentration": {
+            "authoredCount": 6,
+            "distinctCreatorCount": 3,
+            "topCreatorShare": 0.5,
+            "creatorHhi": 0.3888888888888889
+          }
+        },
+        "top20": {
+          "baselineKeys": [
+            "synthetic-birthday",
+            "synthetic-outdoor",
+            "synthetic-seed",
+            "synthetic-stuffing",
+            "synthetic-unrelated",
+            "synthetic-wedding",
+            "synthetic-relevance-lower"
+          ],
+          "personalKeys": [
+            "synthetic-outdoor",
+            "synthetic-birthday",
+            "synthetic-stuffing",
+            "synthetic-wedding",
+            "synthetic-seed",
+            "synthetic-unrelated",
+            "synthetic-relevance-lower"
+          ],
+          "baselineAuthoredShare": 0.8571428571428571,
+          "personalAuthoredShare": 0.8571428571428571,
+          "baselineCreatorConcentration": {
+            "authoredCount": 6,
+            "distinctCreatorCount": 3,
+            "topCreatorShare": 0.5,
+            "creatorHhi": 0.3888888888888889
+          },
+          "personalCreatorConcentration": {
+            "authoredCount": 6,
+            "distinctCreatorCount": 3,
+            "topCreatorShare": 0.5,
+            "creatorHhi": 0.3888888888888889
+          }
+        },
+        "recentItemShare": {
+          "baselineTop10": 0,
+          "personalTop10": 0,
+          "baselineTop20": 0,
+          "personalTop20": 0
+        },
+        "affinity": {
+          "sourceCount": 7,
+          "ambiguousSourceCount": 0,
+          "likeRowCount": 1,
+          "eligibleLikeCount": 1,
+          "invalidLikeCount": 0,
+          "ineligibleLikeCount": 0,
+          "unlikedRowCount": 0,
+          "selectedSeedCount": 1,
+          "seedLimitApplied": false,
+          "tokenCappedSourceCount": 1,
+          "matchedCandidateCount": 5,
+          "boostedCandidateCount": 5,
+          "maxScore": 3,
+          "scoreDistribution": [
+            {
+              "score": 0,
+              "candidateCount": 2
+            },
+            {
+              "score": 1,
+              "candidateCount": 1
+            },
+            {
+              "score": 2,
+              "candidateCount": 2
+            },
+            {
+              "score": 3,
+              "candidateCount": 2
+            }
+          ]
+        }
+      },
+      "keywordStuffing": {
+        "description": "A source with more than 64 distinct meaningful tokens is capped after deterministic alphabetical token ordering.",
+        "itemCount": 7,
+        "orderChangedCount": 6,
+        "top10ChangedCount": 6,
+        "positionChanges": 6,
+        "top10MembershipOverlapCount": 7,
+        "maxCreatorRun": {
+          "baseline": 2,
+          "personal": 2
+        },
+        "relevanceViolations": {
+          "baseline": 0,
+          "personal": 0
+        },
+        "top10": {
+          "baselineKeys": [
+            "synthetic-birthday",
+            "synthetic-outdoor",
+            "synthetic-seed",
+            "synthetic-stuffing",
+            "synthetic-unrelated",
+            "synthetic-wedding",
+            "synthetic-relevance-lower"
+          ],
+          "personalKeys": [
+            "synthetic-outdoor",
+            "synthetic-birthday",
+            "synthetic-stuffing",
+            "synthetic-wedding",
+            "synthetic-seed",
+            "synthetic-unrelated",
+            "synthetic-relevance-lower"
+          ],
+          "baselineAuthoredShare": 0.8571428571428571,
+          "personalAuthoredShare": 0.8571428571428571,
+          "baselineCreatorConcentration": {
+            "authoredCount": 6,
+            "distinctCreatorCount": 3,
+            "topCreatorShare": 0.5,
+            "creatorHhi": 0.3888888888888889
+          },
+          "personalCreatorConcentration": {
+            "authoredCount": 6,
+            "distinctCreatorCount": 3,
+            "topCreatorShare": 0.5,
+            "creatorHhi": 0.3888888888888889
+          }
+        },
+        "top20": {
+          "baselineKeys": [
+            "synthetic-birthday",
+            "synthetic-outdoor",
+            "synthetic-seed",
+            "synthetic-stuffing",
+            "synthetic-unrelated",
+            "synthetic-wedding",
+            "synthetic-relevance-lower"
+          ],
+          "personalKeys": [
+            "synthetic-outdoor",
+            "synthetic-birthday",
+            "synthetic-stuffing",
+            "synthetic-wedding",
+            "synthetic-seed",
+            "synthetic-unrelated",
+            "synthetic-relevance-lower"
+          ],
+          "baselineAuthoredShare": 0.8571428571428571,
+          "personalAuthoredShare": 0.8571428571428571,
+          "baselineCreatorConcentration": {
+            "authoredCount": 6,
+            "distinctCreatorCount": 3,
+            "topCreatorShare": 0.5,
+            "creatorHhi": 0.3888888888888889
+          },
+          "personalCreatorConcentration": {
+            "authoredCount": 6,
+            "distinctCreatorCount": 3,
+            "topCreatorShare": 0.5,
+            "creatorHhi": 0.3888888888888889
+          }
+        },
+        "recentItemShare": {
+          "baselineTop10": 0,
+          "personalTop10": 0,
+          "baselineTop20": 0,
+          "personalTop20": 0
+        },
+        "affinity": {
+          "sourceCount": 7,
+          "ambiguousSourceCount": 0,
+          "likeRowCount": 1,
+          "eligibleLikeCount": 1,
+          "invalidLikeCount": 0,
+          "ineligibleLikeCount": 0,
+          "unlikedRowCount": 0,
+          "selectedSeedCount": 1,
+          "seedLimitApplied": false,
+          "tokenCappedSourceCount": 1,
+          "matchedCandidateCount": 5,
+          "boostedCandidateCount": 5,
+          "maxScore": 3,
+          "scoreDistribution": [
+            {
+              "score": 0,
+              "candidateCount": 2
+            },
+            {
+              "score": 1,
+              "candidateCount": 1
+            },
+            {
+              "score": 2,
+              "candidateCount": 2
+            },
+            {
+              "score": 3,
+              "candidateCount": 2
+            }
+          ]
+        }
+      },
+      "separateProfile": {
+        "description": "A different profile with no seed remains at baseline order.",
+        "itemCount": 7,
+        "orderChangedCount": 0,
+        "top10ChangedCount": 0,
+        "positionChanges": 0,
+        "top10MembershipOverlapCount": 7,
+        "maxCreatorRun": {
+          "baseline": 2,
+          "personal": 2
+        },
+        "relevanceViolations": {
+          "baseline": 0,
+          "personal": 0
+        },
+        "top10": {
+          "baselineKeys": [
+            "synthetic-birthday",
+            "synthetic-outdoor",
+            "synthetic-seed",
+            "synthetic-stuffing",
+            "synthetic-unrelated",
+            "synthetic-wedding",
+            "synthetic-relevance-lower"
+          ],
+          "personalKeys": [
+            "synthetic-birthday",
+            "synthetic-outdoor",
+            "synthetic-seed",
+            "synthetic-stuffing",
+            "synthetic-unrelated",
+            "synthetic-wedding",
+            "synthetic-relevance-lower"
+          ],
+          "baselineAuthoredShare": 0.8571428571428571,
+          "personalAuthoredShare": 0.8571428571428571,
+          "baselineCreatorConcentration": {
+            "authoredCount": 6,
+            "distinctCreatorCount": 3,
+            "topCreatorShare": 0.5,
+            "creatorHhi": 0.3888888888888889
+          },
+          "personalCreatorConcentration": {
+            "authoredCount": 6,
+            "distinctCreatorCount": 3,
+            "topCreatorShare": 0.5,
+            "creatorHhi": 0.3888888888888889
+          }
+        },
+        "top20": {
+          "baselineKeys": [
+            "synthetic-birthday",
+            "synthetic-outdoor",
+            "synthetic-seed",
+            "synthetic-stuffing",
+            "synthetic-unrelated",
+            "synthetic-wedding",
+            "synthetic-relevance-lower"
+          ],
+          "personalKeys": [
+            "synthetic-birthday",
+            "synthetic-outdoor",
+            "synthetic-seed",
+            "synthetic-stuffing",
+            "synthetic-unrelated",
+            "synthetic-wedding",
+            "synthetic-relevance-lower"
+          ],
+          "baselineAuthoredShare": 0.8571428571428571,
+          "personalAuthoredShare": 0.8571428571428571,
+          "baselineCreatorConcentration": {
+            "authoredCount": 6,
+            "distinctCreatorCount": 3,
+            "topCreatorShare": 0.5,
+            "creatorHhi": 0.3888888888888889
+          },
+          "personalCreatorConcentration": {
+            "authoredCount": 6,
+            "distinctCreatorCount": 3,
+            "topCreatorShare": 0.5,
+            "creatorHhi": 0.3888888888888889
+          }
+        },
+        "recentItemShare": {
+          "baselineTop10": 0,
+          "personalTop10": 0,
+          "baselineTop20": 0,
+          "personalTop20": 0
+        },
+        "affinity": {
+          "sourceCount": 7,
+          "ambiguousSourceCount": 0,
+          "likeRowCount": 0,
+          "eligibleLikeCount": 0,
+          "invalidLikeCount": 0,
+          "ineligibleLikeCount": 0,
+          "unlikedRowCount": 0,
+          "selectedSeedCount": 0,
+          "seedLimitApplied": false,
+          "tokenCappedSourceCount": 1,
+          "matchedCandidateCount": 0,
+          "boostedCandidateCount": 0,
+          "maxScore": 0,
+          "scoreDistribution": [
+            {
+              "score": 0,
+              "candidateCount": 7
+            },
+            {
+              "score": 1,
+              "candidateCount": 0
+            },
+            {
+              "score": 2,
+              "candidateCount": 0
+            },
+            {
+              "score": 3,
+              "candidateCount": 0
+            }
+          ]
+        }
+      }
+    },
+    "mixedRecentCreatorScenario": {
+      "itemCount": 29,
+      "evaluation": {
+        "description": "Twenty old and eight recent synthetic authored items from repeated creators; affinity ordering and the baseline recent-item pass operate together.",
+        "itemCount": 29,
+        "orderChangedCount": 28,
+        "top10ChangedCount": 10,
+        "positionChanges": 28,
+        "top10MembershipOverlapCount": 3,
+        "maxCreatorRun": {
+          "baseline": 1,
+          "personal": 1
+        },
+        "relevanceViolations": {
+          "baseline": 0,
+          "personal": 0
+        },
+        "top10": {
+          "baselineKeys": [
+            "old-authored-00",
+            "old-authored-01",
+            "old-authored-02",
+            "old-authored-03",
+            "old-authored-04",
+            "old-authored-05",
+            "old-authored-06",
+            "old-authored-07",
+            "old-authored-08",
+            "recent-authored-00"
+          ],
+          "personalKeys": [
+            "recent-authored-00",
+            "recent-authored-01",
+            "recent-authored-02",
+            "recent-authored-03",
+            "recent-authored-04",
+            "recent-authored-05",
+            "recent-authored-06",
+            "recent-authored-07",
+            "old-authored-00",
+            "old-authored-01"
+          ],
+          "baselineAuthoredShare": 1,
+          "personalAuthoredShare": 1,
+          "baselineCreatorConcentration": {
+            "authoredCount": 10,
+            "distinctCreatorCount": 5,
+            "topCreatorShare": 0.3,
+            "creatorHhi": 0.22000000000000003
+          },
+          "personalCreatorConcentration": {
+            "authoredCount": 10,
+            "distinctCreatorCount": 4,
+            "topCreatorShare": 0.4,
+            "creatorHhi": 0.3400000000000001
+          }
+        },
+        "top20": {
+          "baselineKeys": [
+            "old-authored-00",
+            "old-authored-01",
+            "old-authored-02",
+            "old-authored-03",
+            "old-authored-04",
+            "old-authored-05",
+            "old-authored-06",
+            "old-authored-07",
+            "old-authored-08",
+            "recent-authored-00",
+            "old-authored-09",
+            "old-authored-10",
+            "old-authored-11",
+            "old-authored-12",
+            "old-authored-13",
+            "old-authored-14",
+            "old-authored-15",
+            "old-authored-16",
+            "old-authored-17",
+            "recent-authored-01"
+          ],
+          "personalKeys": [
+            "recent-authored-00",
+            "recent-authored-01",
+            "recent-authored-02",
+            "recent-authored-03",
+            "recent-authored-04",
+            "recent-authored-05",
+            "recent-authored-06",
+            "recent-authored-07",
+            "old-authored-00",
+            "old-authored-01",
+            "old-authored-02",
+            "old-authored-03",
+            "old-authored-04",
+            "old-authored-05",
+            "old-authored-06",
+            "old-authored-07",
+            "old-authored-08",
+            "old-authored-09",
+            "old-authored-10",
+            "old-authored-11"
+          ],
+          "baselineAuthoredShare": 1,
+          "personalAuthoredShare": 1,
+          "baselineCreatorConcentration": {
+            "authoredCount": 20,
+            "distinctCreatorCount": 6,
+            "topCreatorShare": 0.25,
+            "creatorHhi": 0.21000000000000002
+          },
+          "personalCreatorConcentration": {
+            "authoredCount": 20,
+            "distinctCreatorCount": 6,
+            "topCreatorShare": 0.2,
+            "creatorHhi": 0.16999999999999998
+          }
+        },
+        "recentItemShare": {
+          "baselineTop10": 0.1,
+          "personalTop10": 0.8,
+          "baselineTop20": 0.1,
+          "personalTop20": 0.4
+        },
+        "affinity": {
+          "sourceCount": 29,
+          "ambiguousSourceCount": 0,
+          "likeRowCount": 1,
+          "eligibleLikeCount": 1,
+          "invalidLikeCount": 0,
+          "ineligibleLikeCount": 0,
+          "unlikedRowCount": 0,
+          "selectedSeedCount": 1,
+          "seedLimitApplied": false,
+          "tokenCappedSourceCount": 0,
+          "matchedCandidateCount": 8,
+          "boostedCandidateCount": 8,
+          "maxScore": 3,
+          "scoreDistribution": [
+            {
+              "score": 0,
+              "candidateCount": 21
+            },
+            {
+              "score": 1,
+              "candidateCount": 0
+            },
+            {
+              "score": 2,
+              "candidateCount": 0
+            },
+            {
+              "score": 3,
+              "candidateCount": 8
+            }
+          ]
+        }
+      }
+    }
+  },
+  "caveats": [
+    "Like profile rows are fixture inputs, not observed account behavior.",
+    "Token overlap is a transparent lexical heuristic and can miss relevant items or match coincidental terms.",
+    "No preference text or raw content is written to this report; keys shown are curated fixture or synthetic evaluation keys.",
+    "This evaluation does not establish user preference quality, engagement improvement, or production readiness."
+  ],
+  "verification": {
+    "noHistoryMatchesBaseline": true,
+    "curatedPagingCompleteWithoutDuplicates": true,
+    "personalPagingStableAcrossPageSizes": true,
+    "noRelevanceViolations": true,
+    "scoresCappedAtThree": true
+  }
+}

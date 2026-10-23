@@ -1,0 +1,1 @@
+ALTER TABLE "blueprint_discovery_exposure" ADD COLUMN "ranking_context" jsonb;

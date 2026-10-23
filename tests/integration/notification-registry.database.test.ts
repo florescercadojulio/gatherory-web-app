@@ -151,7 +151,7 @@ test(
     const { event, eventParticipant, workspacePerson } = await import('@/db/schema/event.schema')
     const { notificationInstallation, nativeNotificationOutbox } =
       await import('@/db/schema/notification.schema')
-    const { and, eq } = await import('drizzle-orm')
+    const { and, eq, sql } = await import('drizzle-orm')
     const { Effect } = await import('effect')
     const { PgClientLive } = await import('@/db')
     const { notificationRepo } = await import('@/server/notifications/repos/notification.repo.live')
@@ -193,7 +193,7 @@ test(
         id: eventId,
         organizationId,
         title: 'Private event title',
-        status: 'draft',
+        status: 'ongoing',
         timeZone: 'UTC',
         startsAt: new Date('2031-01-01T12:00:00Z'),
         createdByUserId: recipientId,
@@ -227,7 +227,6 @@ test(
           recipientId,
           type: 'event_changed' as const,
           state: 'pending' as const,
-          nextAttemptAt: new Date(Date.now() - 5_000),
         }))
       )
       expect(await db.select().from(event).where(eq(event.id, eventId))).toHaveLength(1)
@@ -261,7 +260,7 @@ test(
       expect(leaseItem && (await isStillBound(leaseItem, leaseItem.installations[0]!))).toBe(true)
       await db
         .update(nativeNotificationOutbox)
-        .set({ leaseUntil: new Date(Date.now() - 1) })
+        .set({ leaseUntil: sql`clock_timestamp() - interval '1 millisecond'` })
         .where(eq(nativeNotificationOutbox.id, leaseItem!.id))
       expect(leaseItem && (await isStillBound(leaseItem, leaseItem.installations[0]!))).toBe(false)
 

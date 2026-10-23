@@ -11,6 +11,7 @@ import {
   uniqueIndex,
   uuid,
 } from 'drizzle-orm/pg-core'
+import type { EventChangeKind } from '@/server/notifications/contracts/notification.contracts'
 
 export const notificationRecipientKind = pgEnum('notification_recipient_kind', [
   'user',
@@ -71,7 +72,7 @@ export const notificationInstallation = pgTable(
   ]
 )
 
-/** Transactional outbox: only opaque event/entity identifiers are stored. */
+/** Transactional outbox: opaque identifiers and a generic change classification. */
 export const nativeNotificationOutbox = pgTable(
   'native_notification_outbox',
   {
@@ -84,6 +85,7 @@ export const nativeNotificationOutbox = pgTable(
     recipientKind: notificationRecipientKind('recipient_kind').notNull(),
     recipientId: text('recipient_id').notNull(),
     type: nativeNotificationType('type').notNull(),
+    eventChangeKind: text('event_change_kind').$type<EventChangeKind>(),
     state: nativeNotificationState('state').default('pending').notNull(),
     attempts: integer('attempts').default(0).notNull(),
     nextAttemptAt: timestamp('next_attempt_at', { withTimezone: true }).defaultNow().notNull(),
@@ -106,5 +108,9 @@ export const nativeNotificationOutbox = pgTable(
       table.eventId
     ),
     check('native_notification_outbox_attempts_check', sql`${table.attempts} >= 0`),
+    check(
+      'native_notification_outbox_event_change_kind_check',
+      sql`${table.eventChangeKind} is null or (${table.type} = 'event_changed' and ${table.eventChangeKind} in ('schedule', 'location', 'schedule_and_location', 'cancelled', 'reopened'))`
+    ),
   ]
 )

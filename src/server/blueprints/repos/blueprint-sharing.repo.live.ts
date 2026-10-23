@@ -3,6 +3,7 @@ import { PgClient } from '@effect/sql-pg/PgClient'
 import { Effect, Layer } from 'effect'
 import { DB } from '@/db'
 import { member } from '@/db/schema/auth.schema'
+import { hasOrganizationOwnerRole } from '../../auth/organization-role-membership'
 import {
   blueprintRevision,
   blueprintShareLink,
@@ -54,7 +55,7 @@ export const BlueprintSharingRepoLive = Layer.effect(
             and(
               eq(member.organizationId, template.organizationId),
               eq(member.userId, actorId),
-              eq(member.role, 'owner')
+              hasOrganizationOwnerRole(member.role)
             )
           )
           .for('share')

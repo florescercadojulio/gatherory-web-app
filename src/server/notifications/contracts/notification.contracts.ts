@@ -22,6 +22,9 @@ export type NotificationIdentity = { kind: 'user' | 'device_guest'; id: string }
 export type NotificationDispatchScope =
   { kind: 'mutations'; mutationIds: string[] } | { kind: 'announcement'; announcementId: string }
 export type NotificationType = 'assignment_changed' | 'event_changed' | 'event_announcement'
+/** Generic change classification only; no event content is retained in the outbox. */
+export type EventChangeKind =
+  'schedule' | 'location' | 'schedule_and_location' | 'cancelled' | 'reopened'
 export type NativeNotificationPayload = {
   type: NotificationType
   eventId: string
@@ -34,6 +37,16 @@ export type NativeNotificationPayload = {
     | 'Se te asignó una tarea.'
     | 'Event details changed.'
     | 'Se actualizaron los detalles del evento.'
+    | 'Event date or time changed.'
+    | 'Cambió la fecha o la hora del evento.'
+    | 'Event location changed.'
+    | 'Cambió la ubicación del evento.'
+    | 'Event schedule and location changed.'
+    | 'Cambiaron el horario y la ubicación del evento.'
+    | 'Event cancelled.'
+    | 'Evento cancelado.'
+    | 'Event is back on.'
+    | 'El evento vuelve a estar en pie.'
     | 'There’s a new event update.'
     | 'Hay una nueva actualización del evento.'
 }
@@ -44,6 +57,7 @@ export type EnqueueNativeNotificationInput = {
   recipient: NotificationIdentity
   mutationId: string
   notificationType: NotificationType
+  eventChangeKind?: EventChangeKind | null
   sourceRevision?: string
 }
 
@@ -53,6 +67,7 @@ export type ClaimedNotification = {
   entityId: string
   recipient: NotificationIdentity
   type: NotificationType
+  eventChangeKind?: EventChangeKind | null
   leaseKey: string
   acceptedInstallationIds: string[]
   installations: Array<{

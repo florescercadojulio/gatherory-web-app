@@ -88,7 +88,7 @@ type Target = {
   sha256: string
 }
 
-function deterministicUUID(value: string) {
+export function deterministicUUID(value: string) {
   const bytes = createHash('sha256').update(value).digest().subarray(0, 16)
   bytes[6] = (bytes[6] & 0x0f) | 0x50
   bytes[8] = (bytes[8] & 0x3f) | 0x80
@@ -118,7 +118,7 @@ export function assertLocalDevelopmentEventImageTarget(databaseUrl: string, node
     )
 }
 
-function decodePayload(payload: string) {
+export function decodePayload(payload: string) {
   const json = Buffer.from(payload, 'base64').toString('utf8')
   const value: unknown = JSON.parse(json)
   if (!value || typeof value !== 'object' || Array.isArray(value))
@@ -126,7 +126,7 @@ function decodePayload(payload: string) {
   return value as Record<string, any>
 }
 
-function encodePayload(value: unknown) {
+export function encodePayload(value: unknown) {
   return Buffer.from(JSON.stringify(value)).toString('base64')
 }
 
@@ -187,7 +187,7 @@ function setFixtureImage(
   }
 }
 
-function isJPEG(bytes: Buffer) {
+export function isJPEG(bytes: Buffer) {
   return (
     bytes.length >= 6 &&
     bytes[0] === 0xff &&
@@ -255,7 +255,7 @@ function placementTable(entityType: DevelopmentEventImage['entityType']) {
   return { table: 'registry_item_media', entityColumn: 'registry_item_id', role: 'cover' }
 }
 
-async function defaultReadAsset(file: string, webRoot: string) {
+export async function defaultReadAsset(file: string, webRoot: string) {
   const root = path.resolve(webRoot)
   const target = path.resolve(root, file)
   if (!target.startsWith(`${root}${path.sep}`))
@@ -303,7 +303,7 @@ export async function preflightDevelopmentEventImages(input: {
   return { images: catalog.length, mode: apply ? ('apply' as const) : ('dry-run' as const) }
 }
 
-async function localStorage(configuration: {
+export async function localStorage(configuration: {
   accountId: string
   accessKeyId: string
   secretAccessKey: string

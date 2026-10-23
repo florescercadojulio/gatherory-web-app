@@ -88,6 +88,12 @@ Do not treat the implemented report queue alone as proof of
 - Verify shared account deletion with multiple planners and guests, including
   provider revocation and authored content/snapshot cleanup.
 - Designate and staff moderation/support, and decide/provision content filtering.
+- The Blueprint recommendation measurement slice adds its own account opt-in
+  (default off), telemetry purge on opt-out and 30-day retention. It sends no new
+  external analytics events. Before enabling it in a deployment, apply its
+  migration, configure excluded internal/test accounts and schedule retention
+  cleanup; see [slice 03](../roadmaps/blueprint-ranking-roadmap/03-actions-and-measurement.md).
+  This does not complete the broader SDK/privacy review below.
 - Review production analytics consent, App Privacy disclosures, and the privacy
   policy against actual PostHog behavior before EU distribution. Default-enabled
   analytics here is the requested temporary configuration, not a legal-compliance claim.

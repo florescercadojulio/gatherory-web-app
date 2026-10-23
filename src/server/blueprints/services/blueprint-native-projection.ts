@@ -24,8 +24,12 @@ export function buildBlueprintNativeProjection(input: {
   manifest: BlueprintManifest
   actor: BlueprintActor
   createdAt: Date
+  coverAssetIds?: Record<string, string>
 }) {
   const { plan, manifest, actor, createdAt } = input
+  const coverAssetIds = input.coverAssetIds ?? {}
+  const coverID = (sourceAssetId: string | null | undefined) =>
+    sourceAssetId ? (coverAssetIds[sourceAssetId.toLowerCase()] ?? null) : null
   const createdAtValue = foundationDate(createdAt)
   const mainEventID = requiredID(manifest.events, plan.main.sourceKey)
   const eventIDFor = (sourceKey: string) => requiredID(manifest.events, sourceKey)
@@ -77,7 +81,7 @@ export function buildBlueprintNativeProjection(input: {
     response: null,
     linkedIdeaID: null,
     imageData: null,
-    mediaAssetID: null,
+    mediaAssetID: coverID(child.coverAssetId),
     eventDescription: '',
     dressCode: '',
     budgetCap: null,
@@ -95,7 +99,7 @@ export function buildBlueprintNativeProjection(input: {
     status: 'new' as const,
     submittedAt: createdAtValue,
     imageData: null,
-    mediaAssetID: null,
+    mediaAssetID: coverID(idea.coverAssetId),
     configuration: nativeIdeaConfiguration(
       idea.category,
       [plan.main, ...plan.children].find(
@@ -143,7 +147,7 @@ export function buildBlueprintNativeProjection(input: {
       addressLine2: '',
     },
     mainEventImageData: null,
-    mainEventMediaAssetID: null,
+    mainEventMediaAssetID: coverID(plan.main.coverAssetId),
     venueName: '',
     location: '',
     dressCode: '',

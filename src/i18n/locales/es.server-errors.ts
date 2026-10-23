@@ -1,6 +1,10 @@
 import type en from './en.server-errors'
 
 const serverErrors = {
+  WAITLIST_INVALID_INPUT: 'Revisa tu correo y el consentimiento e inténtalo de nuevo.',
+  WAITLIST_UNAVAILABLE: 'La lista de espera no está disponible ahora. Inténtalo más tarde.',
+  WAITLIST_RATE_LIMITED: 'Demasiados intentos. Espera unos minutos e inténtalo de nuevo.',
+  WAITLIST_ADMIN_REQUIRED: 'Inicia sesión con una cuenta verificada autorizada para gestionar la lista.',
   ACTIVE_WORKSPACE_REQUIRED: 'Elige un evento e inténtalo de nuevo.',
   INVITATION_EMAIL_UNVERIFIED: 'Verifica tu correo electrónico antes de aceptar esta invitación.',
   INVITATION_UNAVAILABLE:

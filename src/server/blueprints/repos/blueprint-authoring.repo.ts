@@ -21,6 +21,10 @@ export class BlueprintAuthoringRepo extends Context.Service<
       input: z.infer<typeof BlueprintAuthoringPageInputSchema>
     ) => Effect.Effect<{ data: BlueprintAuthoringRow[]; hasNextPage: boolean }, DomainError>
     get: (actorId: string, id: string) => Effect.Effect<BlueprintDraft, DomainError>
+    validateCoverReferences?: (
+      actorId: string,
+      assetIds: string[]
+    ) => Effect.Effect<void, DomainError>
     create: (
       actorId: string,
       input: z.infer<typeof BlueprintCreateDraftSchema>

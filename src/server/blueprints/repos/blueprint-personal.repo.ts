@@ -24,7 +24,11 @@ export class BlueprintPersonalRepo extends Context.Service<
   {
     copy: (
       actorId: string,
-      input: { requestId: string; content: BlueprintDraftContent }
+      input: {
+        requestId: string
+        content: BlueprintDraftContent
+        source?: { catalogKey: string; revision: number; shareToken?: string; discoveryExposureId?: string }
+      }
     ) => Effect.Effect<PersonalBlueprint, DomainError>
     list: (actorId: string) => Effect.Effect<{ templates: PersonalBlueprint[] }, DomainError>
     save: (

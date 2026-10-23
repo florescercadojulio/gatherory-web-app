@@ -1,0 +1,2557 @@
+{
+  "formatVersion": 1,
+  "asOf": "2026-10-22T12:00:00.000Z",
+  "purpose": "Offline comparison of four fixed personal Like ranking policies on fictional, predeclared, family-labeled plan fixtures plus an unlabeled curated ranking diagnostic. This is not observed user quality or engagement uplift.",
+  "protocol": {
+    "idfPopulation": "Each fixture file is a separate current public source corpus; N is the number of plans in that file.",
+    "exactSeeds": "One source-bound exact Like seed per listed family; each actor profile is evaluated separately. Liked seed item is omitted from candidate ranking and pair metric denominators.",
+    "ambiguous": "Ambiguous predictions are excluded from strict precision/recall/FPR and counted as false in conservative precision.",
+    "noPostLockChallengeChanges": true
+  },
+  "policies": {
+    "baseline": {
+      "version": "blueprint-baseline-v2",
+      "fingerprint": "4c85a77f26eb79885e3201fb2d2cdd981b39139ec1a79baf61f4ba624f2e7779",
+      "affinity": null
+    },
+    "frozenV1": {
+      "version": "blueprint-personal-likes-v1",
+      "fingerprint": "06038dda577b036a3ab9dfa82c950195411aeb828b602e19c738f0e8853547a3"
+    },
+    "frozenInitialV2": {
+      "version": "blueprint-personal-likes-v2",
+      "fingerprint": "a466c320b2efd0181951cdd615d091132945d5b289d1566e91ab406235ca2e1d",
+      "snapshotFileSha256": "c1a8507033bf7e13d30c80d0f89b029576cb68de44569d897b085680f171e050",
+      "originalSourceSha256": "18666aa462b0dac5f50860a8afd226db60e53c5d2d383912d4edf2ed1dd912d9"
+    },
+    "finalV2": {
+      "version": "blueprint-personal-likes-v2",
+      "fingerprint": "c7f7218e57aa1717dbf840a6e61cc23e2ee50ee60ba7a645512bb4e221ae4204",
+      "formula": {
+        "threshold": 0.03,
+        "sharedTerms": "At least two distinct shared meaningful terms.",
+        "anchor": "A shared token must be identity-role text (name/event title/idea title) on at least one side and non-notes text on both sides. Summary-summary overlap cannot anchor; notes cannot be the non-notes counterpart.",
+        "roles": {
+          "name": 3,
+          "eventTitles": 2,
+          "ideaTitles": 2,
+          "summary": 1,
+          "ideaNotes": 0.5
+        },
+        "cap": 64,
+        "similarity": "Maximum per-seed IDF-adjusted role-weighted Jaccard × 3, capped at 3."
+      }
+    }
+  },
+  "development": {
+    "fixture": "development",
+    "status": "development",
+    "fixtureLock": "31309b41556e52ddb5a6a1121b1150780eb012aadd5787192bc048b4bc74ca7b",
+    "sourcePopulation": 49,
+    "profileCount": 6,
+    "pairCount": 288,
+    "judgments": {
+      "labels": {
+        "relevant": 43,
+        "ambiguous": 65,
+        "unrelated": 180
+      },
+      "overall": {
+        "baseline": {
+          "affinityPredictionApplicable": false,
+          "note": "The non-personal baseline has no affinity prediction; ranking P@K is reported separately."
+        },
+        "frozenV1": {
+          "affinityPredictionApplicable": true,
+          "predictedPairs": 45,
+          "truePositive": 21,
+          "falsePositive": 14,
+          "ambiguousPredictions": 10,
+          "strictPrecision": 0.6,
+          "conservativePrecision": 0.4667,
+          "recall": 0.4884,
+          "falsePositiveRate": 0.0778,
+          "positivePairShare": 0.1563,
+          "seedCountWithoutPositivePairInScope": 0
+        },
+        "initialV2": {
+          "affinityPredictionApplicable": true,
+          "predictedPairs": 17,
+          "truePositive": 11,
+          "falsePositive": 5,
+          "ambiguousPredictions": 1,
+          "strictPrecision": 0.6875,
+          "conservativePrecision": 0.6471,
+          "recall": 0.2558,
+          "falsePositiveRate": 0.0278,
+          "positivePairShare": 0.059,
+          "seedCountWithoutPositivePairInScope": 0
+        },
+        "finalV2": {
+          "affinityPredictionApplicable": true,
+          "predictedPairs": 31,
+          "truePositive": 17,
+          "falsePositive": 9,
+          "ambiguousPredictions": 5,
+          "strictPrecision": 0.6538,
+          "conservativePrecision": 0.5484,
+          "recall": 0.3953,
+          "falsePositiveRate": 0.05,
+          "positivePairShare": 0.1076,
+          "seedCountWithoutPositivePairInScope": 0
+        }
+      },
+      "candidateLanguage": {
+        "en": {
+          "baseline": {
+            "affinityPredictionApplicable": false,
+            "note": "The non-personal baseline has no affinity prediction; ranking P@K is reported separately."
+          },
+          "frozenV1": {
+            "affinityPredictionApplicable": true,
+            "predictedPairs": 36,
+            "truePositive": 15,
+            "falsePositive": 12,
+            "ambiguousPredictions": 9,
+            "strictPrecision": 0.5556,
+            "conservativePrecision": 0.4167,
+            "recall": 0.7143,
+            "falsePositiveRate": 0.1188,
+            "positivePairShare": 0.2308,
+            "seedCountWithoutPositivePairInScope": 0
+          },
+          "initialV2": {
+            "affinityPredictionApplicable": true,
+            "predictedPairs": 15,
+            "truePositive": 9,
+            "falsePositive": 5,
+            "ambiguousPredictions": 1,
+            "strictPrecision": 0.6429,
+            "conservativePrecision": 0.6,
+            "recall": 0.4286,
+            "falsePositiveRate": 0.0495,
+            "positivePairShare": 0.0962,
+            "seedCountWithoutPositivePairInScope": 0
+          },
+          "finalV2": {
+            "affinityPredictionApplicable": true,
+            "predictedPairs": 26,
+            "truePositive": 12,
+            "falsePositive": 9,
+            "ambiguousPredictions": 5,
+            "strictPrecision": 0.5714,
+            "conservativePrecision": 0.4615,
+            "recall": 0.5714,
+            "falsePositiveRate": 0.0891,
+            "positivePairShare": 0.1667,
+            "seedCountWithoutPositivePairInScope": 0
+          }
+        },
+        "es": {
+          "baseline": {
+            "affinityPredictionApplicable": false,
+            "note": "The non-personal baseline has no affinity prediction; ranking P@K is reported separately."
+          },
+          "frozenV1": {
+            "affinityPredictionApplicable": true,
+            "predictedPairs": 4,
+            "truePositive": 2,
+            "falsePositive": 2,
+            "ambiguousPredictions": 0,
+            "strictPrecision": 0.5,
+            "conservativePrecision": 0.5,
+            "recall": 0.125,
+            "falsePositiveRate": 0.0351,
+            "positivePairShare": 0.0417,
+            "seedCountWithoutPositivePairInScope": 2
+          },
+          "initialV2": {
+            "affinityPredictionApplicable": true,
+            "predictedPairs": 0,
+            "truePositive": 0,
+            "falsePositive": 0,
+            "ambiguousPredictions": 0,
+            "strictPrecision": null,
+            "conservativePrecision": null,
+            "recall": 0,
+            "falsePositiveRate": 0,
+            "positivePairShare": 0,
+            "seedCountWithoutPositivePairInScope": 6
+          },
+          "finalV2": {
+            "affinityPredictionApplicable": true,
+            "predictedPairs": 1,
+            "truePositive": 1,
+            "falsePositive": 0,
+            "ambiguousPredictions": 0,
+            "strictPrecision": 1,
+            "conservativePrecision": 1,
+            "recall": 0.0625,
+            "falsePositiveRate": 0,
+            "positivePairShare": 0.0104,
+            "seedCountWithoutPositivePairInScope": 5
+          }
+        },
+        "mixed": {
+          "baseline": {
+            "affinityPredictionApplicable": false,
+            "note": "The non-personal baseline has no affinity prediction; ranking P@K is reported separately."
+          },
+          "frozenV1": {
+            "affinityPredictionApplicable": true,
+            "predictedPairs": 5,
+            "truePositive": 4,
+            "falsePositive": 0,
+            "ambiguousPredictions": 1,
+            "strictPrecision": 1,
+            "conservativePrecision": 0.8,
+            "recall": 0.8,
+            "falsePositiveRate": 0,
+            "positivePairShare": 0.1667,
+            "seedCountWithoutPositivePairInScope": 2
+          },
+          "initialV2": {
+            "affinityPredictionApplicable": true,
+            "predictedPairs": 2,
+            "truePositive": 2,
+            "falsePositive": 0,
+            "ambiguousPredictions": 0,
+            "strictPrecision": 1,
+            "conservativePrecision": 1,
+            "recall": 0.4,
+            "falsePositiveRate": 0,
+            "positivePairShare": 0.0667,
+            "seedCountWithoutPositivePairInScope": 4
+          },
+          "finalV2": {
+            "affinityPredictionApplicable": true,
+            "predictedPairs": 4,
+            "truePositive": 4,
+            "falsePositive": 0,
+            "ambiguousPredictions": 0,
+            "strictPrecision": 1,
+            "conservativePrecision": 1,
+            "recall": 0.8,
+            "falsePositiveRate": 0,
+            "positivePairShare": 0.1333,
+            "seedCountWithoutPositivePairInScope": 2
+          }
+        },
+        "und": {
+          "baseline": {
+            "affinityPredictionApplicable": false,
+            "note": "The non-personal baseline has no affinity prediction; ranking P@K is reported separately."
+          },
+          "frozenV1": {
+            "affinityPredictionApplicable": true,
+            "predictedPairs": 0,
+            "truePositive": 0,
+            "falsePositive": 0,
+            "ambiguousPredictions": 0,
+            "strictPrecision": null,
+            "conservativePrecision": null,
+            "recall": 0,
+            "falsePositiveRate": 0,
+            "positivePairShare": 0,
+            "seedCountWithoutPositivePairInScope": 6
+          },
+          "initialV2": {
+            "affinityPredictionApplicable": true,
+            "predictedPairs": 0,
+            "truePositive": 0,
+            "falsePositive": 0,
+            "ambiguousPredictions": 0,
+            "strictPrecision": null,
+            "conservativePrecision": null,
+            "recall": 0,
+            "falsePositiveRate": 0,
+            "positivePairShare": 0,
+            "seedCountWithoutPositivePairInScope": 6
+          },
+          "finalV2": {
+            "affinityPredictionApplicable": true,
+            "predictedPairs": 0,
+            "truePositive": 0,
+            "falsePositive": 0,
+            "ambiguousPredictions": 0,
+            "strictPrecision": null,
+            "conservativePrecision": null,
+            "recall": 0,
+            "falsePositiveRate": 0,
+            "positivePairShare": 0,
+            "seedCountWithoutPositivePairInScope": 6
+          }
+        }
+      }
+    },
+    "ranking": {
+      "baseline": {
+        "topK": [
+          {
+            "k": 1,
+            "positions": 6,
+            "relevant": 1,
+            "ambiguous": 2,
+            "unrelated": 3,
+            "relevantShareAtK": 0.1667,
+            "strictPrecisionExcludingAmbiguous": 0.25,
+            "conservativePrecisionCountingAmbiguousAsFalse": 0.1667
+          },
+          {
+            "k": 3,
+            "positions": 18,
+            "relevant": 3,
+            "ambiguous": 6,
+            "unrelated": 9,
+            "relevantShareAtK": 0.1667,
+            "strictPrecisionExcludingAmbiguous": 0.25,
+            "conservativePrecisionCountingAmbiguousAsFalse": 0.1667
+          },
+          {
+            "k": 5,
+            "positions": 30,
+            "relevant": 5,
+            "ambiguous": 10,
+            "unrelated": 15,
+            "relevantShareAtK": 0.1667,
+            "strictPrecisionExcludingAmbiguous": 0.25,
+            "conservativePrecisionCountingAmbiguousAsFalse": 0.1667
+          },
+          {
+            "k": 10,
+            "positions": 60,
+            "relevant": 9,
+            "ambiguous": 18,
+            "unrelated": 33,
+            "relevantShareAtK": 0.15,
+            "strictPrecisionExcludingAmbiguous": 0.2143,
+            "conservativePrecisionCountingAmbiguousAsFalse": 0.15
+          },
+          {
+            "k": 20,
+            "positions": 120,
+            "relevant": 18,
+            "ambiguous": 29,
+            "unrelated": 73,
+            "relevantShareAtK": 0.15,
+            "strictPrecisionExcludingAmbiguous": 0.1978,
+            "conservativePrecisionCountingAmbiguousAsFalse": 0.15
+          }
+        ],
+        "top10MembershipChangesVsBaseline": 0,
+        "top10OrderChangedPositionsVsBaseline": 0,
+        "seedCount": 6
+      },
+      "frozenV1": {
+        "topK": [
+          {
+            "k": 1,
+            "positions": 6,
+            "relevant": 4,
+            "ambiguous": 0,
+            "unrelated": 2,
+            "relevantShareAtK": 0.6667,
+            "strictPrecisionExcludingAmbiguous": 0.6667,
+            "conservativePrecisionCountingAmbiguousAsFalse": 0.6667
+          },
+          {
+            "k": 3,
+            "positions": 18,
+            "relevant": 11,
+            "ambiguous": 4,
+            "unrelated": 3,
+            "relevantShareAtK": 0.6111,
+            "strictPrecisionExcludingAmbiguous": 0.7857,
+            "conservativePrecisionCountingAmbiguousAsFalse": 0.6111
+          },
+          {
+            "k": 5,
+            "positions": 30,
+            "relevant": 16,
+            "ambiguous": 6,
+            "unrelated": 8,
+            "relevantShareAtK": 0.5333,
+            "strictPrecisionExcludingAmbiguous": 0.6667,
+            "conservativePrecisionCountingAmbiguousAsFalse": 0.5333
+          },
+          {
+            "k": 10,
+            "positions": 60,
+            "relevant": 21,
+            "ambiguous": 18,
+            "unrelated": 21,
+            "relevantShareAtK": 0.35,
+            "strictPrecisionExcludingAmbiguous": 0.5,
+            "conservativePrecisionCountingAmbiguousAsFalse": 0.35
+          },
+          {
+            "k": 20,
+            "positions": 120,
+            "relevant": 30,
+            "ambiguous": 32,
+            "unrelated": 58,
+            "relevantShareAtK": 0.25,
+            "strictPrecisionExcludingAmbiguous": 0.3409,
+            "conservativePrecisionCountingAmbiguousAsFalse": 0.25
+          }
+        ],
+        "top10MembershipChangesVsBaseline": 37,
+        "top10OrderChangedPositionsVsBaseline": 59,
+        "seedCount": 6
+      },
+      "initialV2": {
+        "topK": [
+          {
+            "k": 1,
+            "positions": 6,
+            "relevant": 3,
+            "ambiguous": 0,
+            "unrelated": 3,
+            "relevantShareAtK": 0.5,
+            "strictPrecisionExcludingAmbiguous": 0.5,
+            "conservativePrecisionCountingAmbiguousAsFalse": 0.5
+          },
+          {
+            "k": 3,
+            "positions": 18,
+            "relevant": 11,
+            "ambiguous": 3,
+            "unrelated": 4,
+            "relevantShareAtK": 0.6111,
+            "strictPrecisionExcludingAmbiguous": 0.7333,
+            "conservativePrecisionCountingAmbiguousAsFalse": 0.6111
+          },
+          {
+            "k": 5,
+            "positions": 30,
+            "relevant": 12,
+            "ambiguous": 8,
+            "unrelated": 10,
+            "relevantShareAtK": 0.4,
+            "strictPrecisionExcludingAmbiguous": 0.5455,
+            "conservativePrecisionCountingAmbiguousAsFalse": 0.4
+          },
+          {
+            "k": 10,
+            "positions": 60,
+            "relevant": 16,
+            "ambiguous": 18,
+            "unrelated": 26,
+            "relevantShareAtK": 0.2667,
+            "strictPrecisionExcludingAmbiguous": 0.381,
+            "conservativePrecisionCountingAmbiguousAsFalse": 0.2667
+          },
+          {
+            "k": 20,
+            "positions": 120,
+            "relevant": 22,
+            "ambiguous": 28,
+            "unrelated": 70,
+            "relevantShareAtK": 0.1833,
+            "strictPrecisionExcludingAmbiguous": 0.2391,
+            "conservativePrecisionCountingAmbiguousAsFalse": 0.1833
+          }
+        ],
+        "top10MembershipChangesVsBaseline": 13,
+        "top10OrderChangedPositionsVsBaseline": 60,
+        "seedCount": 6
+      },
+      "finalV2": {
+        "topK": [
+          {
+            "k": 1,
+            "positions": 6,
+            "relevant": 3,
+            "ambiguous": 0,
+            "unrelated": 3,
+            "relevantShareAtK": 0.5,
+            "strictPrecisionExcludingAmbiguous": 0.5,
+            "conservativePrecisionCountingAmbiguousAsFalse": 0.5
+          },
+          {
+            "k": 3,
+            "positions": 18,
+            "relevant": 12,
+            "ambiguous": 1,
+            "unrelated": 5,
+            "relevantShareAtK": 0.6667,
+            "strictPrecisionExcludingAmbiguous": 0.7059,
+            "conservativePrecisionCountingAmbiguousAsFalse": 0.6667
+          },
+          {
+            "k": 5,
+            "positions": 30,
+            "relevant": 16,
+            "ambiguous": 6,
+            "unrelated": 8,
+            "relevantShareAtK": 0.5333,
+            "strictPrecisionExcludingAmbiguous": 0.6667,
+            "conservativePrecisionCountingAmbiguousAsFalse": 0.5333
+          },
+          {
+            "k": 10,
+            "positions": 60,
+            "relevant": 21,
+            "ambiguous": 17,
+            "unrelated": 22,
+            "relevantShareAtK": 0.35,
+            "strictPrecisionExcludingAmbiguous": 0.4884,
+            "conservativePrecisionCountingAmbiguousAsFalse": 0.35
+          },
+          {
+            "k": 20,
+            "positions": 120,
+            "relevant": 26,
+            "ambiguous": 29,
+            "unrelated": 65,
+            "relevantShareAtK": 0.2167,
+            "strictPrecisionExcludingAmbiguous": 0.2857,
+            "conservativePrecisionCountingAmbiguousAsFalse": 0.2167
+          }
+        ],
+        "top10MembershipChangesVsBaseline": 25,
+        "top10OrderChangedPositionsVsBaseline": 60,
+        "seedCount": 6
+      }
+    },
+    "profiles": [
+      {
+        "seedKey": "synthetic-wedding-01",
+        "seedLanguage": "en",
+        "sourceCount": 49,
+        "v1": {
+          "sourceCount": 49,
+          "ambiguousSourceCount": 0,
+          "likeRowCount": 1,
+          "eligibleLikeCount": 1,
+          "invalidLikeCount": 0,
+          "ineligibleLikeCount": 0,
+          "unlikedRowCount": 0,
+          "selectedSeedCount": 1,
+          "seedLimitApplied": false,
+          "tokenCappedSourceCount": 0,
+          "matchedCandidateCount": 7,
+          "boostedCandidateCount": 7,
+          "maxScore": 2
+        },
+        "initialV2": {
+          "sourceCount": 49,
+          "ambiguousSourceCount": 0,
+          "likeRowCount": 1,
+          "eligibleLikeCount": 1,
+          "invalidLikeCount": 0,
+          "ineligibleLikeCount": 0,
+          "unlikedRowCount": 0,
+          "selectedSeedCount": 1,
+          "seedLimitApplied": false,
+          "tokenCappedSourceCount": 0,
+          "matchedCandidateCount": 3,
+          "thresholdRejectedCandidateCount": 0,
+          "boostedCandidateCount": 3,
+          "maxScore": 0.33694062956648096
+        },
+        "finalV2": {
+          "sourceCount": 49,
+          "ambiguousSourceCount": 0,
+          "likeRowCount": 1,
+          "eligibleLikeCount": 1,
+          "invalidLikeCount": 0,
+          "ineligibleLikeCount": 0,
+          "unlikedRowCount": 0,
+          "selectedSeedCount": 1,
+          "seedLimitApplied": false,
+          "tokenCappedSourceCount": 0,
+          "matchedCandidateCount": 6,
+          "thresholdRejectedCandidateCount": 1,
+          "boostedCandidateCount": 5,
+          "maxScore": 0.33694062956648096
+        }
+      },
+      {
+        "seedKey": "synthetic-birthday-01",
+        "seedLanguage": "en",
+        "sourceCount": 49,
+        "v1": {
+          "sourceCount": 49,
+          "ambiguousSourceCount": 0,
+          "likeRowCount": 1,
+          "eligibleLikeCount": 1,
+          "invalidLikeCount": 0,
+          "ineligibleLikeCount": 0,
+          "unlikedRowCount": 0,
+          "selectedSeedCount": 1,
+          "seedLimitApplied": false,
+          "tokenCappedSourceCount": 0,
+          "matchedCandidateCount": 9,
+          "boostedCandidateCount": 9,
+          "maxScore": 3
+        },
+        "initialV2": {
+          "sourceCount": 49,
+          "ambiguousSourceCount": 0,
+          "likeRowCount": 1,
+          "eligibleLikeCount": 1,
+          "invalidLikeCount": 0,
+          "ineligibleLikeCount": 0,
+          "unlikedRowCount": 0,
+          "selectedSeedCount": 1,
+          "seedLimitApplied": false,
+          "tokenCappedSourceCount": 0,
+          "matchedCandidateCount": 5,
+          "thresholdRejectedCandidateCount": 1,
+          "boostedCandidateCount": 4,
+          "maxScore": 0.3497148038247263
+        },
+        "finalV2": {
+          "sourceCount": 49,
+          "ambiguousSourceCount": 0,
+          "likeRowCount": 1,
+          "eligibleLikeCount": 1,
+          "invalidLikeCount": 0,
+          "ineligibleLikeCount": 0,
+          "unlikedRowCount": 0,
+          "selectedSeedCount": 1,
+          "seedLimitApplied": false,
+          "tokenCappedSourceCount": 0,
+          "matchedCandidateCount": 7,
+          "thresholdRejectedCandidateCount": 1,
+          "boostedCandidateCount": 6,
+          "maxScore": 0.3497148038247263
+        }
+      },
+      {
+        "seedKey": "synthetic-food_dietary-01",
+        "seedLanguage": "en",
+        "sourceCount": 49,
+        "v1": {
+          "sourceCount": 49,
+          "ambiguousSourceCount": 0,
+          "likeRowCount": 1,
+          "eligibleLikeCount": 1,
+          "invalidLikeCount": 0,
+          "ineligibleLikeCount": 0,
+          "unlikedRowCount": 0,
+          "selectedSeedCount": 1,
+          "seedLimitApplied": false,
+          "tokenCappedSourceCount": 0,
+          "matchedCandidateCount": 5,
+          "boostedCandidateCount": 5,
+          "maxScore": 2
+        },
+        "initialV2": {
+          "sourceCount": 49,
+          "ambiguousSourceCount": 0,
+          "likeRowCount": 1,
+          "eligibleLikeCount": 1,
+          "invalidLikeCount": 0,
+          "ineligibleLikeCount": 0,
+          "unlikedRowCount": 0,
+          "selectedSeedCount": 1,
+          "seedLimitApplied": false,
+          "tokenCappedSourceCount": 0,
+          "matchedCandidateCount": 2,
+          "thresholdRejectedCandidateCount": 1,
+          "boostedCandidateCount": 1,
+          "maxScore": 0.19050769459257616
+        },
+        "finalV2": {
+          "sourceCount": 49,
+          "ambiguousSourceCount": 0,
+          "likeRowCount": 1,
+          "eligibleLikeCount": 1,
+          "invalidLikeCount": 0,
+          "ineligibleLikeCount": 0,
+          "unlikedRowCount": 0,
+          "selectedSeedCount": 1,
+          "seedLimitApplied": false,
+          "tokenCappedSourceCount": 0,
+          "matchedCandidateCount": 3,
+          "thresholdRejectedCandidateCount": 0,
+          "boostedCandidateCount": 3,
+          "maxScore": 0.19050769459257616
+        }
+      },
+      {
+        "seedKey": "synthetic-camping-01",
+        "seedLanguage": "en",
+        "sourceCount": 49,
+        "v1": {
+          "sourceCount": 49,
+          "ambiguousSourceCount": 0,
+          "likeRowCount": 1,
+          "eligibleLikeCount": 1,
+          "invalidLikeCount": 0,
+          "ineligibleLikeCount": 0,
+          "unlikedRowCount": 0,
+          "selectedSeedCount": 1,
+          "seedLimitApplied": false,
+          "tokenCappedSourceCount": 0,
+          "matchedCandidateCount": 6,
+          "boostedCandidateCount": 6,
+          "maxScore": 3
+        },
+        "initialV2": {
+          "sourceCount": 49,
+          "ambiguousSourceCount": 0,
+          "likeRowCount": 1,
+          "eligibleLikeCount": 1,
+          "invalidLikeCount": 0,
+          "ineligibleLikeCount": 0,
+          "unlikedRowCount": 0,
+          "selectedSeedCount": 1,
+          "seedLimitApplied": false,
+          "tokenCappedSourceCount": 0,
+          "matchedCandidateCount": 4,
+          "thresholdRejectedCandidateCount": 1,
+          "boostedCandidateCount": 3,
+          "maxScore": 0.4137046652102343
+        },
+        "finalV2": {
+          "sourceCount": 49,
+          "ambiguousSourceCount": 0,
+          "likeRowCount": 1,
+          "eligibleLikeCount": 1,
+          "invalidLikeCount": 0,
+          "ineligibleLikeCount": 0,
+          "unlikedRowCount": 0,
+          "selectedSeedCount": 1,
+          "seedLimitApplied": false,
+          "tokenCappedSourceCount": 0,
+          "matchedCandidateCount": 6,
+          "thresholdRejectedCandidateCount": 2,
+          "boostedCandidateCount": 4,
+          "maxScore": 0.4137046652102343
+        }
+      },
+      {
+        "seedKey": "synthetic-craft_activity-01",
+        "seedLanguage": "en",
+        "sourceCount": 49,
+        "v1": {
+          "sourceCount": 49,
+          "ambiguousSourceCount": 0,
+          "likeRowCount": 1,
+          "eligibleLikeCount": 1,
+          "invalidLikeCount": 0,
+          "ineligibleLikeCount": 0,
+          "unlikedRowCount": 0,
+          "selectedSeedCount": 1,
+          "seedLimitApplied": false,
+          "tokenCappedSourceCount": 0,
+          "matchedCandidateCount": 7,
+          "boostedCandidateCount": 7,
+          "maxScore": 3
+        },
+        "initialV2": {
+          "sourceCount": 49,
+          "ambiguousSourceCount": 0,
+          "likeRowCount": 1,
+          "eligibleLikeCount": 1,
+          "invalidLikeCount": 0,
+          "ineligibleLikeCount": 0,
+          "unlikedRowCount": 0,
+          "selectedSeedCount": 1,
+          "seedLimitApplied": false,
+          "tokenCappedSourceCount": 0,
+          "matchedCandidateCount": 3,
+          "thresholdRejectedCandidateCount": 1,
+          "boostedCandidateCount": 2,
+          "maxScore": 0.5501161377919676
+        },
+        "finalV2": {
+          "sourceCount": 49,
+          "ambiguousSourceCount": 0,
+          "likeRowCount": 1,
+          "eligibleLikeCount": 1,
+          "invalidLikeCount": 0,
+          "ineligibleLikeCount": 0,
+          "unlikedRowCount": 0,
+          "selectedSeedCount": 1,
+          "seedLimitApplied": false,
+          "tokenCappedSourceCount": 0,
+          "matchedCandidateCount": 5,
+          "thresholdRejectedCandidateCount": 0,
+          "boostedCandidateCount": 5,
+          "maxScore": 0.5501161377919676
+        }
+      },
+      {
+        "seedKey": "synthetic-generic_logistics-01",
+        "seedLanguage": "en",
+        "sourceCount": 49,
+        "v1": {
+          "sourceCount": 49,
+          "ambiguousSourceCount": 0,
+          "likeRowCount": 1,
+          "eligibleLikeCount": 1,
+          "invalidLikeCount": 0,
+          "ineligibleLikeCount": 0,
+          "unlikedRowCount": 0,
+          "selectedSeedCount": 1,
+          "seedLimitApplied": false,
+          "tokenCappedSourceCount": 0,
+          "matchedCandidateCount": 11,
+          "boostedCandidateCount": 11,
+          "maxScore": 3
+        },
+        "initialV2": {
+          "sourceCount": 49,
+          "ambiguousSourceCount": 0,
+          "likeRowCount": 1,
+          "eligibleLikeCount": 1,
+          "invalidLikeCount": 0,
+          "ineligibleLikeCount": 0,
+          "unlikedRowCount": 0,
+          "selectedSeedCount": 1,
+          "seedLimitApplied": false,
+          "tokenCappedSourceCount": 0,
+          "matchedCandidateCount": 4,
+          "thresholdRejectedCandidateCount": 0,
+          "boostedCandidateCount": 4,
+          "maxScore": 0.5685306636809901
+        },
+        "finalV2": {
+          "sourceCount": 49,
+          "ambiguousSourceCount": 0,
+          "likeRowCount": 1,
+          "eligibleLikeCount": 1,
+          "invalidLikeCount": 0,
+          "ineligibleLikeCount": 0,
+          "unlikedRowCount": 0,
+          "selectedSeedCount": 1,
+          "seedLimitApplied": false,
+          "tokenCappedSourceCount": 0,
+          "matchedCandidateCount": 8,
+          "thresholdRejectedCandidateCount": 0,
+          "boostedCandidateCount": 8,
+          "maxScore": 0.5685306636809901
+        }
+      }
+    ]
+  },
+  "priorValidationInformedIteration": {
+    "fixture": "prior validation-informed iteration",
+    "status": "validation-informed",
+    "fixtureLock": "b8bab4bb4f69e6ceacb12cca33e44ae2f5a1cbaa95f5ddf0e35a7f07bc5493cc",
+    "sourcePopulation": 24,
+    "profileCount": 3,
+    "pairCount": 69,
+    "judgments": {
+      "labels": {
+        "relevant": 21,
+        "ambiguous": 16,
+        "unrelated": 32
+      },
+      "overall": {
+        "baseline": {
+          "affinityPredictionApplicable": false,
+          "note": "The non-personal baseline has no affinity prediction; ranking P@K is reported separately."
+        },
+        "frozenV1": {
+          "affinityPredictionApplicable": true,
+          "predictedPairs": 14,
+          "truePositive": 9,
+          "falsePositive": 2,
+          "ambiguousPredictions": 3,
+          "strictPrecision": 0.8182,
+          "conservativePrecision": 0.6429,
+          "recall": 0.4286,
+          "falsePositiveRate": 0.0625,
+          "positivePairShare": 0.2029,
+          "seedCountWithoutPositivePairInScope": 0
+        },
+        "initialV2": {
+          "affinityPredictionApplicable": true,
+          "predictedPairs": 2,
+          "truePositive": 2,
+          "falsePositive": 0,
+          "ambiguousPredictions": 0,
+          "strictPrecision": 1,
+          "conservativePrecision": 1,
+          "recall": 0.0952,
+          "falsePositiveRate": 0,
+          "positivePairShare": 0.029,
+          "seedCountWithoutPositivePairInScope": 1
+        },
+        "finalV2": {
+          "affinityPredictionApplicable": true,
+          "predictedPairs": 11,
+          "truePositive": 9,
+          "falsePositive": 0,
+          "ambiguousPredictions": 2,
+          "strictPrecision": 1,
+          "conservativePrecision": 0.8182,
+          "recall": 0.4286,
+          "falsePositiveRate": 0,
+          "positivePairShare": 0.1594,
+          "seedCountWithoutPositivePairInScope": 0
+        }
+      },
+      "candidateLanguage": {
+        "en": {
+          "baseline": {
+            "affinityPredictionApplicable": false,
+            "note": "The non-personal baseline has no affinity prediction; ranking P@K is reported separately."
+          },
+          "frozenV1": {
+            "affinityPredictionApplicable": true,
+            "predictedPairs": 11,
+            "truePositive": 6,
+            "falsePositive": 2,
+            "ambiguousPredictions": 3,
+            "strictPrecision": 0.75,
+            "conservativePrecision": 0.5455,
+            "recall": 0.6667,
+            "falsePositiveRate": 0.125,
+            "positivePairShare": 0.3333,
+            "seedCountWithoutPositivePairInScope": 0
+          },
+          "initialV2": {
+            "affinityPredictionApplicable": true,
+            "predictedPairs": 2,
+            "truePositive": 2,
+            "falsePositive": 0,
+            "ambiguousPredictions": 0,
+            "strictPrecision": 1,
+            "conservativePrecision": 1,
+            "recall": 0.2222,
+            "falsePositiveRate": 0,
+            "positivePairShare": 0.0606,
+            "seedCountWithoutPositivePairInScope": 1
+          },
+          "finalV2": {
+            "affinityPredictionApplicable": true,
+            "predictedPairs": 8,
+            "truePositive": 6,
+            "falsePositive": 0,
+            "ambiguousPredictions": 2,
+            "strictPrecision": 1,
+            "conservativePrecision": 0.75,
+            "recall": 0.6667,
+            "falsePositiveRate": 0,
+            "positivePairShare": 0.2424,
+            "seedCountWithoutPositivePairInScope": 0
+          }
+        },
+        "es": {
+          "baseline": {
+            "affinityPredictionApplicable": false,
+            "note": "The non-personal baseline has no affinity prediction; ranking P@K is reported separately."
+          },
+          "frozenV1": {
+            "affinityPredictionApplicable": true,
+            "predictedPairs": 2,
+            "truePositive": 2,
+            "falsePositive": 0,
+            "ambiguousPredictions": 0,
+            "strictPrecision": 1,
+            "conservativePrecision": 1,
+            "recall": 0.25,
+            "falsePositiveRate": 0,
+            "positivePairShare": 0.0833,
+            "seedCountWithoutPositivePairInScope": 2
+          },
+          "initialV2": {
+            "affinityPredictionApplicable": true,
+            "predictedPairs": 0,
+            "truePositive": 0,
+            "falsePositive": 0,
+            "ambiguousPredictions": 0,
+            "strictPrecision": null,
+            "conservativePrecision": null,
+            "recall": 0,
+            "falsePositiveRate": 0,
+            "positivePairShare": 0,
+            "seedCountWithoutPositivePairInScope": 3
+          },
+          "finalV2": {
+            "affinityPredictionApplicable": true,
+            "predictedPairs": 2,
+            "truePositive": 2,
+            "falsePositive": 0,
+            "ambiguousPredictions": 0,
+            "strictPrecision": 1,
+            "conservativePrecision": 1,
+            "recall": 0.25,
+            "falsePositiveRate": 0,
+            "positivePairShare": 0.0833,
+            "seedCountWithoutPositivePairInScope": 2
+          }
+        },
+        "mixed": {
+          "baseline": {
+            "affinityPredictionApplicable": false,
+            "note": "The non-personal baseline has no affinity prediction; ranking P@K is reported separately."
+          },
+          "frozenV1": {
+            "affinityPredictionApplicable": true,
+            "predictedPairs": 1,
+            "truePositive": 1,
+            "falsePositive": 0,
+            "ambiguousPredictions": 0,
+            "strictPrecision": 1,
+            "conservativePrecision": 1,
+            "recall": 0.3333,
+            "falsePositiveRate": 0,
+            "positivePairShare": 0.1111,
+            "seedCountWithoutPositivePairInScope": 2
+          },
+          "initialV2": {
+            "affinityPredictionApplicable": true,
+            "predictedPairs": 0,
+            "truePositive": 0,
+            "falsePositive": 0,
+            "ambiguousPredictions": 0,
+            "strictPrecision": null,
+            "conservativePrecision": null,
+            "recall": 0,
+            "falsePositiveRate": 0,
+            "positivePairShare": 0,
+            "seedCountWithoutPositivePairInScope": 3
+          },
+          "finalV2": {
+            "affinityPredictionApplicable": true,
+            "predictedPairs": 1,
+            "truePositive": 1,
+            "falsePositive": 0,
+            "ambiguousPredictions": 0,
+            "strictPrecision": 1,
+            "conservativePrecision": 1,
+            "recall": 0.3333,
+            "falsePositiveRate": 0,
+            "positivePairShare": 0.1111,
+            "seedCountWithoutPositivePairInScope": 2
+          }
+        },
+        "und": {
+          "baseline": {
+            "affinityPredictionApplicable": false,
+            "note": "The non-personal baseline has no affinity prediction; ranking P@K is reported separately."
+          },
+          "frozenV1": {
+            "affinityPredictionApplicable": true,
+            "predictedPairs": 0,
+            "truePositive": 0,
+            "falsePositive": 0,
+            "ambiguousPredictions": 0,
+            "strictPrecision": null,
+            "conservativePrecision": null,
+            "recall": 0,
+            "falsePositiveRate": 0,
+            "positivePairShare": 0,
+            "seedCountWithoutPositivePairInScope": 3
+          },
+          "initialV2": {
+            "affinityPredictionApplicable": true,
+            "predictedPairs": 0,
+            "truePositive": 0,
+            "falsePositive": 0,
+            "ambiguousPredictions": 0,
+            "strictPrecision": null,
+            "conservativePrecision": null,
+            "recall": 0,
+            "falsePositiveRate": 0,
+            "positivePairShare": 0,
+            "seedCountWithoutPositivePairInScope": 3
+          },
+          "finalV2": {
+            "affinityPredictionApplicable": true,
+            "predictedPairs": 0,
+            "truePositive": 0,
+            "falsePositive": 0,
+            "ambiguousPredictions": 0,
+            "strictPrecision": null,
+            "conservativePrecision": null,
+            "recall": 0,
+            "falsePositiveRate": 0,
+            "positivePairShare": 0,
+            "seedCountWithoutPositivePairInScope": 3
+          }
+        }
+      }
+    },
+    "ranking": {
+      "baseline": {
+        "topK": [
+          {
+            "k": 1,
+            "positions": 3,
+            "relevant": 1,
+            "ambiguous": 1,
+            "unrelated": 1,
+            "relevantShareAtK": 0.3333,
+            "strictPrecisionExcludingAmbiguous": 0.5,
+            "conservativePrecisionCountingAmbiguousAsFalse": 0.3333
+          },
+          {
+            "k": 3,
+            "positions": 9,
+            "relevant": 3,
+            "ambiguous": 3,
+            "unrelated": 3,
+            "relevantShareAtK": 0.3333,
+            "strictPrecisionExcludingAmbiguous": 0.5,
+            "conservativePrecisionCountingAmbiguousAsFalse": 0.3333
+          },
+          {
+            "k": 5,
+            "positions": 15,
+            "relevant": 5,
+            "ambiguous": 5,
+            "unrelated": 5,
+            "relevantShareAtK": 0.3333,
+            "strictPrecisionExcludingAmbiguous": 0.5,
+            "conservativePrecisionCountingAmbiguousAsFalse": 0.3333
+          },
+          {
+            "k": 10,
+            "positions": 30,
+            "relevant": 9,
+            "ambiguous": 8,
+            "unrelated": 13,
+            "relevantShareAtK": 0.3,
+            "strictPrecisionExcludingAmbiguous": 0.4091,
+            "conservativePrecisionCountingAmbiguousAsFalse": 0.3
+          },
+          {
+            "k": 20,
+            "positions": 60,
+            "relevant": 18,
+            "ambiguous": 13,
+            "unrelated": 29,
+            "relevantShareAtK": 0.3,
+            "strictPrecisionExcludingAmbiguous": 0.383,
+            "conservativePrecisionCountingAmbiguousAsFalse": 0.3
+          }
+        ],
+        "top10MembershipChangesVsBaseline": 0,
+        "top10OrderChangedPositionsVsBaseline": 0,
+        "seedCount": 3
+      },
+      "frozenV1": {
+        "topK": [
+          {
+            "k": 1,
+            "positions": 3,
+            "relevant": 3,
+            "ambiguous": 0,
+            "unrelated": 0,
+            "relevantShareAtK": 1,
+            "strictPrecisionExcludingAmbiguous": 1,
+            "conservativePrecisionCountingAmbiguousAsFalse": 1
+          },
+          {
+            "k": 3,
+            "positions": 9,
+            "relevant": 7,
+            "ambiguous": 2,
+            "unrelated": 0,
+            "relevantShareAtK": 0.7778,
+            "strictPrecisionExcludingAmbiguous": 1,
+            "conservativePrecisionCountingAmbiguousAsFalse": 0.7778
+          },
+          {
+            "k": 5,
+            "positions": 15,
+            "relevant": 11,
+            "ambiguous": 3,
+            "unrelated": 1,
+            "relevantShareAtK": 0.7333,
+            "strictPrecisionExcludingAmbiguous": 0.9167,
+            "conservativePrecisionCountingAmbiguousAsFalse": 0.7333
+          },
+          {
+            "k": 10,
+            "positions": 30,
+            "relevant": 14,
+            "ambiguous": 8,
+            "unrelated": 8,
+            "relevantShareAtK": 0.4667,
+            "strictPrecisionExcludingAmbiguous": 0.6364,
+            "conservativePrecisionCountingAmbiguousAsFalse": 0.4667
+          },
+          {
+            "k": 20,
+            "positions": 60,
+            "relevant": 18,
+            "ambiguous": 13,
+            "unrelated": 29,
+            "relevantShareAtK": 0.3,
+            "strictPrecisionExcludingAmbiguous": 0.383,
+            "conservativePrecisionCountingAmbiguousAsFalse": 0.3
+          }
+        ],
+        "top10MembershipChangesVsBaseline": 7,
+        "top10OrderChangedPositionsVsBaseline": 30,
+        "seedCount": 3
+      },
+      "initialV2": {
+        "topK": [
+          {
+            "k": 1,
+            "positions": 3,
+            "relevant": 2,
+            "ambiguous": 0,
+            "unrelated": 1,
+            "relevantShareAtK": 0.6667,
+            "strictPrecisionExcludingAmbiguous": 0.6667,
+            "conservativePrecisionCountingAmbiguousAsFalse": 0.6667
+          },
+          {
+            "k": 3,
+            "positions": 9,
+            "relevant": 4,
+            "ambiguous": 2,
+            "unrelated": 3,
+            "relevantShareAtK": 0.4444,
+            "strictPrecisionExcludingAmbiguous": 0.5714,
+            "conservativePrecisionCountingAmbiguousAsFalse": 0.4444
+          },
+          {
+            "k": 5,
+            "positions": 15,
+            "relevant": 6,
+            "ambiguous": 4,
+            "unrelated": 5,
+            "relevantShareAtK": 0.4,
+            "strictPrecisionExcludingAmbiguous": 0.5455,
+            "conservativePrecisionCountingAmbiguousAsFalse": 0.4
+          },
+          {
+            "k": 10,
+            "positions": 30,
+            "relevant": 10,
+            "ambiguous": 8,
+            "unrelated": 12,
+            "relevantShareAtK": 0.3333,
+            "strictPrecisionExcludingAmbiguous": 0.4545,
+            "conservativePrecisionCountingAmbiguousAsFalse": 0.3333
+          },
+          {
+            "k": 20,
+            "positions": 60,
+            "relevant": 18,
+            "ambiguous": 13,
+            "unrelated": 29,
+            "relevantShareAtK": 0.3,
+            "strictPrecisionExcludingAmbiguous": 0.383,
+            "conservativePrecisionCountingAmbiguousAsFalse": 0.3
+          }
+        ],
+        "top10MembershipChangesVsBaseline": 1,
+        "top10OrderChangedPositionsVsBaseline": 12,
+        "seedCount": 3
+      },
+      "finalV2": {
+        "topK": [
+          {
+            "k": 1,
+            "positions": 3,
+            "relevant": 3,
+            "ambiguous": 0,
+            "unrelated": 0,
+            "relevantShareAtK": 1,
+            "strictPrecisionExcludingAmbiguous": 1,
+            "conservativePrecisionCountingAmbiguousAsFalse": 1
+          },
+          {
+            "k": 3,
+            "positions": 9,
+            "relevant": 7,
+            "ambiguous": 2,
+            "unrelated": 0,
+            "relevantShareAtK": 0.7778,
+            "strictPrecisionExcludingAmbiguous": 1,
+            "conservativePrecisionCountingAmbiguousAsFalse": 0.7778
+          },
+          {
+            "k": 5,
+            "positions": 15,
+            "relevant": 11,
+            "ambiguous": 4,
+            "unrelated": 0,
+            "relevantShareAtK": 0.7333,
+            "strictPrecisionExcludingAmbiguous": 1,
+            "conservativePrecisionCountingAmbiguousAsFalse": 0.7333
+          },
+          {
+            "k": 10,
+            "positions": 30,
+            "relevant": 14,
+            "ambiguous": 9,
+            "unrelated": 7,
+            "relevantShareAtK": 0.4667,
+            "strictPrecisionExcludingAmbiguous": 0.6667,
+            "conservativePrecisionCountingAmbiguousAsFalse": 0.4667
+          },
+          {
+            "k": 20,
+            "positions": 60,
+            "relevant": 18,
+            "ambiguous": 13,
+            "unrelated": 29,
+            "relevantShareAtK": 0.3,
+            "strictPrecisionExcludingAmbiguous": 0.383,
+            "conservativePrecisionCountingAmbiguousAsFalse": 0.3
+          }
+        ],
+        "top10MembershipChangesVsBaseline": 6,
+        "top10OrderChangedPositionsVsBaseline": 30,
+        "seedCount": 3
+      }
+    },
+    "profiles": [
+      {
+        "seedKey": "synthetic-sports_watch-01",
+        "seedLanguage": "en",
+        "sourceCount": 24,
+        "v1": {
+          "sourceCount": 24,
+          "ambiguousSourceCount": 0,
+          "likeRowCount": 1,
+          "eligibleLikeCount": 1,
+          "invalidLikeCount": 0,
+          "ineligibleLikeCount": 0,
+          "unlikedRowCount": 0,
+          "selectedSeedCount": 1,
+          "seedLimitApplied": false,
+          "tokenCappedSourceCount": 0,
+          "matchedCandidateCount": 6,
+          "boostedCandidateCount": 6,
+          "maxScore": 3
+        },
+        "initialV2": {
+          "sourceCount": 24,
+          "ambiguousSourceCount": 0,
+          "likeRowCount": 1,
+          "eligibleLikeCount": 1,
+          "invalidLikeCount": 0,
+          "ineligibleLikeCount": 0,
+          "unlikedRowCount": 0,
+          "selectedSeedCount": 1,
+          "seedLimitApplied": false,
+          "tokenCappedSourceCount": 0,
+          "matchedCandidateCount": 0,
+          "thresholdRejectedCandidateCount": 0,
+          "boostedCandidateCount": 0,
+          "maxScore": 0
+        },
+        "finalV2": {
+          "sourceCount": 24,
+          "ambiguousSourceCount": 0,
+          "likeRowCount": 1,
+          "eligibleLikeCount": 1,
+          "invalidLikeCount": 0,
+          "ineligibleLikeCount": 0,
+          "unlikedRowCount": 0,
+          "selectedSeedCount": 1,
+          "seedLimitApplied": false,
+          "tokenCappedSourceCount": 0,
+          "matchedCandidateCount": 5,
+          "thresholdRejectedCandidateCount": 0,
+          "boostedCandidateCount": 5,
+          "maxScore": 0.33809937995445216
+        }
+      },
+      {
+        "seedKey": "synthetic-weekend_travel-01",
+        "seedLanguage": "en",
+        "sourceCount": 24,
+        "v1": {
+          "sourceCount": 24,
+          "ambiguousSourceCount": 0,
+          "likeRowCount": 1,
+          "eligibleLikeCount": 1,
+          "invalidLikeCount": 0,
+          "ineligibleLikeCount": 0,
+          "unlikedRowCount": 0,
+          "selectedSeedCount": 1,
+          "seedLimitApplied": false,
+          "tokenCappedSourceCount": 0,
+          "matchedCandidateCount": 5,
+          "boostedCandidateCount": 5,
+          "maxScore": 2
+        },
+        "initialV2": {
+          "sourceCount": 24,
+          "ambiguousSourceCount": 0,
+          "likeRowCount": 1,
+          "eligibleLikeCount": 1,
+          "invalidLikeCount": 0,
+          "ineligibleLikeCount": 0,
+          "unlikedRowCount": 0,
+          "selectedSeedCount": 1,
+          "seedLimitApplied": false,
+          "tokenCappedSourceCount": 0,
+          "matchedCandidateCount": 3,
+          "thresholdRejectedCandidateCount": 2,
+          "boostedCandidateCount": 1,
+          "maxScore": 0.1527567842810873
+        },
+        "finalV2": {
+          "sourceCount": 24,
+          "ambiguousSourceCount": 0,
+          "likeRowCount": 1,
+          "eligibleLikeCount": 1,
+          "invalidLikeCount": 0,
+          "ineligibleLikeCount": 0,
+          "unlikedRowCount": 0,
+          "selectedSeedCount": 1,
+          "seedLimitApplied": false,
+          "tokenCappedSourceCount": 0,
+          "matchedCandidateCount": 4,
+          "thresholdRejectedCandidateCount": 1,
+          "boostedCandidateCount": 3,
+          "maxScore": 0.1527567842810873
+        }
+      },
+      {
+        "seedKey": "synthetic-community_service-01",
+        "seedLanguage": "en",
+        "sourceCount": 24,
+        "v1": {
+          "sourceCount": 24,
+          "ambiguousSourceCount": 0,
+          "likeRowCount": 1,
+          "eligibleLikeCount": 1,
+          "invalidLikeCount": 0,
+          "ineligibleLikeCount": 0,
+          "unlikedRowCount": 0,
+          "selectedSeedCount": 1,
+          "seedLimitApplied": false,
+          "tokenCappedSourceCount": 0,
+          "matchedCandidateCount": 3,
+          "boostedCandidateCount": 3,
+          "maxScore": 2
+        },
+        "initialV2": {
+          "sourceCount": 24,
+          "ambiguousSourceCount": 0,
+          "likeRowCount": 1,
+          "eligibleLikeCount": 1,
+          "invalidLikeCount": 0,
+          "ineligibleLikeCount": 0,
+          "unlikedRowCount": 0,
+          "selectedSeedCount": 1,
+          "seedLimitApplied": false,
+          "tokenCappedSourceCount": 0,
+          "matchedCandidateCount": 2,
+          "thresholdRejectedCandidateCount": 1,
+          "boostedCandidateCount": 1,
+          "maxScore": 0.18795376472221292
+        },
+        "finalV2": {
+          "sourceCount": 24,
+          "ambiguousSourceCount": 0,
+          "likeRowCount": 1,
+          "eligibleLikeCount": 1,
+          "invalidLikeCount": 0,
+          "ineligibleLikeCount": 0,
+          "unlikedRowCount": 0,
+          "selectedSeedCount": 1,
+          "seedLimitApplied": false,
+          "tokenCappedSourceCount": 0,
+          "matchedCandidateCount": 3,
+          "thresholdRejectedCandidateCount": 0,
+          "boostedCandidateCount": 3,
+          "maxScore": 0.18795376472221292
+        }
+      }
+    ]
+  },
+  "newLockedChallenge": {
+    "fixture": "new-family multilingual challenge",
+    "status": "locked-challenge",
+    "fixtureLock": "9c446f787b1e8dc773cf4c5930ad9d56b876d4eb8e4ebe25e28bbb10700291c1",
+    "sourcePopulation": 28,
+    "profileCount": 4,
+    "pairCount": 108,
+    "judgments": {
+      "labels": {
+        "relevant": 16,
+        "ambiguous": 32,
+        "unrelated": 60
+      },
+      "overall": {
+        "baseline": {
+          "affinityPredictionApplicable": false,
+          "note": "The non-personal baseline has no affinity prediction; ranking P@K is reported separately."
+        },
+        "frozenV1": {
+          "affinityPredictionApplicable": true,
+          "predictedPairs": 13,
+          "truePositive": 7,
+          "falsePositive": 4,
+          "ambiguousPredictions": 2,
+          "strictPrecision": 0.6364,
+          "conservativePrecision": 0.5385,
+          "recall": 0.4375,
+          "falsePositiveRate": 0.0667,
+          "positivePairShare": 0.1204,
+          "seedCountWithoutPositivePairInScope": 0
+        },
+        "initialV2": {
+          "affinityPredictionApplicable": true,
+          "predictedPairs": 9,
+          "truePositive": 6,
+          "falsePositive": 2,
+          "ambiguousPredictions": 1,
+          "strictPrecision": 0.75,
+          "conservativePrecision": 0.6667,
+          "recall": 0.375,
+          "falsePositiveRate": 0.0333,
+          "positivePairShare": 0.0833,
+          "seedCountWithoutPositivePairInScope": 0
+        },
+        "finalV2": {
+          "affinityPredictionApplicable": true,
+          "predictedPairs": 12,
+          "truePositive": 7,
+          "falsePositive": 4,
+          "ambiguousPredictions": 1,
+          "strictPrecision": 0.6364,
+          "conservativePrecision": 0.5833,
+          "recall": 0.4375,
+          "falsePositiveRate": 0.0667,
+          "positivePairShare": 0.1111,
+          "seedCountWithoutPositivePairInScope": 0
+        }
+      },
+      "candidateLanguage": {
+        "en": {
+          "baseline": {
+            "affinityPredictionApplicable": false,
+            "note": "The non-personal baseline has no affinity prediction; ranking P@K is reported separately."
+          },
+          "frozenV1": {
+            "affinityPredictionApplicable": true,
+            "predictedPairs": 5,
+            "truePositive": 2,
+            "falsePositive": 2,
+            "ambiguousPredictions": 1,
+            "strictPrecision": 0.5,
+            "conservativePrecision": 0.4,
+            "recall": 0.25,
+            "falsePositiveRate": 0.0769,
+            "positivePairShare": 0.098,
+            "seedCountWithoutPositivePairInScope": 3
+          },
+          "initialV2": {
+            "affinityPredictionApplicable": true,
+            "predictedPairs": 2,
+            "truePositive": 2,
+            "falsePositive": 0,
+            "ambiguousPredictions": 0,
+            "strictPrecision": 1,
+            "conservativePrecision": 1,
+            "recall": 0.25,
+            "falsePositiveRate": 0,
+            "positivePairShare": 0.0392,
+            "seedCountWithoutPositivePairInScope": 3
+          },
+          "finalV2": {
+            "affinityPredictionApplicable": true,
+            "predictedPairs": 4,
+            "truePositive": 2,
+            "falsePositive": 2,
+            "ambiguousPredictions": 0,
+            "strictPrecision": 0.5,
+            "conservativePrecision": 0.5,
+            "recall": 0.25,
+            "falsePositiveRate": 0.0769,
+            "positivePairShare": 0.0784,
+            "seedCountWithoutPositivePairInScope": 3
+          }
+        },
+        "es": {
+          "baseline": {
+            "affinityPredictionApplicable": false,
+            "note": "The non-personal baseline has no affinity prediction; ranking P@K is reported separately."
+          },
+          "frozenV1": {
+            "affinityPredictionApplicable": true,
+            "predictedPairs": 8,
+            "truePositive": 5,
+            "falsePositive": 2,
+            "ambiguousPredictions": 1,
+            "strictPrecision": 0.7143,
+            "conservativePrecision": 0.625,
+            "recall": 0.625,
+            "falsePositiveRate": 0.0588,
+            "positivePairShare": 0.1404,
+            "seedCountWithoutPositivePairInScope": 1
+          },
+          "initialV2": {
+            "affinityPredictionApplicable": true,
+            "predictedPairs": 7,
+            "truePositive": 4,
+            "falsePositive": 2,
+            "ambiguousPredictions": 1,
+            "strictPrecision": 0.6667,
+            "conservativePrecision": 0.5714,
+            "recall": 0.5,
+            "falsePositiveRate": 0.0588,
+            "positivePairShare": 0.1228,
+            "seedCountWithoutPositivePairInScope": 1
+          },
+          "finalV2": {
+            "affinityPredictionApplicable": true,
+            "predictedPairs": 8,
+            "truePositive": 5,
+            "falsePositive": 2,
+            "ambiguousPredictions": 1,
+            "strictPrecision": 0.7143,
+            "conservativePrecision": 0.625,
+            "recall": 0.625,
+            "falsePositiveRate": 0.0588,
+            "positivePairShare": 0.1404,
+            "seedCountWithoutPositivePairInScope": 1
+          }
+        },
+        "mixed": {
+          "baseline": {
+            "affinityPredictionApplicable": false,
+            "note": "The non-personal baseline has no affinity prediction; ranking P@K is reported separately."
+          },
+          "frozenV1": {
+            "affinityPredictionApplicable": true,
+            "predictedPairs": 0,
+            "truePositive": 0,
+            "falsePositive": 0,
+            "ambiguousPredictions": 0,
+            "strictPrecision": null,
+            "conservativePrecision": null,
+            "recall": null,
+            "falsePositiveRate": null,
+            "positivePairShare": null,
+            "seedCountWithoutPositivePairInScope": 0
+          },
+          "initialV2": {
+            "affinityPredictionApplicable": true,
+            "predictedPairs": 0,
+            "truePositive": 0,
+            "falsePositive": 0,
+            "ambiguousPredictions": 0,
+            "strictPrecision": null,
+            "conservativePrecision": null,
+            "recall": null,
+            "falsePositiveRate": null,
+            "positivePairShare": null,
+            "seedCountWithoutPositivePairInScope": 0
+          },
+          "finalV2": {
+            "affinityPredictionApplicable": true,
+            "predictedPairs": 0,
+            "truePositive": 0,
+            "falsePositive": 0,
+            "ambiguousPredictions": 0,
+            "strictPrecision": null,
+            "conservativePrecision": null,
+            "recall": null,
+            "falsePositiveRate": null,
+            "positivePairShare": null,
+            "seedCountWithoutPositivePairInScope": 0
+          }
+        },
+        "und": {
+          "baseline": {
+            "affinityPredictionApplicable": false,
+            "note": "The non-personal baseline has no affinity prediction; ranking P@K is reported separately."
+          },
+          "frozenV1": {
+            "affinityPredictionApplicable": true,
+            "predictedPairs": 0,
+            "truePositive": 0,
+            "falsePositive": 0,
+            "ambiguousPredictions": 0,
+            "strictPrecision": null,
+            "conservativePrecision": null,
+            "recall": null,
+            "falsePositiveRate": null,
+            "positivePairShare": null,
+            "seedCountWithoutPositivePairInScope": 0
+          },
+          "initialV2": {
+            "affinityPredictionApplicable": true,
+            "predictedPairs": 0,
+            "truePositive": 0,
+            "falsePositive": 0,
+            "ambiguousPredictions": 0,
+            "strictPrecision": null,
+            "conservativePrecision": null,
+            "recall": null,
+            "falsePositiveRate": null,
+            "positivePairShare": null,
+            "seedCountWithoutPositivePairInScope": 0
+          },
+          "finalV2": {
+            "affinityPredictionApplicable": true,
+            "predictedPairs": 0,
+            "truePositive": 0,
+            "falsePositive": 0,
+            "ambiguousPredictions": 0,
+            "strictPrecision": null,
+            "conservativePrecision": null,
+            "recall": null,
+            "falsePositiveRate": null,
+            "positivePairShare": null,
+            "seedCountWithoutPositivePairInScope": 0
+          }
+        }
+      }
+    },
+    "ranking": {
+      "baseline": {
+        "topK": [
+          {
+            "k": 1,
+            "positions": 4,
+            "relevant": 1,
+            "ambiguous": 1,
+            "unrelated": 2,
+            "relevantShareAtK": 0.25,
+            "strictPrecisionExcludingAmbiguous": 0.3333,
+            "conservativePrecisionCountingAmbiguousAsFalse": 0.25
+          },
+          {
+            "k": 3,
+            "positions": 12,
+            "relevant": 3,
+            "ambiguous": 3,
+            "unrelated": 6,
+            "relevantShareAtK": 0.25,
+            "strictPrecisionExcludingAmbiguous": 0.3333,
+            "conservativePrecisionCountingAmbiguousAsFalse": 0.25
+          },
+          {
+            "k": 5,
+            "positions": 20,
+            "relevant": 4,
+            "ambiguous": 6,
+            "unrelated": 10,
+            "relevantShareAtK": 0.2,
+            "strictPrecisionExcludingAmbiguous": 0.2857,
+            "conservativePrecisionCountingAmbiguousAsFalse": 0.2
+          },
+          {
+            "k": 10,
+            "positions": 40,
+            "relevant": 7,
+            "ambiguous": 11,
+            "unrelated": 22,
+            "relevantShareAtK": 0.175,
+            "strictPrecisionExcludingAmbiguous": 0.2414,
+            "conservativePrecisionCountingAmbiguousAsFalse": 0.175
+          },
+          {
+            "k": 20,
+            "positions": 80,
+            "relevant": 12,
+            "ambiguous": 17,
+            "unrelated": 51,
+            "relevantShareAtK": 0.15,
+            "strictPrecisionExcludingAmbiguous": 0.1905,
+            "conservativePrecisionCountingAmbiguousAsFalse": 0.15
+          }
+        ],
+        "top10MembershipChangesVsBaseline": 0,
+        "top10OrderChangedPositionsVsBaseline": 0,
+        "seedCount": 4
+      },
+      "frozenV1": {
+        "topK": [
+          {
+            "k": 1,
+            "positions": 4,
+            "relevant": 3,
+            "ambiguous": 1,
+            "unrelated": 0,
+            "relevantShareAtK": 0.75,
+            "strictPrecisionExcludingAmbiguous": 1,
+            "conservativePrecisionCountingAmbiguousAsFalse": 0.75
+          },
+          {
+            "k": 3,
+            "positions": 12,
+            "relevant": 7,
+            "ambiguous": 1,
+            "unrelated": 4,
+            "relevantShareAtK": 0.5833,
+            "strictPrecisionExcludingAmbiguous": 0.6364,
+            "conservativePrecisionCountingAmbiguousAsFalse": 0.5833
+          },
+          {
+            "k": 5,
+            "positions": 20,
+            "relevant": 9,
+            "ambiguous": 3,
+            "unrelated": 8,
+            "relevantShareAtK": 0.45,
+            "strictPrecisionExcludingAmbiguous": 0.5294,
+            "conservativePrecisionCountingAmbiguousAsFalse": 0.45
+          },
+          {
+            "k": 10,
+            "positions": 40,
+            "relevant": 9,
+            "ambiguous": 9,
+            "unrelated": 22,
+            "relevantShareAtK": 0.225,
+            "strictPrecisionExcludingAmbiguous": 0.2903,
+            "conservativePrecisionCountingAmbiguousAsFalse": 0.225
+          },
+          {
+            "k": 20,
+            "positions": 80,
+            "relevant": 14,
+            "ambiguous": 18,
+            "unrelated": 48,
+            "relevantShareAtK": 0.175,
+            "strictPrecisionExcludingAmbiguous": 0.2258,
+            "conservativePrecisionCountingAmbiguousAsFalse": 0.175
+          }
+        ],
+        "top10MembershipChangesVsBaseline": 9,
+        "top10OrderChangedPositionsVsBaseline": 40,
+        "seedCount": 4
+      },
+      "initialV2": {
+        "topK": [
+          {
+            "k": 1,
+            "positions": 4,
+            "relevant": 2,
+            "ambiguous": 1,
+            "unrelated": 1,
+            "relevantShareAtK": 0.5,
+            "strictPrecisionExcludingAmbiguous": 0.6667,
+            "conservativePrecisionCountingAmbiguousAsFalse": 0.5
+          },
+          {
+            "k": 3,
+            "positions": 12,
+            "relevant": 6,
+            "ambiguous": 1,
+            "unrelated": 5,
+            "relevantShareAtK": 0.5,
+            "strictPrecisionExcludingAmbiguous": 0.5455,
+            "conservativePrecisionCountingAmbiguousAsFalse": 0.5
+          },
+          {
+            "k": 5,
+            "positions": 20,
+            "relevant": 8,
+            "ambiguous": 3,
+            "unrelated": 9,
+            "relevantShareAtK": 0.4,
+            "strictPrecisionExcludingAmbiguous": 0.4706,
+            "conservativePrecisionCountingAmbiguousAsFalse": 0.4
+          },
+          {
+            "k": 10,
+            "positions": 40,
+            "relevant": 9,
+            "ambiguous": 9,
+            "unrelated": 22,
+            "relevantShareAtK": 0.225,
+            "strictPrecisionExcludingAmbiguous": 0.2903,
+            "conservativePrecisionCountingAmbiguousAsFalse": 0.225
+          },
+          {
+            "k": 20,
+            "positions": 80,
+            "relevant": 13,
+            "ambiguous": 17,
+            "unrelated": 50,
+            "relevantShareAtK": 0.1625,
+            "strictPrecisionExcludingAmbiguous": 0.2063,
+            "conservativePrecisionCountingAmbiguousAsFalse": 0.1625
+          }
+        ],
+        "top10MembershipChangesVsBaseline": 6,
+        "top10OrderChangedPositionsVsBaseline": 39,
+        "seedCount": 4
+      },
+      "finalV2": {
+        "topK": [
+          {
+            "k": 1,
+            "positions": 4,
+            "relevant": 2,
+            "ambiguous": 1,
+            "unrelated": 1,
+            "relevantShareAtK": 0.5,
+            "strictPrecisionExcludingAmbiguous": 0.6667,
+            "conservativePrecisionCountingAmbiguousAsFalse": 0.5
+          },
+          {
+            "k": 3,
+            "positions": 12,
+            "relevant": 7,
+            "ambiguous": 1,
+            "unrelated": 4,
+            "relevantShareAtK": 0.5833,
+            "strictPrecisionExcludingAmbiguous": 0.6364,
+            "conservativePrecisionCountingAmbiguousAsFalse": 0.5833
+          },
+          {
+            "k": 5,
+            "positions": 20,
+            "relevant": 9,
+            "ambiguous": 2,
+            "unrelated": 9,
+            "relevantShareAtK": 0.45,
+            "strictPrecisionExcludingAmbiguous": 0.5,
+            "conservativePrecisionCountingAmbiguousAsFalse": 0.45
+          },
+          {
+            "k": 10,
+            "positions": 40,
+            "relevant": 9,
+            "ambiguous": 8,
+            "unrelated": 23,
+            "relevantShareAtK": 0.225,
+            "strictPrecisionExcludingAmbiguous": 0.2813,
+            "conservativePrecisionCountingAmbiguousAsFalse": 0.225
+          },
+          {
+            "k": 20,
+            "positions": 80,
+            "relevant": 14,
+            "ambiguous": 17,
+            "unrelated": 49,
+            "relevantShareAtK": 0.175,
+            "strictPrecisionExcludingAmbiguous": 0.2222,
+            "conservativePrecisionCountingAmbiguousAsFalse": 0.175
+          }
+        ],
+        "top10MembershipChangesVsBaseline": 8,
+        "top10OrderChangedPositionsVsBaseline": 39,
+        "seedCount": 4
+      }
+    },
+    "profiles": [
+      {
+        "seedKey": "challenge-book_circle-01",
+        "seedLanguage": "es",
+        "sourceCount": 28,
+        "v1": {
+          "sourceCount": 28,
+          "ambiguousSourceCount": 0,
+          "likeRowCount": 1,
+          "eligibleLikeCount": 1,
+          "invalidLikeCount": 0,
+          "ineligibleLikeCount": 0,
+          "unlikedRowCount": 0,
+          "selectedSeedCount": 1,
+          "seedLimitApplied": false,
+          "tokenCappedSourceCount": 0,
+          "matchedCandidateCount": 3,
+          "boostedCandidateCount": 3,
+          "maxScore": 3
+        },
+        "initialV2": {
+          "sourceCount": 28,
+          "ambiguousSourceCount": 0,
+          "likeRowCount": 1,
+          "eligibleLikeCount": 1,
+          "invalidLikeCount": 0,
+          "ineligibleLikeCount": 0,
+          "unlikedRowCount": 0,
+          "selectedSeedCount": 1,
+          "seedLimitApplied": false,
+          "tokenCappedSourceCount": 0,
+          "matchedCandidateCount": 3,
+          "thresholdRejectedCandidateCount": 0,
+          "boostedCandidateCount": 3,
+          "maxScore": 0.5248335127897339
+        },
+        "finalV2": {
+          "sourceCount": 28,
+          "ambiguousSourceCount": 0,
+          "likeRowCount": 1,
+          "eligibleLikeCount": 1,
+          "invalidLikeCount": 0,
+          "ineligibleLikeCount": 0,
+          "unlikedRowCount": 0,
+          "selectedSeedCount": 1,
+          "seedLimitApplied": false,
+          "tokenCappedSourceCount": 0,
+          "matchedCandidateCount": 3,
+          "thresholdRejectedCandidateCount": 0,
+          "boostedCandidateCount": 3,
+          "maxScore": 0.5248335127897339
+        }
+      },
+      {
+        "seedKey": "challenge-tabletop_games-01",
+        "seedLanguage": "es",
+        "sourceCount": 28,
+        "v1": {
+          "sourceCount": 28,
+          "ambiguousSourceCount": 0,
+          "likeRowCount": 1,
+          "eligibleLikeCount": 1,
+          "invalidLikeCount": 0,
+          "ineligibleLikeCount": 0,
+          "unlikedRowCount": 0,
+          "selectedSeedCount": 1,
+          "seedLimitApplied": false,
+          "tokenCappedSourceCount": 0,
+          "matchedCandidateCount": 4,
+          "boostedCandidateCount": 4,
+          "maxScore": 3
+        },
+        "initialV2": {
+          "sourceCount": 28,
+          "ambiguousSourceCount": 0,
+          "likeRowCount": 1,
+          "eligibleLikeCount": 1,
+          "invalidLikeCount": 0,
+          "ineligibleLikeCount": 0,
+          "unlikedRowCount": 0,
+          "selectedSeedCount": 1,
+          "seedLimitApplied": false,
+          "tokenCappedSourceCount": 0,
+          "matchedCandidateCount": 3,
+          "thresholdRejectedCandidateCount": 0,
+          "boostedCandidateCount": 3,
+          "maxScore": 0.6790258887465355
+        },
+        "finalV2": {
+          "sourceCount": 28,
+          "ambiguousSourceCount": 0,
+          "likeRowCount": 1,
+          "eligibleLikeCount": 1,
+          "invalidLikeCount": 0,
+          "ineligibleLikeCount": 0,
+          "unlikedRowCount": 0,
+          "selectedSeedCount": 1,
+          "seedLimitApplied": false,
+          "tokenCappedSourceCount": 0,
+          "matchedCandidateCount": 4,
+          "thresholdRejectedCandidateCount": 0,
+          "boostedCandidateCount": 4,
+          "maxScore": 0.6790258887465355
+        }
+      },
+      {
+        "seedKey": "challenge-live_music-01",
+        "seedLanguage": "en",
+        "sourceCount": 28,
+        "v1": {
+          "sourceCount": 28,
+          "ambiguousSourceCount": 0,
+          "likeRowCount": 1,
+          "eligibleLikeCount": 1,
+          "invalidLikeCount": 0,
+          "ineligibleLikeCount": 0,
+          "unlikedRowCount": 0,
+          "selectedSeedCount": 1,
+          "seedLimitApplied": false,
+          "tokenCappedSourceCount": 0,
+          "matchedCandidateCount": 5,
+          "boostedCandidateCount": 5,
+          "maxScore": 3
+        },
+        "initialV2": {
+          "sourceCount": 28,
+          "ambiguousSourceCount": 0,
+          "likeRowCount": 1,
+          "eligibleLikeCount": 1,
+          "invalidLikeCount": 0,
+          "ineligibleLikeCount": 0,
+          "unlikedRowCount": 0,
+          "selectedSeedCount": 1,
+          "seedLimitApplied": false,
+          "tokenCappedSourceCount": 0,
+          "matchedCandidateCount": 3,
+          "thresholdRejectedCandidateCount": 1,
+          "boostedCandidateCount": 2,
+          "maxScore": 0.4301390035079219
+        },
+        "finalV2": {
+          "sourceCount": 28,
+          "ambiguousSourceCount": 0,
+          "likeRowCount": 1,
+          "eligibleLikeCount": 1,
+          "invalidLikeCount": 0,
+          "ineligibleLikeCount": 0,
+          "unlikedRowCount": 0,
+          "selectedSeedCount": 1,
+          "seedLimitApplied": false,
+          "tokenCappedSourceCount": 0,
+          "matchedCandidateCount": 4,
+          "thresholdRejectedCandidateCount": 0,
+          "boostedCandidateCount": 4,
+          "maxScore": 0.4301390035079219
+        }
+      },
+      {
+        "seedKey": "challenge-plant_exchange-01",
+        "seedLanguage": "es",
+        "sourceCount": 28,
+        "v1": {
+          "sourceCount": 28,
+          "ambiguousSourceCount": 0,
+          "likeRowCount": 1,
+          "eligibleLikeCount": 1,
+          "invalidLikeCount": 0,
+          "ineligibleLikeCount": 0,
+          "unlikedRowCount": 0,
+          "selectedSeedCount": 1,
+          "seedLimitApplied": false,
+          "tokenCappedSourceCount": 0,
+          "matchedCandidateCount": 1,
+          "boostedCandidateCount": 1,
+          "maxScore": 1
+        },
+        "initialV2": {
+          "sourceCount": 28,
+          "ambiguousSourceCount": 0,
+          "likeRowCount": 1,
+          "eligibleLikeCount": 1,
+          "invalidLikeCount": 0,
+          "ineligibleLikeCount": 0,
+          "unlikedRowCount": 0,
+          "selectedSeedCount": 1,
+          "seedLimitApplied": false,
+          "tokenCappedSourceCount": 0,
+          "matchedCandidateCount": 1,
+          "thresholdRejectedCandidateCount": 0,
+          "boostedCandidateCount": 1,
+          "maxScore": 0.21168833225419442
+        },
+        "finalV2": {
+          "sourceCount": 28,
+          "ambiguousSourceCount": 0,
+          "likeRowCount": 1,
+          "eligibleLikeCount": 1,
+          "invalidLikeCount": 0,
+          "ineligibleLikeCount": 0,
+          "unlikedRowCount": 0,
+          "selectedSeedCount": 1,
+          "seedLimitApplied": false,
+          "tokenCappedSourceCount": 0,
+          "matchedCandidateCount": 1,
+          "thresholdRejectedCandidateCount": 0,
+          "boostedCandidateCount": 1,
+          "maxScore": 0.21168833225419442
+        }
+      }
+    ]
+  },
+  "curatedWeddingLikeDiagnostic": {
+    "label": "Public curated `wedding` starter used as a synthetic exact Like; no relevance judgments attached.",
+    "catalogSize": 17,
+    "likedSeed": "wedding",
+    "probeCandidate": "shared_city_break",
+    "behavioralGuards": {
+      "noHistoryBoostCount": 0,
+      "noHistoryOrderMatchesBaseline": true,
+      "exactLikeSelectsOneSeed": true,
+      "likedSeedIsNotAffinityTarget": true,
+      "likedSeedRemainsInCatalogRanking": true,
+      "candidateCountPreserved": true
+    },
+    "affinityScores": {
+      "frozenV1": 3,
+      "initialV2": 0,
+      "finalV2": 0
+    },
+    "boostedCandidateCounts": {
+      "frozenV1": 11,
+      "initialV2": 2,
+      "finalV2": 4
+    },
+    "scoreSaturation": {
+      "frozenV1": {
+        "maxScore": 3,
+        "atMaximumCount": 9
+      },
+      "initialV2": {
+        "maxScore": 0.20131801875772098,
+        "atMaximumCount": 0
+      },
+      "finalV2": {
+        "maxScore": 0.20131801875772098,
+        "atMaximumCount": 0
+      }
+    },
+    "top10": {
+      "baseline": [
+        "wedding",
+        "birthday",
+        "thanksgiving",
+        "anniversary_supper",
+        "engagement_gathering",
+        "family_cottage_escape",
+        "family_reunion_weekend",
+        "friends_celebration_weekend",
+        "graduation_open_house",
+        "neighborhood_gathering"
+      ],
+      "frozenV1": [
+        "wedding",
+        "birthday",
+        "thanksgiving",
+        "anniversary_supper",
+        "engagement_gathering",
+        "family_cottage_escape",
+        "friends_celebration_weekend",
+        "seasonal_dinner_party",
+        "shared_city_break",
+        "thoughtful_guest_stay"
+      ],
+      "initialV2": [
+        "wedding",
+        "birthday",
+        "thanksgiving",
+        "anniversary_supper",
+        "engagement_gathering",
+        "family_cottage_escape",
+        "family_reunion_weekend",
+        "friends_celebration_weekend",
+        "graduation_open_house",
+        "neighborhood_gathering"
+      ],
+      "finalV2": [
+        "wedding",
+        "birthday",
+        "thanksgiving",
+        "engagement_gathering",
+        "anniversary_supper",
+        "family_cottage_escape",
+        "family_reunion_weekend",
+        "friends_celebration_weekend",
+        "graduation_open_house",
+        "neighborhood_gathering"
+      ]
+    },
+    "top10ChangesVsBaseline": {
+      "frozenV1": {
+        "membershipChanges": 3,
+        "orderChangedPositions": 4
+      },
+      "initialV2": {
+        "membershipChanges": 0,
+        "orderChangedPositions": 0
+      },
+      "finalV2": {
+        "membershipChanges": 0,
+        "orderChangedPositions": 2
+      }
+    },
+    "actualCursorPagination": {
+      "pageSizes": [
+        1,
+        2,
+        3,
+        7,
+        20
+      ],
+      "traversals": [
+        {
+          "baseline": {
+            "pageSize": 1,
+            "pageCount": 17,
+            "itemCount": 17,
+            "complete": true,
+            "duplicateCount": 0,
+            "matchesDirectRanking": true,
+            "orderedKeys": [
+              "wedding",
+              "birthday",
+              "thanksgiving",
+              "anniversary_supper",
+              "engagement_gathering",
+              "family_cottage_escape",
+              "family_reunion_weekend",
+              "friends_celebration_weekend",
+              "graduation_open_house",
+              "neighborhood_gathering",
+              "park_picnic",
+              "seasonal_dinner_party",
+              "shared_city_break",
+              "small_team_retreat",
+              "thoughtful_guest_stay",
+              "welcome_baby_shower",
+              "welcoming_game_night"
+            ]
+          },
+          "finalV2": {
+            "pageSize": 1,
+            "pageCount": 17,
+            "itemCount": 17,
+            "complete": true,
+            "duplicateCount": 0,
+            "matchesDirectRanking": true,
+            "orderedKeys": [
+              "wedding",
+              "birthday",
+              "thanksgiving",
+              "engagement_gathering",
+              "anniversary_supper",
+              "family_cottage_escape",
+              "family_reunion_weekend",
+              "friends_celebration_weekend",
+              "graduation_open_house",
+              "neighborhood_gathering",
+              "park_picnic",
+              "seasonal_dinner_party",
+              "shared_city_break",
+              "small_team_retreat",
+              "thoughtful_guest_stay",
+              "welcome_baby_shower",
+              "welcoming_game_night"
+            ]
+          }
+        },
+        {
+          "baseline": {
+            "pageSize": 2,
+            "pageCount": 9,
+            "itemCount": 17,
+            "complete": true,
+            "duplicateCount": 0,
+            "matchesDirectRanking": true,
+            "orderedKeys": [
+              "wedding",
+              "birthday",
+              "thanksgiving",
+              "anniversary_supper",
+              "engagement_gathering",
+              "family_cottage_escape",
+              "family_reunion_weekend",
+              "friends_celebration_weekend",
+              "graduation_open_house",
+              "neighborhood_gathering",
+              "park_picnic",
+              "seasonal_dinner_party",
+              "shared_city_break",
+              "small_team_retreat",
+              "thoughtful_guest_stay",
+              "welcome_baby_shower",
+              "welcoming_game_night"
+            ]
+          },
+          "finalV2": {
+            "pageSize": 2,
+            "pageCount": 9,
+            "itemCount": 17,
+            "complete": true,
+            "duplicateCount": 0,
+            "matchesDirectRanking": true,
+            "orderedKeys": [
+              "wedding",
+              "birthday",
+              "thanksgiving",
+              "engagement_gathering",
+              "anniversary_supper",
+              "family_cottage_escape",
+              "family_reunion_weekend",
+              "friends_celebration_weekend",
+              "graduation_open_house",
+              "neighborhood_gathering",
+              "park_picnic",
+              "seasonal_dinner_party",
+              "shared_city_break",
+              "small_team_retreat",
+              "thoughtful_guest_stay",
+              "welcome_baby_shower",
+              "welcoming_game_night"
+            ]
+          }
+        },
+        {
+          "baseline": {
+            "pageSize": 3,
+            "pageCount": 6,
+            "itemCount": 17,
+            "complete": true,
+            "duplicateCount": 0,
+            "matchesDirectRanking": true,
+            "orderedKeys": [
+              "wedding",
+              "birthday",
+              "thanksgiving",
+              "anniversary_supper",
+              "engagement_gathering",
+              "family_cottage_escape",
+              "family_reunion_weekend",
+              "friends_celebration_weekend",
+              "graduation_open_house",
+              "neighborhood_gathering",
+              "park_picnic",
+              "seasonal_dinner_party",
+              "shared_city_break",
+              "small_team_retreat",
+              "thoughtful_guest_stay",
+              "welcome_baby_shower",
+              "welcoming_game_night"
+            ]
+          },
+          "finalV2": {
+            "pageSize": 3,
+            "pageCount": 6,
+            "itemCount": 17,
+            "complete": true,
+            "duplicateCount": 0,
+            "matchesDirectRanking": true,
+            "orderedKeys": [
+              "wedding",
+              "birthday",
+              "thanksgiving",
+              "engagement_gathering",
+              "anniversary_supper",
+              "family_cottage_escape",
+              "family_reunion_weekend",
+              "friends_celebration_weekend",
+              "graduation_open_house",
+              "neighborhood_gathering",
+              "park_picnic",
+              "seasonal_dinner_party",
+              "shared_city_break",
+              "small_team_retreat",
+              "thoughtful_guest_stay",
+              "welcome_baby_shower",
+              "welcoming_game_night"
+            ]
+          }
+        },
+        {
+          "baseline": {
+            "pageSize": 7,
+            "pageCount": 3,
+            "itemCount": 17,
+            "complete": true,
+            "duplicateCount": 0,
+            "matchesDirectRanking": true,
+            "orderedKeys": [
+              "wedding",
+              "birthday",
+              "thanksgiving",
+              "anniversary_supper",
+              "engagement_gathering",
+              "family_cottage_escape",
+              "family_reunion_weekend",
+              "friends_celebration_weekend",
+              "graduation_open_house",
+              "neighborhood_gathering",
+              "park_picnic",
+              "seasonal_dinner_party",
+              "shared_city_break",
+              "small_team_retreat",
+              "thoughtful_guest_stay",
+              "welcome_baby_shower",
+              "welcoming_game_night"
+            ]
+          },
+          "finalV2": {
+            "pageSize": 7,
+            "pageCount": 3,
+            "itemCount": 17,
+            "complete": true,
+            "duplicateCount": 0,
+            "matchesDirectRanking": true,
+            "orderedKeys": [
+              "wedding",
+              "birthday",
+              "thanksgiving",
+              "engagement_gathering",
+              "anniversary_supper",
+              "family_cottage_escape",
+              "family_reunion_weekend",
+              "friends_celebration_weekend",
+              "graduation_open_house",
+              "neighborhood_gathering",
+              "park_picnic",
+              "seasonal_dinner_party",
+              "shared_city_break",
+              "small_team_retreat",
+              "thoughtful_guest_stay",
+              "welcome_baby_shower",
+              "welcoming_game_night"
+            ]
+          }
+        },
+        {
+          "baseline": {
+            "pageSize": 20,
+            "pageCount": 1,
+            "itemCount": 17,
+            "complete": true,
+            "duplicateCount": 0,
+            "matchesDirectRanking": true,
+            "orderedKeys": [
+              "wedding",
+              "birthday",
+              "thanksgiving",
+              "anniversary_supper",
+              "engagement_gathering",
+              "family_cottage_escape",
+              "family_reunion_weekend",
+              "friends_celebration_weekend",
+              "graduation_open_house",
+              "neighborhood_gathering",
+              "park_picnic",
+              "seasonal_dinner_party",
+              "shared_city_break",
+              "small_team_retreat",
+              "thoughtful_guest_stay",
+              "welcome_baby_shower",
+              "welcoming_game_night"
+            ]
+          },
+          "finalV2": {
+            "pageSize": 20,
+            "pageCount": 1,
+            "itemCount": 17,
+            "complete": true,
+            "duplicateCount": 0,
+            "matchesDirectRanking": true,
+            "orderedKeys": [
+              "wedding",
+              "birthday",
+              "thanksgiving",
+              "engagement_gathering",
+              "anniversary_supper",
+              "family_cottage_escape",
+              "family_reunion_weekend",
+              "friends_celebration_weekend",
+              "graduation_open_house",
+              "neighborhood_gathering",
+              "park_picnic",
+              "seasonal_dinner_party",
+              "shared_city_break",
+              "small_team_retreat",
+              "thoughtful_guest_stay",
+              "welcome_baby_shower",
+              "welcoming_game_night"
+            ]
+          }
+        }
+      ],
+      "baselineStableAcrossPageSizes": true,
+      "finalV2StableAcrossPageSizes": true,
+      "allCompleteWithoutDuplicates": true
+    }
+  },
+  "caveats": [
+    "All fixture plans are fictional. Judgments are manually authored at the intent-family level with selected ambiguous adjacent formats; they are not independent reviewer labels or real-user evaluations.",
+    "The prior 24-plan set was evaluated before this iteration and informed the revised rule; it is included only as a validation-informed diagnostic, not a pristine test set.",
+    "The new 28-plan challenge fixture was frozen before the Variant B.03 policy lock and was not used to choose the rule or threshold.",
+    "Pairs share seed profiles and are correlated; do not treat pair counts as independent users or derive user-population confidence intervals from them.",
+    "The Spanish and cross-language sample is small and hand-authored. Zero matches can indicate lexical coverage limitations but cannot quantify a population rate.",
+    "The curated wedding ranking diagnostic is unlabeled. A score/order change is not evidence that shared_city_break is relevant or improved.",
+    "No feature-on experiment, click/install outcome, production exposure, or causal uplift is represented."
+  ],
+  "checks": {
+    "lockedDevelopmentMatchesExpected": true,
+    "challengeFixtureLockMatches": true,
+    "finalPolicyFingerprintMatches": true,
+    "finalScoresStayBounded": true,
+    "curatedNoHistoryAndSeedGuardsHold": true,
+    "curatedActualPaginationCompleteStableAndDeduplicated": true
+  }
+}

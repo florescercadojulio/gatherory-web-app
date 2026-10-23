@@ -1,0 +1,533 @@
+{
+  "formatVersion": 1,
+  "purpose": "Deterministic synthetic policy evaluation. Results describe fixture behavior, not online usefulness or production uplift.",
+  "asOf": "2026-10-22T12:00:00.000Z",
+  "policy": {
+    "algorithmVersion": "blueprint-unseen-first-v1",
+    "baseline": "Existing baseline_v1 ordering with no discovery session context.",
+    "candidate": "Unseen first, then seen items outside the 24-hour cooldown, then recently seen; equal-ranked browse ties use a deterministic session seed.",
+    "cooldownMs": 86400000,
+    "fetchedPerVisit": 20,
+    "meaningfullyVisibleAndRecordedPerVisit": 6,
+    "onlyMeaningfullyVisibleItemsUpdateSeenHistory": true,
+    "top10RepeatRateDefinition": "Share of the current top ten that were meaningfully exposed during any prior visit."
+  },
+  "fixtures": {
+    "repeatedVisitCatalogCount": 120,
+    "repeatedVisitCount": 5,
+    "boundaries": {
+      "tinyInventory": {
+        "count": 6,
+        "returned": 6,
+        "complete": true
+      },
+      "emptyInventory": {
+        "count": 0,
+        "returned": 0,
+        "complete": true
+      },
+      "allSeenCooldown": [
+        "synthetic_000",
+        "synthetic_001",
+        "synthetic_002",
+        "synthetic_004",
+        "synthetic_006",
+        "synthetic_005",
+        "synthetic_003",
+        "synthetic_007"
+      ],
+      "changedCatalog": {
+        "firstPageCount": 3,
+        "changedInventoryReason": "stale_cursor"
+      },
+      "typedExactPhrase": [
+        "synthetic_000"
+      ]
+    }
+  },
+  "repeatedVisits": {
+    "count": 120,
+    "variedCreatorCount": 15,
+    "categoryCounts": {
+      "birthdays": 30,
+      "events": 30,
+      "holidays": 30,
+      "weddings": 30
+    },
+    "visitCount": 5,
+    "meaningfulVisibleCount": 6,
+    "fetchedPerVisit": 20,
+    "uniqueTop10AcrossVisits": {
+      "baseline": 10,
+      "candidate": 47
+    },
+    "visitResults": [
+      {
+        "visit": 1,
+        "baseline": {
+          "top10": [
+            "synthetic_000",
+            "synthetic_001",
+            "synthetic_008",
+            "synthetic_002",
+            "synthetic_003",
+            "synthetic_009",
+            "synthetic_004",
+            "synthetic_005",
+            "synthetic_010",
+            "synthetic_006"
+          ],
+          "repeatRateTop10": null,
+          "unseenTop10": 10,
+          "firstUnseenRank": 1
+        },
+        "candidate": {
+          "top10": [
+            "synthetic_059",
+            "synthetic_096",
+            "synthetic_036",
+            "synthetic_054",
+            "synthetic_047",
+            "synthetic_106",
+            "synthetic_026",
+            "synthetic_063",
+            "synthetic_112",
+            "synthetic_113"
+          ],
+          "repeatRateTop10": null,
+          "unseenTop10": 10,
+          "firstUnseenRank": 1
+        },
+        "baselineTop20": [
+          "synthetic_000",
+          "synthetic_001",
+          "synthetic_008",
+          "synthetic_002",
+          "synthetic_003",
+          "synthetic_009",
+          "synthetic_004",
+          "synthetic_005",
+          "synthetic_010",
+          "synthetic_006",
+          "synthetic_007",
+          "synthetic_011",
+          "synthetic_012",
+          "synthetic_016",
+          "synthetic_013",
+          "synthetic_014",
+          "synthetic_017",
+          "synthetic_015",
+          "synthetic_018",
+          "synthetic_019"
+        ],
+        "candidateTop20": [
+          "synthetic_059",
+          "synthetic_096",
+          "synthetic_036",
+          "synthetic_054",
+          "synthetic_047",
+          "synthetic_106",
+          "synthetic_026",
+          "synthetic_063",
+          "synthetic_112",
+          "synthetic_113",
+          "synthetic_037",
+          "synthetic_024",
+          "synthetic_004",
+          "synthetic_094",
+          "synthetic_052",
+          "synthetic_051",
+          "synthetic_035",
+          "synthetic_084",
+          "synthetic_020",
+          "synthetic_012"
+        ],
+        "baselineDuplicateCount": 0,
+        "candidateDuplicateCount": 0,
+        "meaningfullyExposedKeys": [
+          "synthetic_059",
+          "synthetic_096",
+          "synthetic_036",
+          "synthetic_054",
+          "synthetic_047",
+          "synthetic_106"
+        ],
+        "fetchedButNotExposedCount": 14
+      },
+      {
+        "visit": 2,
+        "baseline": {
+          "top10": [
+            "synthetic_000",
+            "synthetic_001",
+            "synthetic_008",
+            "synthetic_002",
+            "synthetic_003",
+            "synthetic_009",
+            "synthetic_004",
+            "synthetic_005",
+            "synthetic_010",
+            "synthetic_006"
+          ],
+          "repeatRateTop10": 0.6,
+          "unseenTop10": 4,
+          "firstUnseenRank": 7
+        },
+        "candidate": {
+          "top10": [
+            "synthetic_026",
+            "synthetic_093",
+            "synthetic_109",
+            "synthetic_012",
+            "synthetic_067",
+            "synthetic_061",
+            "synthetic_077",
+            "synthetic_101",
+            "synthetic_064",
+            "synthetic_094"
+          ],
+          "repeatRateTop10": 0,
+          "unseenTop10": 10,
+          "firstUnseenRank": 1
+        },
+        "baselineTop20": [
+          "synthetic_000",
+          "synthetic_001",
+          "synthetic_008",
+          "synthetic_002",
+          "synthetic_003",
+          "synthetic_009",
+          "synthetic_004",
+          "synthetic_005",
+          "synthetic_010",
+          "synthetic_006",
+          "synthetic_007",
+          "synthetic_011",
+          "synthetic_012",
+          "synthetic_016",
+          "synthetic_013",
+          "synthetic_014",
+          "synthetic_017",
+          "synthetic_015",
+          "synthetic_018",
+          "synthetic_019"
+        ],
+        "candidateTop20": [
+          "synthetic_026",
+          "synthetic_093",
+          "synthetic_109",
+          "synthetic_012",
+          "synthetic_067",
+          "synthetic_061",
+          "synthetic_077",
+          "synthetic_101",
+          "synthetic_064",
+          "synthetic_094",
+          "synthetic_051",
+          "synthetic_098",
+          "synthetic_003",
+          "synthetic_032",
+          "synthetic_072",
+          "synthetic_048",
+          "synthetic_030",
+          "synthetic_070",
+          "synthetic_015",
+          "synthetic_071"
+        ],
+        "baselineDuplicateCount": 0,
+        "candidateDuplicateCount": 0,
+        "meaningfullyExposedKeys": [
+          "synthetic_026",
+          "synthetic_093",
+          "synthetic_109",
+          "synthetic_012",
+          "synthetic_067",
+          "synthetic_061"
+        ],
+        "fetchedButNotExposedCount": 14
+      },
+      {
+        "visit": 3,
+        "baseline": {
+          "top10": [
+            "synthetic_000",
+            "synthetic_001",
+            "synthetic_008",
+            "synthetic_002",
+            "synthetic_003",
+            "synthetic_009",
+            "synthetic_004",
+            "synthetic_005",
+            "synthetic_010",
+            "synthetic_006"
+          ],
+          "repeatRateTop10": 0.6,
+          "unseenTop10": 4,
+          "firstUnseenRank": 7
+        },
+        "candidate": {
+          "top10": [
+            "synthetic_069",
+            "synthetic_066",
+            "synthetic_021",
+            "synthetic_099",
+            "synthetic_088",
+            "synthetic_030",
+            "synthetic_110",
+            "synthetic_060",
+            "synthetic_073",
+            "synthetic_078"
+          ],
+          "repeatRateTop10": 0,
+          "unseenTop10": 10,
+          "firstUnseenRank": 1
+        },
+        "baselineTop20": [
+          "synthetic_000",
+          "synthetic_001",
+          "synthetic_008",
+          "synthetic_002",
+          "synthetic_003",
+          "synthetic_009",
+          "synthetic_004",
+          "synthetic_005",
+          "synthetic_010",
+          "synthetic_006",
+          "synthetic_007",
+          "synthetic_011",
+          "synthetic_012",
+          "synthetic_016",
+          "synthetic_013",
+          "synthetic_014",
+          "synthetic_017",
+          "synthetic_015",
+          "synthetic_018",
+          "synthetic_019"
+        ],
+        "candidateTop20": [
+          "synthetic_069",
+          "synthetic_066",
+          "synthetic_021",
+          "synthetic_099",
+          "synthetic_088",
+          "synthetic_030",
+          "synthetic_110",
+          "synthetic_060",
+          "synthetic_073",
+          "synthetic_078",
+          "synthetic_101",
+          "synthetic_006",
+          "synthetic_100",
+          "synthetic_089",
+          "synthetic_098",
+          "synthetic_048",
+          "synthetic_116",
+          "synthetic_105",
+          "synthetic_094",
+          "synthetic_076"
+        ],
+        "baselineDuplicateCount": 0,
+        "candidateDuplicateCount": 0,
+        "meaningfullyExposedKeys": [
+          "synthetic_069",
+          "synthetic_066",
+          "synthetic_021",
+          "synthetic_099",
+          "synthetic_088",
+          "synthetic_030"
+        ],
+        "fetchedButNotExposedCount": 14
+      },
+      {
+        "visit": 4,
+        "baseline": {
+          "top10": [
+            "synthetic_000",
+            "synthetic_001",
+            "synthetic_008",
+            "synthetic_002",
+            "synthetic_003",
+            "synthetic_009",
+            "synthetic_004",
+            "synthetic_005",
+            "synthetic_010",
+            "synthetic_006"
+          ],
+          "repeatRateTop10": 0.6,
+          "unseenTop10": 4,
+          "firstUnseenRank": 7
+        },
+        "candidate": {
+          "top10": [
+            "synthetic_111",
+            "synthetic_089",
+            "synthetic_006",
+            "synthetic_095",
+            "synthetic_014",
+            "synthetic_040",
+            "synthetic_032",
+            "synthetic_091",
+            "synthetic_034",
+            "synthetic_097"
+          ],
+          "repeatRateTop10": 0,
+          "unseenTop10": 10,
+          "firstUnseenRank": 1
+        },
+        "baselineTop20": [
+          "synthetic_000",
+          "synthetic_001",
+          "synthetic_008",
+          "synthetic_002",
+          "synthetic_003",
+          "synthetic_009",
+          "synthetic_004",
+          "synthetic_005",
+          "synthetic_010",
+          "synthetic_006",
+          "synthetic_007",
+          "synthetic_011",
+          "synthetic_012",
+          "synthetic_016",
+          "synthetic_013",
+          "synthetic_014",
+          "synthetic_017",
+          "synthetic_015",
+          "synthetic_018",
+          "synthetic_019"
+        ],
+        "candidateTop20": [
+          "synthetic_111",
+          "synthetic_089",
+          "synthetic_006",
+          "synthetic_095",
+          "synthetic_014",
+          "synthetic_040",
+          "synthetic_032",
+          "synthetic_091",
+          "synthetic_034",
+          "synthetic_097",
+          "synthetic_004",
+          "synthetic_053",
+          "synthetic_051",
+          "synthetic_037",
+          "synthetic_070",
+          "synthetic_008",
+          "synthetic_055",
+          "synthetic_041",
+          "synthetic_015",
+          "synthetic_044"
+        ],
+        "baselineDuplicateCount": 0,
+        "candidateDuplicateCount": 0,
+        "meaningfullyExposedKeys": [
+          "synthetic_111",
+          "synthetic_089",
+          "synthetic_006",
+          "synthetic_095",
+          "synthetic_014",
+          "synthetic_040"
+        ],
+        "fetchedButNotExposedCount": 14
+      },
+      {
+        "visit": 5,
+        "baseline": {
+          "top10": [
+            "synthetic_000",
+            "synthetic_001",
+            "synthetic_008",
+            "synthetic_002",
+            "synthetic_003",
+            "synthetic_009",
+            "synthetic_004",
+            "synthetic_005",
+            "synthetic_010",
+            "synthetic_006"
+          ],
+          "repeatRateTop10": 0.6,
+          "unseenTop10": 4,
+          "firstUnseenRank": 7
+        },
+        "candidate": {
+          "top10": [
+            "synthetic_105",
+            "synthetic_028",
+            "synthetic_010",
+            "synthetic_114",
+            "synthetic_034",
+            "synthetic_013",
+            "synthetic_005",
+            "synthetic_073",
+            "synthetic_075",
+            "synthetic_081"
+          ],
+          "repeatRateTop10": 0,
+          "unseenTop10": 10,
+          "firstUnseenRank": 1
+        },
+        "baselineTop20": [
+          "synthetic_000",
+          "synthetic_001",
+          "synthetic_008",
+          "synthetic_002",
+          "synthetic_003",
+          "synthetic_009",
+          "synthetic_004",
+          "synthetic_005",
+          "synthetic_010",
+          "synthetic_006",
+          "synthetic_007",
+          "synthetic_011",
+          "synthetic_012",
+          "synthetic_016",
+          "synthetic_013",
+          "synthetic_014",
+          "synthetic_017",
+          "synthetic_015",
+          "synthetic_018",
+          "synthetic_019"
+        ],
+        "candidateTop20": [
+          "synthetic_105",
+          "synthetic_028",
+          "synthetic_010",
+          "synthetic_114",
+          "synthetic_034",
+          "synthetic_013",
+          "synthetic_005",
+          "synthetic_073",
+          "synthetic_075",
+          "synthetic_081",
+          "synthetic_071",
+          "synthetic_048",
+          "synthetic_086",
+          "synthetic_033",
+          "synthetic_064",
+          "synthetic_029",
+          "synthetic_003",
+          "synthetic_045",
+          "synthetic_020",
+          "synthetic_004"
+        ],
+        "baselineDuplicateCount": 0,
+        "candidateDuplicateCount": 0,
+        "meaningfullyExposedKeys": [
+          "synthetic_105",
+          "synthetic_028",
+          "synthetic_010",
+          "synthetic_114",
+          "synthetic_034",
+          "synthetic_013"
+        ],
+        "fetchedButNotExposedCount": 14
+      }
+    ],
+    "paging": {
+      "stableSessionContinues": true,
+      "sameContextOrderStable": true,
+      "sameContextDuplicateCount": 0,
+      "changedHistoryReason": "stale_cursor"
+    }
+  }
+}

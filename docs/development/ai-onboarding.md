@@ -1,6 +1,6 @@
 # Start here: Gatherory across projects
 
-Last reviewed: October 20, 2026. Read this guide when starting a fresh AI
+Last reviewed: October 23, 2026. Read this guide when starting a fresh AI
 conversation, then inspect the repositories relevant to the requested task.
 
 ## Product and project map
@@ -59,11 +59,12 @@ remaining physical-device/deployment acceptance checks.
 | Backend behavior and authorization       | [Server implementation guide](server-implementation-guide.md), [server architecture](../architecture/server-architecture.md), [data model](../architecture/data-model.md), then the owning code under `src/server/`.                          |
 | Invitations, account switching, or RSVPs | iOS [authentication contract](../../../ios-apps/gatherory/docs/auth-integration.md), `Gatherory/App/AuthenticationSession.swift`, `Gatherory/Features/Events/`, and web `src/server/events/` plus `src/server/auth/`.                         |
 | Offline sync and data isolation          | iOS [sync guide](../../../ios-apps/gatherory/docs/offline-sync.md), `Gatherory/OfflineSync/`, `Gatherory/Data/Persistence/`, and web `src/server/sync/`.                                                                                      |
-| Missing images or uploads                | [Media system](../architecture/media-system.md), web `src/server/media/`, iOS `Gatherory/OfflineSync/R2MediaTransport.swift` and `UploadImagePreparation.swift`.                                                                              |
+| Missing images or uploads                | [Media system](../architecture/media-system.md), [Blueprint cover images](../architecture/blueprint-cover-images.md), web `src/server/media/`, iOS `Gatherory/OfflineSync/R2MediaTransport.swift` and `UploadImagePreparation.swift`.         |
 | iOS UI and localization                  | iOS `Gatherory/Features/`, `Gatherory/DesignSystem/`, `Gatherory/Localization/AppCopy.swift`, `Gatherory/Localizable.xcstrings`, and `Gatherory/InfoPlist.xcstrings`.                                                                         |
 | Web UI                                   | [Page creation](page-creation.md), [web localization inventory](i18n-string-inventory.md), and the relevant routes and shared components.                                                                                                     |
 | Marketing, guides, or legal copy         | Landing [README](../../../gatherory-landing/README.md), `AGENTS.md`, `src/pages/`, `src/lib/components/landing/`, `src/i18n/`, and `src/lib/legal-details.ts`.                                                                                |
 | Templates and expansion                  | [Experience architecture](../architecture/experience-blueprints.md), [blueprint roadmap](../roadmaps/blueprints-roadmap/README.md), `src/contracts/`, and `contracts/`.                                                                       |
+| Explore advertising                      | iOS [advertising setup and release gates](../../../ios-apps/gatherory/docs/explore-advertising.md), `Gatherory/Advertising/`, Debug/Release xcconfigs, landing `public/app-ads.txt` and privacy policy.                                       |
 | Monetization and delivery order          | [Monetization model](../architecture/monetization-model.md), [Event Pass roadmap](../roadmaps/monetization-roadmap/README.md), and [blueprints versus billing](../roadmaps/blueprints-roadmap/05-product-experience-and-billing-sequence.md). |
 | Release preparation                      | [v1 safeguards](../release/v1-release-safeguards.md), iOS [release guide](../../../ios-apps/gatherory/docs/app-store-release.md), and `Config/Release.xcconfig`.                                                                              |
 
@@ -141,6 +142,9 @@ Paths in inline code are relative to their owning repository.
   fencing and accepted-device checkpoints. The earlier retry worker and protected
   scheduler remain available for later, disabled, with no cron schedule configured.
   Do not enable recovery or replay old notifications as part of ordinary requests.
+  The [mobile notification policy](../roadmaps/notifications-roadmap/05-mobile-notification-policy.md)
+  keeps draft event edits quiet and classifies eligible schedule, location,
+  cancellation and reopening alerts without putting event content in push payloads.
 
 - The October 20 [V1 guest slice](../roadmaps/v1-guest-release-candidate-roadmap/README.md)
   allows device-local planning and public guest invitation attendance. Sharing
@@ -156,6 +160,135 @@ Paths in inline code are relative to their owning repository.
   (Spanish: **plano / planos**), per the October 19 terminology decision.
   Older documents may say template; stable localization keys, API fields and
   `/templates/shared/<token>` links retain their existing identifiers.
+
+- The October 22 [Blueprint-led discovery decision](../architecture/blueprint-led-discovery.md)
+  keeps Blueprints as the main published/recommended object. Current cards are
+  scan-first: cover, prominent purpose-led title, and small optional creator
+  byline. The title should say what experience a Blueprint is for (for example,
+  “Cottage Weekend” or “Backyard Birthday Party”); no title validation or
+  automatic renaming is introduced, and card metadata must not compensate for
+  vague titles. The existing whole-card button opens the read-only preview; event and
+  idea detail stays there. Cards have no category label, summary, highlights, or
+  visible preview CTA. Single-event Blueprints remain valid. An earlier local
+  highlight prototype and its tests are superseded history, documented in
+  [slice 01](../roadmaps/blueprint-ranking-roadmap/01-blueprint-cards-and-highlights.md#superseded-highlight-prototype-history).
+  Current listing cards reserve their cover geometry before artwork loads;
+  title/byline use a dark gradient with no solid tray or Glur. See the native
+  [rendering handoff](../../../ios-apps/gatherory/docs/explore-performance.md).
+  [Public content/related-term search](../roadmaps/blueprint-ranking-roadmap/02-content-search-and-related-terms.md)
+  is implemented locally: public name/summary, supported event titles and idea
+  titles/notes, explicit English/Spanish aliases and directed outdoors expansion.
+  Query relevance and cursor digests remain server-owned; the native feed keeps
+  server matches/order without its legacy local metadata filter. The response
+  contract and clean cards are unchanged, with source details in the preview.
+  Web typecheck, contract/full tests and 37 focused native tests passed; see the
+  slice for exact test stages and limits. No deployment/phone release occurred.
+  [Blueprint actions and measurement](../roadmaps/blueprint-ranking-roadmap/03-actions-and-measurement.md)
+  are now implemented locally: private likes/bookmarks/hiding in the native card
+  and preview menus, saved/hidden management, exact-source validation and an
+  account opt-in for organic measurement (off by default). Browse/category hiding
+  happens before paging and cursors bind the actor; explicit search stays inclusive.
+  Measurement uses 30-minute exposures, daily contribution limits and 30-day
+  retention. Verified unchanged-copy acquisition supports completed-install credit;
+  client source markers alone do not. Opt-out purges telemetry/attribution while
+  preserving preferences. Apply the additive slice-03 migration before routes or
+  native controls; no shared migration/deployment/collection occurred here.
+  [Recommendation baseline](../roadmaps/blueprint-ranking-roadmap/04-recommendation-baseline.md)
+  is also implemented locally: paged `ranking=baseline_v1` clients get editorial
+  priority, creator diversity and promotion-only recent-publication opportunity within
+  equal content relevance. Native opts in; full/legacy catalog stays available.
+  Creator identity and earliest-publication timestamps are internal only, with
+  explicit public response stripping. Ranked v2 cursors freeze time/configuration
+  for 24 hours and restart on scope/visibility/configuration changes. The
+  `BLUEPRINT_RECOMMENDATION_BASELINE_ENABLED=false` switch selects the existing
+  order as a fallback. One additive migration adds nullable policy labels to
+  existing consented exposures for evaluation. No signal weighting, batch job,
+  model or rollout was added for this baseline. The subsequent
+  [offline evaluation/source audit](../roadmaps/blueprint-ranking-roadmap/05-baseline-evaluation-and-signal-readiness.md)
+  records a reproducible fixture artifact, new-item reservation tradeoffs, private
+  preference/history separation, daily-credit pairing limits and the conflict
+  between 30-day raw retention and mature conversion cohorts.
+  [Measurement readiness report and attribution checks](../roadmaps/blueprint-ranking-roadmap/06-measurement-readiness-report-and-attribution-checks.md)
+  are now implemented locally: a synthetic-default CLI, explicit loopback-only
+  bounded read-only database mode, current read/retention time separate from
+  analytic cutoff, and actual native snapshot/copy/install checks. No private
+  preference pooling or ranking weight is added. The subsequent
+  [measurement cleanup and new-item rule](../roadmaps/blueprint-ranking-roadmap/07-measurement-cleanup-and-new-item-opportunities.md)
+  adds database acceptance timestamps/sequence, exact prior-impression links and
+  opt-in daily serving diagnostics. Report v2 keeps unknown traffic denominators
+  explicit. Baseline algorithm/configuration v2 promotes recent items only and
+  preserves their natural positions; the wire capability remains `baseline_v1`.
+  Apply its targeted pre-release telemetry reset migration before the backend;
+  preferences, settings and private content/installation receipts are preserved.
+  No shared reset or rollout occurred.
+  [Personal Like ranking](../roadmaps/blueprint-ranking-roadmap/08-personal-like-ranking.md)
+  is now implemented locally for ranked authenticated pages: exact current public
+  Likes inform bounded lexical content affinity after editorial priority within
+  identical relevance groups. It is functional use independent of measurement;
+  bookmarks and pooled signals do not contribute. New policy
+  `blueprint-personal-likes-v2` and private preference bindings scope cursors;
+  `BLUEPRINT_PERSONAL_LIKE_RANKING_ENABLED=false` selects baseline v2. No history
+  preserves baseline order. Native paging restarts a stale continuation once,
+  and EN/ES settings explain Like use and undo. Reported task-result/formatter/
+  preview isolation diagnostics are fixed.
+  [Precision tuning](../roadmaps/blueprint-ranking-roadmap/09-personal-like-precision.md)
+  now separates names/child titles, summary and notes; requires shared title intent
+  corroborated by non-notes text; adjusts common terms and normalizes overlap.
+  Summary-only and notes-only matches cannot qualify. Wedding diagnostic boosts
+  fall 11 to 4; fresh multilingual challenge precision/recall equal v1, so general
+  quality lift and production usefulness remain unverified. No pooled bookmark
+  feature or engagement experiment is implemented.
+  Categories and curated tags stay internal, with optional browse shortcuts and
+  no required taxonomy or hashtag authoring. Likes and ranking changes are not
+  prerequisites. See the [ranking roadmap](../roadmaps/blueprint-ranking-roadmap/README.md)
+  for remaining work.
+  The native library follow-up keeps the fixed **Blueprints** title with primary
+  **Yours/Saved/Liked** filters: Yours owns editable authored/copied plans, while
+  Saved and Liked are independent references that can overlap. Not interested
+  stays in Account. See [slice 10](../roadmaps/blueprint-ranking-roadmap/10-blueprint-library-collections.md);
+  implemented locally; targeted native, web/server, localization checks, and simulator Release build passed. Canvas visual verification and live device/VoiceOver acceptance remain pending; no ranking change was made.
+  The October 23 [single-preview follow-up](../roadmaps/blueprint-ranking-roadmap/15-single-preview-and-event-creation.md)
+  combines the main event, related events and masonry ideas into one scroll across
+  discovery, Saved/Liked, shared links and Yours. Yours opens full screen like
+  Liked, with native bottom-toolbar Use/Add and direct taps into native edit sheets. There is
+  no Blueprint Decide or Edit mode; Decide belongs to created event/workspaces. The
+  subsequent creation UI follows onboarding's native form/date-editor patterns,
+  with a full-height form and native bottom actions. Onboarding is unchanged;
+  do not apply ReUI guidance to iOS (explicit user direction).
+  Library cards use the same customized artwork as the opened preview. Like/Save
+  stay references; explicit Use prepares the working plan. New plans include
+  content without legacy Love responses; saved selections, exclusions and dates
+  remain intact. Current acceptance uses standard Light/Dark layouts; dedicated
+  super-large tests were removed per user direction. The bottom-controls/native
+  creation follow-up passed 69 distinct checks across staged runs, including
+  normal Light/Dark native form and date-editor journeys.
+  The Use-to-event follow-up verifies native transport/import/navigation locally
+  and copy/install content and replay against a disposable PostgreSQL database.
+  Workspace selection waits for import and exact-request cleanup; missing
+  bootstrap data and cleanup failures recover the original receipt without
+  another install. Reject altered pending intents and wrong-owner writes.
+  Slice 15 records exact results, the remaining frame-dimension diagnostic and
+  deployed-account/device/media acceptance limits. Preserve exact-request retry,
+  canonical import and account isolation.
+
+- The [unseen-first discovery follow-up](../roadmaps/blueprint-ranking-roadmap/16-unseen-first-discovery.md)
+  keeps a bounded, exact-account device history of meaningful visible browse
+  cards, separate from opt-in analytics. A frozen header context gives ranked
+  browse unseen-first ordering, 24-hour repeat cooldowns and stable pagination.
+  Quick tab/preview returns retain the feed; explicit refresh or return after
+  30 minutes away starts a new session. Typed search omits and ignores freshness
+  context. Keep raw history out of URLs, logs and telemetry. Account deletion
+  removes only its own history. Local implementation/evaluation does not imply
+  a deployed backend, cross-device history or production recommendation lift.
+
+- The October 22 [Pinterest event-ideas proposal](../roadmaps/pinterest-event-ideas-roadmap/README.md)
+  explores connecting a person's boards, selecting Pins and reviewing references
+  for one event. It is planning only, separate from public Blueprint discovery.
+  Confirm permitted persistence and collaborator display with Pinterest before
+  building API imports; OAuth alone is insufficient. The existing Website idea
+  is the starting point for manually supplied links and original planning notes.
+  Do not copy API images/text into ordinary idea sync, media or Blueprint capture.
+  No connection, importer, provider approval or live API test exists from this work.
 
 - Future host-authored experiences include rental stays, family cottages, and
   wedding-package recommendations. Fine-grained business configuration belongs
@@ -209,6 +342,12 @@ Paths in inline code are relative to their owning repository.
 - Identity, workspace organization, event role, and RSVP are distinct concepts.
   Better Auth owns identity and organizations; event participation determines
   event access. Guests must not gain workspace-wide planning access.
+- Workspace administration has a [dynamic role foundation](../architecture/dynamic-workspace-rbac.md):
+  Better Auth role definitions are organization-scoped, while its default
+  owner/admin/member roles stay intact. Apply the additive role migration before
+  deploying the new auth configuration. These custom workspace roles are not
+  event participant roles or native planning capabilities; keep those contracts
+  separate. No new V1 role editor is included.
 - Collaborators receive planning controls alongside hosts; guests receive the
   invitation/home content without planning tabs. Check operation-specific
   permissions on the server. Link access and collaborator approval must follow
@@ -365,6 +504,11 @@ Paths in inline code are relative to their owning repository.
 
 ## Verification by project
 
+Add or update focused regression tests alongside feature and behavior changes.
+Cover observable outcomes and the affected state, permission and recovery
+boundaries; use UI tests for native gestures and navigation. Record actual
+results and remaining acceptance limits with the implementation docs.
+
 For the web/server project, inspect `package.json` and choose relevant checks:
 
 ```sh
@@ -400,14 +544,17 @@ guides aligned with shipped behavior and distinguish future plans in copy.
 Database resets, seeding, migrations, moderator grants, uploads, and deployment
 change external state. Follow the user's task authorization, resolve the target
 environment, and read the corresponding script before running it. The local
-reset leaves an empty database; seeding is a separate destructive operation.
-Keep secrets and reviewer passwords out of docs and tool output.
+`pnpm db:reset` leaves an empty database; seeding is a separate destructive
+operation. The default `pnpm db:seed` resets and seeds the local fixture with 21
+covers and six shared-album photos after preflighting both catalogs and private
+development storage. `pnpm db:seed -- --without-images` retains the database-only seed
+behavior and is still destructive. Keep secrets and reviewer passwords out of
+docs and tool output.
 
 Local App Review/development photo fixtures have a fill-only updater:
 `pnpm db:seed:images` previews missing covers and `--apply` fills them through
 private development R2 without a reset. `pnpm db:seed:portraits` does the same
-for account pictures. `pnpm db:seed:with-images` is the explicitly destructive
-fresh-seed variant. See [development seed](development-seed.md) for targets,
+for account pictures. See [development seed](development-seed.md) for targets,
 preservation rules, checked-in photos, and verification evidence.
 
 ## Release context and known documentation gaps

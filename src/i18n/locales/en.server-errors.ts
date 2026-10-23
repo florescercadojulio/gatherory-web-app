@@ -1,5 +1,9 @@
 // Stable product copy for application errors. Debugging details belong in logs.
 const serverErrors = {
+  WAITLIST_INVALID_INPUT: 'Check your email address and consent, then try again.',
+  WAITLIST_UNAVAILABLE: 'The waitlist is temporarily unavailable. Please try again later.',
+  WAITLIST_RATE_LIMITED: 'Too many attempts. Please wait a few minutes and try again.',
+  WAITLIST_ADMIN_REQUIRED: 'Sign in with a verified waitlist administrator account.',
   ACTIVE_WORKSPACE_REQUIRED: 'Choose an event and try again.',
   INVITATION_EMAIL_UNVERIFIED: 'Verify your email address before accepting this invitation.',
   INVITATION_UNAVAILABLE:

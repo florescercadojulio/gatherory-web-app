@@ -44,3 +44,41 @@ The seven copied files are the existing `MarketingBirthdayServed`,
 `MarketingBirthdayPasta`, `MarketingBirthdayPhoto`, and `MarketingBirthdayTable`
 assets. Their source photographers and full CDN records are also listed in the
 source notes above.
+
+## Complete Blueprint and idea cover pool
+
+The checked-in `seed-image-assets.json` registry records all 36 sources, raw
+file checksums, verification dates, and public variant manifests. Explicit
+assignments cover 25 searchable Blueprint roots, all 114 child events and 195
+ideas, plus all 8 targets of the private cottage content used for both the
+published template and editing draft. The existing wedding workspace images
+listed above remain included in the normal development reset seed.
+
+The additional bundled photos below are used under the [Unsplash License](https://unsplash.com/license)
+or [Pexels License](https://www.pexels.com/license/), checked October 22, 2026.
+Both permit free commercial use with their stated conditions; these photos are
+licensed stock, not public-domain works. They illustrate fictional templates
+and do not imply endorsement by depicted people. Attribution is retained even
+where the license does not require it. Runtime and reset seeds do not depend
+on the original stock-photo websites; public delivery uses Gatherory’s CDN.
+
+| Asset              | Photographer       | Source                                                                                                              | License                                           |
+| ------------------ | ------------------ | ------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------- |
+| `garden-wedding`   | Jen Vazquez        | [Photo](https://unsplash.com/photos/a-decorated-table-set-for-a-wedding-in-a-forest-uOO5D8UPuMw)                    | [Unsplash License](https://unsplash.com/license)  |
+| `birthday`         | Jonathan Borba     | [Photo](https://unsplash.com/photos/elegant-dessert-table-with-a-white-cake-and-various-pastries-HKes9_amYnE)       | [Unsplash License](https://unsplash.com/license)  |
+| `cottage`          | mana5280           | [Photo](https://unsplash.com/photos/a-quaint-cottage-surrounded-by-a-lush-garden-9xOOZr-ZQLU)                       | [Unsplash License](https://unsplash.com/license)  |
+| `coast`            | Moritz Kindler     | [Photo](https://unsplash.com/photos/coastal-landscape-with-ocean-beach-and-rolling-hills-E1o6iAT17e0)               | [Unsplash License](https://unsplash.com/license)  |
+| `gathering`        | Katya Azimova      | [Photo](https://unsplash.com/photos/a-picnic-table-is-set-for-an-outdoor-party-VnfrBpaKvZ8)                         | [Unsplash License](https://unsplash.com/license)  |
+| `garden`           | Tanya Barrow       | [Photo](https://unsplash.com/photos/a-charming-cottage-with-climbing-plants-and-a-garden-axZOHkGyAIY)               | [Unsplash License](https://unsplash.com/license)  |
+| `travel`           | Ahmet Yüksek       | [Photo](https://unsplash.com/photos/coastal-town-nestled-into-steep-mountains-with-ocean-in-foreground-dis_sHK2oQM) | [Unsplash License](https://unsplash.com/license)  |
+| `holiday`          | Elvis KAMBIRE      | [Photo](https://www.pexels.com/photo/festive-christmas-scene-with-gifts-and-ornaments-29396745/)                    | [Pexels License](https://www.pexels.com/license/) |
+| `graduation`       | RDNE Stock project | [Photo](https://www.pexels.com/photo/graduation-cap-and-scarf-on-white-background-7713415/)                         | [Pexels License](https://www.pexels.com/license/) |
+| `chess`            | Pavel Danilyuk     | [Photo](https://www.pexels.com/photo/chess-pieces-on-chess-board-8438872/)                                          | [Pexels License](https://www.pexels.com/license/) |
+| `campfire`         | neslihan ໒꒱       | [Photo](https://www.pexels.com/photo/vibrant-campfire-in-a-dense-forest-setting-34162901/)                          | [Pexels License](https://www.pexels.com/license/) |
+| `team-workshop`    | Mikhail Nilov      | [Photo](https://www.pexels.com/photo/office-team-sitting-at-the-table-7988240/)                                     | [Pexels License](https://www.pexels.com/license/) |
+| `engagement-rings` | Kenneth Surillo    | [Photo](https://www.pexels.com/photo/wedding-and-engagement-rings-on-white-flat-21928764/)                          | [Pexels License](https://www.pexels.com/license/) |
+| `books`            | Suzy Hazelwood     | [Photo](https://www.pexels.com/photo/stacked-books-1333742/)                                                        | [Pexels License](https://www.pexels.com/license/) |
+| `farmers-market`   | Jonathan David     | [Photo](https://www.pexels.com/photo/vibrant-display-of-fresh-vegetables-at-farmers-market-31404675/)               | [Pexels License](https://www.pexels.com/license/) |
+
+See [Blueprint seed images](../architecture/blueprint-seed-images.md) for
+coverage checks, repeatable publication, and production/development seed usage.

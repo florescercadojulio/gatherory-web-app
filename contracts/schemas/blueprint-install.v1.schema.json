@@ -130,6 +130,20 @@
           "type": "number",
           "const": 1
         },
+        "coverAssetId": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 36,
+              "maxLength": 36,
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
         "children": {
           "maxItems": 50,
           "type": "array",
@@ -172,6 +186,20 @@
                   "ceremony",
                   "reception",
                   "other"
+                ]
+              },
+              "coverAssetId": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "minLength": 36,
+                    "maxLength": 36,
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  },
+                  {
+                    "type": "null"
+                  }
                 ]
               },
               "scheduleProposal": {
@@ -303,6 +331,20 @@
                   "version"
                 ],
                 "additionalProperties": false
+              },
+              "coverAssetId": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "minLength": 36,
+                    "maxLength": 36,
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
               }
             },
             "required": [

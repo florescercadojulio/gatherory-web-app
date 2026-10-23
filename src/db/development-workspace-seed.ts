@@ -163,20 +163,30 @@ export async function writeDevelopmentWorkspaceSeed(
   const musicIdea = plan.archive.ideas.find(
     (idea) => idea.id === reviewWorkspaceIds.planning.musicIdea
   )!
-  const track = musicIdea.configuration.music!._0.tracks[0]
-  await transaction.insert(musicTrack).values({
-    id: reviewWorkspaceIds.planning.musicTrack,
-    provider: 'apple_music',
-    providerTrackId: track.catalogID,
-    title: track.title,
-    artistName: track.artistName,
-    albumTitle: track.albumTitle,
-    artworkUrl: track.artworkURL,
-    durationMs: Math.round(track.duration * 1000),
-  })
-  await transaction.insert(ideaMusicTrack).values({
-    ideaId: musicIdea.id,
-    musicTrackId: reviewWorkspaceIds.planning.musicTrack,
-    sortOrder: 0,
-  })
+  const trackIds = [
+    reviewWorkspaceIds.planning.musicTrack,
+    reviewWorkspaceIds.planning.musicTrack2,
+    reviewWorkspaceIds.planning.musicTrack3,
+    reviewWorkspaceIds.planning.musicTrack4,
+  ]
+  for (const [sortOrder, track] of musicIdea.configuration.music!._0.tracks.entries()) {
+    const musicTrackId = trackIds[sortOrder]
+    if (!musicTrackId) throw new Error(`Missing stable seed ID for music track ${sortOrder}`)
+
+    await transaction.insert(musicTrack).values({
+      id: musicTrackId,
+      provider: 'apple_music',
+      providerTrackId: track.catalogID,
+      title: track.title,
+      artistName: track.artistName,
+      albumTitle: track.albumTitle,
+      artworkUrl: track.artworkURL,
+      durationMs: Math.round(track.duration * 1000),
+    })
+    await transaction.insert(ideaMusicTrack).values({
+      ideaId: musicIdea.id,
+      musicTrackId,
+      sortOrder,
+    })
+  }
 }

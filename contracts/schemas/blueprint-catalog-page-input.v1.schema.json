@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "limit": {
+      "default": 20,
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 40
+    },
+    "cursor": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 2048,
+      "pattern": "^[A-Za-z0-9_-]+$"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "weddings",
+        "birthdays",
+        "holidays",
+        "engagements",
+        "showers",
+        "bachelor_parties",
+        "anniversaries",
+        "graduations",
+        "reunions",
+        "dinner_parties",
+        "picnics",
+        "game_nights",
+        "trips",
+        "cottage_stays",
+        "guest_stays",
+        "retreats",
+        "community",
+        "events"
+      ]
+    },
+    "ranking": {
+      "type": "string",
+      "const": "baseline_v1"
+    },
+    "q": {
+      "type": "string",
+      "minLength": 0,
+      "maxLength": 128,
+      "description": "0–128 Unicode code points; surrounding whitespace is trimmed before validation."
+    }
+  },
+  "additionalProperties": false,
+  "$id": "https://schemas.gatherory.com/blueprint-catalog-page-input/v1.json",
+  "title": "Gatherory Blueprint Catalog Page Request v1"
+}

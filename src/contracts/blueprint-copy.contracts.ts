@@ -4,7 +4,20 @@ import { BlueprintCatalogDefinitionSchema } from './blueprint-install.contracts'
 import { characterString, StableKeySchema, UUIDSchema } from './content-primitives'
 
 export const BlueprintCopyRequestSchema = z
-  .object({ requestId: UUIDSchema, content: BlueprintDraftContentSchema })
+  .object({
+    requestId: UUIDSchema,
+    content: BlueprintDraftContentSchema,
+    source: z
+      .object({
+        catalogKey: StableKeySchema,
+        revision: z.number().int().positive(),
+        shareToken: z.string().min(20).max(200).optional(),
+        /** Server-issued organic discovery reference; never an authority by itself. */
+        discoveryExposureId: UUIDSchema.optional(),
+      })
+      .strict()
+      .optional(),
+  })
   .strict()
 
 export const BlueprintCopyResponseSchema = z

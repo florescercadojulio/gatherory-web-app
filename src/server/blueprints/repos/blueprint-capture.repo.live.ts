@@ -14,6 +14,7 @@ import {
 } from '@/lib/domain-errors'
 import { BlueprintCaptureRepo } from './blueprint-capture.repo'
 import { BlueprintAuthoringRepo } from './blueprint-authoring.repo'
+import { ORGANIZATION_OWNER_ROLE } from '../../auth/organization-role-membership'
 import { blueprintHash, legacyCompatibleCaptureSelection } from '../planning/blueprint-hash'
 import {
   captureEventBlueprint,
@@ -55,7 +56,7 @@ export const BlueprintCaptureRepoLive = Layer.effect(
     const destination = (actorId: string, organizationId: string) =>
       Effect.gen(function* () {
         const access =
-          yield* pg`SELECT id FROM member WHERE user_id = ${actorId} AND organization_id = ${organizationId} AND role = 'owner' FOR SHARE`
+          yield* pg`SELECT id FROM member WHERE user_id = ${actorId} AND organization_id = ${organizationId} AND ${ORGANIZATION_OWNER_ROLE} = ANY(string_to_array(role, ',')) FOR SHARE`
         if (!access.length) return yield* Effect.fail(forbidden())
       })
     const source = (actorId: string, eventId: string) =>

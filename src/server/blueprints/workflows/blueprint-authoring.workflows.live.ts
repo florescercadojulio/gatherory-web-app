@@ -3,10 +3,12 @@ import * as workflows from './blueprint-authoring.workflow'
 import { BlueprintAuthoringRepoLive } from '../repos/blueprint-authoring.repo.live'
 import { BlueprintPersistenceLive } from './blueprint.workflows.live'
 import { BetterAuthWorkspaceConLive } from '@/server/workspaces/connectors/better-auth.con.live'
+import { BlueprintCoverStorageLive } from '@/server/blueprint-media/blueprint-cover.storage.live'
 
 export const BlueprintAuthoringLive = Layer.mergeAll(
   BlueprintAuthoringRepoLive,
-  BlueprintPersistenceLive
+  BlueprintPersistenceLive,
+  BlueprintCoverStorageLive
 )
 export const getBlueprintAuthoringContext = (
   ...args: Parameters<typeof workflows.getBlueprintAuthoringContextWorkflow>

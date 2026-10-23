@@ -106,6 +106,11 @@ Workspace roles describe workspace administration:
 - **Admin** manages members and workspace resources according to policy.
 - **Member** works with resources made available inside the workspace.
 
+These remain the default workspace roles. The server also supports custom
+workspace roles assembled from its defined administration permissions; see
+[Dynamic workspace roles](dynamic-workspace-rbac.md). This foundation does not
+change event participation or introduce a new role editor in the V1 interface.
+
 The implementation calls this ownership boundary a **workspace**. The
 customer-facing interface uses **event**, **your events**, and **shared with
 you** because people come to Gatherory to plan an experience, not administer a

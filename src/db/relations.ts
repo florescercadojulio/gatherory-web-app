@@ -92,6 +92,10 @@ export const databaseRelations = defineRelationsPart(
         from: r.organization.id,
         to: r.invitation.organizationId,
       }),
+      roles: r.many.organizationRole({
+        from: r.organization.id,
+        to: r.organizationRole.organizationId,
+      }),
       events: r.many.event({
         from: r.organization.id,
         to: r.event.organizationId,
@@ -155,6 +159,12 @@ export const databaseRelations = defineRelationsPart(
       user: r.one.user({
         from: r.invitation.inviterId,
         to: r.user.id,
+      }),
+    },
+    organizationRole: {
+      organization: r.one.organization({
+        from: r.organizationRole.organizationId,
+        to: r.organization.id,
       }),
     },
     event: {
