@@ -24,15 +24,15 @@ Viewed are reference/history surfaces and do not use unseen-first ordering.
 
 ## Initial policy
 
-| Rule | Initial value |
-| --- | --- |
-| Meaningful view | At least 50% visible continuously for one second |
-| History | Device-local, exact account, at most 200 Blueprint keys |
-| History retention | 30 days; expired or future records are removed |
-| Context payload | At most 16,384 UTF-8 bytes; long histories use a bounded prefix |
-| Repeat cooldown | 24 hours; exactly 24 hours is cooled |
-| New browse session | Explicit refresh, or return after 30 minutes away |
-| Paging expiry | Existing ranked cursor expiry of 24 hours |
+| Rule               | Initial value                                                   |
+| ------------------ | --------------------------------------------------------------- |
+| Meaningful view    | At least 50% visible continuously for one second                |
+| History            | Device-local, exact account, at most 200 Blueprint keys         |
+| History retention  | 30 days; expired or future records are removed                  |
+| Context payload    | At most 16,384 UTF-8 bytes; long histories use a bounded prefix |
+| Repeat cooldown    | 24 hours; exactly 24 hours is cooled                            |
+| New browse session | Explicit refresh, or return after 30 minutes away               |
+| Paging expiry      | Existing ranked cursor expiry of 24 hours                       |
 
 Only active, uncovered browse cards count. Fetched pages, offscreen cards, ads,
 typed results, previews and Account overlays do not add seen entries. Local
@@ -98,11 +98,11 @@ views; the other 14 fetched cards remain unseen. Sessions use distinct seeds and
 frozen per-visit clocks. The baseline and candidate keep their own cumulative
 view histories.
 
-| Measure | Existing baseline | Unseen-first candidate |
-| --- | ---: | ---: |
-| Distinct top-ten items over five visits | 10 | 47 |
-| Top-ten already-viewed share, visits 2–5 | 60% | 0% |
-| First unseen rank, visits 2–5 | 7 | 1 |
+| Measure                                  | Existing baseline | Unseen-first candidate |
+| ---------------------------------------- | ----------------: | ---------------------: |
+| Distinct top-ten items over five visits  |                10 |                     47 |
+| Top-ten already-viewed share, visits 2–5 |               60% |                     0% |
+| First unseen rank, visits 2–5            |                 7 |                      1 |
 
 The first visit has no prior-view repeat denominator. These results assume
 unseen eligible inventory remains. Empty, tiny, all-seen/cooldown and changed
@@ -110,6 +110,10 @@ catalog cases are recorded separately. Full traversals contain no duplicates;
 unchanged frozen context produces identical ordering and valid continuation,
 whereas changed history invalidates the cursor. Exact typed search remains
 unchanged even when its best match has been seen and unrelated inventory is unseen.
+
+The [CI evaluation follow-up](../../release/discovery-evaluation-ci-2026-10-23.md)
+records the production workflow timeout, evaluation-only optimization, local
+verification and remote workflow result.
 
 Server validation passes 52 tests across six focused files, plus 33 measurement,
 action and baseline-evaluation regressions across three files. Typecheck,
