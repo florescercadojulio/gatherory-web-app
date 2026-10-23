@@ -20,6 +20,8 @@ const session = (
   startedAt = EVALUATION_AS_OF
 ): BlueprintDiscoverySessionContext => ({ version: 1, sessionId, startedAt, seen })
 
+// This fixture builds and fully pages 120 starter-derived entries across five visits.
+// Keep the suite's 5s default for ordinary tests while allowing slower shared CI runners.
 test('repeated visits reduce top-ten repeats while recording only meaningful exposure', () => {
   const report = evaluateRepeatedVisits(120, 5)
   expect(report.variedCreatorCount).toBe(15)
@@ -39,19 +41,27 @@ test('repeated visits reduce top-ten repeats while recording only meaningful exp
     expect(visit.baselineDuplicateCount).toBe(0)
     expect(visit.candidateDuplicateCount).toBe(0)
     expect(visit.candidateTop20).toHaveLength(FETCH_SIZE)
+    expect(visit.baselineTop20).toEqual(report.visitResults[0]?.baselineTop20)
     expect(visit.candidateTop20.slice(0, MEANINGFUL_VISIBLE_COUNT)).toHaveLength(
       MEANINGFUL_VISIBLE_COUNT
     )
     expect(visit.meaningfullyExposedKeys).toHaveLength(MEANINGFUL_VISIBLE_COUNT)
     expect(visit.fetchedButNotExposedCount).toBe(FETCH_SIZE - MEANINGFUL_VISIBLE_COUNT)
   }
+  expect(report.visitResults.map(({ candidate }) => candidate.repeatRateTop10)).toEqual([
+    null,
+    0,
+    0,
+    0,
+    0,
+  ])
   expect(report.paging).toEqual({
     stableSessionContinues: true,
     sameContextOrderStable: true,
     sameContextDuplicateCount: 0,
     changedHistoryReason: 'stale_cursor',
   })
-})
+}, 20_000)
 
 test('tiny, empty, all-seen cooldown, and changed-catalog fixtures remain bounded', () => {
   const boundary = evaluateFixtureBoundaries()

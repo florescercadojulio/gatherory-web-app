@@ -109,12 +109,14 @@ export function evaluateRepeatedVisits(count = 120, visits = 5) {
   const visitReports = []
   const distinctBaseline = new Set<string>()
   const distinctCandidate = new Set<string>()
+  // The baseline ranking has no session history and uses the fixed evaluation
+  // timestamp, so its complete cursor traversal is identical for every visit.
+  const baselineResult = fetchAll(catalog)
+  const baseline = baselineResult.keys
 
   for (let visit = 0; visit < visits; visit++) {
     const at = new Date(Date.parse(EVALUATION_AS_OF) + visit * hour).toISOString()
-    const baselineResult = fetchAll(catalog)
     const candidateResult = fetchAll(catalog, makeSession(visit + 1, at, seen))
-    const baseline = baselineResult.keys
     const candidate = candidateResult.keys
     const baselineMetrics = prefixMetrics(baseline, baselineSeen.size ? baselineSeen : undefined)
     const previouslyExposed = new Set(seen.map(({ catalogKey }) => catalogKey))
