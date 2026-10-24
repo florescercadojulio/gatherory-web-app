@@ -3,6 +3,7 @@ import {
   HeadContent,
   Scripts,
   createRootRouteWithContext,
+  redirect,
 } from '@tanstack/react-router'
 import { lazy, Suspense } from 'react'
 
@@ -11,6 +12,11 @@ import PostHogProvider from '../integrations/posthog/provider'
 import appCss from '../styles.css?url'
 import { Providers } from '@/components/providers'
 import { NotFoundPage } from '@/components/not-found-page'
+import {
+  publicBrowserDestination,
+  shouldGateBrowserPath,
+  TESTFLIGHT_BETA_URL,
+} from '@/lib/browser-beta-gate'
 
 import type { QueryClient } from '@tanstack/react-query'
 
@@ -23,6 +29,14 @@ const DevelopmentDevtools = import.meta.env.DEV
   : () => null
 
 export const Route = createRootRouteWithContext<MyRouterContext>()({
+  beforeLoad: ({ location }) => {
+    const publicDestination = publicBrowserDestination(location.pathname)
+    if (publicDestination) throw redirect({ href: publicDestination, replace: true })
+
+    if (shouldGateBrowserPath(location.pathname)) {
+      throw redirect({ href: TESTFLIGHT_BETA_URL, replace: true })
+    }
+  },
   head: () => ({
     meta: [
       {

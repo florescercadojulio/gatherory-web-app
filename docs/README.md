@@ -21,8 +21,11 @@ see the invitation and event details and respond with their RSVP. A main event
 can include related sub-events, such as a welcome dinner and reception.
 
 The first release is iPhone-first and offline-first, with changes synchronized
-when connected. The web app provides account management and a read-only planning
-companion, while this repository's server supports the shared event data.
+when connected. Browser login and planning pages are gated to the iPhone
+TestFlight beta; native APIs, public invitation/shared previews and password
+recovery remain available. This repository's server supports the shared event
+data. See the [beta feedback handoff](release/beta-feedback-2026-10-23.md) for
+implementation and verification details.
 Reusable templates, business planning packages, and private recurring experiences
 are future directions—not features promised in the current release.
 

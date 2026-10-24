@@ -1,0 +1,45 @@
+{
+  "preparedOn": "2026-10-23",
+  "locale": "en-US",
+  "sampleEvent": "Maya\u2019s Birthday Dinner",
+  "publication": "local_only_not_posted",
+  "sourceCaptureDate": "2026-10-22",
+  "sourceKind": "isolated Debug simulator preview; not verified against the current public TestFlight build",
+  "files": [
+    {
+      "file": "01-decide.jpg",
+      "source": "/Users/nexus/Documents/gatherory/gatherory-landing/docs/app-store-release/screenshots/en-US/03-decide.jpg",
+      "sha256": "b3dbc4a7d2d1f1a22fc7c9e020b933bc9ca1eb13de4fd08eae3264a59ce03116",
+      "bytes": 473987,
+      "format": "JPEG",
+      "width": 1206,
+      "height": 2622,
+      "status": "selected_existing_artwork",
+      "pixelEdits": false
+    },
+    {
+      "file": "02-manage.jpg",
+      "source": "/Users/nexus/Documents/gatherory/gatherory-landing/docs/app-store-release/screenshots/en-US/04-manage.jpg",
+      "sha256": "fb2694e8ce9d2c7e77dfa71933862e7b2bef0d0f9e9dfe2d1b370569d456f2d7",
+      "bytes": 336380,
+      "format": "JPEG",
+      "width": 1206,
+      "height": 2622,
+      "status": "selected_existing_artwork",
+      "pixelEdits": false
+    }
+  ],
+  "referenceFiles": [
+    {
+      "file": "reference-only/2026-10-23-decide-current-source.png",
+      "sha256": "26171d33fb59a979831f67ce30570acc1c63268e060fe7bf76d797405ce02d82",
+      "bytes": 3137787,
+      "format": "PNG",
+      "width": 1206,
+      "height": 2622,
+      "status": "comparison_only_not_selected",
+      "sourceNativeCommit": "abc7091c3c9471105d6ed0eba64490852352657b",
+      "sourceKind": "fresh isolated Debug simulator capture on 2026-10-23"
+    }
+  ]
+}

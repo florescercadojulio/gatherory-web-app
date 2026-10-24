@@ -4,6 +4,10 @@ Marketing strategy, positioning, acquisition experiments, and public-site briefs
 
 - [Launch strategy](launch-strategy.md): first audience, positioning, acquisition
   priorities, landing-page recommendations, four-week launch plan, and metrics.
+- [Reddit beta drafts](reddit-beta/README.md): tailored posts for r/TestFlight,
+  r/alphaandbetausers, and r/SideProject, with community guidance and asset notes.
+- [LinkedIn beta post](linkedin-beta.md): founder launch announcement and
+  suggested product images; local draft only, not uploaded or published.
 - [Landing prototype handoff](../../../gatherory-landing/docs/launch-prototype.md):
   October 21 local hero/CTA implementation, English/Spanish iPhone pages,
   simulator assets, validation, and remaining launch work.
