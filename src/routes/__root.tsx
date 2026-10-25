@@ -12,11 +12,7 @@ import PostHogProvider from '../integrations/posthog/provider'
 import appCss from '../styles.css?url'
 import { Providers } from '@/components/providers'
 import { NotFoundPage } from '@/components/not-found-page'
-import {
-  publicBrowserDestination,
-  shouldGateBrowserPath,
-  TESTFLIGHT_BETA_URL,
-} from '@/lib/browser-beta-gate'
+import { publicBrowserDestination } from '@/lib/browser-beta-gate'
 
 import type { QueryClient } from '@tanstack/react-query'
 
@@ -32,10 +28,6 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
   beforeLoad: ({ location }) => {
     const publicDestination = publicBrowserDestination(location.pathname)
     if (publicDestination) throw redirect({ href: publicDestination, replace: true })
-
-    if (shouldGateBrowserPath(location.pathname)) {
-      throw redirect({ href: TESTFLIGHT_BETA_URL, replace: true })
-    }
   },
   head: () => ({
     meta: [

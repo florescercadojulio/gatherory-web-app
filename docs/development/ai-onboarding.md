@@ -8,9 +8,10 @@ conversation, then inspect the repositories relevant to the requested task.
 Gatherory helps hosts, collaborators, and guests plan events together. The
 current product includes event invitations and RSVPs, shared ideas, individual
 preferences through Decide, schedules, budgets, notes, and media. iPhone is the
-primary planning experience. During the beta, browser login and planning pages
-redirect to the public TestFlight invite; native APIs, invitation/shared previews
-and password recovery remain available. See the
+primary planning experience. Web access is enabled again as of the October 25
+source update: browser login and planning routes use their ordinary session and
+event permissions. Legal and support pages still open on the public landing site.
+See the [web access release](../release/web-access-2026-10-25.md) and the historical
 [October 23 beta feedback handoff](../release/beta-feedback-2026-10-23.md).
 Public guides and marketing belong to the landing site.
 
