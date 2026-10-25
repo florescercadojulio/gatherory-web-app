@@ -131,6 +131,7 @@ export function SignIn({ className, socialLayout, socialPosition = 'bottom' }: S
           {emailAndPassword?.enabled && (
             <form.AppForm>
               <form.AuthFormRoot>
+                <form.AuthFormServerError />
                 <FieldGroup className="auth-signin-fields">
                   <form.AppField
                     name="email"
