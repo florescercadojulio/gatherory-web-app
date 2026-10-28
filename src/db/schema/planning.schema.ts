@@ -17,7 +17,7 @@ import {
 } from 'drizzle-orm/pg-core'
 
 import { organization, user } from './auth.schema'
-import { event, eventPlanningPermission } from './event.schema'
+import { event, eventGuestProfile, eventPlanningPermission } from './event.schema'
 
 export const ideaCategory = pgEnum('idea_category', [
   'event',
@@ -388,8 +388,10 @@ export const registryCommitment = pgTable(
       .notNull()
       .references(() => registryItem.id, { onDelete: 'cascade' }),
     userId: text('user_id')
-      .notNull()
       .references(() => user.id, { onDelete: 'cascade' }),
+    guestProfileId: uuid('guest_profile_id').references(() => eventGuestProfile.id, {
+      onDelete: 'cascade',
+    }),
     quantity: integer('quantity').default(1).notNull(),
     status: registryCommitmentStatus('status').default('active').notNull(),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
@@ -399,8 +401,51 @@ export const registryCommitment = pgTable(
       .notNull(),
   },
   (table) => [
-    uniqueIndex('registry_commitment_item_user_uidx').on(table.registryItemId, table.userId),
+    uniqueIndex('registry_commitment_item_user_uidx')
+      .on(table.registryItemId, table.userId)
+      .where(sql`${table.userId} is not null`),
+    uniqueIndex('registry_commitment_item_guest_uidx')
+      .on(table.registryItemId, table.guestProfileId)
+      .where(sql`${table.guestProfileId} is not null`),
     index('registry_commitment_user_id_idx').on(table.userId),
+    index('registry_commitment_guest_profile_id_idx').on(table.guestProfileId),
+    check(
+      'registry_commitment_exact_actor_check',
+      sql`(${table.userId} is not null and ${table.guestProfileId} is null) or (${table.userId} is null and ${table.guestProfileId} is not null)`
+    ),
     check('registry_commitment_quantity_check', sql`${table.quantity} > 0`),
+  ]
+)
+
+/** Durable idempotency receipt for public registry reserve/cancel operations. */
+export const registryReservationRequest = pgTable(
+  'registry_reservation_request',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    userId: text('user_id').references(() => user.id, { onDelete: 'cascade' }),
+    guestProfileId: uuid('guest_profile_id').references(() => eventGuestProfile.id, {
+      onDelete: 'cascade',
+    }),
+    requestId: uuid('request_id').notNull(),
+    registryItemId: uuid('registry_item_id')
+      .notNull()
+      .references(() => registryItem.id, { onDelete: 'cascade' }),
+    requestHash: text('request_hash').notNull(),
+    result: jsonb('result').$type<Record<string, unknown>>().notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex('registry_reservation_request_user_request_uidx')
+      .on(table.userId, table.requestId)
+      .where(sql`${table.userId} is not null`),
+    uniqueIndex('registry_reservation_request_guest_request_uidx')
+      .on(table.guestProfileId, table.requestId)
+      .where(sql`${table.guestProfileId} is not null`),
+    index('registry_reservation_request_item_created_idx').on(table.registryItemId, table.createdAt),
+    check(
+      'registry_reservation_request_exact_actor_check',
+      sql`(${table.userId} is not null and ${table.guestProfileId} is null) or (${table.userId} is null and ${table.guestProfileId} is not null)`
+    ),
+    check('registry_reservation_request_hash_check', sql`${table.requestHash} ~ '^[0-9a-f]{64}$'`),
   ]
 )

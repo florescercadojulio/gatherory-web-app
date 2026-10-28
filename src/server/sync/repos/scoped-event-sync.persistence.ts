@@ -262,7 +262,12 @@ async function authorizeMutation(
 /** Called under the same root lock and one-mutation transaction as root writes. */
 export async function applyScopedEventMutation(
   locked: Transaction,
-  input: { userId: string; mutation: NativeMutation; rootId: string }
+  input: {
+    userId: string
+    mutation: NativeMutation
+    rootId: string
+    mcpFingerprint?: string | null
+  }
 ): Promise<NativePushResult> {
   const { mutation, userId } = input
   const result = (
@@ -275,6 +280,9 @@ export async function applyScopedEventMutation(
       const actor = await scopedEventActor(tx, mutation.scopeID, userId)
       if (!actor || actor.event.parentEventId !== input.rootId) forbidden('SCOPE_WRITE_FORBIDDEN')
       if (actor.planningPermission === 'view_only') forbidden('SCOPE_READ_ONLY')
+      const mcpPayload = input.mcpFingerprint
+        ? await authorizeMutation(tx, actor, mutation, userId)
+        : null
       const [receipt] = await tx
         .select()
         .from(nativeSyncMutationReceipt)
@@ -283,6 +291,12 @@ export async function applyScopedEventMutation(
       if (receipt) {
         if (receipt.ownerUserId !== userId || receipt.scopeId !== mutation.scopeID)
           return result('rejected', null, 'MUTATION_ID_OWNERSHIP_MISMATCH')
+        if (receipt.mcpFingerprint !== (input.mcpFingerprint ?? null))
+          return result(
+            'rejected',
+            null,
+            input.mcpFingerprint ? 'MCP_IDEMPOTENCY_KEY_REUSED' : 'MUTATION_ID_OWNERSHIP_MISMATCH'
+          )
         return result(
           receipt.disposition === 'applied'
             ? 'duplicate'
@@ -293,7 +307,7 @@ export async function applyScopedEventMutation(
           receipt.failureCode
         )
       }
-      const payload = await authorizeMutation(tx, actor, mutation, userId)
+      const payload = mcpPayload ?? (await authorizeMutation(tx, actor, mutation, userId))
       const [snapshot] = await tx
         .select()
         .from(nativeWorkspaceSnapshot)
@@ -342,6 +356,7 @@ export async function applyScopedEventMutation(
           disposition: 'conflict',
           serverVersion: existing.serverVersion,
           failureCode: 'SERVER_VERSION_CONFLICT',
+          mcpFingerprint: input.mcpFingerprint ?? null,
         })
         return result('conflict', existing.serverVersion, 'SERVER_VERSION_CONFLICT')
       }
@@ -461,6 +476,7 @@ export async function applyScopedEventMutation(
         scopeId: mutation.scopeID,
         disposition: 'applied',
         serverVersion,
+        mcpFingerprint: input.mcpFingerprint ?? null,
       })
       return result('applied', serverVersion, null)
     })
@@ -477,6 +493,7 @@ export async function applyScopedEventMutation(
         scopeId: mutation.scopeID,
         disposition: 'rejected',
         failureCode,
+        mcpFingerprint: input.mcpFingerprint ?? null,
       })
       .onConflictDoNothing()
     return result('rejected', null, failureCode)

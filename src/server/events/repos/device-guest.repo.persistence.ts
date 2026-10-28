@@ -1,6 +1,6 @@
 import { createHash, timingSafeEqual } from 'node:crypto'
 import { PgClient } from '@effect/sql-pg/PgClient'
-import { and, eq, isNull, sql } from 'drizzle-orm'
+import { and, eq, inArray, isNull, sql } from 'drizzle-orm'
 import { Effect } from 'effect'
 import { DB } from '@/db'
 import {
@@ -18,6 +18,7 @@ import {
   nativeSyncEntity,
   nativeWorkspaceSnapshot,
 } from '@/db/schema/sync.schema'
+import { registryCommitment, registryItem } from '@/db/schema/planning.schema'
 import { hasEventPermission, planningPermissionFromDatabase } from '@/lib/permissions'
 import { ConflictError, EntityNotFoundError, ForbiddenError } from '@/server/effect'
 import { getEventParticipant } from './event.repo.persistence'
@@ -283,7 +284,7 @@ export function registerDeviceGuestProfile(input: {
   })
 }
 
-function lockAuthenticatedGuestProfile(
+export function lockAuthenticatedGuestProfile(
   db: Effect.Success<typeof DB>,
   id: string,
   credential: string
@@ -547,6 +548,22 @@ export function leaveDeviceGuestEvent(input: {
           .for('update', { of: eventParticipant })
         if (!participation) return { eventId: input.eventId }
         yield* db.delete(eventParticipant).where(eq(eventParticipant.id, participation.id))
+        const committedItems = yield* db.select({ id: registryCommitment.id, itemId: registryItem.id })
+          .from(registryCommitment)
+          .innerJoin(registryItem, eq(registryItem.id, registryCommitment.registryItemId))
+          .where(and(
+            eq(registryCommitment.guestProfileId, profile.id),
+            eq(registryItem.eventId, input.eventId),
+          ))
+        for (const itemId of [...new Set(committedItems.map((row) => row.itemId))].sort())
+          yield* db.select({ id: registryItem.id }).from(registryItem)
+            .where(eq(registryItem.id, itemId)).for('update')
+        if (committedItems.length > 0)
+          yield* db.update(registryCommitment).set({ status: 'cancelled', updatedAt: new Date() })
+            .where(and(
+              eq(registryCommitment.guestProfileId, profile.id),
+              inArray(registryCommitment.id, committedItems.map((row) => row.id)),
+            ))
         yield* publishGuestParticipant(db, {
           scopeId: scope.parentId ?? input.eventId,
           participationId: participation.id,
@@ -598,9 +615,16 @@ export function claimDeviceGuestProfile(input: {
           .innerJoin(eventParticipant, eq(eventParticipant.personId, workspacePerson.id))
           .innerJoin(event, eq(event.id, eventParticipant.eventId))
           .where(eq(workspacePerson.guestProfileId, profile.id))
-        const rootIds = [...new Set(initialEvents.map((row) => row.parentId ?? row.eventId))].sort()
+        const initialRegistryReservations = yield* db
+          .select({ eventId: registryItem.eventId, parentId: event.parentEventId, itemId: registryItem.id })
+          .from(registryCommitment)
+          .innerJoin(registryItem, eq(registryItem.id, registryCommitment.registryItemId))
+          .innerJoin(event, eq(event.id, registryItem.eventId))
+          .where(eq(registryCommitment.guestProfileId, profile.id))
+        const allInitialEvents = [...initialEvents, ...initialRegistryReservations]
+        const rootIds = [...new Set(allInitialEvents.map((row) => row.parentId ?? row.eventId))].sort()
         const childIds = [
-          ...new Set(initialEvents.flatMap((row) => (row.parentId ? [row.eventId] : []))),
+          ...new Set(allInitialEvents.flatMap((row) => (row.parentId ? [row.eventId] : []))),
         ].sort()
         for (const rootId of rootIds)
           yield* db.select({ id: event.id }).from(event).where(eq(event.id, rootId)).for('update')
@@ -612,6 +636,54 @@ export function claimDeviceGuestProfile(input: {
             .from(nativeWorkspaceSnapshot)
             .where(eq(nativeWorkspaceSnapshot.scopeId, rootId))
             .for('update')
+
+        const registryItemIds = [...new Set(initialRegistryReservations.map((row) => row.itemId))].sort()
+        for (const itemId of registryItemIds)
+          yield* db.select({ id: registryItem.id }).from(registryItem)
+            .where(eq(registryItem.id, itemId)).for('update')
+
+        // Move public registry commitments together with the guest identity.
+        // Lock ordering is stable by item ID and matches reservation writes.
+        const guestCommitments = yield* db.select().from(registryCommitment)
+          .where(eq(registryCommitment.guestProfileId, profile.id)).for('update')
+        for (const commitment of guestCommitments) {
+          const [item] = yield* db.select({ quantity: registryItem.quantity })
+            .from(registryItem).where(eq(registryItem.id, commitment.registryItemId)).limit(1)
+          const [accountCommitment] = yield* db.select().from(registryCommitment)
+            .where(and(
+              eq(registryCommitment.registryItemId, commitment.registryItemId),
+              eq(registryCommitment.userId, input.userId),
+              isNull(registryCommitment.guestProfileId),
+            )).limit(1).for('update')
+          if (!accountCommitment) {
+            yield* db.update(registryCommitment).set({
+              userId: input.userId,
+              guestProfileId: null,
+              updatedAt: new Date(),
+            }).where(eq(registryCommitment.id, commitment.id))
+            continue
+          }
+          const mergedQuantity = accountCommitment.status === 'active' && commitment.status === 'active'
+            ? accountCommitment.quantity + commitment.quantity
+            : accountCommitment.status === 'active'
+              ? accountCommitment.quantity
+              : commitment.status === 'active'
+                ? commitment.quantity
+                : accountCommitment.quantity
+          if (accountCommitment.status === 'active' && commitment.status === 'active' &&
+            (!item || mergedQuantity > item.quantity))
+            return yield* Effect.fail(new ConflictError({
+              category: 'conflict',
+              code: 'REGISTRY_CLAIM_CAPACITY_CONFLICT',
+              userMessageKey: 'serverErrors.CONFLICT',
+            }))
+          yield* db.update(registryCommitment).set({
+            quantity: mergedQuantity,
+            status: accountCommitment.status === 'active' || commitment.status === 'active' ? 'active' : 'cancelled',
+            updatedAt: new Date(),
+          }).where(eq(registryCommitment.id, accountCommitment.id))
+          yield* db.delete(registryCommitment).where(eq(registryCommitment.id, commitment.id))
+        }
 
         const guestPeople = yield* db
           .select({

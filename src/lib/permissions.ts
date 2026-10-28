@@ -17,7 +17,8 @@ export const eventPermissionStatement = {
   timeline: ['read', 'manage'],
   registry: ['read', 'manage', 'commit'],
   media: ['read', 'upload', 'manage'],
-  note: ['send'],
+  note: ['read', 'send'],
+  todo: ['read', 'create', 'update'],
   attendance: ['respond'],
 } as const
 
@@ -29,6 +30,8 @@ const viewerStatements = {
   timeline: ['read'],
   registry: ['read', 'commit'],
   media: ['read'],
+  note: ['read'],
+  todo: ['read'],
   attendance: ['respond'],
 } as const
 
@@ -38,7 +41,8 @@ const contributorStatements = {
   idea: ['read', 'create', 'update', 'decide'],
   timeline: ['read', 'manage'],
   media: ['read', 'upload'],
-  note: ['send'],
+  note: ['read', 'send'],
+  todo: ['read', 'create', 'update'],
 } as const
 
 const managerStatements = {
@@ -80,6 +84,10 @@ export function hasEventPermission(
   participant: EventParticipantAccess,
   permissions: EventPermissions
 ) {
+  // Tasks are planning content. Attending an event never grants task access.
+  if (permissions.todo && participant.role === 'guest') return false
+  // Guests can read event details, but not private Planning history.
+  if (permissions.note?.includes('read') && participant.role === 'guest') return false
   const role = eventAccessRoles[eventAccessRoleForParticipant(participant)]
   return role.authorize(permissions).success === true
 }

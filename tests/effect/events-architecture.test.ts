@@ -17,6 +17,8 @@ it.effect('EventSharingServiceLive delegates preview through the injected reposi
   const preview = {
     title: 'Family dinner',
     startsAt: null,
+    timeZone: 'America/Detroit',
+    isAllDay: false,
     locationName: null,
     role: 'guest',
     status: 'pending',

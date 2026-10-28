@@ -18,6 +18,8 @@ test('the root route allows ordinary web app and native routes through', () => {
     '/api/auth/reset-password',
     '/api/auth/apple-token',
     '/.well-known/apple-app-site-association',
+    '/mcp/connect',
+    '/mcp/consent',
   ]) {
     expect(() =>
       beforeLoad?.({ location: { pathname } } as Parameters<NonNullable<typeof beforeLoad>>[0])

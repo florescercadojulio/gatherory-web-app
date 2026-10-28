@@ -23,6 +23,7 @@ import {
   prepareOrganizationForCreation,
 } from '@/lib/organization-contract'
 import { runInBackground } from '@/lib/background-tasks'
+import { createMcpAuthPlugins } from '@/server/mcp/auth-config'
 import {
   scheduleEmailOtp,
   scheduleMagicLinkEmail,
@@ -125,6 +126,7 @@ export const auth = betterAuth({
   baseURL: env.BETTER_AUTH_URL,
   secret: env.BETTER_AUTH_SECRET,
   trustedOrigins: [new URL(env.BETTER_AUTH_URL).origin, 'https://appleid.apple.com'],
+  ...(env.MCP_ENABLED ? { disabledPaths: ['/token'] } : {}),
   database: drizzleAdapter(db, {
     provider: 'pg',
     schema: authSchema,
@@ -149,6 +151,22 @@ export const auth = betterAuth({
     },
   },
   account: { encryptOAuthTokens: true },
+  // These are supplied by the organization plugin. Declaring them here keeps
+  // session inference stable when the optional MCP plugin tuple is disabled.
+  session: {
+    additionalFields: {
+      activeOrganizationId: {
+        type: 'string',
+        required: false,
+        input: false,
+      },
+      activeTeamId: {
+        type: 'string',
+        required: false,
+        input: false,
+      },
+    },
+  },
   emailAndPassword: {
     enabled: true,
     requireEmailVerification: true,
@@ -188,6 +206,7 @@ export const auth = betterAuth({
     },
   },
   plugins: [
+    ...(env.MCP_ENABLED ? createMcpAuthPlugins(env.BETTER_AUTH_URL) : []),
     i18n({
       defaultLocale: 'en',
       translations: {

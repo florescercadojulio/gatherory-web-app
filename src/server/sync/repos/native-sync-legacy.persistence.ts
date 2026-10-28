@@ -3,6 +3,10 @@ import { and, asc, eq, gt, inArray, isNull, isNotNull, sql } from 'drizzle-orm'
 import { db } from '@/db'
 import { user } from '@/db/schema/auth.schema'
 import { event, eventParticipant, workspacePerson } from '@/db/schema/event.schema'
+import {
+  assertMcpRootMutationAccess,
+  completeMcpChildCreation,
+} from './mcp-mutation-access.persistence'
 import { eventExperienceConfiguration, eventGuideSection } from '@/db/schema/blueprint.schema'
 import {
   nativeSyncChange,
@@ -345,6 +349,7 @@ async function assertBlueprintCapabilityForScopes(input: {
 export async function applyNativeMutations(input: {
   userId: string
   mutations: NativeMutation[]
+  requestFingerprints?: Record<string, string>
   supportsBlueprintGuides?: boolean
   supportsTodos?: boolean
 }) {
@@ -379,6 +384,15 @@ export async function applyNativeMutations(input: {
   const resultsByMutationId = new Map<string, NativePushResult>()
 
   for (const mutation of input.mutations.toSorted(compareNativeMutationOrder)) {
+    const mcpFingerprint = input.requestFingerprints?.[mutation.id] ?? null
+    const reject = (
+      transaction: NativeSyncTransaction,
+      failure: { userId: string; mutation: NativeMutation; failureCode: string }
+    ) => recordRejectedMutation(transaction, { ...failure, mcpFingerprint })
+    const conflict = (
+      transaction: NativeSyncTransaction,
+      details: { userId: string; mutation: NativeMutation; serverVersion: number }
+    ) => recordConflictingMutation(transaction, { ...details, mcpFingerprint })
     const [targetEvent] = await db
       .select({ parentId: event.parentEventId })
       .from(event)
@@ -404,7 +418,12 @@ export async function applyNativeMutations(input: {
           .from(event)
           .where(eq(event.id, mutation.scopeID))
           .for('update')
-        return applyScopedEventMutation(locked, { userId: input.userId, mutation, rootId })
+        return applyScopedEventMutation(locked, {
+          userId: input.userId,
+          mutation,
+          rootId,
+          mcpFingerprint,
+        })
       }
       try {
         return await locked.transaction(async (transaction) => {
@@ -413,6 +432,41 @@ export async function applyNativeMutations(input: {
             .from(nativeSyncMutationReceipt)
             .where(eq(nativeSyncMutationReceipt.mutationId, mutation.id))
             .limit(1)
+          const [snapshot] = await transaction
+            .select()
+            .from(nativeWorkspaceSnapshot)
+            .where(eq(nativeWorkspaceSnapshot.scopeId, mutation.scopeID))
+            .limit(1)
+            .for('update')
+
+          let currentRole: Awaited<ReturnType<typeof scopeRole>> = null
+          if (snapshot) {
+            currentRole = await scopeRole(transaction, {
+              scopeId: mutation.scopeID,
+              userId: input.userId,
+              legacyOwnerUserId: snapshot.ownerUserId,
+            })
+            if (!currentRole || currentRole === 'viewer') {
+              if (receipt)
+                return {
+                  mutationID: mutation.id,
+                  disposition: 'rejected',
+                  serverVersion: null,
+                  failureCode: 'SCOPE_WRITE_FORBIDDEN',
+                } satisfies NativePushResult
+              return reject(transaction, {
+                userId: input.userId,
+                mutation,
+                failureCode: 'SCOPE_WRITE_FORBIDDEN',
+              })
+            }
+          }
+
+          await assertMcpRootMutationAccess(transaction, {
+            userId: input.userId,
+            mutation,
+            fingerprint: mcpFingerprint,
+          })
 
           if (receipt) {
             if (receipt.ownerUserId !== input.userId || receipt.scopeId !== mutation.scopeID) {
@@ -423,11 +477,26 @@ export async function applyNativeMutations(input: {
                 failureCode: 'MUTATION_ID_OWNERSHIP_MISMATCH',
               } satisfies NativePushResult
             }
-
+            if (receipt.mcpFingerprint !== mcpFingerprint) {
+              return {
+                mutationID: mutation.id,
+                disposition: 'rejected',
+                serverVersion: null,
+                failureCode: mcpFingerprint
+                  ? 'MCP_IDEMPOTENCY_KEY_REUSED'
+                  : 'MUTATION_ID_OWNERSHIP_MISMATCH',
+              } satisfies NativePushResult
+            }
+            if (!snapshot || !currentRole) {
+              return {
+                mutationID: mutation.id,
+                disposition: 'rejected',
+                serverVersion: null,
+                failureCode: 'SCOPE_WRITE_FORBIDDEN',
+              } satisfies NativePushResult
+            }
             return {
               mutationID: mutation.id,
-              // A repeated conflict/rejection is not an acknowledgement. Otherwise
-              // a retry would cause iOS to delete an edit the server never applied.
               disposition:
                 receipt.disposition === 'applied'
                   ? 'duplicate'
@@ -439,26 +508,7 @@ export async function applyNativeMutations(input: {
             } satisfies NativePushResult
           }
 
-          const [snapshot] = await transaction
-            .select()
-            .from(nativeWorkspaceSnapshot)
-            .where(eq(nativeWorkspaceSnapshot.scopeId, mutation.scopeID))
-            .limit(1)
-            .for('update')
-
           if (snapshot) {
-            const role = await scopeRole(transaction, {
-              scopeId: mutation.scopeID,
-              userId: input.userId,
-              legacyOwnerUserId: snapshot.ownerUserId,
-            })
-            if (!role || role === 'viewer') {
-              return recordRejectedMutation(transaction, {
-                userId: input.userId,
-                mutation,
-                failureCode: 'SCOPE_WRITE_FORBIDDEN',
-              })
-            }
             if (['participant', 'event_participation'].includes(mutation.entityType)) {
               const [actor] = await transaction
                 .select({
@@ -484,7 +534,7 @@ export async function applyNativeMutations(input: {
                       .limit(1)
                   : []
               if (!actor || !nativeIdentityWriteAllowed({ mutation, actor, participation })) {
-                return recordRejectedMutation(transaction, {
+                return reject(transaction, {
                   userId: input.userId,
                   mutation,
                   failureCode: 'EVENT_PERMISSION_REQUIRED',
@@ -492,11 +542,11 @@ export async function applyNativeMutations(input: {
               }
             }
             if (
-              role !== 'owner' &&
+              currentRole !== 'owner' &&
               mutation.entityType === 'workspace' &&
               mutation.operation === 'delete'
             ) {
-              return recordRejectedMutation(transaction, {
+              return reject(transaction, {
                 userId: input.userId,
                 mutation,
                 failureCode: 'SCOPE_DELETE_FORBIDDEN',
@@ -514,7 +564,7 @@ export async function applyNativeMutations(input: {
               mutation.baseVersion != null &&
               mutation.baseVersion !== snapshot.serverVersion
             ) {
-              return recordConflictingMutation(transaction, {
+              return conflict(transaction, {
                 userId: input.userId,
                 mutation,
                 serverVersion: snapshot.serverVersion,
@@ -594,7 +644,7 @@ export async function applyNativeMutations(input: {
                 })
           } else {
             if (!snapshot || snapshot.isDeleted) {
-              return recordRejectedMutation(transaction, {
+              return reject(transaction, {
                 userId: input.userId,
                 mutation,
                 failureCode: 'SYNC_SCOPE_NOT_FOUND',
@@ -613,10 +663,34 @@ export async function applyNativeMutations(input: {
               )
               .limit(1)
 
+            if (mcpFingerprint && ['idea', 'event', 'note'].includes(mutation.entityType)) {
+              if (entity?.isDeleted) {
+                return reject(transaction, {
+                  userId: input.userId,
+                  mutation,
+                  failureCode: 'ENTITY_DELETED',
+                })
+              }
+              if (!entity && mutation.operation !== 'create') {
+                return reject(transaction, {
+                  userId: input.userId,
+                  mutation,
+                  failureCode: 'IDEA_NOT_FOUND',
+                })
+              }
+              if (entity && mutation.operation === 'create') {
+                return conflict(transaction, {
+                  userId: input.userId,
+                  mutation,
+                  serverVersion: entity.serverVersion,
+                })
+              }
+            }
+
             // Reject even another delete: replacing this marker with an ordinary
             // empty tombstone would allow a later unversioned create to resurrect it.
             if (entity?.isDeleted && entity.payload === deletedAccountTombstone) {
-              return recordRejectedMutation(transaction, {
+              return reject(transaction, {
                 userId: input.userId,
                 mutation,
                 failureCode: 'PARTICIPANT_ACCOUNT_DELETED',
@@ -624,25 +698,25 @@ export async function applyNativeMutations(input: {
             }
             if (mutation.entityType === 'todo') {
               if (!entity && mutation.operation !== 'create')
-                return recordRejectedMutation(transaction, {
+                return reject(transaction, {
                   userId: input.userId,
                   mutation,
                   failureCode: 'TODO_NOT_FOUND',
                 })
               if (entity?.isDeleted)
-                return recordRejectedMutation(transaction, {
+                return reject(transaction, {
                   userId: input.userId,
                   mutation,
                   failureCode: 'TODO_DELETED',
                 })
               if (mutation.operation !== 'create' && mutation.baseVersion == null)
-                return recordRejectedMutation(transaction, {
+                return reject(transaction, {
                   userId: input.userId,
                   mutation,
                   failureCode: 'TODO_VERSION_REQUIRED',
                 })
               if (entity && mutation.operation === 'create')
-                return recordConflictingMutation(transaction, {
+                return conflict(transaction, {
                   userId: input.userId,
                   mutation,
                   serverVersion: entity.serverVersion,
@@ -653,7 +727,7 @@ export async function applyNativeMutations(input: {
               mutation.baseVersion != null &&
               mutation.baseVersion !== entity.serverVersion
             ) {
-              return recordConflictingMutation(transaction, {
+              return conflict(transaction, {
                 userId: input.userId,
                 mutation,
                 serverVersion: entity.serverVersion,
@@ -670,7 +744,7 @@ export async function applyNativeMutations(input: {
                 userId: input.userId,
               })
               if (!authorized) {
-                return recordRejectedMutation(transaction, {
+                return reject(transaction, {
                   userId: input.userId,
                   mutation,
                   failureCode: 'EVENT_PERMISSION_REQUIRED',
@@ -698,6 +772,17 @@ export async function applyNativeMutations(input: {
               mutation,
               organizationId: snapshot.organizationId,
             })
+            if (
+              mcpFingerprint &&
+              mutation.entityType === 'event' &&
+              mutation.operation === 'create'
+            ) {
+              payload = await completeMcpChildCreation(transaction, {
+                userId: input.userId,
+                mutation,
+                organizationId: snapshot.organizationId,
+              })
+            }
             if (mutation.entityType === 'todo' && !isDeleted) {
               await captureNativeTodoAssignmentNotification(transaction, {
                 mutationId: mutation.id,
@@ -787,6 +872,7 @@ export async function applyNativeMutations(input: {
             scopeId: mutation.scopeID,
             disposition: 'applied',
             serverVersion,
+            mcpFingerprint,
           })
 
           if (!isDeleted) {
@@ -807,7 +893,7 @@ export async function applyNativeMutations(input: {
         if (!(error instanceof NativeMaterializationError)) throw error
         // The savepoint rolls back partial materialization, while the outer
         // transaction retains its locks through recording the failed receipt.
-        return recordRejectedMutation(locked, {
+        return reject(locked, {
           userId: input.userId,
           mutation,
           failureCode: error.code,
@@ -829,6 +915,7 @@ async function recordConflictingMutation(
     userId: string
     mutation: NativeMutation
     serverVersion: number
+    mcpFingerprint?: string | null
   }
 ) {
   await transaction.insert(nativeSyncMutationReceipt).values({
@@ -838,6 +925,7 @@ async function recordConflictingMutation(
     disposition: 'conflict',
     serverVersion: input.serverVersion,
     failureCode: 'SERVER_VERSION_CONFLICT',
+    mcpFingerprint: input.mcpFingerprint ?? null,
   })
   return {
     mutationID: input.mutation.id,
@@ -853,6 +941,7 @@ async function recordRejectedMutation(
     userId: string
     mutation: NativeMutation
     failureCode: string
+    mcpFingerprint?: string | null
   }
 ) {
   await transaction.insert(nativeSyncMutationReceipt).values({
@@ -861,6 +950,7 @@ async function recordRejectedMutation(
     scopeId: input.mutation.scopeID,
     disposition: 'rejected',
     failureCode: input.failureCode,
+    mcpFingerprint: input.mcpFingerprint ?? null,
   })
 
   return {

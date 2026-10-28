@@ -55,7 +55,8 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
     links: [
       {
         rel: 'stylesheet',
-        href: appCss,
+        // The tunnel may cache unversioned development CSS; release assets are hashed by Vite.
+        href: import.meta.env.DEV ? `${appCss}?v=20261025-event-overview-final` : appCss,
       },
       {
         rel: 'icon',

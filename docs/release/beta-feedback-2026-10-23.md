@@ -1,8 +1,20 @@
-# Beta feedback: dates, contrast and browser access
+# Beta feedback: dates, contrast and browser access (October 23 record)
 
-Implementation date: October 23, 2026. These changes require a new native build
-and web deployment; they are not included in the already-uploaded TestFlight
-build 5. No database migration or reset is required.
+Implementation date: October 23, 2026. The native date/contrast changes below
+are included in TestFlight build 6. The later release audit also verified the
+browser beta gate in production at that time. That browser policy was reversed
+on October 25; see the dated update at the end. The historical checks below do
+not describe the current source policy or prove the reversal is deployed.
+No database migration or reset was required for the changes recorded here.
+
+The [subsequent release readiness audit](../../../ios-apps/gatherory/docs/release-readiness-audit-2026-10-23.md)
+found another date boundary in incoming invitation previews. Both share-link
+and private email previews now return additive `timeZone`/`isAllDay` metadata
+from existing columns; the public `/join` page formats in that event zone and
+omits time for all-day events. The corresponding native decoder supports older
+responses. These later working-tree fixes need the backend deployment plus a
+new native build; no rollout is implied. The audit records the post-fix 839-test
+web suite, isolated database/HTTP checks and remaining provider/device limits.
 
 ## Event dates
 
@@ -30,7 +42,7 @@ Managers retain the existing participant editor; this visual fix grants no
 additional access or editing capability. UI fixtures use synthetic people and
 events, with a DEBUG-only read-only viewer flag and ephemeral storage.
 
-## Browser beta gate
+## Historical browser beta gate — October 23, 2026
 
 The root route redirects browser login, signup and planning pages, including
 navigation with an existing session, to
@@ -54,8 +66,10 @@ also retain their existing handlers. Provider credentials, auth authorization
 and API permissions were not changed. This is a browser product gate, not an
 API shutdown or user-agent check.
 
-To reopen web planning later, remove the root route's beta redirect deliberately
-and update these docs; no environment switch or mobile bypass token was added.
+At the time of this October 23 decision, reopening web planning was expected to
+require removing the root route's beta redirect deliberately; no environment
+switch or mobile bypass token was added. The October 25 policy reversal below
+supersedes that planned future action.
 
 ## Verification
 
@@ -122,3 +136,21 @@ delivery to testers remain acceptance checks after deploying/uploading. Local
 fixtures bypass authentication; API availability and unchanged handlers do not
 prove an end-to-end Google/Apple login. No migration, production data rewrite,
 deployment or TestFlight upload was performed for this follow-up.
+
+## Web access policy reversal — October 25, 2026
+
+The product owner explicitly reversed the October 23 decision to redirect
+browser login and planning pages to TestFlight. The current web source removes
+that blanket redirect and reopens browser login and planning. The October 23
+route list, 307 smoke results and production-gate description above remain
+historical records of the previous policy; they must not be used as the current
+source behavior.
+
+The isolated release has now been deployed and verified at
+`https://app.gatherory.com`, production commit
+`2db89f4b2ea7f526f9fcd99e559b86b31be0bb66`. See the
+[web-access release acceptance](web-access-2026-10-25.md) for scope, checks,
+and deployment evidence. This policy
+change does not enable the separately gated MCP service. No iOS/native changes,
+new packages, database changes or deployment are part of this documentation
+update.

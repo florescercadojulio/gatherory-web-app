@@ -12,6 +12,7 @@ export type NativeSyncRepoShape = {
   readonly applyMutations: (input: {
     userId: string
     mutations: NativeMutation[]
+    requestFingerprints?: Record<string, string>
     supportsTodos?: boolean
     supportsBlueprintGuides: boolean
   }) => Effect.Effect<{ results: NativePushResult[] }, DomainError>

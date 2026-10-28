@@ -48,6 +48,8 @@ export const EventServiceLive = Layer.effect(
             ...invitation,
             expiresAt: invitation.expiresAt.toISOString(),
             startsAt: invitation.startsAt?.toISOString() ?? null,
+            timeZone: invitation.timeZone,
+            isAllDay: invitation.isAllDay,
           }
         }),
 

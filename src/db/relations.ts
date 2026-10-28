@@ -58,6 +58,10 @@ export const databaseRelations = defineRelationsPart(
         from: r.user.id,
         to: r.registryCommitment.userId,
       }),
+      registryReservationRequests: r.many.registryReservationRequest({
+        from: r.user.id,
+        to: r.registryReservationRequest.userId,
+      }),
       nativeWorkspaceSnapshots: r.many.nativeWorkspaceSnapshot({
         from: r.user.id,
         to: r.nativeWorkspaceSnapshot.ownerUserId,
@@ -243,6 +247,16 @@ export const databaseRelations = defineRelationsPart(
         to: r.eventInvitation.personId,
       }),
     },
+    eventGuestProfile: {
+      registryCommitments: r.many.registryCommitment({
+        from: r.eventGuestProfile.id,
+        to: r.registryCommitment.guestProfileId,
+      }),
+      registryReservationRequests: r.many.registryReservationRequest({
+        from: r.eventGuestProfile.id,
+        to: r.registryReservationRequest.guestProfileId,
+      }),
+    },
     eventShareLink: {
       event: r.one.event({ from: r.eventShareLink.eventId, to: r.event.id }),
       creator: r.one.user({ from: r.eventShareLink.createdByUserId, to: r.user.id }),
@@ -403,6 +417,24 @@ export const databaseRelations = defineRelationsPart(
       user: r.one.user({
         from: r.registryCommitment.userId,
         to: r.user.id,
+      }),
+      guestProfile: r.one.eventGuestProfile({
+        from: r.registryCommitment.guestProfileId,
+        to: r.eventGuestProfile.id,
+      }),
+    },
+    registryReservationRequest: {
+      item: r.one.registryItem({
+        from: r.registryReservationRequest.registryItemId,
+        to: r.registryItem.id,
+      }),
+      user: r.one.user({
+        from: r.registryReservationRequest.userId,
+        to: r.user.id,
+      }),
+      guestProfile: r.one.eventGuestProfile({
+        from: r.registryReservationRequest.guestProfileId,
+        to: r.eventGuestProfile.id,
       }),
     },
     ideaMedia: {

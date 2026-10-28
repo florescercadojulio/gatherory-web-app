@@ -5,6 +5,7 @@ import { DB } from '@/db'
 import { organization, user } from '@/db/schema/auth.schema'
 import { event, eventParticipant, workspacePerson } from '@/db/schema/event.schema'
 import { eventExpense, idea, workspacePlanningSettings } from '@/db/schema/planning.schema'
+import { isUpcomingWorkspaceEvent } from '../workflows/workspace-insight-policy'
 import type { NativeWorkspaceInsight } from '../contracts/native-insights.contract'
 
 /** Reads workspace summaries from normalized product tables. */
@@ -66,6 +67,8 @@ export function queryNativeWorkspaceInsights(db: Effect.Success<typeof DB>, user
         purpose: event.purpose,
         schedulingState: event.schedulingState,
         completionStatus: event.completionStatus,
+        status: event.status,
+        planningStatus: event.planningStatus,
       })
       .from(event)
       .where(inArray(event.parentEventId, mainEventIds))
@@ -109,21 +112,15 @@ export function queryNativeWorkspaceInsights(db: Effect.Success<typeof DB>, user
       expenses,
       (item) => rootByEvent.get(item.eventId) ?? item.eventId
     )
-    const now = Date.now()
+    const now = new Date()
 
     const workspaces: NativeWorkspaceInsight[] = mainEvents.map((mainEvent) => {
       const childEvents = childrenByParent.get(mainEvent.id) ?? []
       const workspaceIdeas = ideasByRoot.get(mainEvent.id) ?? []
       const workspaceExpenses = expensesByRoot.get(mainEvent.id) ?? []
       const upcomingEvents = childEvents
-        .filter(
-          (child) =>
-            child.schedulingState === 'scheduled' &&
-            child.completionStatus !== 'complete' &&
-            child.startsAt != null &&
-            child.startsAt.getTime() >= now
-        )
-        .slice(0, 4)
+        .filter((child) => isUpcomingWorkspaceEvent(child, now, mainEvent.status))
+        .slice(0, 5)
         .map((child) => ({
           id: child.id,
           title: child.title,

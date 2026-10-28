@@ -158,7 +158,17 @@ const en = {
   },
   account: {
     title: 'Account',
-    description: 'Manage your Gatherory account.',
+    description: 'Your profile, preferences, and connected apps.',
+    sections: 'Account sections',
+    name: 'Name',
+    email: 'Email',
+    appearance: 'Appearance',
+    appearanceDescription: 'Choose how Gatherory looks in this browser.',
+    connections: 'AI connections',
+    connectionsDescription: 'Choose what your connected AI apps can access.',
+    connectionsHint: 'Review permissions or revoke access at any time.',
+    manageConnections: 'Manage connections',
+    actions: 'Account actions',
     profile: 'Profile',
     profileDescription: 'Your name and email come from your Gatherory sign-in account.',
     dangerZone: 'Danger zone',
@@ -534,6 +544,7 @@ const en = {
   },
   userMenu: {
     account: 'Account',
+    aiConnections: 'AI connections',
     logOut: 'Log out',
   },
   feedback: {

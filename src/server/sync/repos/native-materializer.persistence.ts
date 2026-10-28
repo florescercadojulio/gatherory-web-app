@@ -1119,7 +1119,7 @@ async function materializeNote(
   const eventId = optionalUUID(input.payload.eventID) ?? input.scopeId
   await requireScopedEvent(transaction, input.organizationId, eventId)
   const body = requiredTrimmed(input.payload.body, 'NOTE_BODY_MISSING')
-  if (body.length > 750) throw nativeMaterializationFailure('NOTE_TOO_LONG')
+  if (Array.from(body).length > 750) throw nativeMaterializationFailure('NOTE_TOO_LONG')
 
   await transaction
     .insert(eventNote)

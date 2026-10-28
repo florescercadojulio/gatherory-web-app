@@ -10,6 +10,8 @@ import { ProviderButton } from './provider-button'
 export type ProviderButtonsProps = {
   socialLayout?: SocialLayout
   view?: AuthView
+  callbackURL?: string
+  errorCallbackURL?: string
 }
 
 export type SocialLayout = 'auto' | 'horizontal' | 'vertical' | 'grid'
@@ -20,7 +22,12 @@ export type SocialLayout = 'auto' | 'horizontal' | 'vertical' | 'grid'
  *
  * @param socialLayout - Preferred layout for the provider buttons; `"auto"` chooses based on the number of providers.
  */
-export function ProviderButtons({ socialLayout = 'auto', view = 'signIn' }: ProviderButtonsProps) {
+export function ProviderButtons({
+  socialLayout = 'auto',
+  view = 'signIn',
+  callbackURL,
+  errorCallbackURL,
+}: ProviderButtonsProps) {
   const { socialProviders } = useAuth()
 
   const resolvedSocialLayout = useMemo(() => {
@@ -51,6 +58,8 @@ export function ProviderButtons({ socialLayout = 'auto', view = 'signIn' }: Prov
           key={getProviderId(provider)}
           provider={provider}
           view={view}
+          callbackURL={callbackURL}
+          errorCallbackURL={errorCallbackURL}
           display={
             resolvedSocialLayout === 'vertical'
               ? 'full'

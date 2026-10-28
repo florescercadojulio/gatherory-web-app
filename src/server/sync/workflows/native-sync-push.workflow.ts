@@ -6,6 +6,8 @@ import type { NativeMutation } from '../contracts/native-sync.contracts'
 export function pushNativeSync(input: {
   userId: string
   mutations: NativeMutation[]
+  /** Trusted MCP-only arguments; never accepted from the public native sync request body. */
+  requestFingerprints?: Record<string, string>
   supportsTodos?: boolean
   supportsBlueprintGuides: boolean
 }) {

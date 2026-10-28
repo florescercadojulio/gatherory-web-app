@@ -25,8 +25,9 @@ import {
  *
  * @returns A callback taking the resolved data of a sign-in mutation.
  */
-export function useSignInContinuation() {
-  const { basePaths, navigate, plugins, redirectTo } = useAuth()
+export function useSignInContinuation(redirectToOverride?: string) {
+  const { basePaths, navigate, plugins, redirectTo: authRedirectTo } = useAuth()
+  const redirectTo = redirectToOverride ?? authRedirectTo
 
   const twoFactorPath = plugins.find((plugin) => plugin.id === TWO_FACTOR_PLUGIN_ID)?.viewPaths
     ?.auth?.twoFactor

@@ -109,8 +109,10 @@ const verification = Effect.gen(function* () {
           organizationId,
           title: 'Invitation verification',
           status: 'draft',
-          startsAt: new Date(),
+          // Midnight in Detroit is still the previous calendar day in Los Angeles.
+          startsAt: new Date('2026-10-23T04:00:00.000Z'),
           timeZone: 'America/Detroit',
+          isAllDay: true,
         })
         const [host] = yield* db
           .insert(workspacePerson)
@@ -208,6 +210,15 @@ const verification = Effect.gen(function* () {
               planningPermission: role === 'guest' ? 'viewOnly' : 'manage',
             },
           })
+        const previewEmail = (token: string, email: string) =>
+          Effect.gen(function* () {
+            const service = yield* EventService
+            return yield* service.previewEmailInvitation({ token, email })
+          }).pipe(
+            Effect.provide(EventServiceLive),
+            Effect.provide(EventRepoLive),
+            Effect.provide(EventAuthorizationLive)
+          )
         const authorizedCreate = (actor: string) =>
           Effect.gen(function* () {
             const service = yield* EventService
@@ -551,9 +562,18 @@ const verification = Effect.gen(function* () {
           (yield* createEventShareLink(ownerId, { eventId, role: 'guest' })).token,
           'Repeated shares reuse an active link'
         ).toBe(publicLink.token)
-        expect((yield* previewEventShareLink(publicLink.token))?.title).toBe(
-          'Invitation verification'
-        )
+        const publicPreview = yield* previewEventShareLink(publicLink.token)
+        expect(publicPreview?.title).toBe('Invitation verification')
+        expect(publicPreview?.startsAt).toBe('2026-10-23T04:00:00.000Z')
+        expect(publicPreview?.timeZone).toBe('America/Detroit')
+        expect(publicPreview?.isAllDay).toBe(true)
+
+        const previewEmailAddress = `preview-${suffix}@example.com`
+        const emailInvitation = yield* create(previewEmailAddress, 'guest')
+        const emailPreview = yield* previewEmail(emailInvitation.token, previewEmailAddress)
+        expect(emailPreview.startsAt).toBe('2026-10-23T04:00:00.000Z')
+        expect(emailPreview.timeZone).toBe('America/Detroit')
+        expect(emailPreview.isAllDay).toBe(true)
         const guestPublic = yield* acceptEventShareLink(guestId, publicLink.token)
         expect(guestPublic.role).toBe('guest')
         expect(yield* acceptEventShareLink(guestId, publicLink.token)).toEqual(guestPublic)
@@ -630,9 +650,14 @@ const verification = Effect.gen(function* () {
         ).toBeTruthy()
         yield* reviewEventJoinRequest(ownerId, eventId, requests[0].id, 'approve')
         yield* reviewEventJoinRequest(ownerId, eventId, requests[0].id, 'approve')
-        expect(
-          (yield* previewEventShareLink(planningLink.token, sharedCollaboratorId))?.status
-        ).toBe('accepted')
+        const acceptedPreview = yield* previewEventShareLink(
+          planningLink.token,
+          sharedCollaboratorId
+        )
+        expect(acceptedPreview?.status).toBe('accepted')
+        expect(acceptedPreview?.startsAt).toBe('2026-10-23T04:00:00.000Z')
+        expect(acceptedPreview?.timeZone).toBe('America/Detroit')
+        expect(acceptedPreview?.isAllDay).toBe(true)
         const [approvedPerson] = yield* db
           .select()
           .from(workspacePerson)

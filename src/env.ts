@@ -23,6 +23,10 @@ export const env = createEnv({
     APPLE_KEY_ID: z.string().min(1).optional(),
     APPLE_PRIVATE_KEY: z.string().min(1).optional(),
     APPLE_APP_BUNDLE_IDENTIFIER: z.string().min(1).optional(),
+    /** Native Android Apple OAuth handoff stays off unless explicitly enabled. */
+    ANDROID_APPLE_SIGN_IN_ENABLED: z.stringbool().default(false),
+    /** MCP OAuth provider stays disabled until its additive schema is deployed. */
+    MCP_ENABLED: z.stringbool().default(false),
     RESEND_API_KEY: z.string().startsWith('re_').optional(),
     EMAIL_FROM: z.string().min(3).optional(),
     EMAIL_REPLY_TO: z.email().optional(),

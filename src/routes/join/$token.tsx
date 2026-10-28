@@ -8,6 +8,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { ServerErrorToast } from '@/components/route-feedback'
 import { getSession } from '@/lib/auth.functions'
 import { invitationPath } from '@/lib/event-invitation-links'
+import { formatInvitationDate } from '@/lib/event-invitation-date'
 import { acceptEventInvitation } from '@/server/events/handlers/accept-event-invitation.handler'
 import { getEventInvitation } from '@/server/events/handlers/get-event-invitation.handler'
 import { acceptSharedEventInvitation } from '@/server/events/handlers/accept-shared-event-invitation.handler'
@@ -110,6 +111,15 @@ function JoinInvitation() {
     planningPermission,
     requiresApproval,
   })
+  const invitationDate =
+    shared && invitation && 'startsAt' in invitation
+      ? formatInvitationDate({
+          startsAt: invitation.startsAt,
+          timeZone: 'timeZone' in invitation ? invitation.timeZone : undefined,
+          isAllDay: 'isAllDay' in invitation ? invitation.isAllDay : false,
+          locale: i18n.language,
+        })
+      : null
 
   async function accept() {
     setPending(true)
@@ -160,9 +170,7 @@ function JoinInvitation() {
                 ? t(signedOutCopy.descriptionKey, { role: roleLabel(t, invitation?.role) })
                 : t(signedOutCopy.descriptionKey)}
             </p>
-            {shared && invitation && 'startsAt' in invitation && invitation.startsAt && (
-              <p>{new Date(invitation.startsAt).toLocaleString(i18n.language)}</p>
-            )}
+            {invitationDate && <p>{invitationDate}</p>}
             {shared && invitation && 'locationName' in invitation && invitation.locationName && (
               <p>{invitation.locationName}</p>
             )}

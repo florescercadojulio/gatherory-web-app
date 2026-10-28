@@ -11,12 +11,17 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProtectedRouteRouteImport } from './routes/_protected/route'
+import { Route as McpRouteImport } from './routes/mcp'
+import { Route as DotwellKnownSplatRouteImport } from './routes/[.]well-known/$'
 import { Route as DotwellKnownAppleAppSiteAssociationRouteImport } from './routes/[.]well-known/apple-app-site-association'
 import { Route as AdminReportsRouteImport } from './routes/admin/reports'
 import { Route as AdminWaitlistRouteImport } from './routes/admin/waitlist'
 import { Route as ApiInvitationsRouteImport } from './routes/api/invitations'
 import { Route as ApiWaitlistRouteImport } from './routes/api/waitlist'
 import { Route as JoinTokenRouteImport } from './routes/join/$token'
+import { Route as McpConnectRouteImport } from './routes/mcp/connect'
+import { Route as McpConnectionsRouteImport } from './routes/mcp/connections'
+import { Route as McpConsentRouteImport } from './routes/mcp/consent'
 import { Route as ProtectedAccountIndexRouteImport } from './routes/_protected/account/index'
 import { Route as ProtectedBlueprintsIndexRouteImport } from './routes/_protected/blueprints/index'
 import { Route as ProtectedWorkspacesIndexRouteImport } from './routes/_protected/workspaces/index'
@@ -43,6 +48,7 @@ import { Route as ApiGuestEventsRouteImport } from './routes/api/guest/events'
 import { Route as ApiGuestSessionRouteImport } from './routes/api/guest/session'
 import { Route as ApiInvitationsAcceptRouteImport } from './routes/api/invitations/accept'
 import { Route as ApiInvitationsPreviewRouteImport } from './routes/api/invitations/preview'
+import { Route as ApiMcpConnectionRouteImport } from './routes/api/mcp/connection'
 import { Route as ApiModerationBlocksRouteImport } from './routes/api/moderation/blocks'
 import { Route as ApiModerationHideRouteImport } from './routes/api/moderation/hide'
 import { Route as ApiModerationReportsRouteImport } from './routes/api/moderation/reports'
@@ -60,12 +66,17 @@ import { Route as ApiBlueprintsMeasurementSignalsRouteImport } from './routes/ap
 import { Route as ApiBlueprintsMediaActionRouteImport } from './routes/api/blueprints/media/$action'
 import { Route as ApiBlueprintsSharedTokenRouteImport } from './routes/api/blueprints/shared/$token'
 import { Route as ApiEventsEventIdAnnouncementsRouteImport } from './routes/api/events/$eventId/announcements'
+import { Route as ApiEventsEventIdRegistryRouteImport } from './routes/api/events/$eventId/registry'
 import { Route as ApiInternalNotificationsDispatchRouteImport } from './routes/api/internal/notifications/dispatch'
 import { Route as ApiMediaNativeFinalizeRouteImport } from './routes/api/media/native/finalize'
 import { Route as ApiMediaNativePrepareRouteImport } from './routes/api/media/native/prepare'
 import { Route as ApiMediaNativeUrlRouteImport } from './routes/api/media/native/url'
 import { Route as TemplatesSharedTokenIndexRouteImport } from './routes/templates/shared/$token/index'
+import { Route as ApiAuthAndroidAppleCompleteRouteImport } from './routes/api/auth/android/apple/complete'
+import { Route as ApiAuthAndroidAppleExchangeRouteImport } from './routes/api/auth/android/apple/exchange'
+import { Route as ApiAuthAndroidAppleStartRouteImport } from './routes/api/auth/android/apple/start'
 import { Route as ApiGuestEventsEventIdAnnouncementsRouteImport } from './routes/api/guest/events/$eventId/announcements'
+import { Route as ApiGuestEventsEventIdRegistryRouteImport } from './routes/api/guest/events/$eventId/registry'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -74,6 +85,16 @@ const IndexRoute = IndexRouteImport.update({
 } as any)
 const ProtectedRouteRoute = ProtectedRouteRouteImport.update({
   id: '/_protected',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const McpRoute = McpRouteImport.update({
+  id: '/mcp',
+  path: '/mcp',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DotwellKnownSplatRoute = DotwellKnownSplatRouteImport.update({
+  id: '/.well-known/$',
+  path: '/.well-known/$',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DotwellKnownAppleAppSiteAssociationRoute =
@@ -106,6 +127,21 @@ const JoinTokenRoute = JoinTokenRouteImport.update({
   id: '/join/$token',
   path: '/join/$token',
   getParentRoute: () => rootRouteImport,
+} as any)
+const McpConnectRoute = McpConnectRouteImport.update({
+  id: '/connect',
+  path: '/connect',
+  getParentRoute: () => McpRoute,
+} as any)
+const McpConnectionsRoute = McpConnectionsRouteImport.update({
+  id: '/connections',
+  path: '/connections',
+  getParentRoute: () => McpRoute,
+} as any)
+const McpConsentRoute = McpConsentRouteImport.update({
+  id: '/consent',
+  path: '/consent',
+  getParentRoute: () => McpRoute,
 } as any)
 const ProtectedAccountIndexRoute = ProtectedAccountIndexRouteImport.update({
   id: '/account/',
@@ -243,6 +279,11 @@ const ApiInvitationsPreviewRoute = ApiInvitationsPreviewRouteImport.update({
   path: '/preview',
   getParentRoute: () => ApiInvitationsRoute,
 } as any)
+const ApiMcpConnectionRoute = ApiMcpConnectionRouteImport.update({
+  id: '/api/mcp/connection',
+  path: '/api/mcp/connection',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiModerationBlocksRoute = ApiModerationBlocksRouteImport.update({
   id: '/api/moderation/blocks',
   path: '/api/moderation/blocks',
@@ -338,6 +379,12 @@ const ApiEventsEventIdAnnouncementsRoute =
     path: '/api/events/$eventId/announcements',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiEventsEventIdRegistryRoute =
+  ApiEventsEventIdRegistryRouteImport.update({
+    id: '/api/events/$eventId/registry',
+    path: '/api/events/$eventId/registry',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiInternalNotificationsDispatchRoute =
   ApiInternalNotificationsDispatchRouteImport.update({
     id: '/api/internal/notifications/dispatch',
@@ -365,21 +412,50 @@ const TemplatesSharedTokenIndexRoute =
     path: '/templates/shared/$token/',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiAuthAndroidAppleCompleteRoute =
+  ApiAuthAndroidAppleCompleteRouteImport.update({
+    id: '/api/auth/android/apple/complete',
+    path: '/api/auth/android/apple/complete',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiAuthAndroidAppleExchangeRoute =
+  ApiAuthAndroidAppleExchangeRouteImport.update({
+    id: '/api/auth/android/apple/exchange',
+    path: '/api/auth/android/apple/exchange',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiAuthAndroidAppleStartRoute =
+  ApiAuthAndroidAppleStartRouteImport.update({
+    id: '/api/auth/android/apple/start',
+    path: '/api/auth/android/apple/start',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiGuestEventsEventIdAnnouncementsRoute =
   ApiGuestEventsEventIdAnnouncementsRouteImport.update({
     id: '/$eventId/announcements',
     path: '/$eventId/announcements',
     getParentRoute: () => ApiGuestEventsRoute,
   } as any)
+const ApiGuestEventsEventIdRegistryRoute =
+  ApiGuestEventsEventIdRegistryRouteImport.update({
+    id: '/$eventId/registry',
+    path: '/$eventId/registry',
+    getParentRoute: () => ApiGuestEventsRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/mcp': typeof McpRouteWithChildren
+  '/.well-known/$': typeof DotwellKnownSplatRoute
   '/.well-known/apple-app-site-association': typeof DotwellKnownAppleAppSiteAssociationRoute
   '/admin/reports': typeof AdminReportsRoute
   '/admin/waitlist': typeof AdminWaitlistRoute
   '/api/invitations': typeof ApiInvitationsRouteWithChildren
   '/api/waitlist': typeof ApiWaitlistRoute
   '/join/$token': typeof JoinTokenRoute
+  '/mcp/connect': typeof McpConnectRoute
+  '/mcp/connections': typeof McpConnectionsRoute
+  '/mcp/consent': typeof McpConsentRoute
   '/workspaces/$workspaceSlug': typeof ProtectedWorkspacesWorkspaceSlugRouteRouteWithChildren
   '/api/auth/$': typeof ApiAuthSplatRouteRoute
   '/api/admin/report-image': typeof ApiAdminReportImageRoute
@@ -403,6 +479,7 @@ export interface FileRoutesByFullPath {
   '/api/guest/session': typeof ApiGuestSessionRoute
   '/api/invitations/accept': typeof ApiInvitationsAcceptRoute
   '/api/invitations/preview': typeof ApiInvitationsPreviewRoute
+  '/api/mcp/connection': typeof ApiMcpConnectionRoute
   '/api/moderation/blocks': typeof ApiModerationBlocksRoute
   '/api/moderation/hide': typeof ApiModerationHideRoute
   '/api/moderation/reports': typeof ApiModerationReportsRoute
@@ -419,6 +496,7 @@ export interface FileRoutesByFullPath {
   '/api/blueprints/media/$action': typeof ApiBlueprintsMediaActionRoute
   '/api/blueprints/shared/$token': typeof ApiBlueprintsSharedTokenRoute
   '/api/events/$eventId/announcements': typeof ApiEventsEventIdAnnouncementsRoute
+  '/api/events/$eventId/registry': typeof ApiEventsEventIdRegistryRoute
   '/api/internal/notifications/dispatch': typeof ApiInternalNotificationsDispatchRoute
   '/api/media/native/finalize': typeof ApiMediaNativeFinalizeRoute
   '/api/media/native/prepare': typeof ApiMediaNativePrepareRoute
@@ -428,16 +506,25 @@ export interface FileRoutesByFullPath {
   '/blueprints/new/': typeof ProtectedBlueprintsNewIndexRoute
   '/workspaces/$workspaceSlug/': typeof ProtectedWorkspacesWorkspaceSlugIndexRoute
   '/templates/shared/$token/': typeof TemplatesSharedTokenIndexRoute
+  '/api/auth/android/apple/complete': typeof ApiAuthAndroidAppleCompleteRoute
+  '/api/auth/android/apple/exchange': typeof ApiAuthAndroidAppleExchangeRoute
+  '/api/auth/android/apple/start': typeof ApiAuthAndroidAppleStartRoute
   '/api/guest/events/$eventId/announcements': typeof ApiGuestEventsEventIdAnnouncementsRoute
+  '/api/guest/events/$eventId/registry': typeof ApiGuestEventsEventIdRegistryRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/mcp': typeof McpRouteWithChildren
+  '/.well-known/$': typeof DotwellKnownSplatRoute
   '/.well-known/apple-app-site-association': typeof DotwellKnownAppleAppSiteAssociationRoute
   '/admin/reports': typeof AdminReportsRoute
   '/admin/waitlist': typeof AdminWaitlistRoute
   '/api/invitations': typeof ApiInvitationsRouteWithChildren
   '/api/waitlist': typeof ApiWaitlistRoute
   '/join/$token': typeof JoinTokenRoute
+  '/mcp/connect': typeof McpConnectRoute
+  '/mcp/connections': typeof McpConnectionsRoute
+  '/mcp/consent': typeof McpConsentRoute
   '/api/auth/$': typeof ApiAuthSplatRouteRoute
   '/api/admin/report-image': typeof ApiAdminReportImageRoute
   '/api/admin/reports': typeof ApiAdminReportsRoute
@@ -460,6 +547,7 @@ export interface FileRoutesByTo {
   '/api/guest/session': typeof ApiGuestSessionRoute
   '/api/invitations/accept': typeof ApiInvitationsAcceptRoute
   '/api/invitations/preview': typeof ApiInvitationsPreviewRoute
+  '/api/mcp/connection': typeof ApiMcpConnectionRoute
   '/api/moderation/blocks': typeof ApiModerationBlocksRoute
   '/api/moderation/hide': typeof ApiModerationHideRoute
   '/api/moderation/reports': typeof ApiModerationReportsRoute
@@ -476,6 +564,7 @@ export interface FileRoutesByTo {
   '/api/blueprints/media/$action': typeof ApiBlueprintsMediaActionRoute
   '/api/blueprints/shared/$token': typeof ApiBlueprintsSharedTokenRoute
   '/api/events/$eventId/announcements': typeof ApiEventsEventIdAnnouncementsRoute
+  '/api/events/$eventId/registry': typeof ApiEventsEventIdRegistryRoute
   '/api/internal/notifications/dispatch': typeof ApiInternalNotificationsDispatchRoute
   '/api/media/native/finalize': typeof ApiMediaNativeFinalizeRoute
   '/api/media/native/prepare': typeof ApiMediaNativePrepareRoute
@@ -485,18 +574,27 @@ export interface FileRoutesByTo {
   '/blueprints/new': typeof ProtectedBlueprintsNewIndexRoute
   '/workspaces/$workspaceSlug': typeof ProtectedWorkspacesWorkspaceSlugIndexRoute
   '/templates/shared/$token': typeof TemplatesSharedTokenIndexRoute
+  '/api/auth/android/apple/complete': typeof ApiAuthAndroidAppleCompleteRoute
+  '/api/auth/android/apple/exchange': typeof ApiAuthAndroidAppleExchangeRoute
+  '/api/auth/android/apple/start': typeof ApiAuthAndroidAppleStartRoute
   '/api/guest/events/$eventId/announcements': typeof ApiGuestEventsEventIdAnnouncementsRoute
+  '/api/guest/events/$eventId/registry': typeof ApiGuestEventsEventIdRegistryRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_protected': typeof ProtectedRouteRouteWithChildren
+  '/mcp': typeof McpRouteWithChildren
+  '/.well-known/$': typeof DotwellKnownSplatRoute
   '/.well-known/apple-app-site-association': typeof DotwellKnownAppleAppSiteAssociationRoute
   '/admin/reports': typeof AdminReportsRoute
   '/admin/waitlist': typeof AdminWaitlistRoute
   '/api/invitations': typeof ApiInvitationsRouteWithChildren
   '/api/waitlist': typeof ApiWaitlistRoute
   '/join/$token': typeof JoinTokenRoute
+  '/mcp/connect': typeof McpConnectRoute
+  '/mcp/connections': typeof McpConnectionsRoute
+  '/mcp/consent': typeof McpConsentRoute
   '/_protected/workspaces/$workspaceSlug': typeof ProtectedWorkspacesWorkspaceSlugRouteRouteWithChildren
   '/api/auth/$': typeof ApiAuthSplatRouteRoute
   '/api/admin/report-image': typeof ApiAdminReportImageRoute
@@ -520,6 +618,7 @@ export interface FileRoutesById {
   '/api/guest/session': typeof ApiGuestSessionRoute
   '/api/invitations/accept': typeof ApiInvitationsAcceptRoute
   '/api/invitations/preview': typeof ApiInvitationsPreviewRoute
+  '/api/mcp/connection': typeof ApiMcpConnectionRoute
   '/api/moderation/blocks': typeof ApiModerationBlocksRoute
   '/api/moderation/hide': typeof ApiModerationHideRoute
   '/api/moderation/reports': typeof ApiModerationReportsRoute
@@ -536,6 +635,7 @@ export interface FileRoutesById {
   '/api/blueprints/media/$action': typeof ApiBlueprintsMediaActionRoute
   '/api/blueprints/shared/$token': typeof ApiBlueprintsSharedTokenRoute
   '/api/events/$eventId/announcements': typeof ApiEventsEventIdAnnouncementsRoute
+  '/api/events/$eventId/registry': typeof ApiEventsEventIdRegistryRoute
   '/api/internal/notifications/dispatch': typeof ApiInternalNotificationsDispatchRoute
   '/api/media/native/finalize': typeof ApiMediaNativeFinalizeRoute
   '/api/media/native/prepare': typeof ApiMediaNativePrepareRoute
@@ -545,18 +645,27 @@ export interface FileRoutesById {
   '/_protected/blueprints/new/': typeof ProtectedBlueprintsNewIndexRoute
   '/_protected/workspaces/$workspaceSlug/': typeof ProtectedWorkspacesWorkspaceSlugIndexRoute
   '/templates/shared/$token/': typeof TemplatesSharedTokenIndexRoute
+  '/api/auth/android/apple/complete': typeof ApiAuthAndroidAppleCompleteRoute
+  '/api/auth/android/apple/exchange': typeof ApiAuthAndroidAppleExchangeRoute
+  '/api/auth/android/apple/start': typeof ApiAuthAndroidAppleStartRoute
   '/api/guest/events/$eventId/announcements': typeof ApiGuestEventsEventIdAnnouncementsRoute
+  '/api/guest/events/$eventId/registry': typeof ApiGuestEventsEventIdRegistryRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/mcp'
+    | '/.well-known/$'
     | '/.well-known/apple-app-site-association'
     | '/admin/reports'
     | '/admin/waitlist'
     | '/api/invitations'
     | '/api/waitlist'
     | '/join/$token'
+    | '/mcp/connect'
+    | '/mcp/connections'
+    | '/mcp/consent'
     | '/workspaces/$workspaceSlug'
     | '/api/auth/$'
     | '/api/admin/report-image'
@@ -580,6 +689,7 @@ export interface FileRouteTypes {
     | '/api/guest/session'
     | '/api/invitations/accept'
     | '/api/invitations/preview'
+    | '/api/mcp/connection'
     | '/api/moderation/blocks'
     | '/api/moderation/hide'
     | '/api/moderation/reports'
@@ -596,6 +706,7 @@ export interface FileRouteTypes {
     | '/api/blueprints/media/$action'
     | '/api/blueprints/shared/$token'
     | '/api/events/$eventId/announcements'
+    | '/api/events/$eventId/registry'
     | '/api/internal/notifications/dispatch'
     | '/api/media/native/finalize'
     | '/api/media/native/prepare'
@@ -605,16 +716,25 @@ export interface FileRouteTypes {
     | '/blueprints/new/'
     | '/workspaces/$workspaceSlug/'
     | '/templates/shared/$token/'
+    | '/api/auth/android/apple/complete'
+    | '/api/auth/android/apple/exchange'
+    | '/api/auth/android/apple/start'
     | '/api/guest/events/$eventId/announcements'
+    | '/api/guest/events/$eventId/registry'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/mcp'
+    | '/.well-known/$'
     | '/.well-known/apple-app-site-association'
     | '/admin/reports'
     | '/admin/waitlist'
     | '/api/invitations'
     | '/api/waitlist'
     | '/join/$token'
+    | '/mcp/connect'
+    | '/mcp/connections'
+    | '/mcp/consent'
     | '/api/auth/$'
     | '/api/admin/report-image'
     | '/api/admin/reports'
@@ -637,6 +757,7 @@ export interface FileRouteTypes {
     | '/api/guest/session'
     | '/api/invitations/accept'
     | '/api/invitations/preview'
+    | '/api/mcp/connection'
     | '/api/moderation/blocks'
     | '/api/moderation/hide'
     | '/api/moderation/reports'
@@ -653,6 +774,7 @@ export interface FileRouteTypes {
     | '/api/blueprints/media/$action'
     | '/api/blueprints/shared/$token'
     | '/api/events/$eventId/announcements'
+    | '/api/events/$eventId/registry'
     | '/api/internal/notifications/dispatch'
     | '/api/media/native/finalize'
     | '/api/media/native/prepare'
@@ -662,17 +784,26 @@ export interface FileRouteTypes {
     | '/blueprints/new'
     | '/workspaces/$workspaceSlug'
     | '/templates/shared/$token'
+    | '/api/auth/android/apple/complete'
+    | '/api/auth/android/apple/exchange'
+    | '/api/auth/android/apple/start'
     | '/api/guest/events/$eventId/announcements'
+    | '/api/guest/events/$eventId/registry'
   id:
     | '__root__'
     | '/'
     | '/_protected'
+    | '/mcp'
+    | '/.well-known/$'
     | '/.well-known/apple-app-site-association'
     | '/admin/reports'
     | '/admin/waitlist'
     | '/api/invitations'
     | '/api/waitlist'
     | '/join/$token'
+    | '/mcp/connect'
+    | '/mcp/connections'
+    | '/mcp/consent'
     | '/_protected/workspaces/$workspaceSlug'
     | '/api/auth/$'
     | '/api/admin/report-image'
@@ -696,6 +827,7 @@ export interface FileRouteTypes {
     | '/api/guest/session'
     | '/api/invitations/accept'
     | '/api/invitations/preview'
+    | '/api/mcp/connection'
     | '/api/moderation/blocks'
     | '/api/moderation/hide'
     | '/api/moderation/reports'
@@ -712,6 +844,7 @@ export interface FileRouteTypes {
     | '/api/blueprints/media/$action'
     | '/api/blueprints/shared/$token'
     | '/api/events/$eventId/announcements'
+    | '/api/events/$eventId/registry'
     | '/api/internal/notifications/dispatch'
     | '/api/media/native/finalize'
     | '/api/media/native/prepare'
@@ -721,12 +854,18 @@ export interface FileRouteTypes {
     | '/_protected/blueprints/new/'
     | '/_protected/workspaces/$workspaceSlug/'
     | '/templates/shared/$token/'
+    | '/api/auth/android/apple/complete'
+    | '/api/auth/android/apple/exchange'
+    | '/api/auth/android/apple/start'
     | '/api/guest/events/$eventId/announcements'
+    | '/api/guest/events/$eventId/registry'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ProtectedRouteRoute: typeof ProtectedRouteRouteWithChildren
+  McpRoute: typeof McpRouteWithChildren
+  DotwellKnownSplatRoute: typeof DotwellKnownSplatRoute
   DotwellKnownAppleAppSiteAssociationRoute: typeof DotwellKnownAppleAppSiteAssociationRoute
   AdminReportsRoute: typeof AdminReportsRoute
   AdminWaitlistRoute: typeof AdminWaitlistRoute
@@ -753,6 +892,7 @@ export interface RootRouteChildren {
   ApiGuestClaimRoute: typeof ApiGuestClaimRoute
   ApiGuestEventsRoute: typeof ApiGuestEventsRouteWithChildren
   ApiGuestSessionRoute: typeof ApiGuestSessionRoute
+  ApiMcpConnectionRoute: typeof ApiMcpConnectionRoute
   ApiModerationBlocksRoute: typeof ApiModerationBlocksRoute
   ApiModerationHideRoute: typeof ApiModerationHideRoute
   ApiModerationReportsRoute: typeof ApiModerationReportsRoute
@@ -765,11 +905,15 @@ export interface RootRouteChildren {
   ApiBlueprintsMediaActionRoute: typeof ApiBlueprintsMediaActionRoute
   ApiBlueprintsSharedTokenRoute: typeof ApiBlueprintsSharedTokenRoute
   ApiEventsEventIdAnnouncementsRoute: typeof ApiEventsEventIdAnnouncementsRoute
+  ApiEventsEventIdRegistryRoute: typeof ApiEventsEventIdRegistryRoute
   ApiInternalNotificationsDispatchRoute: typeof ApiInternalNotificationsDispatchRoute
   ApiMediaNativeFinalizeRoute: typeof ApiMediaNativeFinalizeRoute
   ApiMediaNativePrepareRoute: typeof ApiMediaNativePrepareRoute
   ApiMediaNativeUrlRoute: typeof ApiMediaNativeUrlRoute
   TemplatesSharedTokenIndexRoute: typeof TemplatesSharedTokenIndexRoute
+  ApiAuthAndroidAppleCompleteRoute: typeof ApiAuthAndroidAppleCompleteRoute
+  ApiAuthAndroidAppleExchangeRoute: typeof ApiAuthAndroidAppleExchangeRoute
+  ApiAuthAndroidAppleStartRoute: typeof ApiAuthAndroidAppleStartRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -786,6 +930,20 @@ declare module '@tanstack/react-router' {
       path: ''
       fullPath: '/'
       preLoaderRoute: typeof ProtectedRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/mcp': {
+      id: '/mcp'
+      path: '/mcp'
+      fullPath: '/mcp'
+      preLoaderRoute: typeof McpRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/.well-known/$': {
+      id: '/.well-known/$'
+      path: '/.well-known/$'
+      fullPath: '/.well-known/$'
+      preLoaderRoute: typeof DotwellKnownSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/.well-known/apple-app-site-association': {
@@ -829,6 +987,27 @@ declare module '@tanstack/react-router' {
       fullPath: '/join/$token'
       preLoaderRoute: typeof JoinTokenRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/mcp/connect': {
+      id: '/mcp/connect'
+      path: '/connect'
+      fullPath: '/mcp/connect'
+      preLoaderRoute: typeof McpConnectRouteImport
+      parentRoute: typeof McpRoute
+    }
+    '/mcp/connections': {
+      id: '/mcp/connections'
+      path: '/connections'
+      fullPath: '/mcp/connections'
+      preLoaderRoute: typeof McpConnectionsRouteImport
+      parentRoute: typeof McpRoute
+    }
+    '/mcp/consent': {
+      id: '/mcp/consent'
+      path: '/consent'
+      fullPath: '/mcp/consent'
+      preLoaderRoute: typeof McpConsentRouteImport
+      parentRoute: typeof McpRoute
     }
     '/_protected/account/': {
       id: '/_protected/account/'
@@ -1012,6 +1191,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiInvitationsPreviewRouteImport
       parentRoute: typeof ApiInvitationsRoute
     }
+    '/api/mcp/connection': {
+      id: '/api/mcp/connection'
+      path: '/api/mcp/connection'
+      fullPath: '/api/mcp/connection'
+      preLoaderRoute: typeof ApiMcpConnectionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/moderation/blocks': {
       id: '/api/moderation/blocks'
       path: '/api/moderation/blocks'
@@ -1131,6 +1317,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiEventsEventIdAnnouncementsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/events/$eventId/registry': {
+      id: '/api/events/$eventId/registry'
+      path: '/api/events/$eventId/registry'
+      fullPath: '/api/events/$eventId/registry'
+      preLoaderRoute: typeof ApiEventsEventIdRegistryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/internal/notifications/dispatch': {
       id: '/api/internal/notifications/dispatch'
       path: '/api/internal/notifications/dispatch'
@@ -1166,11 +1359,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TemplatesSharedTokenIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/auth/android/apple/complete': {
+      id: '/api/auth/android/apple/complete'
+      path: '/api/auth/android/apple/complete'
+      fullPath: '/api/auth/android/apple/complete'
+      preLoaderRoute: typeof ApiAuthAndroidAppleCompleteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/auth/android/apple/exchange': {
+      id: '/api/auth/android/apple/exchange'
+      path: '/api/auth/android/apple/exchange'
+      fullPath: '/api/auth/android/apple/exchange'
+      preLoaderRoute: typeof ApiAuthAndroidAppleExchangeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/auth/android/apple/start': {
+      id: '/api/auth/android/apple/start'
+      path: '/api/auth/android/apple/start'
+      fullPath: '/api/auth/android/apple/start'
+      preLoaderRoute: typeof ApiAuthAndroidAppleStartRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/guest/events/$eventId/announcements': {
       id: '/api/guest/events/$eventId/announcements'
       path: '/$eventId/announcements'
       fullPath: '/api/guest/events/$eventId/announcements'
       preLoaderRoute: typeof ApiGuestEventsEventIdAnnouncementsRouteImport
+      parentRoute: typeof ApiGuestEventsRoute
+    }
+    '/api/guest/events/$eventId/registry': {
+      id: '/api/guest/events/$eventId/registry'
+      path: '/$eventId/registry'
+      fullPath: '/api/guest/events/$eventId/registry'
+      preLoaderRoute: typeof ApiGuestEventsEventIdRegistryRouteImport
       parentRoute: typeof ApiGuestEventsRoute
     }
   }
@@ -1217,6 +1438,20 @@ const ProtectedRouteRouteWithChildren = ProtectedRouteRoute._addFileChildren(
   ProtectedRouteRouteChildren,
 )
 
+interface McpRouteChildren {
+  McpConnectRoute: typeof McpConnectRoute
+  McpConnectionsRoute: typeof McpConnectionsRoute
+  McpConsentRoute: typeof McpConsentRoute
+}
+
+const McpRouteChildren: McpRouteChildren = {
+  McpConnectRoute: McpConnectRoute,
+  McpConnectionsRoute: McpConnectionsRoute,
+  McpConsentRoute: McpConsentRoute,
+}
+
+const McpRouteWithChildren = McpRoute._addFileChildren(McpRouteChildren)
+
 interface ApiInvitationsRouteChildren {
   ApiInvitationsAcceptRoute: typeof ApiInvitationsAcceptRoute
   ApiInvitationsPreviewRoute: typeof ApiInvitationsPreviewRoute
@@ -1247,11 +1482,13 @@ const ApiBlueprintsMeasurementRouteWithChildren =
 
 interface ApiGuestEventsRouteChildren {
   ApiGuestEventsEventIdAnnouncementsRoute: typeof ApiGuestEventsEventIdAnnouncementsRoute
+  ApiGuestEventsEventIdRegistryRoute: typeof ApiGuestEventsEventIdRegistryRoute
 }
 
 const ApiGuestEventsRouteChildren: ApiGuestEventsRouteChildren = {
   ApiGuestEventsEventIdAnnouncementsRoute:
     ApiGuestEventsEventIdAnnouncementsRoute,
+  ApiGuestEventsEventIdRegistryRoute: ApiGuestEventsEventIdRegistryRoute,
 }
 
 const ApiGuestEventsRouteWithChildren = ApiGuestEventsRoute._addFileChildren(
@@ -1261,6 +1498,8 @@ const ApiGuestEventsRouteWithChildren = ApiGuestEventsRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ProtectedRouteRoute: ProtectedRouteRouteWithChildren,
+  McpRoute: McpRouteWithChildren,
+  DotwellKnownSplatRoute: DotwellKnownSplatRoute,
   DotwellKnownAppleAppSiteAssociationRoute:
     DotwellKnownAppleAppSiteAssociationRoute,
   AdminReportsRoute: AdminReportsRoute,
@@ -1288,6 +1527,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiGuestClaimRoute: ApiGuestClaimRoute,
   ApiGuestEventsRoute: ApiGuestEventsRouteWithChildren,
   ApiGuestSessionRoute: ApiGuestSessionRoute,
+  ApiMcpConnectionRoute: ApiMcpConnectionRoute,
   ApiModerationBlocksRoute: ApiModerationBlocksRoute,
   ApiModerationHideRoute: ApiModerationHideRoute,
   ApiModerationReportsRoute: ApiModerationReportsRoute,
@@ -1301,11 +1541,15 @@ const rootRouteChildren: RootRouteChildren = {
   ApiBlueprintsMediaActionRoute: ApiBlueprintsMediaActionRoute,
   ApiBlueprintsSharedTokenRoute: ApiBlueprintsSharedTokenRoute,
   ApiEventsEventIdAnnouncementsRoute: ApiEventsEventIdAnnouncementsRoute,
+  ApiEventsEventIdRegistryRoute: ApiEventsEventIdRegistryRoute,
   ApiInternalNotificationsDispatchRoute: ApiInternalNotificationsDispatchRoute,
   ApiMediaNativeFinalizeRoute: ApiMediaNativeFinalizeRoute,
   ApiMediaNativePrepareRoute: ApiMediaNativePrepareRoute,
   ApiMediaNativeUrlRoute: ApiMediaNativeUrlRoute,
   TemplatesSharedTokenIndexRoute: TemplatesSharedTokenIndexRoute,
+  ApiAuthAndroidAppleCompleteRoute: ApiAuthAndroidAppleCompleteRoute,
+  ApiAuthAndroidAppleExchangeRoute: ApiAuthAndroidAppleExchangeRoute,
+  ApiAuthAndroidAppleStartRoute: ApiAuthAndroidAppleStartRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

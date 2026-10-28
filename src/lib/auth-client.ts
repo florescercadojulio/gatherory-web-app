@@ -1,5 +1,6 @@
 import { createAuthClient } from 'better-auth/react'
 import { i18nClient } from '@better-auth/i18n/client'
+import { oauthProviderClient } from '@better-auth/oauth-provider/client'
 import { emailOTPClient, magicLinkClient, organizationClient } from 'better-auth/client/plugins'
 
 import { defaultOrganizationType } from '@/lib/organization-contract'
@@ -7,6 +8,7 @@ import { orgAccessControl, orgRoles } from '@/lib/org-permissions'
 
 export const authClient = createAuthClient({
   plugins: [
+    oauthProviderClient(),
     i18nClient(),
     emailOTPClient(),
     magicLinkClient(),

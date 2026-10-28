@@ -8,8 +8,14 @@ import { createBlueprintCopy } from '../workflows/blueprint-copy.workflows.live'
 export async function handleBlueprintCopyRequest(request: Request) {
   const response = await runServerResponse(
     Effect.gen(function* () {
-      const actor = yield* requestUser(request)
-      const result = yield* createBlueprintCopy(actor, yield* requestJson(request))
+      const user = yield* requestUser(request)
+      // Better Auth returns the complete session user. Keep the copy workflow
+      // actor explicit, as in native blueprint creation, so auth-only fields
+      // do not fail its strict { id, name } contract.
+      const result = yield* createBlueprintCopy(
+        { id: user.id, name: user.name },
+        yield* requestJson(request)
+      )
       return BlueprintCopyResponseSchema.parse(result)
     }).pipe(Effect.provide(PgClientLive)),
     {

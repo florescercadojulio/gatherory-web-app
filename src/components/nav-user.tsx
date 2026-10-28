@@ -1,4 +1,4 @@
-import { BadgeCheck, ChevronsUpDown, LogOut } from 'lucide-react'
+import { BadgeCheck, ChevronsUpDown, LogOut, PlugZap } from 'lucide-react'
 import { Link } from '@tanstack/react-router'
 
 import { authClient } from '@/lib/auth-client'
@@ -87,6 +87,10 @@ export function NavUser({
               <DropdownMenuItem render={<Link to="/account" />}>
                 <BadgeCheck />
                 {t('userMenu.account')}
+              </DropdownMenuItem>
+              <DropdownMenuItem render={<Link to="/mcp/connections" />}>
+                <PlugZap />
+                {t('userMenu.aiConnections')}
               </DropdownMenuItem>
               <ThemeToggleItem />
             </DropdownMenuGroup>

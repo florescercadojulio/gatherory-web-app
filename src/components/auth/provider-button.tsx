@@ -25,6 +25,9 @@ export type ProviderButtonProps = {
   provider: AuthSocialProvider
   display?: 'full' | 'name' | 'icon'
   view?: AuthView
+  /** Optional callback overrides for a narrowly scoped auth continuation. */
+  callbackURL?: string
+  errorCallbackURL?: string
 } & Omit<ComponentProps<typeof Button>, 'onClick' | 'children' | 'disabled'>
 
 /**
@@ -37,13 +40,15 @@ export function ProviderButton({
   provider,
   display = 'full',
   view = 'signIn',
+  callbackURL: callbackURLOverride,
+  errorCallbackURL,
   variant = 'outline',
   className,
   ...props
 }: ProviderButtonProps) {
   const { authClient, baseURL, localization, navigate, redirectTo, socialSignInMode } = useAuth()
 
-  const callbackURL = `${baseURL}${redirectTo}`
+  const callbackURL = callbackURLOverride ?? `${baseURL}${redirectTo}`
   const { fetchOptions, resetFetchOptions } = useFetchOptions()
 
   const { mutate: signInSocial, isPending: signInSocialPending } = useSignInSocial(authClient, {
@@ -73,14 +78,25 @@ export function ProviderButton({
         {
           provider: providerId,
           callbackURL,
+          ...(errorCallbackURL ? { errorCallbackURL } : {}),
           requestSignUp: view === 'signUp',
         },
-        { onSuccess: () => navigate({ to: redirectTo }) }
+        {
+          onSuccess: () => {
+            if (callbackURLOverride) window.location.assign(callbackURLOverride)
+            else navigate({ to: redirectTo })
+          },
+        }
       )
       return
     }
 
-    signInSocial({ provider: providerId, callbackURL, fetchOptions })
+    signInSocial({
+      provider: providerId,
+      callbackURL,
+      ...(errorCallbackURL ? { errorCallbackURL } : {}),
+      fetchOptions,
+    })
   }
 
   return (

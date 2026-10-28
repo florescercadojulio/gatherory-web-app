@@ -1,5 +1,5 @@
 import { PgClient } from '@effect/sql-pg/PgClient'
-import { and, eq, sql, type SQLWrapper } from 'drizzle-orm'
+import { and, eq, inArray, isNull, sql, type SQLWrapper } from 'drizzle-orm'
 import { Effect } from 'effect'
 import { DB } from '@/db'
 import {
@@ -12,6 +12,7 @@ import {
   nativeSyncEntity,
   nativeSyncChange,
 } from '@/db/schema'
+import { registryCommitment, registryItem } from '@/db/schema/planning.schema'
 import { ForbiddenError } from '@/server/effect'
 
 export function retainedEventAccess(userId: string, eventId: SQLWrapper) {
@@ -59,6 +60,24 @@ export function leaveGuestEvent(userId: string, eventId: string) {
         if (!participation || participation.role !== 'guest') return yield* leaveForbidden()
         yield* db.insert(eventDeparture).values({ eventId, userId }).onConflictDoNothing()
         yield* db.delete(eventParticipant).where(eq(eventParticipant.id, participation.id))
+        const committedItems = yield* db.select({ id: registryCommitment.id, itemId: registryItem.id })
+          .from(registryCommitment)
+          .innerJoin(registryItem, eq(registryItem.id, registryCommitment.registryItemId))
+          .where(and(
+            eq(registryCommitment.userId, userId),
+            isNull(registryCommitment.guestProfileId),
+            eq(registryItem.eventId, eventId),
+          ))
+        for (const itemId of [...new Set(committedItems.map((row) => row.itemId))].sort())
+          yield* db.select({ id: registryItem.id }).from(registryItem)
+            .where(eq(registryItem.id, itemId)).for('update')
+        if (committedItems.length > 0)
+          yield* db.update(registryCommitment).set({ status: 'cancelled', updatedAt: new Date() })
+            .where(and(
+              eq(registryCommitment.userId, userId),
+              isNull(registryCommitment.guestProfileId),
+              inArray(registryCommitment.id, committedItems.map((row) => row.id)),
+            ))
         // An old accepted token is no longer an idempotent admission. A new public
         // link acceptance or newly issued email invitation can explicitly rejoin.
         yield* db

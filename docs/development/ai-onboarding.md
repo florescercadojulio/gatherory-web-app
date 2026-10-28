@@ -1,19 +1,45 @@
 # Start here: Gatherory across projects
 
-Last reviewed: October 23, 2026. Read this guide when starting a fresh AI
+Last reviewed: October 25, 2026. Read this guide when starting a fresh AI
 conversation, then inspect the repositories relevant to the requested task.
 
 ## Product and project map
 
 Gatherory helps hosts, collaborators, and guests plan events together. The
 current product includes event invitations and RSVPs, shared ideas, individual
-preferences through Decide, schedules, budgets, notes, and media. iPhone is the
-primary planning experience. Web access is enabled again as of the October 25
-source update: browser login and planning routes use their ordinary session and
-event permissions. Legal and support pages still open on the public landing site.
-See the [web access release](../release/web-access-2026-10-25.md) and the historical
-[October 23 beta feedback handoff](../release/beta-feedback-2026-10-23.md).
+preferences through Decide, schedules, budgets, notes, and media. iPhone remains
+the primary planning experience. On October 25, the product owner reversed the
+October 23 browser beta gate: the current web source removes the blanket
+TestFlight redirect so browser login and planning can be used. The isolated
+web-access release is live at `https://app.gatherory.com`, verified against
+production commit `2db89f4b2ea7f526f9fcd99e559b86b31be0bb66`. Anonymous
+planning requests still redirect to sign-in and private native sync returns 401.
+See the [release acceptance](../release/web-access-2026-10-25.md). This web
+release excludes the pending MCP, Android, schema, and native changes; production
+MCP remains unavailable. See the [October 23 beta feedback handoff](../release/beta-feedback-2026-10-23.md)
+for the historical gate and the dated policy reversal.
 Public guides and marketing belong to the landing site.
+
+The browser planning experience is primarily read-only. AI connections are
+managed from the profile menu at `/mcp/connections`; the main planning sidebar
+omits Blueprints and Account to keep the browser surface focused. A user can
+reduce an MCP client's permissions to read-only or revoke its grant. Restoring
+write permission requires reconnecting and granting fresh OAuth consent. Keep
+MCP development-only: production push or deployment requires an explicit
+production rollout request from the product owner. See the [MCP development
+rollout record](mcp-dev-rollout.md#browser-connection-settings-acceptance--october-25-2026)
+for the verified browser flow and its limits.
+
+The current development overview puts event summaries first, with upcoming
+sessions labeled by their parent event. Account uses one settings column and
+the existing global sidebar; it has no second section-navigation sidebar.
+Native Home names the selected event in the standard navigation title and
+identifies a visible parent by name. Event cards now hide lifecycle/context
+badges; the Events tab long-press menu offers permitted Duplicate, Cancel and
+draft Delete actions. Duplication copies event/schedule/ideas into independent
+records without attendees or replies; Pause Replies remains deferred. See iOS
+`docs/event-card-actions.md` and the
+[UI acceptance record](event-overview-account-ui-2026-10-25.md).
 
 The repositories are separate Git checkouts under the same Gatherory directory:
 
@@ -61,6 +87,7 @@ remaining physical-device/deployment acceptance checks.
 | Task                                     | Read first                                                                                                                                                                                                                                    |
 | ---------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Backend behavior and authorization       | [Server implementation guide](server-implementation-guide.md), [server architecture](../architecture/server-architecture.md), [data model](../architecture/data-model.md), then the owning code under `src/server/`.                          |
+| MCP OAuth, tools, and access boundaries  | [Gatherory MCP guide](mcp.md), then `src/server/mcp/` and `src/routes/mcp.ts`.                                                                                                                                                                |
 | Invitations, account switching, or RSVPs | iOS [authentication contract](../../../ios-apps/gatherory/docs/auth-integration.md), `Gatherory/App/AuthenticationSession.swift`, `Gatherory/Features/Events/`, and web `src/server/events/` plus `src/server/auth/`.                         |
 | Offline sync and data isolation          | iOS [sync guide](../../../ios-apps/gatherory/docs/offline-sync.md), `Gatherory/OfflineSync/`, `Gatherory/Data/Persistence/`, and web `src/server/sync/`.                                                                                      |
 | Missing images or uploads                | [Media system](../architecture/media-system.md), [Blueprint cover images](../architecture/blueprint-cover-images.md), web `src/server/media/`, iOS `Gatherory/OfflineSync/R2MediaTransport.swift` and `UploadImagePreparation.swift`.         |
@@ -76,6 +103,17 @@ Paths in inline code are relative to their owning repository.
 
 ## Decisions to preserve
 
+- The October 25 web-access policy reopens browser login and planning by
+  removing the blanket TestFlight redirect in source. This supersedes the
+  October 23 beta-gate decision documented in the [beta feedback handoff](../release/beta-feedback-2026-10-23.md).
+  The isolated production release is verified in the
+  [web-access acceptance record](../release/web-access-2026-10-25.md).
+  Current development keeps browser planning primarily read-only; the AI
+  connections page is in the profile menu, and Blueprints/Account are omitted
+  from the primary sidebar. These settings/navigation changes are not deployed.
+  MCP's production enablement remains a separate rollout. Never push or deploy
+  any production changes without an explicit production instruction from the
+  product owner.
 - Consumer-facing wording is **Event / Events** (Spanish: **evento / eventos**),
   including the former Workspaces directory/settings/budget labels. Keep stable
   localization keys, internal `PlanningWorkspace` names, ownership containers,

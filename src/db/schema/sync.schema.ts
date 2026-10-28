@@ -84,6 +84,8 @@ export const nativeSyncMutationReceipt = pgTable(
     disposition: text('disposition').notNull(),
     serverVersion: integer('server_version'),
     failureCode: text('failure_code'),
+    /** Present only for MCP writes; binds a tool idempotency key to exact arguments. */
+    mcpFingerprint: text('mcp_fingerprint'),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   },
   (table) => [index('native_sync_receipt_owner_scope_idx').on(table.ownerUserId, table.scopeId)]

@@ -663,7 +663,7 @@
   }
 
   .app-page-shell {
-    @apply mx-auto flex w-full max-w-[77.5rem] flex-1 flex-col gap-8 p-4 md:p-8;
+    @apply mx-auto flex min-w-0 w-full max-w-[77.5rem] flex-1 flex-col gap-8 p-4 md:p-8;
   }
 
   .app-section-heading {
@@ -686,5 +686,117 @@
 
   .app-keycap {
     @apply inline-flex items-center rounded-sm border border-white/10 bg-[#121212] px-2 py-0.5 text-xs text-[#cdcdcd];
+  }
+}
+
+@layer components {
+  .account-settings-page {
+    max-width: 52rem;
+  }
+  .account-profile-identity {
+    display: flex;
+    align-items: start;
+    gap: 1.25rem;
+  }
+  .account-profile-fields {
+    display: grid;
+    min-width: 0;
+    gap: 1rem;
+  }
+  .account-profile-fields dt {
+    margin-bottom: 0.25rem;
+    font-size: 0.75rem;
+    color: var(--muted-foreground);
+  }
+  .account-profile-fields dd {
+    font-size: 0.875rem;
+    font-weight: 500;
+    overflow-wrap: anywhere;
+  }
+  .account-setting-action {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+  .account-delete-content {
+    display: flex;
+    align-items: start;
+    gap: 0.75rem;
+  }
+  .account-danger-frame {
+    --frame-border-color: color-mix(in srgb, var(--destructive) 25%, var(--border));
+  }
+  .account-theme-choice {
+    display: grid;
+    min-width: 0;
+    cursor: pointer;
+    gap: 0.75rem;
+    padding: 0.5rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--card);
+  }
+  .account-theme-choice:hover {
+    border-color: var(--muted-foreground);
+  }
+  .account-theme-choice[data-selected='true'] {
+    border-color: var(--ring);
+    box-shadow: 0 0 0 1px var(--ring);
+  }
+  .account-theme-choice:focus-within {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+  .account-theme-preview {
+    min-width: 0;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    border-radius: calc(var(--radius) - 2px);
+  }
+  .account-theme-choice-label {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.25rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+  }
+}
+
+@layer components {
+  .overview-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    align-content: start;
+    align-items: start;
+    gap: 2rem;
+  }
+  .overview-events,
+  .overview-upcoming {
+    min-width: 0;
+  }
+  .overview-events > div:first-child {
+    gap: 0.75rem;
+    align-items: start;
+  }
+  .overview-events h1 {
+    font-size: 1.5rem;
+    line-height: 2rem;
+    font-weight: 600;
+  }
+  .overview-event-frame [data-slot='frame-panel'] {
+    padding: 1.25rem;
+  }
+  @media (width >= 80rem) {
+    .overview-layout {
+      grid-template-columns: minmax(0, 1fr) 19rem;
+    }
+    .overview-upcoming {
+      border-left: 1px solid var(--border);
+      padding-left: 1.5rem;
+    }
   }
 }

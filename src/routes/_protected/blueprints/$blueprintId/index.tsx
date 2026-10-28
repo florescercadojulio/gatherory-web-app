@@ -46,7 +46,7 @@ function BlueprintDetail() {
             </span>
           </div>
         </header>
-        <main className="flex min-h-0 flex-1 flex-col">
+        <div className="flex min-h-0 flex-1 flex-col">
           {result.data.source && 'eventId' in result.data.source ? (
             <div className="mx-auto w-full max-w-5xl px-4 pt-4 sm:px-6 lg:px-8">
               <Button
@@ -80,7 +80,7 @@ function BlueprintDetail() {
                 : undefined
             }
           />
-        </main>
+        </div>
       </SidebarInset>
     </SidebarProvider>
   )

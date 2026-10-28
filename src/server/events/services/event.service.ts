@@ -34,6 +34,8 @@ type EventServiceShape = {
       role: InvitationPreviewDetails['role']
       expiresAt: string
       startsAt: string | null
+      timeZone: string
+      isAllDay: boolean
       locationName: string | null
     },
     EventDomainError

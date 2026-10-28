@@ -1,4 +1,22 @@
 const es = {
+  account: {
+    description: 'Tu perfil, preferencias y aplicaciones conectadas.',
+    sections: 'Secciones de la cuenta',
+    name: 'Nombre',
+    email: 'Correo electrónico',
+    appearance: 'Apariencia',
+    appearanceDescription: 'Elige cómo se ve Gatherory en este navegador.',
+    connections: 'Conexiones de IA',
+    connectionsDescription: 'Elige a qué pueden acceder tus aplicaciones de IA conectadas.',
+    connectionsHint: 'Revisa los permisos o revoca el acceso cuando quieras.',
+    manageConnections: 'Administrar conexiones',
+    actions: 'Acciones de la cuenta',
+  },
+  userMenu: {
+    account: 'Cuenta',
+    aiConnections: 'Conexiones de IA',
+    logOut: 'Cerrar sesión',
+  },
   event: {
     couldNotRefresh:
       'Gatherory no pudo actualizar estos detalles. Puedes seguir usando el resto del evento.',

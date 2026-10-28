@@ -130,6 +130,8 @@ export function getInvitationPreviewDetails(input: { token: string; email: strin
         status: eventInvitation.status,
         expiresAt: eventInvitation.expiresAt,
         startsAt: event.startsAt,
+        timeZone: event.timeZone,
+        isAllDay: event.isAllDay,
         locationName: event.locationName,
       })
       .from(eventInvitation)

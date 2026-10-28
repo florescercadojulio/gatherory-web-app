@@ -4,7 +4,7 @@ import {
   type ThemeLocalization,
 } from '@better-auth-ui/core/plugins/theme'
 
-import { Appearance } from '@/components/auth/theme/appearance.tsx'
+import { Appearance } from '@/components/auth/theme/appearance-settings.tsx'
 import { ThemeToggleItem } from '@/components/auth/theme/theme-toggle-item.tsx'
 
 /**

@@ -115,7 +115,7 @@ function NewBlueprint() {
             <span className="text-sm font-medium">{t('blueprints.createTitle')}</span>
           </div>
         </header>
-        <main className="flex min-h-0 flex-1 flex-col overflow-auto">
+        <div className="flex min-h-0 flex-1 flex-col overflow-auto">
           <div className="mx-auto flex w-full max-w-5xl justify-end px-4 pt-4 sm:px-6 lg:px-8">
             <Button variant="ghost" render={<Link to="/blueprints" />}>
               {t('common.cancel')}
@@ -165,7 +165,7 @@ function NewBlueprint() {
               starterName={catalogKey}
             />
           )}
-        </main>
+        </div>
       </SidebarInset>
     </SidebarProvider>
   )

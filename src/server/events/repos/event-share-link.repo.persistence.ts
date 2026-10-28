@@ -213,6 +213,8 @@ export function previewEventShareLink(token: string, userId?: string) {
       .select({
         title: event.title,
         startsAt: event.startsAt,
+        timeZone: event.timeZone,
+        isAllDay: event.isAllDay,
         locationName: event.locationName,
         role: eventShareLink.role,
         expiresAt: eventShareLink.expiresAt,
@@ -232,6 +234,8 @@ export function previewEventShareLink(token: string, userId?: string) {
       return {
         title: preview.title,
         startsAt: preview.startsAt?.toISOString() ?? null,
+        timeZone: preview.timeZone,
+        isAllDay: preview.isAllDay,
         locationName: preview.locationName,
         role: joined.role,
         status: 'accepted' as const,
@@ -261,6 +265,8 @@ export function previewEventShareLink(token: string, userId?: string) {
     return {
       title: preview.title,
       startsAt: preview.startsAt?.toISOString() ?? null,
+      timeZone: preview.timeZone,
+      isAllDay: preview.isAllDay,
       locationName: preview.locationName,
       role: preview.role,
       status:

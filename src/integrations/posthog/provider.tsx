@@ -3,11 +3,13 @@ import { PostHogProvider as BasePostHogProvider } from '@posthog/react'
 import type { ReactNode } from 'react'
 import { redactTemplateLinkCredentials } from '@/lib/template-link-privacy'
 import { isWaitlistTrackerPath } from '@/lib/waitlist-privacy'
+import { isMcpConnectionPath } from '@/lib/mcp-connection'
 
 if (
   typeof window !== 'undefined' &&
   import.meta.env.VITE_POSTHOG_KEY &&
   !isWaitlistTrackerPath(window.location.pathname) &&
+  !isMcpConnectionPath(window.location.pathname) &&
   !window.location.pathname.startsWith('/templates/shared/')
 ) {
   posthog.init(import.meta.env.VITE_POSTHOG_KEY, {
@@ -16,7 +18,8 @@ if (
     capture_pageview: false,
     before_send: (event) =>
       window.location.pathname.startsWith('/templates/shared/') ||
-      isWaitlistTrackerPath(window.location.pathname)
+      isWaitlistTrackerPath(window.location.pathname) ||
+      isMcpConnectionPath(window.location.pathname)
         ? null
         : redactTemplateLinkCredentials(event),
     session_recording: { blockClass: 'ph-no-record' },

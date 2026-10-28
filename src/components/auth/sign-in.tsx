@@ -29,6 +29,7 @@ import {
 } from '@/components/ui/input-group.tsx'
 import { authClient } from '@/lib/auth-client'
 import { useSignInContinuation } from '@/lib/auth/use-sign-in-continuation.ts'
+import { isTwoFactorRedirect } from '@/lib/auth/two-factor-methods'
 import { cn } from 'cn'
 import { isAuthFormFieldInvalid, useAuthForm } from './auth-form'
 import { LastUsedBadge } from './last-login-method/last-used-badge'
@@ -39,6 +40,13 @@ export type SignInProps = {
   className?: string
   socialLayout?: SocialLayout
   socialPosition?: 'top' | 'bottom'
+  /** Narrow override for flows that must preserve a verified continuation. */
+  onSignInSuccess?: (data: unknown) => void | Promise<void>
+  /** Hide account recovery and creation links when this form has no auth routes. */
+  hideSecondaryActions?: boolean
+  callbackURL?: string
+  errorCallbackURL?: string
+  continuationRedirectTo?: string
 }
 
 /**
@@ -49,7 +57,16 @@ export type SignInProps = {
  * @param socialPosition - Position of social provider buttons; `"top"` or `"bottom"`. Defaults to `"bottom"`.
  * @returns The rendered sign-in UI as a JSX element
  */
-export function SignIn({ className, socialLayout, socialPosition = 'bottom' }: SignInProps) {
+export function SignIn({
+  className,
+  socialLayout,
+  socialPosition = 'bottom',
+  onSignInSuccess,
+  hideSecondaryActions = false,
+  callbackURL,
+  errorCallbackURL,
+  continuationRedirectTo,
+}: SignInProps) {
   const {
     basePaths,
     emailAndPassword,
@@ -62,7 +79,7 @@ export function SignIn({ className, socialLayout, socialPosition = 'bottom' }: S
     Link,
   } = useAuth()
 
-  const continueSignIn = useSignInContinuation()
+  const continueSignIn = useSignInContinuation(continuationRedirectTo)
 
   const signInMutating = useIsMutating({
     mutationKey: authMutationKeys.signIn.all,
@@ -98,7 +115,8 @@ export function SignIn({ className, socialLayout, socialPosition = 'bottom' }: S
         throw error
       }
 
-      continueSignIn(data)
+      if (onSignInSuccess && !isTwoFactorRedirect(data)) await onSignInSuccess(data)
+      else continueSignIn(data)
     },
   })
 
@@ -106,7 +124,7 @@ export function SignIn({ className, socialLayout, socialPosition = 'bottom' }: S
 
   return (
     <Card className={cn('w-full max-w-sm', className)}>
-      <AuthPrompts view="signIn" />
+      {!hideSecondaryActions && <AuthPrompts view="signIn" />}
       <ReauthenticationNotice />
       <CardHeader>
         <CardTitle className="text-xl font-semibold">{localization.auth.signIn}</CardTitle>
@@ -117,7 +135,12 @@ export function SignIn({ className, socialLayout, socialPosition = 'bottom' }: S
           {socialPosition === 'top' && (
             <>
               {socialProviders && socialProviders.length > 0 && (
-                <ProviderButtons socialLayout={socialLayout} view="signIn" />
+                <ProviderButtons
+                  socialLayout={socialLayout}
+                  view="signIn"
+                  callbackURL={callbackURL}
+                  errorCallbackURL={errorCallbackURL}
+                />
               )}
 
               {showSeparator && (
@@ -286,11 +309,12 @@ export function SignIn({ className, socialLayout, socialPosition = 'bottom' }: S
                       )}
                     </form.Subscribe>
 
-                    {plugins.flatMap((plugin) =>
-                      (plugin.authButtons ?? []).map((AuthButton, index) => (
-                        <AuthButton key={`${plugin.id}-${index.toString()}`} view="signIn" />
-                      ))
-                    )}
+                    {!hideSecondaryActions &&
+                      plugins.flatMap((plugin) =>
+                        (plugin.authButtons ?? []).map((AuthButton, index) => (
+                          <AuthButton key={`${plugin.id}-${index.toString()}`} view="signIn" />
+                        ))
+                      )}
                   </div>
                 </FieldGroup>
               </form.AuthFormRoot>
@@ -306,26 +330,33 @@ export function SignIn({ className, socialLayout, socialPosition = 'bottom' }: S
               )}
 
               {socialProviders && socialProviders.length > 0 && (
-                <ProviderButtons socialLayout={socialLayout} view="signIn" />
+                <ProviderButtons
+                  socialLayout={socialLayout}
+                  view="signIn"
+                  callbackURL={callbackURL}
+                  errorCallbackURL={errorCallbackURL}
+                />
               )}
             </>
           )}
         </div>
 
         <div className="auth-signin-secondary-actions mt-4 flex w-full flex-col items-center gap-3">
-          {emailAndPassword?.enabled && emailAndPassword?.forgotPassword && (
-            <Link
-              href={getAuthLinkURL(
-                `${basePaths.auth}/${viewPaths.auth.forgotPassword}`,
-                redirectTo
-              )}
-              className="self-center text-sm underline-offset-4 hover:underline"
-            >
-              {localization.auth.forgotPasswordLink}
-            </Link>
-          )}
+          {!hideSecondaryActions &&
+            emailAndPassword?.enabled &&
+            emailAndPassword?.forgotPassword && (
+              <Link
+                href={getAuthLinkURL(
+                  `${basePaths.auth}/${viewPaths.auth.forgotPassword}`,
+                  redirectTo
+                )}
+                className="self-center text-sm underline-offset-4 hover:underline"
+              >
+                {localization.auth.forgotPasswordLink}
+              </Link>
+            )}
 
-          {emailAndPassword?.enabled && (
+          {!hideSecondaryActions && emailAndPassword?.enabled && (
             <FieldDescription className="text-center">
               {localization.auth.needToCreateAnAccount}{' '}
               <Link
