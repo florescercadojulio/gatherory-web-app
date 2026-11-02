@@ -1,5 +1,9 @@
 import { expect, test } from 'vitest'
 import { Cause, Effect, Exit, Layer } from 'effect'
+import {
+  BlueprintCoverUnavailableCallbacks,
+  BlueprintCoverUnavailableTestLive,
+} from '../fixtures/blueprint-cover-unavailable.live'
 
 const enabled = process.env.RUN_BLUEPRINT_DB_TESTS === '1'
 
@@ -144,15 +148,21 @@ test.skipIf(!enabled)(
       const unlistedRevision = await createTemplate(false)
       await createTemplate(true)
 
-      const live = authoring.BlueprintPersonalRepoLive.pipe(Layer.provide(PgClientLive))
+      const live = authoring.BlueprintPersonalRepoLive.pipe(
+        Layer.provide(Layer.mergeAll(PgClientLive, BlueprintCoverUnavailableTestLive))
+      )
       const unchangedPrivate = await Effect.runPromise(
         Effect.gen(function* () {
           const service = yield* personalRepoModule.BlueprintPersonalRepo
-          return yield* service.save(actorId, {
-            id: unlistedRevision.templateId!,
-            expectedVersion: 1,
-            content,
-          })
+          return yield* service.save(
+            actorId,
+            {
+              id: unlistedRevision.templateId!,
+              expectedVersion: 1,
+              content,
+            },
+            BlueprintCoverUnavailableCallbacks
+          )
         }).pipe(Effect.provide(live))
       )
       expect(unchangedPrivate).toMatchObject({
@@ -173,11 +183,15 @@ test.skipIf(!enabled)(
       const updatedPrivate = await Effect.runPromise(
         Effect.gen(function* () {
           const service = yield* personalRepoModule.BlueprintPersonalRepo
-          return yield* service.save(actorId, {
-            id: unlistedRevision.templateId!,
-            expectedVersion: 1,
-            content: { ...content, name: 'Private edited' },
-          })
+          return yield* service.save(
+            actorId,
+            {
+              id: unlistedRevision.templateId!,
+              expectedVersion: 1,
+              content: { ...content, name: 'Private edited' },
+            },
+            BlueprintCoverUnavailableCallbacks
+          )
         }).pipe(Effect.provide(live))
       )
       expect(updatedPrivate).toMatchObject({
@@ -194,11 +208,15 @@ test.skipIf(!enabled)(
       const versionConflict = await Effect.runPromiseExit(
         Effect.gen(function* () {
           const service = yield* personalRepoModule.BlueprintPersonalRepo
-          return yield* service.save(actorId, {
-            id: unlistedRevision.templateId!,
-            expectedVersion: 1,
-            content: { ...content, name: 'Stale edit' },
-          })
+          return yield* service.save(
+            actorId,
+            {
+              id: unlistedRevision.templateId!,
+              expectedVersion: 1,
+              content: { ...content, name: 'Stale edit' },
+            },
+            BlueprintCoverUnavailableCallbacks
+          )
         }).pipe(Effect.provide(live))
       )
       expect(
@@ -211,11 +229,15 @@ test.skipIf(!enabled)(
       const uploaded = await Effect.runPromise(
         Effect.gen(function* () {
           const service = yield* personalRepoModule.BlueprintPersonalRepo
-          return yield* service.publish(actorId, {
-            id: unlistedRevision.templateId!,
-            expectedVersion: 2,
-            creatorName: 'Garden Hosts',
-          })
+          return yield* service.publish(
+            actorId,
+            {
+              id: unlistedRevision.templateId!,
+              expectedVersion: 2,
+              creatorName: 'Garden Hosts',
+            },
+            BlueprintCoverUnavailableCallbacks
+          )
         }).pipe(Effect.provide(live))
       )
       expect(uploaded).toMatchObject({
@@ -231,10 +253,14 @@ test.skipIf(!enabled)(
       const uploadedAgain = await Effect.runPromise(
         Effect.gen(function* () {
           const service = yield* personalRepoModule.BlueprintPersonalRepo
-          return yield* service.publish(actorId, {
-            id: unlistedRevision.templateId!,
-            expectedVersion: 2,
-          })
+          return yield* service.publish(
+            actorId,
+            {
+              id: unlistedRevision.templateId!,
+              expectedVersion: 2,
+            },
+            BlueprintCoverUnavailableCallbacks
+          )
         }).pipe(Effect.provide(live))
       )
       expect(uploadedAgain).toEqual(uploaded)
@@ -272,7 +298,11 @@ test.skipIf(!enabled)(
       const checkpoint = Layer.succeed(blueprintRuntime.BlueprintInstallCheckpoint, {
         afterProjection: () => Effect.void,
       })
-      const blueprintDependencies = Layer.mergeAll(PgClientLive, checkpoint)
+      const blueprintDependencies = Layer.mergeAll(
+        PgClientLive,
+        checkpoint,
+        BlueprintCoverUnavailableTestLive
+      )
       const catalogLayer = blueprintRepo.BlueprintRepoLive.pipe(
         Layer.provide(blueprintDependencies)
       )
@@ -287,11 +317,15 @@ test.skipIf(!enabled)(
       const updatedListed = await Effect.runPromise(
         Effect.gen(function* () {
           const service = yield* personalRepoModule.BlueprintPersonalRepo
-          return yield* service.save(actorId, {
-            id: templateId,
-            expectedVersion: 1,
-            content: { ...content, name: 'Listed edited' },
-          })
+          return yield* service.save(
+            actorId,
+            {
+              id: templateId,
+              expectedVersion: 1,
+              content: { ...content, name: 'Listed edited' },
+            },
+            BlueprintCoverUnavailableCallbacks
+          )
         }).pipe(Effect.provide(live))
       )
       expect(updatedListed).toMatchObject({

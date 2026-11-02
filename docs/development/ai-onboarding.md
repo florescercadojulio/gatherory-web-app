@@ -36,7 +36,11 @@ the existing global sidebar; it has no second section-navigation sidebar.
 Native Home names the selected event in the standard navigation title and
 identifies a visible parent by name. Event cards now hide lifecycle/context
 badges; the Events tab long-press menu offers permitted Duplicate, Cancel and
-draft Delete actions. Duplication copies event/schedule/ideas into independent
+Delete actions. New main events default to Ongoing, including MCP-created
+events; native editing hides lifecycle status controls. Ongoing roots do not
+auto-finish or lock editing based on dates alone. Explicit Finished/Cancelled
+states remain protected. Home defaults to Overview, with Cards available as a
+saved preference. Duplication copies event/schedule/ideas into independent
 records without attendees or replies; Pause Replies remains deferred. See iOS
 `docs/event-card-actions.md` and the
 [UI acceptance record](event-overview-account-ui-2026-10-25.md).
@@ -78,6 +82,11 @@ If the local dependency is unavailable, report it rather than downloading a
 replacement.
 
 ## Where to read for a task
+
+For collaborative budgeting, read [shared budget sync](team-budget-sync.md) and
+the linked native safety guide. Budget allocations now use one versioned atomic
+command; ordinary native content writes cannot replace allocation fields.
+This work is not deployed. Preserve the production-approval restriction.
 
 For QR template distribution, start with the
 [implementation handoff](../roadmaps/blueprints-roadmap/22-qr-distribution-handoff.md).
@@ -354,6 +363,9 @@ Paths in inline code are relative to their owning repository.
 
 - New API/MCP contracts use explicit Unicode character limits and monetary
   envelopes `{ amountMinor: "100", currency: "USD" }` (one USD dollar).
+  Money calculations use the shared Decimal.js constructor; see the
+  [money arithmetic implementation map](money-arithmetic.md) for conversions,
+  legacy format boundaries and regression coverage.
   Follow [API contract conventions](api-contract-conventions.md); existing
   budget, archive and sync money formats require explicit adapters/versioning,
   not reinterpretation. Blueprint schemas already enforce these conventions.

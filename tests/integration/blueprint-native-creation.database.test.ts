@@ -1,5 +1,6 @@
 import { Cause, Effect, Exit, Layer } from 'effect'
 import { expect, test } from 'vitest'
+import { BlueprintCoverUnavailableTestLive } from '../fixtures/blueprint-cover-unavailable.live'
 
 const enabled = process.env.RUN_BLUEPRINT_DB_TESTS === '1'
 
@@ -25,6 +26,8 @@ test.skipIf(!enabled)(
       authoringRepo,
       captureRepo,
       nativeCreationRepo,
+      nativeCreationTransaction,
+      blueprintCoverFixtures,
       sharingRepo,
       runtimeContracts,
       blueprintRepoModule,
@@ -41,6 +44,8 @@ test.skipIf(!enabled)(
       import('@/server/blueprints/repos/blueprint-authoring.repo.live'),
       import('@/server/blueprints/repos/blueprint-capture.repo.live'),
       import('@/server/blueprints/repos/blueprint-native-creation.repo.live'),
+      import('@/server/blueprints/workflows/blueprint-native-creation-transaction.live'),
+      import('../fixtures/blueprint-cover-layers'),
       import('@/server/blueprints/repos/blueprint-sharing.repo.live'),
       import('@/server/blueprints/contracts/blueprint-runtime.contracts'),
       import('@/server/blueprints/repos/blueprint.repo.live'),
@@ -119,21 +124,28 @@ test.skipIf(!enabled)(
       includeIdeaNotes: false,
     }
 
-    const authoringLayer = authoringRepo.BlueprintAuthoringRepoLive.pipe(
-      Layer.provide(PgClientLive)
-    )
-    const captureLayer = captureRepo.BlueprintCaptureRepoLive.pipe(
-      Layer.provide(Layer.mergeAll(authoringLayer, PgClientLive))
-    )
+    const offlineCoverStorage = {
+      bucket: 'blueprint-test',
+      createUploadUrl: () => Effect.die('unexpected Blueprint cover storage write'),
+      inspect: () => Effect.die('unexpected Blueprint cover storage inspect'),
+      readBytes: () => Effect.die('unexpected Blueprint cover storage read'),
+      putBytes: () => Effect.die('unexpected Blueprint cover storage write'),
+      createReadUrl: () => Effect.die('unexpected Blueprint cover URL'),
+      delete: () => Effect.die('unexpected Blueprint cover storage delete'),
+    }
+    const coverLayer = blueprintCoverFixtures.blueprintCoverTestLive(offlineCoverStorage)
+    const authoringLayer = authoringRepo.BlueprintAuthoringRepoLive.pipe(Layer.provide(coverLayer))
+    const captureLayer = captureRepo.BlueprintCaptureRepoLive.pipe(Layer.provide(authoringLayer))
     const creationLayer = nativeCreationRepo.BlueprintNativeCreationRepoLive.pipe(
-      Layer.provide(Layer.mergeAll(authoringLayer, captureLayer, PgClientLive))
+      Layer.provide(Layer.mergeAll(authoringLayer, captureLayer))
     )
-    const sharingLayer = sharingRepo.BlueprintSharingRepoLive.pipe(Layer.provide(PgClientLive))
+    const transactionLayer = nativeCreationTransaction.BlueprintNativeCreationTransactionLive
+    const sharingLayer = sharingRepo.BlueprintSharingRepoLive
     const installCheckpoint = Layer.succeed(runtimeContracts.BlueprintInstallCheckpoint, {
       afterProjection: () => Effect.void,
     })
     const blueprintLayer = blueprintRepoModule.BlueprintRepoLive.pipe(
-      Layer.provide(Layer.mergeAll(PgClientLive, installCheckpoint))
+      Layer.provide(Layer.mergeAll(installCheckpoint, BlueprintCoverUnavailableTestLive))
     )
     const noExternalWorkspaceProvisioning = Layer.succeed(authContracts.BetterAuthWorkspaceCon, {
       listOrganizations: () => Effect.succeed([]),
@@ -148,15 +160,19 @@ test.skipIf(!enabled)(
       authoringLayer,
       captureLayer,
       creationLayer,
+      transactionLayer,
       sharingLayer,
       blueprintLayer,
-      noExternalWorkspaceProvisioning
+      noExternalWorkspaceProvisioning,
+      coverLayer
     )
     type Dependencies = Layer.Success<typeof layer>
     const run = <A, E>(program: Effect.Effect<A, E, Dependencies>) =>
-      Effect.runPromise(program.pipe(Effect.provide(layer)))
+      Effect.runPromise(program.pipe(Effect.provide(layer), Effect.provide(PgClientLive)))
     const runExit = <A, E>(program: Effect.Effect<A, E, Dependencies>) =>
-      Effect.runPromise(Effect.exit(program.pipe(Effect.provide(layer))))
+      Effect.runPromise(
+        Effect.exit(program.pipe(Effect.provide(layer), Effect.provide(PgClientLive)))
+      )
     const actor = (id: string) => ({ id, name: id })
     const call = (actorId: string, input: unknown) =>
       workflow.blueprintNativeCreationWorkflow(actor(actorId), input)

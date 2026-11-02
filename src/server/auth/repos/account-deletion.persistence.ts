@@ -50,7 +50,10 @@ async function successor(
         ne(eventParticipant.planningPermission, 'view_only')
       )
     )
-    .orderBy(sql`case when ${hasOrganizationOwnerRole(member.role)} then 0 else 1 end`, asc(member.createdAt))
+    .orderBy(
+      sql`case when ${hasOrganizationOwnerRole(member.role)} then 0 else 1 end`,
+      asc(member.createdAt)
+    )
     .limit(1)
   return candidate
 }

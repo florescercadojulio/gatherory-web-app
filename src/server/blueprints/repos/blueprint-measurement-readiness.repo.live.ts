@@ -25,19 +25,19 @@ import type {
 import { isBlueprintDiscoveryAccountEligible } from '../services/blueprint-measurement-eligibility'
 import { validateBlueprintMeasurementReadinessWindow } from '../services/blueprint-measurement-readiness'
 import { BlueprintMeasurementReadinessRepo } from './blueprint-measurement-readiness.repo'
+import {
+  MAX_BLUEPRINT_MEASUREMENT_ROWS,
+  measurementReadFailure,
+  requireBoundedMeasurementRows,
+} from './blueprint-measurement-readiness.errors'
 
-const MAX_ROWS = 20_000
+const MAX_ROWS = MAX_BLUEPRINT_MEASUREMENT_ROWS
 const MAX_ROWS_PLUS_ONE = MAX_ROWS + 1
-const ROW_LIMIT_MESSAGE = 'Measurement readiness report exceeds the bounded row limit.'
 const priorCopyRevision = alias(blueprintRevision, 'measurement_prior_copy_revision')
 const priorInstallationRevision = alias(
   blueprintRevision,
   'measurement_prior_installation_revision'
 )
-
-const failIfTooMany = (length: number): void => {
-  if (length > MAX_ROWS) throw new Error(ROW_LIMIT_MESSAGE)
-}
 
 const iso = (value: Date): string => value.toISOString()
 
@@ -148,7 +148,7 @@ export const BlueprintMeasurementReadinessRepoLive = Layer.effect(
                 )
                 .orderBy(blueprintDiscoveryExposure.issuedAt, blueprintDiscoveryExposure.exposureId)
                 .limit(MAX_ROWS_PLUS_ONE)
-              failIfTooMany(exposureRows.length)
+              yield* requireBoundedMeasurementRows(exposureRows.length)
 
               const exposures: BlueprintMeasurementReadinessInput['exposures'] = exposureRows.map(
                 (row) => {
@@ -240,7 +240,7 @@ export const BlueprintMeasurementReadinessRepoLive = Layer.effect(
                 )
                 .orderBy(blueprintDiscoverySignal.acceptedSequence, blueprintDiscoverySignal.id)
                 .limit(MAX_ROWS_PLUS_ONE)
-              failIfTooMany(signalsRows.length)
+              yield* requireBoundedMeasurementRows(signalsRows.length)
               const signals: BlueprintMeasurementReadinessInput['signals'] = signalsRows
                 .filter((row) => isBlueprintDiscoveryAccountEligible(row.actorId))
                 .map((row) => {
@@ -309,7 +309,7 @@ export const BlueprintMeasurementReadinessRepoLive = Layer.effect(
                     )
                     .limit(MAX_ROWS_PLUS_ONE)
                 : []
-              failIfTooMany(diagnosticRows.length)
+              yield* requireBoundedMeasurementRows(diagnosticRows.length)
               const servingDiagnostics: BlueprintMeasurementReadinessInput['servingDiagnostics'] =
                 diagnosticRows
                   .filter((row) => isBlueprintDiscoveryAccountEligible(row.actorId))
@@ -367,7 +367,7 @@ export const BlueprintMeasurementReadinessRepoLive = Layer.effect(
                   blueprintAttributionAcquisition.id
                 )
                 .limit(MAX_ROWS_PLUS_ONE)
-              failIfTooMany(acquisitionRows.length)
+              yield* requireBoundedMeasurementRows(acquisitionRows.length)
               const acquisitions: BlueprintMeasurementReadinessInput['acquisitions'] =
                 acquisitionRows
                   .filter((row) => isBlueprintDiscoveryAccountEligible(row.actorId))
@@ -451,7 +451,7 @@ export const BlueprintMeasurementReadinessRepoLive = Layer.effect(
                 )
                 .orderBy(blueprintQualifiedAdoption.qualifiedAt, blueprintQualifiedAdoption.id)
                 .limit(MAX_ROWS_PLUS_ONE)
-              failIfTooMany(adoptionRows.length)
+              yield* requireBoundedMeasurementRows(adoptionRows.length)
               const qualifiedAdoptions: BlueprintMeasurementReadinessInput['qualifiedAdoptions'] =
                 adoptionRows
                   .filter((row) => isBlueprintDiscoveryAccountEligible(row.actorId))
@@ -585,7 +585,7 @@ export const BlueprintMeasurementReadinessRepoLive = Layer.effect(
                 )
                 .orderBy(blueprintQualifiedAdoption.qualifiedAt, blueprintQualifiedAdoption.id)
                 .limit(MAX_ROWS_PLUS_ONE)
-              failIfTooMany(priorRows.length)
+              yield* requireBoundedMeasurementRows(priorRows.length)
 
               return {
                 ...input,
@@ -632,13 +632,7 @@ export const BlueprintMeasurementReadinessRepoLive = Layer.effect(
               } as BlueprintMeasurementReadinessInput
             })
           )
-          .pipe(
-            Effect.mapError((error) =>
-              error instanceof Error && error.message === ROW_LIMIT_MESSAGE
-                ? error
-                : new Error('Measurement readiness database read failed.')
-            )
-          ) as Effect.Effect<BlueprintMeasurementReadinessInput, Error>,
+          .pipe(Effect.mapError(measurementReadFailure)),
     }
   })
 )

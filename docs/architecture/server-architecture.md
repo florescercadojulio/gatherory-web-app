@@ -18,12 +18,14 @@ subdomain. It contains the web UI, Better Auth endpoints, server functions, and
 the application domain. The public Astro landing page is a separate project
 and must not acquire authentication or database responsibilities.
 
-Normal request/response work belongs in TanStack Start server functions. Public
-or cross-origin endpoints, such as the native API routes and future webhooks, use
-server routes. Durable notifications, media processing, and scheduled weather
-checks must not be hidden inside request handlers. Media upload authorization
-and finalization are request workflows; rendition generation remains durable
-background infrastructure.
+Normal browser request/response work belongs in TanStack Start server functions.
+Native, MCP, and future webhook transports use server routes that delegate to
+handlers or execute composed workflows through the shared result boundary.
+Notification intents commit with their canonical domain operation; the current
+best-effort delivery attempt runs afterward through the postcommit workflow.
+The optional recovery worker/scheduler remains disabled. Blueprint cover
+finalization runs its bounded image connector through an explicit use-case
+workflow; a future durable processing system must have its own delivery boundary.
 
 ## Domain layout
 
@@ -45,6 +47,12 @@ src/server/moderation/
 src/server/sync/
 src/server/auth/
 src/server/email/
+src/server/blueprints/
+src/server/blueprint-media/
+src/server/mcp/
+src/server/announcements/
+src/server/notifications/
+src/server/waitlist/
 ```
 
 There is no `src/server/apps/<app>` level. This is the current top-level domain
@@ -67,6 +75,8 @@ Use these suffixes consistently:
   callers; use composed workflows rather than rebuilding their dependency graphs.
 - `*.persistence.ts` — a concrete persistence implementation behind an injected
   repository, including retained Promise transaction engines.
+- `*.provider.ts` — a retained concrete Promise SDK implementation behind its
+  injectable connector; for example private event-media storage.
 
 UI routes and client components call handlers. They never import Drizzle,
 repositories, workflows, or provider SDKs. HTTP API routes are transport
@@ -460,6 +470,31 @@ organization. Its current status is recorded in the
 
 ## Services, repositories, and connectors
 
+Blueprint native creation owns its capture/publication transaction through the
+injectable `BlueprintNativeCreationTransaction` workflow port. Its repository
+only writes the request fingerprint and initial listing metadata. Catalog and
+discovery orchestration also live in pure workflows; live modules only bind the
+production graphs.
+
+Existing Blueprint authoring/copy/install persistence engines retain their
+established asset-copy and validation order, including replay checks before
+downloads and workspace-media creation inside the completion transaction.
+Workflows supply a trusted `BlueprintCoverCallbacks` argument to those existing
+atomic operations. Creating the callbacks performs no work; the engine invokes
+them at the original point with its existing database handle. Repositories do
+not import or resolve the cover domain service or provider connectors. These
+callbacks are internal runtime arguments and never part of a caller's JSON
+contract. Missing callbacks on a cover path fail closed. This is the same
+preservation technique used by account deletion, not a template for moving new
+domain orchestration into repositories.
+
+Blueprint media has separate storage, image, and source-download connector
+ports, SQL repository operations, domain service rules, and use-case workflows.
+The public route delegates to a handler. Its service and ports import without
+database or provider configuration. MCP SDK Promise callbacks likewise use
+explicit protocol adapters over composed Effect workflows; they do not create
+a second domain implementation or provide PostgreSQL inside workflow bindings.
+
 Services own domain rules and public domain operations. Repositories own
 database reads and writes. Connectors own external APIs such as WeatherKit,
 Apple Music, maps, email, and object storage.
@@ -498,6 +533,14 @@ src/db/schema/
   planning.schema.ts
   moderation.schema.ts
   sync.schema.ts
+  blueprint.schema.ts
+  blueprint-media.schema.ts
+  blueprint-discovery.schema.ts
+  blueprint-attribution.schema.ts
+  announcement.schema.ts
+  notification.schema.ts
+  waitlist.schema.ts
+  mcp-oauth.schema.ts
   index.ts
 src/db/relations.ts
 src/db/index.ts
@@ -532,11 +575,22 @@ and SDK imports, and guard workflows against runtime execution, Promise
 adapters, and imports of live implementations. These checks complement behavior
 tests and do not replace database integration verification.
 
+The guards discover every server domain, include `.functions.ts` handlers, and
+check API routes and UI imports too. Services cannot import concrete persistence
+or providers; repositories cannot import domain service ports or implementations.
+Pure contracts, service implementations, ports, and workflows are imported with
+database, auth, environment, image and object-storage implementations disabled.
+Historical production facades have an explicit registry in
+`tests/helpers/server-architecture.ts` and must remain export-only; new ports
+cannot silently acquire the same exemption.
+
 `workflow-layer-requirements.test.ts` checks every production binding's remaining
 requirements during `pnpm typecheck`; run typechecking as well as Vitest because
 Vitest does not typecheck assertions by default. Composition tests exercise real
 repository adapters and service graphs with substituted persistence, verifying
 shared client identity, ambient context, scope cleanup, and authorization.
+The test also discovers binding files and fails if one has no requirement-type
+assertion, including Blueprint, Blueprint media, MCP and waitlist bindings.
 
 ## Implementation status and examples
 

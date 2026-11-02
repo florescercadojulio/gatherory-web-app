@@ -4,7 +4,10 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import { I18nextProvider, initReactI18next } from 'react-i18next'
 import { createInstance, type i18n as I18nInstance } from 'i18next'
 
-import { WorkspaceOverviewContent } from '@/components/workspaces/workspace-overview-content'
+import {
+  calculateBudgetUsedPercentage,
+  WorkspaceOverviewContent,
+} from '@/components/workspaces/workspace-overview-content'
 import en from '@/i18n/locales/en'
 import type { NativeWorkspaceInsight } from '@/server/sync/contracts/native-insights.contract'
 
@@ -65,6 +68,13 @@ function renderOverview() {
 }
 
 describe('workspace overview server rendering', () => {
+  test('calculates budget progress with decimal precision and caps it at full budget', () => {
+    expect(calculateBudgetUsedPercentage(1, 3)).toBe(33.333333333333336)
+    expect(calculateBudgetUsedPercentage(4, 3)).toBe(100)
+    expect(calculateBudgetUsedPercentage(4, 0)).toBeNull()
+    expect(calculateBudgetUsedPercentage(4, null)).toBeNull()
+  })
+
   test('empty accounts see event guidance without a misleading upcoming schedule', () => {
     const markup = renderToStaticMarkup(
       createElement(

@@ -1,5 +1,5 @@
 import { Effect, Layer } from 'effect'
-import { createMediaReadUrl } from '@/server/media/connectors/media-storage.con'
+import { createMediaReadUrl } from '@/server/media/connectors/media-storage.provider'
 import { EventInvitationArtwork } from './event-invitation-artwork.con'
 
 export const EventInvitationArtworkLive = Layer.succeed(EventInvitationArtwork, {

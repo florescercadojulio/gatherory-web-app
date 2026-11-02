@@ -35,17 +35,23 @@ type StartTransaction = {
 }
 
 function disabledResponse(): Response {
-  return Response.json({ error: 'APPLE_SIGN_IN_UNAVAILABLE' }, {
-    status: 404,
-    headers: { 'Cache-Control': 'no-store' },
-  })
+  return Response.json(
+    { error: 'APPLE_SIGN_IN_UNAVAILABLE' },
+    {
+      status: 404,
+      headers: { 'Cache-Control': 'no-store' },
+    }
+  )
 }
 
 function errorResponse(status: number, error: string): Response {
-  return Response.json({ error }, {
-    status,
-    headers: { 'Cache-Control': 'no-store', 'Referrer-Policy': 'no-referrer' },
-  })
+  return Response.json(
+    { error },
+    {
+      status,
+      headers: { 'Cache-Control': 'no-store', 'Referrer-Policy': 'no-referrer' },
+    }
+  )
 }
 
 function redirectResponse(location: string, cookies: string[] = []): Response {
@@ -182,7 +188,7 @@ export async function handleAndroidAppleStart(
       await deleteStart()
       return errorResponse(503, 'APPLE_SIGN_IN_UNAVAILABLE')
     }
-    const result = await authResponse.json() as { url?: unknown }
+    const result = (await authResponse.json()) as { url?: unknown }
     if (typeof result.url !== 'string') {
       await deleteStart()
       return errorResponse(503, 'APPLE_SIGN_IN_UNAVAILABLE')
@@ -194,9 +200,9 @@ export async function handleAndroidAppleStart(
       return errorResponse(503, 'APPLE_SIGN_IN_UNAVAILABLE')
     }
     const responseHeaders = authResponse.headers as Headers & { getSetCookie?: () => string[] }
-    const cookies = responseHeaders.getSetCookie?.() ?? [authResponse.headers.get('set-cookie')].filter(
-      (value): value is string => Boolean(value)
-    )
+    const cookies =
+      responseHeaders.getSetCookie?.() ??
+      [authResponse.headers.get('set-cookie')].filter((value): value is string => Boolean(value))
     cookies.push(startCookie(startNonce))
     return redirectResponse(appleURL.toString(), cookies)
   } catch {
@@ -215,8 +221,12 @@ export async function handleAndroidAppleComplete(request: Request): Promise<Resp
   const callbackNonce = url.searchParams.get('bridge') ?? ''
   const startNonce = startCookieValue(request)
   const clearStartCookie = [startCookie('', true)]
-  if (!startNonce || !CHALLENGE_PATTERN.test(challenge) || !STATE_PATTERN.test(clientState) ||
-      !CHALLENGE_PATTERN.test(callbackNonce)) {
+  if (
+    !startNonce ||
+    !CHALLENGE_PATTERN.test(challenge) ||
+    !STATE_PATTERN.test(clientState) ||
+    !CHALLENGE_PATTERN.test(callbackNonce)
+  ) {
     return redirectResponse(`${APP_CALLBACK}?error=sign_in_failed`, clearStartCookie)
   }
 
@@ -228,16 +238,22 @@ export async function handleAndroidAppleComplete(request: Request): Promise<Resp
   let start: StartTransaction
   try {
     const parsed = JSON.parse(consumedStart.value) as Partial<StartTransaction>
-    if (typeof parsed.challenge !== 'string' || typeof parsed.clientState !== 'string' ||
-        typeof parsed.callbackNonce !== 'string') {
+    if (
+      typeof parsed.challenge !== 'string' ||
+      typeof parsed.clientState !== 'string' ||
+      typeof parsed.callbackNonce !== 'string'
+    ) {
       return redirectResponse(`${APP_CALLBACK}?error=sign_in_failed`, clearStartCookie)
     }
     start = parsed as StartTransaction
   } catch {
     return redirectResponse(`${APP_CALLBACK}?error=sign_in_failed`, clearStartCookie)
   }
-  if (!sameSecret(start.challenge, challenge) || !sameSecret(start.clientState, clientState) ||
-      !sameSecret(start.callbackNonce, callbackNonce)) {
+  if (
+    !sameSecret(start.challenge, challenge) ||
+    !sameSecret(start.clientState, clientState) ||
+    !sameSecret(start.callbackNonce, callbackNonce)
+  ) {
     return redirectResponse(`${APP_CALLBACK}?error=sign_in_failed`, clearStartCookie)
   }
   // Better Auth's errorCallbackURL preserves the same bridge parameters. Only
@@ -253,7 +269,8 @@ export async function handleAndroidAppleComplete(request: Request): Promise<Resp
   const result = await getAndroidAppleSession(request.headers)
   const sessionId = result?.session.id
   const userId = result?.user.id
-  if (!sessionId || !userId) return redirectResponse(`${APP_CALLBACK}?error=sign_in_failed`, clearStartCookie)
+  if (!sessionId || !userId)
+    return redirectResponse(`${APP_CALLBACK}?error=sign_in_failed`, clearStartCookie)
 
   const code = randomBytes(CODE_BYTES).toString('base64url')
   const now = new Date()
@@ -295,21 +312,31 @@ export async function handleAndroidAppleExchange(request: Request): Promise<Resp
   const code = (input as Record<string, unknown>).code
   const verifier = (input as Record<string, unknown>).verifier
   const clientState = (input as Record<string, unknown>).state
-  if (typeof code !== 'string' || !/^[A-Za-z0-9_-]{43}$/.test(code) ||
-      typeof verifier !== 'string' || !VERIFIER_PATTERN.test(verifier) ||
-      typeof clientState !== 'string' || !STATE_PATTERN.test(clientState)) {
+  if (
+    typeof code !== 'string' ||
+    !/^[A-Za-z0-9_-]{43}$/.test(code) ||
+    typeof verifier !== 'string' ||
+    !VERIFIER_PATTERN.test(verifier) ||
+    typeof clientState !== 'string' ||
+    !STATE_PATTERN.test(clientState)
+  ) {
     return errorResponse(400, 'INVALID_APPLE_HANDOFF')
   }
 
   const exchangeNow = new Date()
   const consumed = await consumeAndroidAppleVerification(androidAppleHandoffRecordId(code))
-  if (!consumed || consumed.expiresAt <= exchangeNow) return errorResponse(401, 'INVALID_APPLE_HANDOFF')
+  if (!consumed || consumed.expiresAt <= exchangeNow)
+    return errorResponse(401, 'INVALID_APPLE_HANDOFF')
 
   let handoff: Handoff
   try {
     const parsed = JSON.parse(consumed.value) as Partial<Handoff>
-    if (typeof parsed.challenge !== 'string' || typeof parsed.userId !== 'string' ||
-        typeof parsed.sessionId !== 'string' || typeof parsed.clientState !== 'string') {
+    if (
+      typeof parsed.challenge !== 'string' ||
+      typeof parsed.userId !== 'string' ||
+      typeof parsed.sessionId !== 'string' ||
+      typeof parsed.clientState !== 'string'
+    ) {
       return errorResponse(401, 'INVALID_APPLE_HANDOFF')
     }
     handoff = parsed as Handoff
@@ -331,9 +358,12 @@ export async function handleAndroidAppleExchange(request: Request): Promise<Resp
   const active = await findActiveAndroidAppleSession(handoff.sessionId, handoff.userId, exchangeNow)
   if (!active) return errorResponse(401, 'INVALID_APPLE_HANDOFF')
 
-  return Response.json({ token: active.token, user: active.user }, {
-    headers: { 'Cache-Control': 'no-store', 'Referrer-Policy': 'no-referrer' },
-  })
+  return Response.json(
+    { token: active.token, user: active.user },
+    {
+      headers: { 'Cache-Control': 'no-store', 'Referrer-Policy': 'no-referrer' },
+    }
+  )
 }
 
 export const androidAppleSignInContract = {

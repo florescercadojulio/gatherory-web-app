@@ -1,6 +1,7 @@
 import { Effect, Exit, Layer } from 'effect'
 import { expect, it } from '@effect/vitest'
 import { vi } from 'vitest'
+import { BlueprintCoverUnavailableTestLive } from '../fixtures/blueprint-cover-unavailable.live'
 import { BlueprintPersonalRepo } from '@/server/blueprints/repos/blueprint-personal.repo'
 import { managePersonalBlueprintsWorkflow } from '@/server/blueprints/workflows/blueprint-personal.workflow'
 
@@ -30,7 +31,10 @@ it.effect('dispatches list and save only after validating personal lifecycle com
     unlist: vi.fn(() => Effect.succeed(row)),
     delete: vi.fn(() => Effect.succeed({ deleted: true as const })),
   }
-  const layer = Layer.succeed(BlueprintPersonalRepo, repo)
+  const layer = Layer.mergeAll(
+    Layer.succeed(BlueprintPersonalRepo, repo),
+    BlueprintCoverUnavailableTestLive
+  )
   return Effect.gen(function* () {
     const listed = yield* managePersonalBlueprintsWorkflow('actor', { action: 'list' }).pipe(
       Effect.provide(layer)
@@ -63,7 +67,14 @@ it.effect('routes delete through the owner scoped repository operation', () => {
     const result = yield* managePersonalBlueprintsWorkflow('actor', {
       action: 'delete',
       id: row.id,
-    }).pipe(Effect.provide(Layer.succeed(BlueprintPersonalRepo, repo)))
+    }).pipe(
+      Effect.provide(
+        Layer.mergeAll(
+          Layer.succeed(BlueprintPersonalRepo, repo),
+          BlueprintCoverUnavailableTestLive
+        )
+      )
+    )
     expect(result).toEqual({ deleted: true })
     expect(repo.delete).toHaveBeenCalledWith('actor', row.id)
   })
@@ -83,13 +94,29 @@ it.effect('routes publish through the owner scoped repository operation', () => 
       action: 'publish',
       id: row.id,
       expectedVersion: 3,
-    }).pipe(Effect.provide(Layer.succeed(BlueprintPersonalRepo, repo)))
+    }).pipe(
+      Effect.provide(
+        Layer.mergeAll(
+          Layer.succeed(BlueprintPersonalRepo, repo),
+          BlueprintCoverUnavailableTestLive
+        )
+      )
+    )
     expect(result).toEqual(row)
-    expect(repo.publish).toHaveBeenCalledWith('actor', {
-      action: 'publish',
-      id: row.id,
-      expectedVersion: 3,
-    })
+    expect(repo.publish).toHaveBeenCalledWith(
+      'actor',
+      {
+        action: 'publish',
+        id: row.id,
+        expectedVersion: 3,
+      },
+      expect.objectContaining({
+        validateReferences: expect.any(Function),
+        cloneAssets: expect.any(Function),
+        materializeCuratedExploreCover: expect.any(Function),
+        materializeCuratedSeedImages: expect.any(Function),
+      })
+    )
   })
 })
 
@@ -102,7 +129,10 @@ it.effect('trims the selected public creator name and enforces 1–80 Unicode ch
     unlist: vi.fn(() => Effect.succeed(row)),
     delete: vi.fn(() => Effect.succeed({ deleted: true as const })),
   }
-  const layer = Layer.succeed(BlueprintPersonalRepo, repo)
+  const layer = Layer.mergeAll(
+    Layer.succeed(BlueprintPersonalRepo, repo),
+    BlueprintCoverUnavailableTestLive
+  )
   return Effect.gen(function* () {
     const published = yield* managePersonalBlueprintsWorkflow('actor', {
       action: 'publish',
@@ -111,12 +141,21 @@ it.effect('trims the selected public creator name and enforces 1–80 Unicode ch
       creatorName: '  Rae 🌿  ',
     }).pipe(Effect.provide(layer))
     expect(published).toEqual(row)
-    expect(repo.publish).toHaveBeenCalledWith('actor', {
-      action: 'publish',
-      id: row.id,
-      expectedVersion: 3,
-      creatorName: 'Rae 🌿',
-    })
+    expect(repo.publish).toHaveBeenCalledWith(
+      'actor',
+      {
+        action: 'publish',
+        id: row.id,
+        expectedVersion: 3,
+        creatorName: 'Rae 🌿',
+      },
+      expect.objectContaining({
+        validateReferences: expect.any(Function),
+        cloneAssets: expect.any(Function),
+        materializeCuratedExploreCover: expect.any(Function),
+        materializeCuratedSeedImages: expect.any(Function),
+      })
+    )
 
     for (const creatorName of ['', '   ', '🌿'.repeat(81)]) {
       const invalid = yield* Effect.exit(
@@ -151,7 +190,12 @@ it.effect('routes unlisting through the owner scoped compare-and-set operation',
       expectedListedRevision: 2,
     }
     const result = yield* managePersonalBlueprintsWorkflow('actor', input).pipe(
-      Effect.provide(Layer.succeed(BlueprintPersonalRepo, repo))
+      Effect.provide(
+        Layer.mergeAll(
+          Layer.succeed(BlueprintPersonalRepo, repo),
+          BlueprintCoverUnavailableTestLive
+        )
+      )
     )
     expect(result).toEqual(unlisted)
     expect(repo.unlist).toHaveBeenCalledWith('actor', input)
@@ -163,7 +207,12 @@ it.effect('routes unlisting through the owner scoped compare-and-set operation',
     ]) {
       const invalid = yield* Effect.exit(
         managePersonalBlueprintsWorkflow('actor', malformed).pipe(
-          Effect.provide(Layer.succeed(BlueprintPersonalRepo, repo))
+          Effect.provide(
+            Layer.mergeAll(
+              Layer.succeed(BlueprintPersonalRepo, repo),
+              BlueprintCoverUnavailableTestLive
+            )
+          )
         )
       )
       expect(Exit.isFailure(invalid)).toBe(true)

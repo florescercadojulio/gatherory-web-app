@@ -27,8 +27,8 @@ import type {
 import { type ConflictError, type EntityNotFoundError, type ForbiddenError } from '@/server/effect'
 import { EventRepositoryError, eventRepositoryError } from '../errors'
 import { requireUnblockedInvitation } from '@/server/moderation/repos/user-block.repo.live'
-import { requireJoinableEvent } from './event-lifecycle.repo'
-import { retainedEventAccess } from './event-departure.repo'
+import { requireJoinableEvent } from './event-lifecycle.persistence'
+import { retainedEventAccess } from './event-departure.persistence'
 
 const planningPermissionToDatabase = {
   manage: 'manage',
@@ -208,7 +208,7 @@ export function createEventWithParticipants(input: {
             title: input.event.title,
             description: input.event.description,
             imageUrl: input.event.imageUrl,
-            status: input.event.parentEventId ? null : 'draft',
+            status: input.event.parentEventId ? null : 'ongoing',
             purpose: input.event.purpose ?? null,
             category: 'category' in input.event ? input.event.category : null,
             planningStatus: 'planningStatus' in input.event ? input.event.planningStatus : null,

@@ -1,7 +1,10 @@
-import { Context, Effect, Layer } from 'effect'
+import { Effect, Layer } from 'effect'
 import { expect, it } from '@effect/vitest'
 import { readFileSync } from 'node:fs'
-import { vi } from 'vitest'
+import {
+  BlueprintCoverUnavailableCallbacks,
+  BlueprintCoverUnavailableTestLive,
+} from '../fixtures/blueprint-cover-unavailable.live'
 
 const enabled = process.env.RUN_BLUEPRINT_DB_TESTS === '1'
 
@@ -11,23 +14,6 @@ it.skipIf(!enabled)(
     const databaseUrl = process.env.DATABASE_URL
     expect(databaseUrl, 'DATABASE_URL is required for the attribution database test').toBeTruthy()
     expect(['localhost', '127.0.0.1', '[::1]']).toContain(new URL(databaseUrl!).hostname)
-
-    const storage = {
-      bucket: 'unused-test-bucket',
-      createUploadUrl: () => Effect.die('unused'),
-      inspect: () => Effect.die('unused'),
-      readBytes: () => Effect.die('unused'),
-      putBytes: () => Effect.die('unused'),
-      createReadUrl: () => Effect.die('unused'),
-      delete: () => Effect.void,
-    }
-    class TestCoverStorage extends Context.Service<TestCoverStorage, typeof storage>()(
-      'BlueprintCoverStorage'
-    ) {}
-    vi.doMock('@/server/blueprint-media/blueprint-cover.storage.live', () => ({
-      BlueprintCoverStorage: TestCoverStorage,
-      BlueprintCoverStorageLive: Layer.succeed(TestCoverStorage, storage),
-    }))
 
     const [
       database,
@@ -111,11 +97,10 @@ it.skipIf(!enabled)(
     const installableCapabilityContent = capabilityContent
     const run = <A, E, R, LE>(program: Effect.Effect<A, E, R>, layer: Layer.Layer<R, LE, never>) =>
       Effect.runPromise(program.pipe(Effect.provide(layer)))
-    const { BlueprintCoverStorage } =
-      await import('@/server/blueprint-media/blueprint-cover.storage.live')
     const personalLayer = Layer.mergeAll(
-      personalRepoLive.BlueprintPersonalRepoLive.pipe(Layer.provide(PgClientLive)),
-      Layer.succeed(BlueprintCoverStorage, storage)
+      personalRepoLive.BlueprintPersonalRepoLive.pipe(
+        Layer.provide(Layer.mergeAll(PgClientLive, BlueprintCoverUnavailableTestLive))
+      )
     )
     const externalOrganizationIds = new Set<string>()
     const { BlueprintInstallCheckpoint } = runtimeContracts
@@ -124,7 +109,9 @@ it.skipIf(!enabled)(
       afterProjection: () => Effect.void,
     })
     const blueprintLayer = blueprintRepoModule.BlueprintRepoLive.pipe(
-      Layer.provide(Layer.mergeAll(PgClientLive, checkpointLayer))
+      Layer.provide(
+        Layer.mergeAll(PgClientLive, checkpointLayer, BlueprintCoverUnavailableTestLive)
+      )
     )
     const authLayer = Layer.succeed(BetterAuthWorkspaceCon, {
       listOrganizations: () => Effect.succeed([]),
@@ -164,7 +151,11 @@ it.skipIf(!enabled)(
       addTeamMember: () => Effect.die('unused'),
       setActiveTeam: () => Effect.die('unused'),
     })
-    const installLayer = Layer.mergeAll(blueprintLayer, authLayer)
+    const installLayer = Layer.mergeAll(
+      blueprintLayer,
+      authLayer,
+      BlueprintCoverUnavailableTestLive
+    )
     const sourceKey = `attribution_fixture_${suffix}`
     const sourceDefinition = installContracts.BlueprintCatalogDefinitionSchema.parse(
       authoringContracts.draftDefinition(content, sourceKey, 1)
@@ -421,15 +412,19 @@ it.skipIf(!enabled)(
         const copied = await run(
           Effect.gen(function* () {
             const repo = yield* BlueprintPersonalRepo
-            return yield* repo.copy(actorId, {
-              requestId: crypto.randomUUID(),
-              content: item.content ?? content,
-              source: {
-                catalogKey: item.sourceKey ?? sourceKey,
-                revision: 1,
-                ...(item.exposureId ? { discoveryExposureId: item.exposureId } : {}),
+            return yield* repo.copy(
+              actorId,
+              {
+                requestId: crypto.randomUUID(),
+                content: item.content ?? content,
+                source: {
+                  catalogKey: item.sourceKey ?? sourceKey,
+                  revision: 1,
+                  ...(item.exposureId ? { discoveryExposureId: item.exposureId } : {}),
+                },
               },
-            })
+              BlueprintCoverUnavailableCallbacks
+            )
           }),
           personalLayer
         )
@@ -458,15 +453,19 @@ it.skipIf(!enabled)(
       const capabilityCopy = await run(
         Effect.gen(function* () {
           const repo = yield* BlueprintPersonalRepo
-          return yield* repo.copy(actorId, {
-            requestId: crypto.randomUUID(),
-            content: capabilityContent,
-            source: {
-              catalogKey: capabilitySourceKey,
-              revision: 1,
-              discoveryExposureId: capabilityExposure,
+          return yield* repo.copy(
+            actorId,
+            {
+              requestId: crypto.randomUUID(),
+              content: capabilityContent,
+              source: {
+                catalogKey: capabilitySourceKey,
+                revision: 1,
+                discoveryExposureId: capabilityExposure,
+              },
             },
-          })
+            BlueprintCoverUnavailableCallbacks
+          )
         }),
         personalLayer
       )
@@ -483,15 +482,19 @@ it.skipIf(!enabled)(
       const capabilityInstallCopy = await run(
         Effect.gen(function* () {
           const repo = yield* BlueprintPersonalRepo
-          return yield* repo.copy(actorId, {
-            requestId: crypto.randomUUID(),
-            content: installableCapabilityContent,
-            source: {
-              catalogKey: capabilityInstallSourceKey,
-              revision: 1,
-              discoveryExposureId: capabilityInstallExposure,
+          return yield* repo.copy(
+            actorId,
+            {
+              requestId: crypto.randomUUID(),
+              content: installableCapabilityContent,
+              source: {
+                catalogKey: capabilityInstallSourceKey,
+                revision: 1,
+                discoveryExposureId: capabilityInstallExposure,
+              },
             },
-          })
+            BlueprintCoverUnavailableCallbacks
+          )
         }),
         personalLayer
       )
@@ -572,7 +575,7 @@ it.skipIf(!enabled)(
       const first = await run(
         Effect.gen(function* () {
           const repo = yield* BlueprintPersonalRepo
-          return yield* repo.copy(actorId, duplicateInput)
+          return yield* repo.copy(actorId, duplicateInput, BlueprintCoverUnavailableCallbacks)
         }),
         personalLayer
       )
@@ -637,11 +640,15 @@ it.skipIf(!enabled)(
       await run(
         Effect.gen(function* () {
           const repo = yield* BlueprintPersonalRepo
-          return yield* repo.save(actorId, {
-            id: editedAfterCopy.id,
-            expectedVersion: editedAfterCopy.draftVersion,
-            content: { ...content, name: 'Edited after acquisition' },
-          })
+          return yield* repo.save(
+            actorId,
+            {
+              id: editedAfterCopy.id,
+              expectedVersion: editedAfterCopy.draftVersion,
+              content: { ...content, name: 'Edited after acquisition' },
+            },
+            BlueprintCoverUnavailableCallbacks
+          )
         }),
         personalLayer
       )
@@ -655,7 +662,7 @@ it.skipIf(!enabled)(
       const replay = await run(
         Effect.gen(function* () {
           const repo = yield* BlueprintPersonalRepo
-          return yield* repo.copy(actorId, duplicateInput)
+          return yield* repo.copy(actorId, duplicateInput, BlueprintCoverUnavailableCallbacks)
         }),
         personalLayer
       )
@@ -991,7 +998,6 @@ it.skipIf(!enabled)(
       await db
         .delete(user)
         .where((await import('drizzle-orm')).inArray(user.id, [actorId, otherActorId]))
-      vi.doUnmock('@/server/blueprint-media/blueprint-cover.storage.live')
     }
   }
 )

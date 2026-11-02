@@ -15,30 +15,36 @@ const checksum = z.string().regex(/^[a-f0-9]{64}$/)
 
 export const SeedImageAssignmentsSchema = z.record(
   StableKeySchema,
-  z.object({
-    revision: z.number().int().positive(),
-    contentHash: z.string().regex(/^[a-f0-9]{64}$/),
-    root: z.string().min(1).max(120).optional(),
-    children: assignmentTargets.default({}),
-    ideas: assignmentTargets.default({}),
-  }).strict()
+  z
+    .object({
+      revision: z.number().int().positive(),
+      contentHash: z.string().regex(/^[a-f0-9]{64}$/),
+      root: z.string().min(1).max(120).optional(),
+      children: assignmentTargets.default({}),
+      ideas: assignmentTargets.default({}),
+    })
+    .strict()
 )
 
 export const SeedImageAssetsSchema = z.record(
   z.string().min(1).max(120),
-  z.object({
-    manifest: ExploreCoverManifestSchema,
-    fileChecksum: checksum,
-    license: z.object({
-      name: z.string().min(1).max(200),
-      url: z.string().url(),
-      sourceURL: z.string().url(),
-      photographer: z.string().min(1).max(200),
-      photoID: z.string().min(1).max(100),
-      checkedAt: z.string().datetime({ offset: true }),
-    }).strict(),
-    file: z.string().min(1).max(1000),
-  }).strict()
+  z
+    .object({
+      manifest: ExploreCoverManifestSchema,
+      fileChecksum: checksum,
+      license: z
+        .object({
+          name: z.string().min(1).max(200),
+          url: z.string().url(),
+          sourceURL: z.string().url(),
+          photographer: z.string().min(1).max(200),
+          photoID: z.string().min(1).max(100),
+          checkedAt: z.string().datetime({ offset: true }),
+        })
+        .strict(),
+      file: z.string().min(1).max(1000),
+    })
+    .strict()
 )
 
 export type SeedImageAssignments = z.infer<typeof SeedImageAssignmentsSchema>
@@ -55,7 +61,10 @@ export type SeedCoverageEntry = {
   contentHash: string
   definition: unknown
 }
-export type SeedRevisionIdentity = Pick<BlueprintCatalogRevision, 'catalogKey' | 'revision' | 'contentHash'>
+export type SeedRevisionIdentity = Pick<
+  BlueprintCatalogRevision,
+  'catalogKey' | 'revision' | 'contentHash'
+>
 
 function targetKeys(entry: SeedCoverageEntry) {
   const definition = BlueprintCatalogDefinitionSchema.parse(entry.definition)
@@ -63,7 +72,8 @@ function targetKeys(entry: SeedCoverageEntry) {
     (targets, module) => {
       const tree = BlueprintExperienceTreeModuleSchema.safeParse(module)
       const ideas = BlueprintIdeasModuleSchema.safeParse(module)
-      if (tree.success) targets.children.push(...tree.data.config.children.map((child) => child.key))
+      if (tree.success)
+        targets.children.push(...tree.data.config.children.map((child) => child.key))
       if (ideas.success) targets.ideas.push(...ideas.data.config.ideas.map((idea) => idea.key))
       return targets
     },
@@ -90,7 +100,9 @@ export function assertSeedImageCoverage(
       continue
     }
     if (assignment.revision !== entry.revision || assignment.contentHash !== entry.contentHash) {
-      issues.push(`${entry.catalogKey}: assignment does not match revision ${entry.revision} content hash`)
+      issues.push(
+        `${entry.catalogKey}: assignment does not match revision ${entry.revision} content hash`
+      )
       continue
     }
     const targets = targetKeys(entry)
@@ -108,8 +120,13 @@ export function assertSeedImageCoverage(
       if (!targets.ideas.includes(key)) issues.push(`${entry.catalogKey}: unknown idea ${key}`)
     }
     if (assets) {
-      for (const assetKey of [assignment.root, ...Object.values(assignment.children), ...Object.values(assignment.ideas)]) {
-        if (assetKey && !assets[assetKey]) issues.push(`${entry.catalogKey}: unknown image asset ${assetKey}`)
+      for (const assetKey of [
+        assignment.root,
+        ...Object.values(assignment.children),
+        ...Object.values(assignment.ideas),
+      ]) {
+        if (assetKey && !assets[assetKey])
+          issues.push(`${entry.catalogKey}: unknown image asset ${assetKey}`)
       }
     }
   }
@@ -131,7 +148,8 @@ export function resolveSeedImageTargets(input: {
     !assignment ||
     assignment.revision !== input.entry.revision ||
     assignment.contentHash !== input.entry.contentHash
-  ) return undefined
+  )
+    return undefined
   const resolve = (assetKey: string | undefined) => {
     if (!assetKey) return undefined
     const asset = input.assets[assetKey]
@@ -166,15 +184,17 @@ export function seedImageCoverAssetId(input: {
   heroChecksum: string
 }): string {
   const hex = createHash('sha256')
-    .update([
-      'blueprint-seed-cover-v1',
-      input.actorUserId,
-      input.requestId.toLowerCase(),
-      input.catalogKey,
-      String(input.revision),
-      input.contentHash,
-      input.heroChecksum,
-    ].join(':'))
+    .update(
+      [
+        'blueprint-seed-cover-v1',
+        input.actorUserId,
+        input.requestId.toLowerCase(),
+        input.catalogKey,
+        String(input.revision),
+        input.contentHash,
+        input.heroChecksum,
+      ].join(':')
+    )
     .digest('hex')
     .slice(0, 32)
   return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-5${hex.slice(13, 16)}-${((parseInt(hex[16]!, 16) & 3) | 8).toString(16)}${hex.slice(17, 20)}-${hex.slice(20)}`
@@ -186,9 +206,11 @@ export function seedImageCardURL(manifest: ExploreCoverManifest): string {
 }
 
 export function seedImageTargetAssetKeys(input: ResolvedSeedImageTargets): string[] {
-  return [...new Set([
-    ...(input.root ? [input.root.assetKey] : []),
-    ...Object.values(input.children).map((image) => image.assetKey),
-    ...Object.values(input.ideas).map((image) => image.assetKey),
-  ])]
+  return [
+    ...new Set([
+      ...(input.root ? [input.root.assetKey] : []),
+      ...Object.values(input.children).map((image) => image.assetKey),
+      ...Object.values(input.ideas).map((image) => image.assetKey),
+    ]),
+  ]
 }

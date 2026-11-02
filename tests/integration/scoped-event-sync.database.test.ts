@@ -1783,8 +1783,39 @@ test(
       expect(crossScopeReceiptReplay.results[0]).toMatchObject({
         mutationID: mutations[0].id,
         disposition: 'rejected',
+        failureCode: 'SCOPE_WRITE_FORBIDDEN',
+      })
+
+      // Scope authorization precedes receipt disclosure. With explicit root
+      // access, the same mutation ID must still be bound to its original child.
+      const temporaryRootParticipation = crypto.randomUUID()
+      await fixture.db.insert(fixture.eventParticipant).values({
+        id: temporaryRootParticipation,
+        eventId: rootID,
+        personId: personIDs[1]!,
+        role: 'collaborator',
+        planningPermission: 'contribute',
+      })
+      const authorizedCrossScopeReplay = await applyNativeMutations({
+        userId: contributorID,
+        mutations: [{ ...mutations[0], scopeID: rootID }],
+      })
+      expect(authorizedCrossScopeReplay.results[0]).toMatchObject({
+        mutationID: mutations[0].id,
+        disposition: 'rejected',
         failureCode: 'MUTATION_ID_OWNERSHIP_MISMATCH',
       })
+      await fixture.db
+        .delete(fixture.eventParticipant)
+        .where(eq(fixture.eventParticipant.id, temporaryRootParticipation))
+      await fixture.db
+        .delete(fixture.nativeSyncScopeMember)
+        .where(
+          and(
+            eq(fixture.nativeSyncScopeMember.scopeId, rootID),
+            eq(fixture.nativeSyncScopeMember.userId, contributorID)
+          )
+        )
 
       const conflictID = crypto.randomUUID()
       const conflict = mutation({

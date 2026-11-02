@@ -11,7 +11,7 @@ import {
   nativeSyncMutationReceipt,
   nativeWorkspaceSnapshot,
 } from '@/db/schema/sync.schema'
-import { retainedEventAccess } from '@/server/events/repos/event-departure.repo'
+import { retainedEventAccess } from '@/server/events/repos/event-departure.persistence'
 import type {
   NativeMutation,
   NativePullPage,
@@ -27,9 +27,18 @@ import {
 } from './native-materializer.persistence'
 import { buildScopedEventArchive } from '../services/scoped-event-projection'
 import { nativeIdentityWriteAllowed } from '../services/native-identity-access'
+import { decimalMoneyWireNumber } from '../services/native-money'
+import { nativeEventBudgetChanged } from '../contracts/native-budget-mutation.contract'
 import { deletedAccountTombstone } from '../contracts/native-tombstones'
 import { canDeleteNativeMoment } from './native-moment-authorization.persistence'
 import { canonicalTodoForSync, encodeNativeTodo } from './native-todo-projection.persistence'
+import { isNativeBudgetManager, isNativeEventBudgetManager } from './native-budget.persistence'
+import {
+  hasPaidExpensesForEvent,
+  isPaidExpense,
+  preservePaidExpenseMutation,
+  preservePaidExpensesInArchive,
+} from './native-paid-expense.persistence'
 
 type Transaction = Parameters<Parameters<typeof db.transaction>[0]>[0]
 const encode = (value: unknown) => Buffer.from(JSON.stringify(value)).toString('base64')
@@ -315,6 +324,27 @@ export async function applyScopedEventMutation(
         .limit(1)
         .for('update')
       if (!snapshot || snapshot.isDeleted) forbidden('SYNC_SCOPE_NOT_FOUND')
+      if (mutation.entityType === 'event' && mutation.operation !== 'delete') {
+        const [canonicalEvent] = await tx
+          .select({ budgetCap: event.budgetCap })
+          .from(event)
+          .where(eq(event.id, mutation.scopeID))
+          .limit(1)
+        if (
+          Object.hasOwn(payload, 'budgetCap') &&
+          nativeEventBudgetChanged(canonicalEvent?.budgetCap ?? null, payload.budgetCap)
+        ) {
+          if (!(await isNativeBudgetManager(tx, { rootEventId: input.rootId, userId })))
+            forbidden('BUDGET_MANAGER_REQUIRED')
+          if (!(await isNativeEventBudgetManager(tx, { eventId: mutation.scopeID, userId })))
+            forbidden('BUDGET_TARGET_MANAGER_REQUIRED')
+          forbidden('BUDGET_COMMAND_REQUIRED')
+        }
+        payload.budgetCap =
+          canonicalEvent?.budgetCap == null
+            ? null
+            : decimalMoneyWireNumber(canonicalEvent.budgetCap)
+      }
       const [existing] = await tx
         .select()
         .from(nativeSyncEntity)
@@ -378,6 +408,31 @@ export async function applyScopedEventMutation(
           linkedIdeaID: previous.linkedIdeaID,
           participantIDs: roster.map((item) => item.personId),
         })
+      }
+      if (mutation.entityType === 'expense') {
+        if (
+          mutation.operation === 'delete' &&
+          (await isPaidExpense(tx, snapshot.organizationId, mutation.entityID))
+        ) {
+          forbidden('PAID_EXPENSE_PROTECTED')
+        }
+        if (mutation.operation !== 'delete') {
+          const protectedPayload = await preservePaidExpenseMutation(
+            tx,
+            snapshot.organizationId,
+            mutation.entityID,
+            encode(payload)
+          )
+          Object.assign(payload, decode(protectedPayload))
+        }
+      }
+      if (
+        mutation.entityType === 'event' &&
+        mutation.operation === 'delete' &&
+        mutation.entityID !== input.rootId &&
+        (await hasPaidExpensesForEvent(tx, snapshot.organizationId, mutation.entityID))
+      ) {
+        forbidden('PAID_EXPENSE_REHOME_REQUIRED')
       }
       if (mutation.entityType === 'note') payload.authorUserID = userId
       let storedPayload =
@@ -607,7 +662,7 @@ export async function scopedEventSnapshot(tx: Transaction, scopeId: string, user
     timeZoneIdentifier: child.timeZone,
     eventDescription: child.description,
     dressCode: child.dressCode,
-    budgetCap: child.budgetCap == null ? null : Number(child.budgetCap),
+    budgetCap: child.budgetCap == null ? null : decimalMoneyWireNumber(child.budgetCap),
     schedulingState: child.schedulingState,
     completionStatus: child.completionStatus,
     status: child.planningStatus === 'not_sure' ? 'notSure' : child.planningStatus,
@@ -650,7 +705,7 @@ export async function scopedEventSnapshot(tx: Transaction, scopeId: string, user
   const experienceConfiguration =
     experienceConfigurations.find((configuration) => configuration.eventID === scopeId) ??
     experienceConfigurations.find((configuration) => configuration.eventID === rootId)
-  const payload = buildScopedEventArchive({
+  const projectedPayload = buildScopedEventArchive({
     snapshotPayload: root.payload,
     entities,
     eventId: scopeId,
@@ -670,7 +725,13 @@ export async function scopedEventSnapshot(tx: Transaction, scopeId: string, user
       createdAt: todo.createdAt.getTime() / 1_000 - 978_307_200,
     })),
   })
-  if (!payload) return null
+  if (!projectedPayload) return null
+  const payload = await preservePaidExpensesInArchive(
+    tx,
+    actor.event.organizationId,
+    projectedPayload,
+    [scopeId]
+  )
   const [latest] = await tx
     .select({ cursor: sql<number>`coalesce(max(${nativeSyncChange.cursor}), 0)` })
     .from(nativeSyncChange)

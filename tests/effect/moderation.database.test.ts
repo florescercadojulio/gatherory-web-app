@@ -48,7 +48,7 @@ it.live(
       const { blockPerson, unblockPerson, listBlockedPeople, requireUnblockedInvitation } =
         yield* Effect.promise(() => import('@/server/moderation/user-block.repo'))
       const { leaveGuestEvent } = yield* Effect.promise(
-        () => import('@/server/events/repos/event-departure.repo')
+        () => import('@/server/events/repos/event-departure.persistence')
       )
       const { guestEventInvitations, respondToEvent } = yield* Effect.promise(
         () => import('@/server/events/repos/guest-invitation.repo')

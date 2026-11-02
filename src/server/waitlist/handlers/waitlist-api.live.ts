@@ -1,14 +1,15 @@
-import { Effect, Layer } from 'effect'
+import { Effect } from 'effect'
 import { PgClientLive } from '@/db'
 import { isDomainError, PersistenceError, tryServerOperation } from '@/server/effect'
 import { sessionUser } from '@/server/auth/connectors/session-user.con.live'
 import { waitlistConfig } from '../waitlist.config'
-import { WaitlistRepoLive } from '../repos/waitlist.repo.live'
-import { signupToWaitlist } from '../services/waitlist.service'
-import { listWaitlist, unsubscribeWaitlist } from '../workflows/waitlist.workflow'
+import {
+  signupToWaitlist,
+  listWaitlist,
+  unsubscribeWaitlist,
+} from '../workflows/waitlist.workflows.live'
 import { createWaitlistHandlers } from './waitlist-api.handler'
 
-const storage = WaitlistRepoLive.pipe(Layer.provide(PgClientLive))
 const safeStorageFailure = (error: unknown) =>
   isDomainError(error)
     ? error
@@ -29,9 +30,15 @@ export const waitlistHandlers = createWaitlistHandlers({
       () => sessionUser(request.headers)
     ),
   signup: (...args) =>
-    signupToWaitlist(...args).pipe(Effect.provide(storage), Effect.mapError(safeStorageFailure)),
+    signupToWaitlist(...args).pipe(
+      Effect.provide(PgClientLive),
+      Effect.mapError(safeStorageFailure)
+    ),
   list: (...args) =>
-    listWaitlist(...args).pipe(Effect.provide(storage), Effect.mapError(safeStorageFailure)),
+    listWaitlist(...args).pipe(Effect.provide(PgClientLive), Effect.mapError(safeStorageFailure)),
   unsubscribe: (...args) =>
-    unsubscribeWaitlist(...args).pipe(Effect.provide(storage), Effect.mapError(safeStorageFailure)),
+    unsubscribeWaitlist(...args).pipe(
+      Effect.provide(PgClientLive),
+      Effect.mapError(safeStorageFailure)
+    ),
 })

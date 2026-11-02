@@ -288,7 +288,10 @@ test.skipIf(!enabled)(
           cohortEnd: cohortEnd.toISOString(),
           asOf: asOf.toISOString(),
         })
-      ).rejects.toThrow('bounded row limit')
+      ).rejects.toMatchObject({
+        _tag: 'InvalidInputError',
+        code: 'BLUEPRINT_MEASUREMENT_ROW_LIMIT',
+      })
     } finally {
       await db.delete(user).where(eq(user.id, actorId))
     }

@@ -6,7 +6,7 @@ import {
   deleteMediaObject,
   inspectMediaObject,
   mediaStorageFailure,
-} from './media-storage.con'
+} from './media-storage.provider'
 import { MediaStorage } from './media-storage.con.contract'
 
 function liftStorage<A>(operation: () => Promise<A>) {

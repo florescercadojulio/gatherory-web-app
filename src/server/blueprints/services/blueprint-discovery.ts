@@ -366,10 +366,12 @@ export function parseBlueprintDiscoverySessionContext(
       startedAt: z.iso.datetime().min(20).max(40),
       seen: z
         .array(
-          z.object({
-            catalogKey: z.string().min(1).max(160),
-            lastSeenAt: z.iso.datetime().min(20).max(40),
-          }).strict()
+          z
+            .object({
+              catalogKey: z.string().min(1).max(160),
+              lastSeenAt: z.iso.datetime().min(20).max(40),
+            })
+            .strict()
         )
         .max(200),
     })
@@ -388,7 +390,8 @@ export function parseBlueprintDiscoverySessionContext(
       lastSeenAt > startedAt ||
       lastSeenAt > nowMs ||
       startedAt - lastSeenAt > BLUEPRINT_DISCOVERY_SEEN_MAX_AGE_MS
-    ) return undefined
+    )
+      return undefined
     keys.add(item.catalogKey)
   }
   return parsed.data
@@ -415,7 +418,11 @@ const RankedBlueprintCatalogCursorSchema = BlueprintCatalogCursorSchema.omit({ v
       .string()
       .length(64)
       .regex(/^[a-f0-9]{64}$/),
-    discoveryContextDigest: z.string().length(64).regex(/^[a-f0-9]{64}$/).optional(),
+    discoveryContextDigest: z
+      .string()
+      .length(64)
+      .regex(/^[a-f0-9]{64}$/)
+      .optional(),
   })
   .strict()
 const RANKING_SNAPSHOT_TTL_MS = 24 * 60 * 60 * 1000
@@ -900,9 +907,7 @@ export function pageBlueprintCatalog(
       return { ok: false, reason: 'stale_cursor' }
   }
   const asOf =
-    cursor?.version === 2
-      ? cursor.asOf
-      : (discoverySession?.startedAt ?? now.toISOString())
+    cursor?.version === 2 ? cursor.asOf : (discoverySession?.startedAt ?? now.toISOString())
   const snapshotAge = now.getTime() - Date.parse(asOf)
   if (request.ranking && (snapshotAge < -60_000 || snapshotAge >= RANKING_SNAPSHOT_TTL_MS))
     return { ok: false, reason: 'stale_cursor' }
@@ -1024,7 +1029,9 @@ export function pageBlueprintCatalog(
   }
   if (discoverySession && filtered.length > 1) {
     const baselinePosition = new Map(filtered.map((entry, index) => [entry.catalogKey, index]))
-    const seenByKey = new Map(discoverySession.seen.map((item) => [item.catalogKey, item.lastSeenAt]))
+    const seenByKey = new Map(
+      discoverySession.seen.map((item) => [item.catalogKey, item.lastSeenAt])
+    )
     const asOfMs = Date.parse(discoverySession.startedAt)
     const bucketFor = (catalogKey: string) => {
       const lastSeenAt = seenByKey.get(catalogKey)
@@ -1044,7 +1051,9 @@ export function pageBlueprintCatalog(
         const bySeenTime = Date.parse(leftSeenAt) - Date.parse(rightSeenAt)
         if (bySeenTime !== 0) return bySeenTime
       }
-      return (baselinePosition.get(left.catalogKey) ?? 0) - (baselinePosition.get(right.catalogKey) ?? 0)
+      return (
+        (baselinePosition.get(left.catalogKey) ?? 0) - (baselinePosition.get(right.catalogKey) ?? 0)
+      )
     })
     const maxCreatorRun = validConfiguration
       ? configuration.maxConsecutiveAuthoredPerCreator
@@ -1126,10 +1135,12 @@ export function pageBlueprintCatalog(
     : legacyDigest
   if (
     cursor?.version === 2 &&
-    (cursor.mode !== rankingMode || cursor.configurationDigest !== effectiveConfigurationDigest ||
-      cursor.discoveryContextDigest !== (discoverySession
-        ? createHash('sha256').update(JSON.stringify(discoverySession)).digest('hex')
-        : undefined))
+    (cursor.mode !== rankingMode ||
+      cursor.configurationDigest !== effectiveConfigurationDigest ||
+      cursor.discoveryContextDigest !==
+        (discoverySession
+          ? createHash('sha256').update(JSON.stringify(discoverySession)).digest('hex')
+          : undefined))
   )
     return { ok: false, reason: 'stale_cursor' }
 

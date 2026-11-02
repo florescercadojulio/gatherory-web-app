@@ -42,7 +42,7 @@ test(
     const otherRootEventId = crypto.randomUUID()
     const foreignEventId = crypto.randomUUID()
     let uploadedCover: { bucket: string; key: string } | undefined
-    const storage = await import('@/server/media/connectors/media-storage.con')
+    const storage = await import('@/server/media/connectors/media-storage.provider')
     async function request(path: string, actor?: number, method = 'GET', body?: unknown) {
       const response = await fetch(`${base}${path}`, {
         method,

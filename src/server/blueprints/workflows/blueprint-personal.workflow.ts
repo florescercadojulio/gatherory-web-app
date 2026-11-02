@@ -4,6 +4,7 @@ import { BlueprintDraftContentSchema } from '@/contracts/blueprint-authoring.con
 import { characterString, UUIDSchema } from '@/contracts/content-primitives'
 import { validateInput } from '@/server/validation'
 import { BlueprintPersonalRepo } from '../repos/blueprint-personal.repo'
+import { blueprintCoverCallbacksWorkflow } from './blueprint-cover-callbacks.workflow'
 
 const command = z.discriminatedUnion('action', [
   z.object({ action: z.literal('list') }).strict(),
@@ -39,8 +40,10 @@ export const managePersonalBlueprintsWorkflow = (actorId: string, input: unknown
     const request = yield* validateInput(command, input)
     const repo = yield* BlueprintPersonalRepo
     if (request.action === 'list') return yield* repo.list(actorId)
-    if (request.action === 'save') return yield* repo.save(actorId, request)
-    if (request.action === 'publish') return yield* repo.publish(actorId, request)
+    if (request.action === 'save')
+      return yield* repo.save(actorId, request, yield* blueprintCoverCallbacksWorkflow())
+    if (request.action === 'publish')
+      return yield* repo.publish(actorId, request, yield* blueprintCoverCallbacksWorkflow())
     if (request.action === 'unlist') return yield* repo.unlist(actorId, request)
     return yield* repo.delete(actorId, request.id)
   })

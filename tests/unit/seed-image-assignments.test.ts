@@ -89,7 +89,11 @@ describe('curated seed image assignments', () => {
     expect(ideas).toHaveLength(13)
     expect(workspace.map((image) => image.entityID)).toEqual([reviewWorkspaceIds.events.main])
     expect(new Set(events.map((image) => image.entityID))).toEqual(
-      new Set(Object.values(reviewWorkspaceIds.events).filter((id) => id !== reviewWorkspaceIds.events.main))
+      new Set(
+        Object.values(reviewWorkspaceIds.events).filter(
+          (id) => id !== reviewWorkspaceIds.events.main
+        )
+      )
     )
     const expectedIdeaIds = Object.entries(reviewWorkspaceIds.planning)
       .filter(([key]) => key.endsWith('Idea'))

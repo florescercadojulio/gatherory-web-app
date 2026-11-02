@@ -5,6 +5,7 @@ import { BlueprintPersonalRepo } from '@/server/blueprints/repos/blueprint-perso
 import { BlueprintAuthoringRepo } from '@/server/blueprints/repos/blueprint-authoring.repo'
 import { BetterAuthWorkspaceCon } from '@/server/workspaces/connectors/better-auth.con'
 import { createBlueprintCopyWorkflow } from '@/server/blueprints/workflows/blueprint-copy.workflow'
+import { BlueprintCoverUnavailableTestLive } from '../fixtures/blueprint-cover-unavailable.live'
 
 const content = {
   name: 'Portable copy',
@@ -72,7 +73,8 @@ it.effect('validates snapshot before provisioning and creates a personal copy', 
   const layer = Layer.mergeAll(
     Layer.succeed(BlueprintPersonalRepo, repo),
     Layer.succeed(BlueprintAuthoringRepo, authoring),
-    Layer.succeed(BetterAuthWorkspaceCon, auth)
+    Layer.succeed(BetterAuthWorkspaceCon, auth),
+    BlueprintCoverUnavailableTestLive
   )
   return Effect.gen(function* () {
     const invalid = yield* Effect.exit(
@@ -106,9 +108,18 @@ it.effect('validates snapshot before provisioning and creates a personal copy', 
     })
     expect(result.catalogEntry).not.toHaveProperty('creator')
     expect(copy).toHaveBeenCalledTimes(1)
-    expect(copy).toHaveBeenCalledWith('actor', {
-      requestId: '10000000-0000-4000-8000-000000000002',
-      content,
-    })
+    expect(copy).toHaveBeenCalledWith(
+      'actor',
+      {
+        requestId: '10000000-0000-4000-8000-000000000002',
+        content,
+      },
+      expect.objectContaining({
+        validateReferences: expect.any(Function),
+        cloneAssets: expect.any(Function),
+        materializeCuratedExploreCover: expect.any(Function),
+        materializeCuratedSeedImages: expect.any(Function),
+      })
+    )
   })
 })

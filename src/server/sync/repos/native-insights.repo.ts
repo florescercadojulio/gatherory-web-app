@@ -1,10 +1,11 @@
 import { and, asc, eq, inArray, isNull, sql } from 'drizzle-orm'
 import { Effect } from 'effect'
 
-import { DB } from '@/db'
+import type { DB } from '@/db'
 import { organization, user } from '@/db/schema/auth.schema'
 import { event, eventParticipant, workspacePerson } from '@/db/schema/event.schema'
 import { eventExpense, idea, workspacePlanningSettings } from '@/db/schema/planning.schema'
+import { MoneyDecimal } from '@/lib/money'
 import { isUpcomingWorkspaceEvent } from '../workflows/workspace-insight-policy'
 import type { NativeWorkspaceInsight } from '../contracts/native-insights.contract'
 
@@ -156,10 +157,12 @@ export function queryNativeWorkspaceInsights(db: Effect.Success<typeof DB>, user
         openIdeaCount: workspaceIdeas.filter((item) => item.status === 'new').length,
         approvedIdeaCount: workspaceIdeas.filter((item) => item.status === 'approved').length,
         budgetCap: optionalNumber(mainEvent.budgetCap),
-        trackedCost: workspaceExpenses.reduce(
-          (total, expense) => total + (optionalNumber(expense.amount) ?? 0),
-          0
-        ),
+        trackedCost: workspaceExpenses
+          .reduce(
+            (total, expense) => total.plus(optionalMoneyDecimal(expense.amount) ?? 0),
+            new MoneyDecimal(0)
+          )
+          .toNumber(),
         updatedAt: mainEvent.updatedAt.toISOString(),
         upcomingEvents,
       }
@@ -169,11 +172,21 @@ export function queryNativeWorkspaceInsights(db: Effect.Success<typeof DB>, user
   })
 }
 
-function optionalNumber(value: unknown) {
-  if (typeof value === 'number' && Number.isFinite(value)) return value
-  if (typeof value === 'string' && value.trim()) {
-    const parsed = Number(value)
-    return Number.isFinite(parsed) ? parsed : null
+function optionalMoneyDecimal(value: unknown) {
+  if (typeof value !== 'number' && typeof value !== 'string') return null
+  if (typeof value === 'string' && !value.trim()) return null
+
+  try {
+    const parsed = new MoneyDecimal(typeof value === 'string' ? value.trim() : value)
+    if (!parsed.isFinite() || !Number.isFinite(parsed.toNumber())) return null
+    return parsed
+  } catch {
+    return null
   }
+}
+
+function optionalNumber(value: unknown) {
+  const parsed = optionalMoneyDecimal(value)
+  if (parsed) return parsed.toNumber()
   return null
 }

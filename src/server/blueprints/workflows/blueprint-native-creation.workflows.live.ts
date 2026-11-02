@@ -4,6 +4,8 @@ import { BlueprintAuthoringRepoLive } from '../repos/blueprint-authoring.repo.li
 import { BlueprintCaptureRepoLive } from '../repos/blueprint-capture.repo.live'
 import { BlueprintNativeCreationRepoLive } from '../repos/blueprint-native-creation.repo.live'
 import { BetterAuthWorkspaceConLive } from '@/server/workspaces/connectors/better-auth.con.live'
+import { BlueprintNativeCreationTransactionLive } from './blueprint-native-creation-transaction.live'
+import { BlueprintCoverDomainLive } from '@/server/blueprint-media/blueprint-media.layers.live'
 
 const AuthoringLive = BlueprintAuthoringRepoLive
 const CaptureLive = BlueprintCaptureRepoLive.pipe(Layer.provide(AuthoringLive))
@@ -14,7 +16,9 @@ const NativeCreationLive = Layer.mergeAll(
   AuthoringLive,
   CaptureLive,
   NativeCreationRepoLive,
-  BetterAuthWorkspaceConLive
+  BlueprintNativeCreationTransactionLive,
+  BetterAuthWorkspaceConLive,
+  BlueprintCoverDomainLive
 )
 
 export const blueprintNativeCreation = (

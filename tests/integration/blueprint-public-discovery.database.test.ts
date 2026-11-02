@@ -1,5 +1,6 @@
 import { Effect, Exit, Layer } from 'effect'
 import { expect, test } from 'vitest'
+import { BlueprintCoverUnavailableTestLive } from '../fixtures/blueprint-cover-unavailable.live'
 import type {
   BlueprintInstallCheckpoint,
   BlueprintRepo,
@@ -8,8 +9,10 @@ import type { BlueprintAuthoringRepo } from '@/server/blueprints/repos/blueprint
 import type { BlueprintCaptureRepo } from '@/server/blueprints/repos/blueprint-capture.repo'
 import type { BlueprintLinkManagementRepo } from '@/server/blueprints/repos/blueprint-link-management.repo'
 import type { BlueprintNativeCreationRepo } from '@/server/blueprints/repos/blueprint-native-creation.repo'
+import type { BlueprintNativeCreationTransaction } from '@/server/blueprints/workflows/blueprint-native-creation-transaction'
 import type { BlueprintSharingRepo } from '@/server/blueprints/repos/blueprint-sharing.repo'
 import type { BetterAuthWorkspaceCon } from '@/server/workspaces/connectors/better-auth.con'
+import type { BlueprintCoverService } from '@/server/blueprint-media/services/blueprint-cover.service'
 
 const enabled = process.env.RUN_BLUEPRINT_DB_TESTS === '1'
 
@@ -34,6 +37,8 @@ test.skipIf(!enabled)(
       authoringRepo,
       captureRepo,
       nativeCreationRepo,
+      nativeCreationTransaction,
+      blueprintCoverFixtures,
       blueprintRepo,
       runtimeContracts,
       sharingRepo,
@@ -54,6 +59,8 @@ test.skipIf(!enabled)(
       import('@/server/blueprints/repos/blueprint-authoring.repo.live'),
       import('@/server/blueprints/repos/blueprint-capture.repo.live'),
       import('@/server/blueprints/repos/blueprint-native-creation.repo.live'),
+      import('@/server/blueprints/workflows/blueprint-native-creation-transaction.live'),
+      import('../fixtures/blueprint-cover-layers'),
       import('@/server/blueprints/repos/blueprint.repo.live'),
       import('@/server/blueprints/contracts/blueprint-runtime.contracts'),
       import('@/server/blueprints/repos/blueprint-sharing.repo.live'),
@@ -90,25 +97,31 @@ test.skipIf(!enabled)(
     const fixtureOrganizationIds = new Set([ids.sourceOrganization])
     const now = new Date()
 
-    const authoringLayer = authoringRepo.BlueprintAuthoringRepoLive.pipe(
-      Layer.provide(PgClientLive)
-    )
-    const captureLayer = captureRepo.BlueprintCaptureRepoLive.pipe(
-      Layer.provide(Layer.mergeAll(authoringLayer, PgClientLive))
-    )
+    const offlineCoverStorage = {
+      bucket: 'blueprint-test',
+      createUploadUrl: () => Effect.die('unexpected Blueprint cover storage write'),
+      inspect: () => Effect.die('unexpected Blueprint cover storage inspect'),
+      readBytes: () => Effect.die('unexpected Blueprint cover storage read'),
+      putBytes: () => Effect.die('unexpected Blueprint cover storage write'),
+      createReadUrl: () => Effect.die('unexpected Blueprint cover URL'),
+      delete: () => Effect.die('unexpected Blueprint cover storage delete'),
+    }
+    const coverLayer = blueprintCoverFixtures.blueprintCoverTestLive(offlineCoverStorage)
+    const authoringLayer = authoringRepo.BlueprintAuthoringRepoLive.pipe(Layer.provide(coverLayer))
+    const captureLayer = captureRepo.BlueprintCaptureRepoLive.pipe(Layer.provide(authoringLayer))
     const nativeCreationLayer = nativeCreationRepo.BlueprintNativeCreationRepoLive.pipe(
-      Layer.provide(Layer.mergeAll(authoringLayer, captureLayer, PgClientLive))
+      Layer.provide(Layer.mergeAll(authoringLayer, captureLayer))
     )
+    const nativeCreationTransactionLayer =
+      nativeCreationTransaction.BlueprintNativeCreationTransactionLive
     const checkpointLayer = Layer.succeed(runtimeContracts.BlueprintInstallCheckpoint, {
       afterProjection: () => Effect.void,
     })
     const runtimeLayer = blueprintRepo.BlueprintRepoLive.pipe(
-      Layer.provide(Layer.mergeAll(PgClientLive, checkpointLayer))
+      Layer.provide(Layer.mergeAll(checkpointLayer, BlueprintCoverUnavailableTestLive))
     )
-    const sharingLayer = sharingRepo.BlueprintSharingRepoLive.pipe(Layer.provide(PgClientLive))
-    const linkManagementLayer = linkManagementRepo.BlueprintLinkManagementRepoLive.pipe(
-      Layer.provide(PgClientLive)
-    )
+    const sharingLayer = sharingRepo.BlueprintSharingRepoLive
+    const linkManagementLayer = linkManagementRepo.BlueprintLinkManagementRepoLive
     const fakeAuth = Layer.succeed(authContracts.BetterAuthWorkspaceCon, {
       listOrganizations: () => Effect.succeed([]),
       createOrganization: (input) =>
@@ -151,11 +164,13 @@ test.skipIf(!enabled)(
       authoringLayer,
       captureLayer,
       nativeCreationLayer,
+      nativeCreationTransactionLayer,
       runtimeLayer,
       checkpointLayer,
       sharingLayer,
       linkManagementLayer,
-      fakeAuth
+      fakeAuth,
+      coverLayer
     )
     type Dependencies =
       | BlueprintRepo
@@ -163,13 +178,17 @@ test.skipIf(!enabled)(
       | BlueprintAuthoringRepo
       | BlueprintCaptureRepo
       | BlueprintNativeCreationRepo
+      | BlueprintNativeCreationTransaction
       | BlueprintSharingRepo
       | BlueprintLinkManagementRepo
       | BetterAuthWorkspaceCon
+      | BlueprintCoverService
     const run = <A, E>(program: Effect.Effect<A, E, Dependencies>) =>
-      Effect.runPromise(program.pipe(Effect.provide(layer)))
+      Effect.runPromise(program.pipe(Effect.provide(layer), Effect.provide(PgClientLive)))
     const runExit = <A, E>(program: Effect.Effect<A, E, Dependencies>) =>
-      Effect.runPromise(Effect.exit(program.pipe(Effect.provide(layer))))
+      Effect.runPromise(
+        Effect.exit(program.pipe(Effect.provide(layer), Effect.provide(PgClientLive)))
+      )
     const actor = (id: string) => ({ id, name: id, email: `${id}@example.test` })
     const callNative = (input: unknown) =>
       run(nativeWorkflow.blueprintNativeCreationWorkflow(actor(ids.owner), input))
@@ -177,7 +196,9 @@ test.skipIf(!enabled)(
       run(
         Effect.gen(function* () {
           const repo = yield* runtimeContracts.BlueprintRepo
-          return discovery.buildBlueprintCatalog(yield* repo.catalog(actorId))
+          return discovery.publicBlueprintCatalog(
+            discovery.buildBlueprintCatalog(yield* repo.catalog(actorId))
+          )
         })
       )
     const revisionFor = (

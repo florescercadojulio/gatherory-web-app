@@ -8,7 +8,7 @@ import {
   S3Client,
 } from "@aws-sdk/client-s3"
 import { env } from "../src/env"
-import { createMediaUploadUrl } from "../src/server/media/connectors/media-storage.con"
+import { createMediaUploadUrl } from "../src/server/media/connectors/media-storage.provider"
 
 type BucketTarget = {
   label: "private" | "public"

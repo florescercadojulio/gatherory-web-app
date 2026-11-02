@@ -7,6 +7,7 @@ export function pullNativeSync(input: {
   scopeId: string
   after: number
   supportsTodos?: boolean
+  supportsBudgetAtomic?: boolean
   supportsBlueprintGuides: boolean
 }) {
   return Effect.gen(function* () {

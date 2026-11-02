@@ -20,6 +20,8 @@ import {
 import { ConflictError, InvalidInputError } from '@/lib/domain-errors'
 import { validateInput } from '@/server/validation'
 import { BlueprintAuthoringRepo } from '../repos/blueprint-authoring.repo'
+import { BlueprintCoverService } from '@/server/blueprint-media/services/blueprint-cover.service'
+import { blueprintCoverCallbacksWorkflow } from './blueprint-cover-callbacks.workflow'
 import { BlueprintRepo } from '../contracts/blueprint-runtime.contracts'
 import { BetterAuthWorkspaceCon } from '@/server/workspaces/connectors/better-auth.con'
 import { blueprintHash } from '../planning/blueprint-hash'
@@ -88,12 +90,14 @@ export const createBlueprintDraftWorkflow = (actorId: string, input: unknown) =>
         actorId
       )
     }
-    return yield* (yield* BlueprintAuthoringRepo).create(actorId, request)
+    const coverCallbacks = yield* blueprintCoverCallbacksWorkflow()
+    return yield* (yield* BlueprintAuthoringRepo).create(actorId, request, coverCallbacks)
   })
 export const saveBlueprintDraftWorkflow = (actorId: string, input: unknown) =>
   Effect.gen(function* () {
     const request = yield* validateInput(BlueprintSaveDraftSchema, input)
-    return yield* (yield* BlueprintAuthoringRepo).save(actorId, request)
+    const coverCallbacks = yield* blueprintCoverCallbacksWorkflow()
+    return yield* (yield* BlueprintAuthoringRepo).save(actorId, request, coverCallbacks)
   })
 export const publishBlueprintDraftWorkflow = (actorId: string, input: unknown) =>
   Effect.gen(function* () {
@@ -101,7 +105,8 @@ export const publishBlueprintDraftWorkflow = (actorId: string, input: unknown) =
     const authoring = yield* BlueprintAuthoringRepo
     // The repository resolves an already-published version before checking the
     // current draft version, so a retried publication survives later edits.
-    return yield* authoring.publish(actorId, request)
+    const coverCallbacks = yield* blueprintCoverCallbacksWorkflow()
+    return yield* authoring.publish(actorId, request, coverCallbacks)
   })
 export const retireBlueprintTemplateWorkflow = (actorId: string, input: unknown) =>
   Effect.gen(function* () {
@@ -134,15 +139,8 @@ export const previewBlueprintDraftWorkflow = (actorId: string, input: unknown) =
       )
     const assetIds = coverAssetIds(draft.content)
     if (assetIds.length) {
-      if (!authoring.validateCoverReferences)
-        return yield* Effect.fail(
-          new InvalidInputError({
-            category: 'validation',
-            code: 'BLUEPRINT_COVER_UNAVAILABLE',
-            userMessageKey: 'serverErrors.MEDIA_NOT_FOUND',
-          })
-        )
-      yield* authoring.validateCoverReferences(actorId, assetIds)
+      const coverService = yield* BlueprintCoverService
+      yield* coverService.validateReferences({ actorUserId: actorId, assetIds })
     }
     const definition = draftDefinition(
       draft.content,

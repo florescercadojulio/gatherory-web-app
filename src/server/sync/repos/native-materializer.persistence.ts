@@ -25,8 +25,12 @@ import { nativeSyncEntity } from '@/db/schema/sync.schema'
 
 import type { NativeMutation } from '../contracts/native-sync.contracts'
 import { ideaResponseID } from '../contracts/idea-response'
-import { retainedEventAccess } from '@/server/events/repos/event-departure.repo'
+import { retainedEventAccess } from '@/server/events/repos/event-departure.persistence'
 import { enqueueNativeNotification } from '@/server/notifications/repos/notification-outbox.persistence'
+import {
+  parseOptionalNativeMoneyDecimal,
+  requireNativeMoneyDecimal,
+} from '../services/native-money'
 import {
   eventChangeKind,
   type EventChangeState,
@@ -589,7 +593,9 @@ async function materializeWorkspace(
       isAllDay: payload.mainEventIsAllDay === true,
       timeZone,
       ...locationColumns(location),
-      budgetCap: optionalDecimal(payload.mainEventBudgetCap),
+      ...(Object.hasOwn(payload, 'mainEventBudgetCap')
+        ? { budgetCap: parseOptionalNativeMoneyDecimal(payload.mainEventBudgetCap) }
+        : {}),
       createdByUserId: input.userId,
     })
     .onConflictDoUpdate({
@@ -606,7 +612,9 @@ async function materializeWorkspace(
         isAllDay: payload.mainEventIsAllDay === true,
         timeZone,
         ...locationColumns(location),
-        budgetCap: optionalDecimal(payload.mainEventBudgetCap),
+        ...(Object.hasOwn(payload, 'mainEventBudgetCap')
+          ? { budgetCap: parseOptionalNativeMoneyDecimal(payload.mainEventBudgetCap) }
+          : {}),
         updatedAt: now,
       },
     })
@@ -615,7 +623,9 @@ async function materializeWorkspace(
     .insert(workspacePlanningSettings)
     .values({
       organizationId,
-      budgetCap: optionalDecimal(payload.workspaceBudgetCap),
+      ...(Object.hasOwn(payload, 'workspaceBudgetCap')
+        ? { budgetCap: parseOptionalNativeMoneyDecimal(payload.workspaceBudgetCap) }
+        : {}),
       currencyCode: optionalTrimmed(payload.currencyCode)?.toUpperCase() ?? 'USD',
       registryShared: payload.isRegistryShared === true,
       collaboratorLinkEnabled: payload.isCollaboratorLinkEnabled !== false,
@@ -626,7 +636,9 @@ async function materializeWorkspace(
     .onConflictDoUpdate({
       target: workspacePlanningSettings.organizationId,
       set: {
-        budgetCap: optionalDecimal(payload.workspaceBudgetCap),
+        ...(Object.hasOwn(payload, 'workspaceBudgetCap')
+          ? { budgetCap: parseOptionalNativeMoneyDecimal(payload.workspaceBudgetCap) }
+          : {}),
         currencyCode: optionalTrimmed(payload.currencyCode)?.toUpperCase() ?? 'USD',
         registryShared: payload.isRegistryShared === true,
         collaboratorLinkEnabled: payload.isCollaboratorLinkEnabled !== false,
@@ -883,7 +895,9 @@ async function materializeChildEvent(
       isAllDay: input.payload.isAllDay === true,
       timeZone: optionalTrimmed(input.payload.timeZoneIdentifier) ?? 'UTC',
       ...locationColumns(location),
-      budgetCap: optionalDecimal(input.payload.budgetCap),
+      ...(Object.hasOwn(input.payload, 'budgetCap')
+        ? { budgetCap: parseOptionalNativeMoneyDecimal(input.payload.budgetCap) }
+        : {}),
       createdByUserId: input.actorUserId,
     })
     .onConflictDoUpdate({
@@ -903,7 +917,9 @@ async function materializeChildEvent(
         isAllDay: input.payload.isAllDay === true,
         timeZone: optionalTrimmed(input.payload.timeZoneIdentifier) ?? 'UTC',
         ...locationColumns(location),
-        budgetCap: optionalDecimal(input.payload.budgetCap),
+        ...(Object.hasOwn(input.payload, 'budgetCap')
+          ? { budgetCap: parseOptionalNativeMoneyDecimal(input.payload.budgetCap) }
+          : {}),
         updatedAt: new Date(),
       },
     })
@@ -956,7 +972,7 @@ async function materializeIdea(
       guestVisibility,
       title: optionalTrimmed(input.payload.title),
       note: optionalTrimmed(input.payload.note),
-      estimatedCost: optionalDecimal(input.payload.estimatedCost),
+      estimatedCost: parseOptionalNativeMoneyDecimal(input.payload.estimatedCost),
       configuration: { version: 1, native: nativeConfiguration },
       submittedByUserId:
         input.payload.submittedByUserID === input.actorUserId
@@ -973,7 +989,7 @@ async function materializeIdea(
         guestVisibility,
         title: optionalTrimmed(input.payload.title),
         note: optionalTrimmed(input.payload.note),
-        estimatedCost: optionalDecimal(input.payload.estimatedCost),
+        estimatedCost: parseOptionalNativeMoneyDecimal(input.payload.estimatedCost),
         configuration: { version: 1, native: nativeConfiguration },
         updatedAt: new Date(),
       },
@@ -1018,6 +1034,25 @@ async function materializeExpense(
   await assertScopedExpense(transaction, input.organizationId, input.entityId)
   const eventId = requiredUUID(input.payload.eventID, 'EXPENSE_EVENT_MISSING')
   await requireScopedEvent(transaction, input.organizationId, eventId)
+  const [existingPaidExpense] = await transaction
+    .select({ amount: eventExpense.amount })
+    .from(eventExpense)
+    .where(
+      and(
+        eq(eventExpense.id, input.entityId),
+        eq(eventExpense.organizationId, input.organizationId),
+        eq(eventExpense.status, 'paid')
+      )
+    )
+    .limit(1)
+    .for('update')
+  const amount =
+    existingPaidExpense?.amount ?? requiredDecimal(input.payload.amount, 'EXPENSE_AMOUNT_MISSING')
+  const status = existingPaidExpense
+    ? 'paid'
+    : input.payload.status === 'committed' || input.payload.status === 'paid'
+      ? input.payload.status
+      : 'estimated'
 
   await transaction
     .insert(eventExpense)
@@ -1027,12 +1062,9 @@ async function materializeExpense(
       eventId,
       sourceIdeaId: optionalUUID(input.payload.sourceIdeaID),
       title: requiredTrimmed(input.payload.title, 'EXPENSE_TITLE_MISSING'),
-      amount: requiredDecimal(input.payload.amount, 'EXPENSE_AMOUNT_MISSING'),
+      amount,
       category: mapExpenseCategory(input.payload.category),
-      status:
-        input.payload.status === 'committed' || input.payload.status === 'paid'
-          ? input.payload.status
-          : 'estimated',
+      status,
       createdByUserId: input.actorUserId,
       createdAt: optionalNativeDate(input.payload.createdAt) ?? new Date(),
       updatedAt: optionalNativeDate(input.payload.updatedAt) ?? new Date(),
@@ -1043,12 +1075,9 @@ async function materializeExpense(
         eventId,
         sourceIdeaId: optionalUUID(input.payload.sourceIdeaID),
         title: requiredTrimmed(input.payload.title, 'EXPENSE_TITLE_MISSING'),
-        amount: requiredDecimal(input.payload.amount, 'EXPENSE_AMOUNT_MISSING'),
+        amount,
         category: mapExpenseCategory(input.payload.category),
-        status:
-          input.payload.status === 'committed' || input.payload.status === 'paid'
-            ? input.payload.status
-            : 'estimated',
+        status,
         updatedAt: optionalNativeDate(input.payload.updatedAt) ?? new Date(),
       },
     })
@@ -1079,7 +1108,7 @@ async function materializeRegistryItem(
       title: requiredTrimmed(input.payload.title, 'REGISTRY_TITLE_MISSING'),
       note: optionalTrimmed(input.payload.note),
       category: mapRegistryCategory(input.payload.category),
-      price: optionalDecimal(input.payload.price),
+      price: parseOptionalNativeMoneyDecimal(input.payload.price),
       quantity: Math.max(1, integer(input.payload.quantity, 1)),
       createdByUserId: input.actorUserId,
     })
@@ -1091,7 +1120,7 @@ async function materializeRegistryItem(
         title: requiredTrimmed(input.payload.title, 'REGISTRY_TITLE_MISSING'),
         note: optionalTrimmed(input.payload.note),
         category: mapRegistryCategory(input.payload.category),
-        price: optionalDecimal(input.payload.price),
+        price: parseOptionalNativeMoneyDecimal(input.payload.price),
         quantity: Math.max(1, integer(input.payload.quantity, 1)),
         updatedAt: new Date(),
       },
@@ -1575,6 +1604,19 @@ async function deleteCanonicalEntity(
         .where(and(eq(event.id, input.entityId), eq(event.organizationId, input.organizationId)))
       break
     case 'idea':
+      // Paid expense rows outlive their source idea. Detach the optional
+      // relationship before deleting the idea so its FK cascade cannot erase
+      // a settled financial record.
+      await transaction
+        .update(eventExpense)
+        .set({ sourceIdeaId: null, updatedAt: new Date() })
+        .where(
+          and(
+            eq(eventExpense.organizationId, input.organizationId),
+            eq(eventExpense.sourceIdeaId, input.entityId),
+            eq(eventExpense.status, 'paid')
+          )
+        )
       await transaction
         .delete(idea)
         .where(and(eq(idea.id, input.entityId), eq(idea.organizationId, input.organizationId)))
@@ -1852,17 +1894,10 @@ function optionalNativeDate(value: unknown): Date | null {
   return null
 }
 
-function optionalDecimal(value: unknown): string | null {
-  if (typeof value !== 'number' && typeof value !== 'string') return null
-  const normalized = String(value).replaceAll(',', '')
-  if (!/^\d+(?:\.\d+)?$/.test(normalized)) return null
-  return normalized
-}
-
 function requiredDecimal(value: unknown, code: string) {
-  const result = optionalDecimal(value)
-  if (result == null) throw nativeMaterializationFailure(code)
-  return result
+  return requireNativeMoneyDecimal(value, () => {
+    throw nativeMaterializationFailure(code)
+  })
 }
 
 function integer(value: unknown, fallback: number) {

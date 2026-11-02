@@ -200,8 +200,9 @@ Use the shared `MoneySchema` and `contracts/schemas/money.v1.schema.json`:
 - The 20-digit limit is a transport bound, not a promise that billing providers
   or storage support every such amount. Apply narrower business/provider bounds
   before converting or charging.
-- Keep exact integer/decimal arithmetic internally (for example `BigInt` in
-  TypeScript). Do not use `Number(amountMinor)` or multiply binary floating-point
+- Keep exact decimal arithmetic internally through the shared Decimal.js
+  constructor in `src/lib/money.ts`; see [money arithmetic](money-arithmetic.md).
+  Do not use `Number(amountMinor)` or multiply binary floating-point
   display values by 100. Serialize integer results back to strings; format a
   localized major-unit value only at the UI boundary.
 - This money type models nonnegative prices. Future signed adjustments/refunds

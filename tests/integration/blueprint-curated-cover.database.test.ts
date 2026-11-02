@@ -1,7 +1,8 @@
 import { createHash } from 'node:crypto'
 import { readFileSync } from 'node:fs'
-import { Effect, Layer, Context } from 'effect'
+import { Effect, Layer } from 'effect'
 import { expect, it, vi } from 'vitest'
+import { blueprintCoverCallbacksWorkflow } from '@/server/blueprints/workflows/blueprint-cover-callbacks.workflow'
 
 const enabled = process.env.RUN_BLUEPRINT_DB_TESTS === '1'
 
@@ -91,25 +92,29 @@ it.skipIf(!enabled)(
         const bytes = objects.get(key)
         return bytes ? Effect.succeed(bytes) : Effect.die(`missing test object ${key}`)
       },
-      putBytes: (input: { key: string; bytes: Buffer }) => {
-        objects.set(input.key, input.bytes)
+      putBytes: (input: { key: string; bytes: Uint8Array }) => {
+        objects.set(input.key, Buffer.from(input.bytes))
         return Effect.void
       },
       createReadUrl: () => Effect.die('unused'),
       delete: () => Effect.void,
     }
-    class TestCoverStorage extends Context.Service<TestCoverStorage, typeof storage>()(
-      'BlueprintCoverStorage'
-    ) {}
-    vi.doMock('@/server/blueprint-media/blueprint-cover.storage.live', () => ({
-      BlueprintCoverStorage: TestCoverStorage,
-      BlueprintCoverStorageLive: Layer.succeed(TestCoverStorage, storage),
-    }))
-
     const fetchMock = vi.fn(
-      async () => new Response(imageBytes, { headers: { 'content-type': 'image/jpeg' } })
+      async (_url: string) =>
+        new Response(imageBytes, { headers: { 'content-type': 'image/jpeg' } })
     )
     vi.stubGlobal('fetch', fetchMock)
+    const fixtureSource = {
+      download: ({ url }: { url: string }) =>
+        Effect.tryPromise({
+          try: async () => {
+            const response = await globalThis.fetch(url)
+            const bytes = new Uint8Array(await response.arrayBuffer())
+            return { bytes, contentType: response.headers.get('content-type') }
+          },
+          catch: (cause) => cause,
+        }),
+    }
 
     const [
       database,
@@ -120,8 +125,8 @@ it.skipIf(!enabled)(
       personalRepoModule,
       personalRepoLive,
       blueprintRepoModule,
-      coverStorageModule,
       runtimeContracts,
+      coverFixtures,
       installWorkflow,
       authContracts,
       catalogSeed,
@@ -134,8 +139,8 @@ it.skipIf(!enabled)(
       import('@/server/blueprints/repos/blueprint-personal.repo'),
       import('@/server/blueprints/repos/blueprint-personal.repo.live'),
       import('@/server/blueprints/repos/blueprint.repo.live'),
-      import('@/server/blueprint-media/blueprint-cover.storage.live'),
       import('@/server/blueprints/contracts/blueprint-runtime.contracts'),
+      import('../fixtures/blueprint-cover-layers'),
       import('@/server/blueprints/workflows/install-blueprint.workflow'),
       import('@/server/workspaces/connectors/better-auth.con'),
       import('@/server/blueprints/repos/seed-blueprint-catalog'),
@@ -173,16 +178,17 @@ it.skipIf(!enabled)(
     )
     const run = <A, E, R, LE>(program: Effect.Effect<A, E, R>, layer: Layer.Layer<R, LE, never>) =>
       Effect.runPromise(program.pipe(Effect.provide(layer)))
-    const personalLayer = personalRepoLive.BlueprintPersonalRepoLive.pipe(
-      Layer.provide(PgClientLive)
-    )
+    const coverLayer = coverFixtures.blueprintCoverTestLive(storage, fixtureSource)
+    const personalLayer = Layer.mergeAll(
+      personalRepoLive.BlueprintPersonalRepoLive,
+      coverLayer
+    ).pipe(Layer.provide(PgClientLive))
     const checkpointLayer = Layer.succeed(BlueprintInstallCheckpoint, {
       afterProjection: () => Effect.void,
     })
     const blueprintLayer = blueprintRepoModule.BlueprintRepoLive.pipe(
-      Layer.provide(
-        Layer.mergeAll(PgClientLive, checkpointLayer, coverStorageModule.BlueprintCoverStorageLive)
-      )
+      Layer.provide(Layer.mergeAll(checkpointLayer, coverLayer)),
+      Layer.provide(PgClientLive)
     )
     const authLayer = Layer.succeed(BetterAuthWorkspaceCon, {
       listOrganizations: () => Effect.succeed([]),
@@ -221,7 +227,9 @@ it.skipIf(!enabled)(
       addTeamMember: () => Effect.die('unused'),
       setActiveTeam: () => Effect.void,
     })
-    const installLayer = Layer.mergeAll(blueprintLayer, authLayer)
+    const installLayer = Layer.mergeAll(blueprintLayer, authLayer, coverLayer).pipe(
+      Layer.provide(PgClientLive)
+    )
     const copy = (
       requestId: string,
       content: Record<string, unknown>,
@@ -233,11 +241,15 @@ it.skipIf(!enabled)(
       run(
         Effect.gen(function* () {
           const repo = yield* BlueprintPersonalRepo
-          return yield* repo.copy(actorId, {
-            requestId,
-            source,
-            content: content as never,
-          })
+          return yield* repo.copy(
+            actorId,
+            {
+              requestId,
+              source,
+              content: content as never,
+            },
+            yield* blueprintCoverCallbacksWorkflow()
+          )
         }),
         personalLayer
       )
@@ -432,6 +444,29 @@ it.skipIf(!enabled)(
       }
       const requestId = crypto.randomUUID()
       const fetchCountBeforeCopy = fetchMock.mock.calls.length
+      const objectsBeforeMissingCallbacks = objects.size
+      const assetsBeforeMissingCallbacks = await db.select().from(blueprintCoverAsset)
+      await expect(
+        run(
+          Effect.gen(function* () {
+            const repo = yield* BlueprintPersonalRepo
+            return yield* repo.copy(actorId, {
+              requestId: crypto.randomUUID(),
+              source: { catalogKey: 'wedding', revision: 1 },
+              content: baseContent as never,
+            })
+          }),
+          personalLayer
+        )
+      ).rejects.toMatchObject({
+        _tag: 'ConfigurationError',
+        code: 'BLUEPRINT_COVER_CALLBACKS_REQUIRED',
+      })
+      expect(objects.size).toBe(objectsBeforeMissingCallbacks)
+      expect(await db.select().from(blueprintCoverAsset)).toHaveLength(
+        assetsBeforeMissingCallbacks.length
+      )
+
       const copied = await copy(requestId, baseContent)
       expect(copied.catalogEntry.definition).toMatchObject({
         presentation: { coverAssetId: expect.any(String) },
@@ -476,24 +511,22 @@ it.skipIf(!enabled)(
         },
       ])
       expect(fetchMock).toHaveBeenCalledTimes(fetchCountBeforeCopy + 3)
-      const coverService = await import('@/server/blueprint-media/blueprint-cover.service')
+      const coverService =
+        await import('@/server/blueprint-media/workflows/materialize-curated-explore-cover.workflow')
       const { blueprintStarters } = await import('@/server/blueprints/catalog/starters')
       const weddingContentHash = blueprintStarters.find(
         (starter) => starter.catalogKey === 'wedding'
       )!.contentHash
       const reusedAssetId = await Effect.runPromise(
         coverService
-          .materializeCuratedExploreCover({
+          .materializeCuratedExploreCoverWorkflow({
             actorUserId: actorId,
             requestId,
             catalogKey: 'wedding',
             revision: 1,
             contentHash: weddingContentHash,
           })
-          .pipe(
-            Effect.provideService(coverStorageModule.BlueprintCoverStorage, storage),
-            Effect.provide(PgClientLive)
-          )
+          .pipe(Effect.provide(coverLayer), Effect.provide(PgClientLive))
       )
       expect(reusedAssetId).toBe(coverId)
       expect(fetchMock).toHaveBeenCalledTimes(fetchCountBeforeCopy + 3)
@@ -584,17 +617,14 @@ it.skipIf(!enabled)(
       await expect(
         Effect.runPromise(
           coverService
-            .materializeCuratedExploreCover({
+            .materializeCuratedExploreCoverWorkflow({
               actorUserId: actorId,
               requestId: crypto.randomUUID(),
               catalogKey: 'wedding',
               revision: 1,
               contentHash: weddingContentHash,
             })
-            .pipe(
-              Effect.provideService(coverStorageModule.BlueprintCoverStorage, storage),
-              Effect.provide(PgClientLive)
-            )
+            .pipe(Effect.provide(coverLayer), Effect.provide(PgClientLive))
         )
       ).rejects.toMatchObject({ code: 'BLUEPRINT_CURATED_COVER_IMPORT_FAILED' })
       expect(objects.size).toBe(objectsBeforeBadChecksum)
@@ -730,18 +760,26 @@ it.skipIf(!enabled)(
       await run(
         Effect.gen(function* () {
           const repo = yield* BlueprintPersonalRepo
-          return yield* repo.save(actorId, {
-            id: copied.id,
-            expectedVersion: 1,
-            content: replacedDraft as never,
-          })
+          return yield* repo.save(
+            actorId,
+            {
+              id: copied.id,
+              expectedVersion: 1,
+              content: replacedDraft as never,
+            },
+            yield* blueprintCoverCallbacksWorkflow()
+          )
         }),
         personalLayer
       )
       const replacementBlueprint = await run(
         Effect.gen(function* () {
           const repo = yield* BlueprintPersonalRepo
-          return yield* repo.publish(actorId, { id: copied.id, expectedVersion: 2 })
+          return yield* repo.publish(
+            actorId,
+            { id: copied.id, expectedVersion: 2 },
+            yield* blueprintCoverCallbacksWorkflow()
+          )
         }),
         personalLayer
       )

@@ -9,7 +9,7 @@ import {
   planningPermissionFromDatabase,
   type EventPermissions,
 } from '@/lib/permissions'
-import { retainedEventAccess } from '@/server/events/repos/event-departure.repo'
+import { retainedEventAccess } from '@/server/events/repos/event-departure.persistence'
 import type { NativeMutation } from '../contracts/native-sync.contracts'
 import { NativeMaterializationError } from './native-materializer.persistence'
 

@@ -55,14 +55,7 @@ import { buildBlueprintNativeProjection } from '../services/blueprint-native-pro
 import { isBlueprintDiscoveryAccountEligible } from '../services/blueprint-measurement-eligibility'
 import { isBlueprintAttributionWindowActive } from '../services/blueprint-attribution'
 import { hashBlueprintShareToken } from '../planning/blueprint-share-token.server'
-import {
-  cloneBlueprintCoverAssets,
-  materializeCuratedSeedImages,
-} from '@/server/blueprint-media/blueprint-cover.service'
-import {
-  BlueprintCoverStorage,
-  BlueprintCoverStorageLive,
-} from '@/server/blueprint-media/blueprint-cover.storage.live'
+import { blueprintCoverCallbacksRequired } from './blueprint-cover-callbacks'
 import seedImageAssignmentsRaw from '../catalog/seed-image-assignments.json'
 import seedImageAssetsRaw from '../catalog/seed-image-assets.json'
 import {
@@ -107,11 +100,9 @@ export const BlueprintRepoLive = Layer.effect(
     const pg = yield* PgClient
     const db = yield* DB
     const checkpoint = yield* BlueprintInstallCheckpoint
-    const coverStorage = yield* BlueprintCoverStorage
-    const bind = <A, E>(effect: Effect.Effect<A, E, PgClient | BlueprintCoverStorage>) =>
+    const bind = <A, E>(effect: Effect.Effect<A, E, PgClient>) =>
       effect.pipe(
         Effect.provideService(PgClient, pg),
-        Effect.provideService(BlueprintCoverStorage, coverStorage),
         Effect.mapError((cause) =>
           serverOperationError(cause, {
             category: 'system',
@@ -519,7 +510,7 @@ export const BlueprintRepoLive = Layer.effect(
         ),
       acquire: (actorId, requestId, hash, token) =>
         bind(pg.withTransaction(acquire(actorId, requestId, hash, token))),
-      claim: (input) =>
+      claim: (input, coverCallbacks) =>
         bind(
           Effect.gen(function* () {
             // Public immutable catalog rows carry artwork through the separate,
@@ -572,7 +563,8 @@ export const BlueprintRepoLive = Layer.effect(
                     needed.add(target.assetKey)
                 }
                 if (needed.size) {
-                  const imageIds = yield* materializeCuratedSeedImages({
+                  if (!coverCallbacks) return yield* Effect.fail(blueprintCoverCallbacksRequired())
+                  const imageIds = yield* coverCallbacks.materializeCuratedSeedImages({
                     actorUserId: input.actor.id,
                     requestId: input.request.requestId,
                     catalogKey: input.revision.catalogKey,
@@ -584,10 +576,7 @@ export const BlueprintRepoLive = Layer.effect(
                         assetKey,
                         manifest: seedImageAssets[assetKey]!.manifest,
                       })),
-                  }).pipe(
-                    Effect.provideService(PgClient, pg),
-                    Effect.provideService(BlueprintCoverStorage, coverStorage)
-                  )
+                  })
                   plan = {
                     ...plan,
                     main: {
@@ -711,7 +700,7 @@ export const BlueprintRepoLive = Layer.effect(
             })
           )
         ),
-      complete: (actor, installationId, token) =>
+      complete: (actor, installationId, token, coverCallbacks) =>
         bind(
           Effect.gen(function* () {
             const result = yield* pg.withTransaction(
@@ -781,16 +770,19 @@ export const BlueprintRepoLive = Layer.effect(
                   ),
                 ]
                 const clonedCovers = sourceCoverIds.length
-                  ? yield* cloneBlueprintCoverAssets({
-                      actorUserId: actor.id,
-                      sourceRevisionId: source.id,
-                      shareTokenHash: receipt.shareTokenHash ?? undefined,
-                      destinationOrganizationId: organizationId,
-                      copies: sourceCoverIds.map((sourceAssetId) => ({
-                        sourceAssetId,
-                        destinationAssetId: stableInstallCoverId(receipt.id, sourceAssetId),
-                      })),
-                    })
+                  ? !coverCallbacks
+                    ? yield* Effect.fail(blueprintCoverCallbacksRequired())
+                    : yield* coverCallbacks.cloneAssets({
+                        database: db,
+                        actorUserId: actor.id,
+                        sourceRevisionId: source.id,
+                        shareTokenHash: receipt.shareTokenHash ?? undefined,
+                        destinationOrganizationId: organizationId,
+                        copies: sourceCoverIds.map((sourceAssetId) => ({
+                          sourceAssetId,
+                          destinationAssetId: stableInstallCoverId(receipt.id, sourceAssetId),
+                        })),
+                      })
                   : []
                 const coverAssetIds = Object.fromEntries(
                   clonedCovers.map(({ sourceAssetId, destinationAssetId }) => [
@@ -998,4 +990,4 @@ export const BlueprintRepoLive = Layer.effect(
         ),
     }
   })
-).pipe(Layer.provide(BlueprintCoverStorageLive))
+)

@@ -18,7 +18,7 @@ import {
   getEventParticipant,
 } from './event.repo.persistence'
 import { ShareLinkInput } from '../contracts/event.contracts'
-import { requireJoinableEvent } from './event-lifecycle.repo'
+import { requireJoinableEvent } from './event-lifecycle.persistence'
 import { requireUnblockedInvitation } from '@/server/moderation/repos/user-block.repo.live'
 
 const unavailable = () =>

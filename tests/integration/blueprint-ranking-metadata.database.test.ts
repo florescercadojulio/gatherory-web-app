@@ -1,5 +1,6 @@
 import { Effect, Layer } from 'effect'
 import { expect, test } from 'vitest'
+import { BlueprintCoverUnavailableTestLive } from '../fixtures/blueprint-cover-unavailable.live'
 
 const enabled = process.env.RUN_BLUEPRINT_DB_TESTS === '1'
 
@@ -25,7 +26,6 @@ test.skipIf(!enabled)(
       runtimeContracts,
       authoringContracts,
       seed,
-      coverStorage,
       discoveryWorkflow,
     ] = await Promise.all([
       import('@/db'),
@@ -36,7 +36,6 @@ test.skipIf(!enabled)(
       import('@/server/blueprints/contracts/blueprint-runtime.contracts'),
       import('@/contracts/blueprint-authoring.contracts'),
       import('@/db/seeds/cottage-template'),
-      import('@/server/blueprint-media/blueprint-cover.storage.live'),
       import('@/server/blueprints/workflows/blueprint-discovery-actions.workflows.live'),
     ])
     const { db, PgClientLive } = database
@@ -75,19 +74,7 @@ test.skipIf(!enabled)(
     })
     const runtimeLayer = repoModule.BlueprintRepoLive.pipe(
       Layer.provide(
-        Layer.mergeAll(
-          PgClientLive,
-          checkpointLayer,
-          Layer.succeed(coverStorage.BlueprintCoverStorage, {
-            bucket: 'unused',
-            createUploadUrl: () => Effect.die('unused'),
-            inspect: () => Effect.die('unused'),
-            readBytes: () => Effect.die('unused'),
-            putBytes: () => Effect.die('unused'),
-            createReadUrl: () => Effect.die('unused'),
-            delete: () => Effect.die('unused'),
-          })
-        )
+        Layer.mergeAll(PgClientLive, checkpointLayer, BlueprintCoverUnavailableTestLive)
       )
     )
 

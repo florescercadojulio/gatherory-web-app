@@ -74,9 +74,14 @@ Read the product and data models first, then the relevant implementation guide.
 - [API and MCP contract conventions](development/api-contract-conventions.md):
   explicit character limits, integer minor-unit money strings, timezone-safe
   Temporal boundaries, shared schemas and compatibility rules for integrations.
+- [Money arithmetic](development/money-arithmetic.md): Decimal.js calculation
+  ownership, precision, legacy units, formatting and regression coverage.
 - [Server implementation guide](development/server-implementation-guide.md):
   practical code references, Effect layer composition, authorization choices,
   test organization, and handoff checks for contributors and future chats.
+- [Server architecture alignment — November 2](development/server-architecture-alignment-2026-11-02.md):
+  MCP/Blueprint boundaries, transaction preservation, expanded guards, and
+  regression acceptance for the current architecture follow-up.
 - [Page creation standard](development/page-creation.md): routes, forms, shared
   controls, and accessibility conventions.
 - [Localization inventory](development/i18n-string-inventory.md): string

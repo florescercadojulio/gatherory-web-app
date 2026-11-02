@@ -3,6 +3,7 @@ import { Effect } from 'effect'
 import { runServerResponse } from '@/server/effect-utils'
 import { requestUser } from '@/server/http-errors'
 import {
+  hasBudgetAtomicCapability,
   hasBlueprintGuidesCapability,
   hasTodosCapability,
 } from '@/server/sync/native-sync-compatibility'
@@ -19,6 +20,7 @@ export const Route = createFileRoute('/api/sync/bootstrap')({
               userId: user.id,
               supportsBlueprintGuides: hasBlueprintGuidesCapability(request.headers),
               supportsTodos: hasTodosCapability(request.headers),
+              supportsBudgetAtomic: hasBudgetAtomicCapability(request.headers),
             })
           }),
           {

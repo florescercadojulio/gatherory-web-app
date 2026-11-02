@@ -4,6 +4,28 @@ export const BLUEPRINT_GUIDES_CAPABILITY = 'blueprint-guides-v1'
 export const BLUEPRINT_UPGRADE_REQUIRED_CODE = 'blueprint_client_upgrade_required'
 export const TODOS_CAPABILITY = 'event-todos-v2'
 export const TODOS_UPGRADE_REQUIRED_CODE = 'todos_client_upgrade_required'
+export const BUDGET_ATOMIC_CAPABILITY = 'budget-atomic-v1'
+export const BUDGET_UPGRADE_REQUIRED_CODE = 'budget_client_upgrade_required'
+
+export function hasBudgetAtomicCapability(headers: Headers): boolean {
+  return (headers.get('x-gatherory-capabilities') ?? '')
+    .split(',')
+    .some((capability) => capability.trim() === BUDGET_ATOMIC_CAPABILITY)
+}
+
+export function budgetUpgradeRequired(scopeIds: string[]) {
+  return new ConflictError({
+    category: 'conflict',
+    code: BUDGET_UPGRADE_REQUIRED_CODE,
+    userMessage: 'Update Gatherory to sync shared budget changes.',
+    httpStatus: 426,
+    messageParams: {
+      requiredCapabilities: BUDGET_ATOMIC_CAPABILITY,
+      recoverable: 'true',
+      scopeIDs: [...new Set(scopeIds)].join(','),
+    },
+  })
+}
 
 export function hasTodosCapability(headers: Headers): boolean {
   return (headers.get('x-gatherory-capabilities') ?? '')

@@ -11,15 +11,19 @@ import {
 } from '../repos/registry-reservation.repo.persistence'
 
 const EventIdSchema = z.uuid().transform((value) => value.toLowerCase())
-const ReservationCommandSchema = z.object({
-  requestId: z.uuid().transform((value) => value.toLowerCase()),
-  itemId: z.uuid().transform((value) => value.toLowerCase()),
-  quantity: z.number().int().positive().optional(),
-}).strict()
-const CancellationCommandSchema = z.object({
-  requestId: z.uuid().transform((value) => value.toLowerCase()),
-  itemId: z.uuid().transform((value) => value.toLowerCase()),
-}).strict()
+const ReservationCommandSchema = z
+  .object({
+    requestId: z.uuid().transform((value) => value.toLowerCase()),
+    itemId: z.uuid().transform((value) => value.toLowerCase()),
+    quantity: z.number().int().positive().optional(),
+  })
+  .strict()
+const CancellationCommandSchema = z
+  .object({
+    requestId: z.uuid().transform((value) => value.toLowerCase()),
+    itemId: z.uuid().transform((value) => value.toLowerCase()),
+  })
+  .strict()
 const GuestIdentitySchema = z.object({
   guestId: EventIdSchema,
   credential: GuestCredentialSchema,
@@ -44,7 +48,7 @@ export function accountRegistryReservationResponse(request: Request, eventId: st
       const account = yield* requestUser(request)
       return yield* registryAction(request, eventId, { kind: 'user', id: account.id })
     }).pipe(Effect.provide(PgClientLive)),
-    { headers: request.headers, operation: `event.registry.${request.method.toLowerCase()}` },
+    { headers: request.headers, operation: `event.registry.${request.method.toLowerCase()}` }
   )
 }
 
@@ -56,9 +60,11 @@ export function guestRegistryReservationResponse(request: Request, eventId: stri
         credential: request.headers.get('x-gatherory-guest-token'),
       })
       return yield* registryAction(request, eventId, {
-        kind: 'device_guest', id: identity.guestId, credential: identity.credential,
+        kind: 'device_guest',
+        id: identity.guestId,
+        credential: identity.credential,
       })
     }).pipe(Effect.provide(PgClientLive)),
-    { headers: request.headers, operation: `guest.registry.${request.method.toLowerCase()}` },
+    { headers: request.headers, operation: `guest.registry.${request.method.toLowerCase()}` }
   )
 }

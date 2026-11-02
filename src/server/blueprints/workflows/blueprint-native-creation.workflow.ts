@@ -1,21 +1,29 @@
 import { Effect } from 'effect'
 import { BlueprintNativeCreationRequestSchema } from '@/contracts/blueprint-native-creation.contracts'
+import { BlueprintDraftContentSchema } from '@/contracts/blueprint-authoring.contracts'
 import { ConflictError, ForbiddenError, InvalidInputError } from '@/lib/domain-errors'
 import { validateInput } from '@/server/validation'
 import { BlueprintAuthoringRepo } from '../repos/blueprint-authoring.repo'
 import { BlueprintCaptureRepo } from '../repos/blueprint-capture.repo'
 import { BlueprintNativeCreationRepo } from '../repos/blueprint-native-creation.repo'
-import { blueprintDraftContentHash } from '../planning/blueprint-hash'
+import { BlueprintNativeCreationTransaction } from './blueprint-native-creation-transaction'
+import {
+  blueprintDraftContentHash,
+  blueprintHash,
+  legacyCompatibleCaptureSelection,
+} from '../planning/blueprint-hash'
 import { captureEventBlueprint } from '../planning/capture-event-blueprint.server'
 import { createBlueprintAuthoringWorkspaceWorkflow } from './blueprint-authoring.workflow'
 import { BetterAuthWorkspaceCon } from '@/server/workspaces/connectors/better-auth.con'
+import { blueprintCoverCallbacksWorkflow } from './blueprint-cover-callbacks.workflow'
 
-const sourceChanged = () =>
+const conflict = (code: string) =>
   new ConflictError({
     category: 'conflict',
-    code: 'BLUEPRINT_CAPTURE_SOURCE_CHANGED',
+    code,
     userMessageKey: 'serverErrors.CONFLICT',
   })
+const sourceChanged = () => conflict('BLUEPRINT_CAPTURE_SOURCE_CHANGED')
 
 /** Consumer templates belong to the actor's personal authoring organization,
  * independently of the event's organization or the active session workspace.
@@ -99,10 +107,74 @@ export const blueprintNativeCreationWorkflow = (
         // Source authority must precede any external personal-owner provisioning.
         yield* capture.source(actor.id, request.eventId)
         const organizationId = request.organizationId ?? (yield* personalTemplateOwner(actor))
-        return yield* (yield* BlueprintNativeCreationRepo).create(actor.id, {
-          ...request,
-          organizationId,
-        })
+        const authoring = yield* BlueprintAuthoringRepo
+        const nativeCreation = yield* BlueprintNativeCreationRepo
+        const transaction = yield* BlueprintNativeCreationTransaction
+        return yield* transaction.withTransaction(
+          Effect.gen(function* () {
+            // Recheck current source authority inside the transaction on every attempt,
+            // including exact retries after a lost response.
+            yield* capture.source(actor.id, request.eventId)
+            const draft = yield* capture.save(actor.id, {
+              eventId: request.eventId,
+              selection: request.selection,
+              expectedSourceHash: request.expectedSourceHash,
+              name: request.name,
+              organizationId,
+              requestId: request.requestId,
+            })
+            const capturedContent =
+              draft.source && 'eventId' in draft.source && draft.source.eventId === request.eventId
+                ? BlueprintDraftContentSchema.parse(draft.source.capturedContent)
+                : undefined
+            if (
+              !capturedContent ||
+              blueprintDraftContentHash(capturedContent) !== request.expectedReviewHash
+            )
+              return yield* Effect.fail(conflict('BLUEPRINT_NATIVE_REVIEW_CHANGED'))
+
+            const nativeRequestHash = blueprintHash({
+              ...request,
+              organizationId,
+              selection: legacyCompatibleCaptureSelection(request.selection),
+            })
+            const priorNativeHash =
+              draft.source && 'eventId' in draft.source
+                ? draft.source.nativeCreationRequestHash
+                : undefined
+            if (priorNativeHash && priorNativeHash !== nativeRequestHash)
+              return yield* Effect.fail(conflict('BLUEPRINT_CREATE_REQUEST_CONFLICT'))
+            // A legacy committed unlisted request cannot become public merely
+            // by replaying its UUID with a new visibility flag.
+            if (!priorNativeHash && draft.publishedRevision !== null && request.discoverable)
+              return yield* Effect.fail(conflict('BLUEPRINT_CREATE_REQUEST_CONFLICT'))
+            if (!priorNativeHash)
+              yield* nativeCreation.recordRequestFingerprint(draft.id, nativeRequestHash)
+
+            // Native creation publishes only the immutable initial capture (draft version 1).
+            // The authoring repo replays that publication before checking the current draft version.
+            const coverCallbacks = yield* blueprintCoverCallbacksWorkflow()
+            const published = yield* authoring.publish(
+              actor.id,
+              {
+                id: draft.id,
+                expectedVersion: 1,
+              },
+              coverCallbacks
+            )
+            // Listing is access metadata; the published document stays immutable.
+            // A replay never re-lists a publication that its owner withdrew.
+            if (!priorNativeHash && request.discoverable)
+              yield* nativeCreation.listInitialRevision(
+                published.id,
+                published.publication.revision
+              )
+            return {
+              templateId: published.id,
+              revision: published.publication.revision,
+            }
+          })
+        )
       }
       case 'workspace': {
         // The source grant is independent from ownership of a publishing destination.

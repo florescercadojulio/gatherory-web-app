@@ -1,5 +1,5 @@
 import { Layer } from 'effect'
-import { deleteMediaObject } from '@/server/media/connectors/media-storage.con'
+import { deleteMediaObject } from '@/server/media/connectors/media-storage.provider'
 import { AccountDeletionStorageCon } from './account-deletion-storage.con'
 
 export const AccountDeletionStorageConLive = Layer.succeed(AccountDeletionStorageCon, {

@@ -31,13 +31,16 @@ test('uses the CSS 48rem boundary and matchMedia state, then removes its change 
     onChange = listener
   })
   const removeEventListener = vi.fn()
-  const matchMedia = vi.fn(() => ({
-    get matches() {
-      return matches
-    },
-    addEventListener,
-    removeEventListener,
-  }) as unknown as MediaQueryList)
+  const matchMedia = vi.fn(
+    () =>
+      ({
+        get matches() {
+          return matches
+        },
+        addEventListener,
+        removeEventListener,
+      }) as unknown as MediaQueryList
+  )
 
   vi.stubGlobal('window', { innerWidth: 768, matchMedia })
 

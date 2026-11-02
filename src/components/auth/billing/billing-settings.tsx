@@ -51,6 +51,7 @@ import {
 } from '@/components/ui/select.tsx'
 import { Spinner } from '@/components/ui/spinner.tsx'
 import { billingPlugin } from '@/lib/auth/billing-plugin.ts'
+import { formatBillingPrice } from '@/lib/billing-price'
 import { cn } from 'cn'
 
 type SubscriptionAction = 'cancel' | 'restore'
@@ -59,21 +60,6 @@ export type BillingSettingsProps = {
   adapter: BillingAdapter
   scope: BillingScope
   className?: string
-}
-
-const formatPrice = (amount: number, currency: string) => {
-  const fractionDigits =
-    new Intl.NumberFormat(undefined, {
-      style: 'currency',
-      currency,
-    }).resolvedOptions().maximumFractionDigits ?? 2
-  const divisor = 10 ** fractionDigits
-
-  return new Intl.NumberFormat(undefined, {
-    style: 'currency',
-    currency,
-    maximumFractionDigits: amount % divisor === 0 ? 0 : fractionDigits,
-  }).format(amount / divisor)
 }
 
 const availableIntervals = (plans: BillingPlan[]) =>
@@ -117,7 +103,7 @@ function PlanCard({
       <CardContent className="flex flex-1 flex-col gap-4">
         <div>
           <span className="text-2xl font-semibold tracking-tight">
-            {formatPrice(price.amount, price.currency)}
+            {formatBillingPrice(price.amount, price.currency)}
           </span>
           <span className="ml-1 text-xs text-muted-foreground">{suffix}</span>
         </div>

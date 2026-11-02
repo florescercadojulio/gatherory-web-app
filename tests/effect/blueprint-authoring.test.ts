@@ -1,6 +1,7 @@
 import { expect, it } from '@effect/vitest'
 import { Context, Effect, Layer } from 'effect'
 import { vi } from 'vitest'
+import { BlueprintCoverUnavailableTestLive } from '../fixtures/blueprint-cover-unavailable.live'
 import { cottageDraftContent } from '@/db/seeds/cottage-template'
 import { draftDefinition } from '@/contracts/blueprint-authoring.contracts'
 import { BlueprintAuthoringRepo } from '@/server/blueprints/repos/blueprint-authoring.repo'
@@ -95,7 +96,8 @@ function fixture(overrides: Partial<AuthoringShape> = {}) {
     blueprint,
     layer: Layer.mergeAll(
       Layer.succeed(BlueprintAuthoringRepo, authoring),
-      Layer.succeed(BlueprintRepo, blueprint)
+      Layer.succeed(BlueprintRepo, blueprint),
+      BlueprintCoverUnavailableTestLive
     ),
   }
 }
@@ -117,12 +119,21 @@ it.effect('copies an accessible published revision into portable private draft c
       source.revision,
       'owner'
     )
-    expect(fake.authoring.create).toHaveBeenCalledWith('owner', {
-      requestId,
-      organizationId: fake.draft.organizationId,
-      content,
-      source,
-    })
+    expect(fake.authoring.create).toHaveBeenCalledWith(
+      'owner',
+      {
+        requestId,
+        organizationId: fake.draft.organizationId,
+        content,
+        source,
+      },
+      expect.objectContaining({
+        validateReferences: expect.any(Function),
+        cloneAssets: expect.any(Function),
+        materializeCuratedExploreCover: expect.any(Function),
+        materializeCuratedSeedImages: expect.any(Function),
+      })
+    )
     expect(copied).toMatchObject({ organizationId: fake.draft.organizationId, source, content })
   }).pipe(Effect.provide(fake.layer))
 })

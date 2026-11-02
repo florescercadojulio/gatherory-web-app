@@ -37,6 +37,7 @@ const dependencyOrder: Record<NativeMutation['entityType'], number> = {
   note: 8,
   todo: 8,
   moment: 9,
+  budget_transfer: 10,
 }
 
 async function main() {

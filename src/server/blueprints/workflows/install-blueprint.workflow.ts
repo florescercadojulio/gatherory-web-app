@@ -6,6 +6,7 @@ import { BetterAuthWorkspaceCon } from '@/server/workspaces/connectors/better-au
 import { validateInput } from '@/server/validation'
 import { expandBlueprintInstallation } from '../planning/plan-blueprint-installation'
 import { blueprintHash } from '../planning/blueprint-hash'
+import { blueprintCoverCallbacksWorkflow } from './blueprint-cover-callbacks.workflow'
 
 export const previewBlueprintWorkflow = (input: unknown, actorId: string) =>
   Effect.gen(function* () {
@@ -64,7 +65,10 @@ export const installBlueprintWorkflow = (actor: BlueprintActor, input: unknown) 
         request.shareToken
       )
       const { plan } = yield* previewBlueprintWorkflow(request, actor.id)
-      receipt = yield* repo.claim({ actor, request, hash, plan, revision, token })
+      receipt = yield* repo.claim(
+        { actor, request, hash, plan, revision, token },
+        yield* blueprintCoverCallbacksWorkflow()
+      )
     }
     if (receipt.result) return receipt.result
     return yield* Effect.gen(function* () {
@@ -92,7 +96,12 @@ export const installBlueprintWorkflow = (actor: BlueprintActor, input: unknown) 
         organizationId = created.id
       }
       yield* repo.provisioned(actor.id, receipt.id, token, organizationId)
-      return yield* repo.complete(actor, receipt.id, token)
+      return yield* repo.complete(
+        actor,
+        receipt.id,
+        token,
+        yield* blueprintCoverCallbacksWorkflow()
+      )
     }).pipe(Effect.onError(() => repo.release(actor.id, receipt.id, token).pipe(Effect.ignore)))
   })
 

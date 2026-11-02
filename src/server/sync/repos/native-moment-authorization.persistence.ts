@@ -3,7 +3,7 @@ import { db } from '@/db'
 import { event, eventParticipant, workspacePerson } from '@/db/schema/event.schema'
 import { eventMedia, mediaAsset } from '@/db/schema/media.schema'
 import { nativeSyncChange } from '@/db/schema/sync.schema'
-import { retainedEventAccess } from '@/server/events/repos/event-departure.repo'
+import { retainedEventAccess } from '@/server/events/repos/event-departure.persistence'
 
 type Transaction = Parameters<Parameters<typeof db.transaction>[0]>[0]
 

@@ -9,6 +9,7 @@ export function pushNativeSync(input: {
   /** Trusted MCP-only arguments; never accepted from the public native sync request body. */
   requestFingerprints?: Record<string, string>
   supportsTodos?: boolean
+  supportsBudgetAtomic?: boolean
   supportsBlueprintGuides: boolean
 }) {
   return Effect.gen(function* () {

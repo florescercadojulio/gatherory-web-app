@@ -184,7 +184,7 @@ describe('MCP content service', () => {
     expect(payload).toMatchObject({
       mainEventID: first.id,
       title: 'Dinner',
-      mainEventStatus: 'draft',
+      mainEventStatus: 'ongoing',
     })
     expect(payload.members[0]).toMatchObject({ userID: actor.userId, participantRole: 'host' })
     expect(payload).not.toHaveProperty('userId')
@@ -394,11 +394,9 @@ describe('MCP content service', () => {
         throw new Error('list_events should rely on the actor scoped bootstrap')
       },
     })
-    const listed = (await createMcpContentService(value).call(
-      'list_events',
-      {},
-      actor
-    )) as { items: Array<Record<string, unknown>> }
+    const listed = (await createMcpContentService(value).call('list_events', {}, actor)) as {
+      items: Array<Record<string, unknown>>
+    }
 
     const child = listed.items.find((item) => item.id === childId)
     expect(child).toMatchObject({ id: childId, title: 'Cabin Saturday', isScopedEvent: true })

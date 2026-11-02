@@ -27,6 +27,10 @@ import { canRecordBlueprintAttribution } from '../services/blueprint-attribution
 import { ConflictError, EntityNotFoundError, serverOperationError } from '@/lib/domain-errors'
 import { BlueprintPersonalRepo, type PersonalBlueprint } from './blueprint-personal.repo'
 import {
+  blueprintCoverCallbacksRequired,
+  type BlueprintCoverCallbacks,
+} from './blueprint-cover-callbacks'
+import {
   curatedExploreCoverAssetId,
   resolveCuratedExploreCover,
 } from '../catalog/explore-cover-import'
@@ -39,16 +43,6 @@ import {
   seedImageCoverAssetId,
   seedImageTargetAssetKeys,
 } from '../catalog/seed-image-registry'
-import {
-  cloneBlueprintCoverAssets,
-  materializeCuratedExploreCover,
-  materializeCuratedSeedImages,
-  validateBlueprintCoverReferences,
-} from '@/server/blueprint-media/blueprint-cover.service'
-import {
-  BlueprintCoverStorage,
-  BlueprintCoverStorageLive,
-} from '@/server/blueprint-media/blueprint-cover.storage.live'
 
 const seedImageAssignments = SeedImageAssignmentsSchema.parse(seedImageAssignmentsRaw)
 const seedImageAssets = SeedImageAssetsSchema.parse(seedImageAssetsRaw)
@@ -71,7 +65,6 @@ export const BlueprintPersonalRepoLive = Layer.effect(
   Effect.gen(function* () {
     const pg = yield* PgClient
     const db = yield* DB
-    const coverStorage = yield* BlueprintCoverStorage
     const bind = <A, E>(effect: Effect.Effect<A, E, PgClient>) =>
       effect.pipe(
         Effect.provideService(PgClient, pg),
@@ -313,6 +306,7 @@ export const BlueprintPersonalRepoLive = Layer.effect(
       }
     }
     const validateCovers = (
+      coverCallbacks: BlueprintCoverCallbacks | undefined,
       actorUserId: string,
       assetIds: string[],
       source?: {
@@ -321,8 +315,11 @@ export const BlueprintPersonalRepoLive = Layer.effect(
         shareToken?: string
         discoveryExposureId?: string
       }
-    ) =>
-      validateBlueprintCoverReferences({
+    ) => {
+      if (!assetIds.length) return Effect.void
+      if (!coverCallbacks) return Effect.fail(blueprintCoverCallbacksRequired())
+      return coverCallbacks.validateReferences({
+        database: db,
         actorUserId,
         assetIds,
         ...(source
@@ -332,7 +329,8 @@ export const BlueprintPersonalRepoLive = Layer.effect(
               ...(source.shareToken ? { shareToken: source.shareToken } : {}),
             }
           : {}),
-      }).pipe(Effect.provideService(PgClient, pg))
+      })
+    }
     const tryRecordCopyAttribution = (
       actorId: string,
       input: {
@@ -585,7 +583,7 @@ export const BlueprintPersonalRepoLive = Layer.effect(
         })
       )
     return {
-      copy: (actorId, input) =>
+      copy: (actorId, input, coverCallbacks) =>
         bind(
           Effect.gen(function* () {
             const previous = yield* existingCopy(actorId, input)
@@ -600,9 +598,11 @@ export const BlueprintPersonalRepoLive = Layer.effect(
               created: boolean
             }> = []
             if (sourceAssetIds.length) {
-              yield* validateCovers(actorId, sourceAssetIds, input.source)
+              yield* validateCovers(coverCallbacks, actorId, sourceAssetIds, input.source)
               if (input.source) {
-                cloned = yield* cloneBlueprintCoverAssets({
+                if (!coverCallbacks) return yield* Effect.fail(blueprintCoverCallbacksRequired())
+                cloned = yield* coverCallbacks.cloneAssets({
+                  database: db,
                   actorUserId: actorId,
                   sourceCatalogKey: input.source.catalogKey,
                   sourceRevision: input.source.revision,
@@ -611,10 +611,7 @@ export const BlueprintPersonalRepoLive = Layer.effect(
                     sourceAssetId,
                     destinationAssetId: stableCopyCoverId(input.requestId, sourceAssetId),
                   })),
-                }).pipe(
-                  Effect.provideService(PgClient, pg),
-                  Effect.provideService(BlueprintCoverStorage, coverStorage)
-                )
+                })
                 content = remapCovers(
                   content,
                   Object.fromEntries(
@@ -670,16 +667,14 @@ export const BlueprintPersonalRepoLive = Layer.effect(
                 )?.checksum
                 if (curatedChecksum && curatedChecksum === seedChecksum) {
                   legacyRootChecksum = curatedChecksum
-                  legacyRootID = yield* materializeCuratedExploreCover({
+                  if (!coverCallbacks) return yield* Effect.fail(blueprintCoverCallbacksRequired())
+                  legacyRootID = yield* coverCallbacks.materializeCuratedExploreCover({
                     actorUserId: actorId,
                     requestId: input.requestId,
                     catalogKey: input.source.catalogKey,
                     revision: input.source.revision,
                     contentHash: sourceAssignment.contentHash,
-                  }).pipe(
-                    Effect.provideService(PgClient, pg),
-                    Effect.provideService(BlueprintCoverStorage, coverStorage)
-                  )
+                  })
                 }
               }
               const imagesToImport = seedImageTargetAssetKeys(sourceSeedTargets)
@@ -695,17 +690,16 @@ export const BlueprintPersonalRepoLive = Layer.effect(
                   manifest: seedImageAssets[assetKey]!.manifest,
                 }))
               const importedIDs = imagesToImport.length
-                ? yield* materializeCuratedSeedImages({
-                    actorUserId: actorId,
-                    requestId: input.requestId,
-                    catalogKey: input.source.catalogKey,
-                    revision: input.source.revision,
-                    contentHash: sourceAssignment.contentHash,
-                    images: imagesToImport,
-                  }).pipe(
-                    Effect.provideService(PgClient, pg),
-                    Effect.provideService(BlueprintCoverStorage, coverStorage)
-                  )
+                ? !coverCallbacks
+                  ? yield* Effect.fail(blueprintCoverCallbacksRequired())
+                  : yield* coverCallbacks.materializeCuratedSeedImages({
+                      actorUserId: actorId,
+                      requestId: input.requestId,
+                      catalogKey: input.source.catalogKey,
+                      revision: input.source.revision,
+                      contentHash: sourceAssignment.contentHash,
+                      images: imagesToImport,
+                    })
                 : {}
               const allIDs = { ...defaultIDs, ...importedIDs }
               if (legacyRootID && root) allIDs[root.assetKey] = legacyRootID
@@ -890,14 +884,14 @@ export const BlueprintPersonalRepoLive = Layer.effect(
             return { templates: rows.map((row) => shape(row, counts.get(row.id) ?? 0)) }
           })
         ),
-      save: (actorId, input) =>
+      save: (actorId, input, coverCallbacks) =>
         bind(
           pg.withTransaction(
             Effect.gen(function* () {
               const current = yield* owned(actorId, input.id)
               if (current.draftVersion !== input.expectedVersion)
                 return yield* Effect.fail(conflict())
-              yield* validateCovers(actorId, coverAssetIds(input.content))
+              yield* validateCovers(coverCallbacks, actorId, coverAssetIds(input.content))
               if (blueprintHash(current.content) === blueprintHash(input.content))
                 return shape(current, (yield* activeLinkCounts([current.id])).get(current.id) ?? 0)
               const nextVersion = current.draftVersion + 1
@@ -938,7 +932,7 @@ export const BlueprintPersonalRepoLive = Layer.effect(
             })
           )
         ),
-      publish: (actorId, input) =>
+      publish: (actorId, input, coverCallbacks) =>
         bind(
           pg.withTransaction(
             Effect.gen(function* () {
@@ -946,7 +940,7 @@ export const BlueprintPersonalRepoLive = Layer.effect(
               if (current.draftVersion !== input.expectedVersion)
                 return yield* Effect.fail(conflict())
               const content = BlueprintDraftContentSchema.parse(current.content)
-              yield* validateCovers(actorId, coverAssetIds(content))
+              yield* validateCovers(coverCallbacks, actorId, coverAssetIds(content))
               const samePublication =
                 current.publishedRevision !== null &&
                 current.publishedDraftVersion === current.draftVersion &&
@@ -1035,7 +1029,7 @@ export const BlueprintPersonalRepoLive = Layer.effect(
         ),
     }
   })
-).pipe(Layer.provide(BlueprintCoverStorageLive))
+)
 
 function coverAssetIds(content: ReturnType<typeof BlueprintDraftContentSchema.parse>) {
   return [

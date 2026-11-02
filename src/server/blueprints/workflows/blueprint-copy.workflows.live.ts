@@ -4,14 +4,12 @@ import { BlueprintAuthoringRepoLive } from '../repos/blueprint-authoring.repo.li
 import { BetterAuthWorkspaceConLive } from '@/server/workspaces/connectors/better-auth.con.live'
 import { createBlueprintCopyWorkflow } from './blueprint-copy.workflow'
 import { BlueprintPersistenceLive } from './blueprint.workflows.live'
-import { BlueprintCoverStorageLive } from '@/server/blueprint-media/blueprint-cover.storage.live'
 
 const BlueprintCopyLive = Layer.mergeAll(
   BlueprintPersonalRepoLive,
   BlueprintAuthoringRepoLive,
   BetterAuthWorkspaceConLive,
-  BlueprintPersistenceLive,
-  BlueprintCoverStorageLive
+  BlueprintPersistenceLive
 )
 
 export const createBlueprintCopy = (...args: Parameters<typeof createBlueprintCopyWorkflow>) =>

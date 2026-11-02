@@ -5,7 +5,7 @@ import type {
   listGuestEventInvitationProjections,
   respondToEvent,
 } from './guest-invitation.repo.persistence'
-import type { leaveGuestEvent } from './event-departure.repo'
+import type { leaveGuestEvent } from './event-departure.persistence'
 
 type NeedsPg<T> = T extends (
   ...args: infer Args

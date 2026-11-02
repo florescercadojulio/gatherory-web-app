@@ -1,5 +1,6 @@
 import { expect, test } from 'vitest'
 import { Effect, Exit, Layer } from 'effect'
+import { BlueprintCoverUnavailableTestLive } from '../fixtures/blueprint-cover-unavailable.live'
 
 const enabled = process.env.RUN_BLUEPRINT_DB_TESTS === '1'
 
@@ -98,12 +99,17 @@ test.skipIf(!enabled)(
     const fixtureUserIds = users.map(({ id }) => id)
     const now = new Date()
     const ownerAuthoring = authoringRepoModule.BlueprintAuthoringRepoLive.pipe(
-      Layer.provide(PgClientLive)
+      Layer.provide(Layer.mergeAll(PgClientLive, BlueprintCoverUnavailableTestLive))
     )
     const captureRepo = captureRepoModule.BlueprintCaptureRepoLive.pipe(
       Layer.provide(Layer.mergeAll(ownerAuthoring, PgClientLive))
     )
-    const layer = Layer.mergeAll(ownerAuthoring, captureRepo, PgClientLive)
+    const layer = Layer.mergeAll(
+      ownerAuthoring,
+      captureRepo,
+      PgClientLive,
+      BlueprintCoverUnavailableTestLive
+    )
     type Dependencies = Layer.Success<typeof layer>
     const run = <A, E>(program: Effect.Effect<A, E, Dependencies>) =>
       Effect.runPromise(program.pipe(Effect.provide(layer)))

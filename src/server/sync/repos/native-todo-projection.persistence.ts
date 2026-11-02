@@ -3,7 +3,7 @@ import { db } from '@/db'
 import { event, eventParticipant, workspacePerson } from '@/db/schema/event.schema'
 import { eventTodo } from '@/db/schema/planning.schema'
 import { nativeSyncEntity } from '@/db/schema/sync.schema'
-import { retainedEventAccess } from '@/server/events/repos/event-departure.repo'
+import { retainedEventAccess } from '@/server/events/repos/event-departure.persistence'
 import { todoUpgradeRequired } from '../native-sync-compatibility'
 
 type Transaction = Parameters<Parameters<typeof db.transaction>[0]>[0]

@@ -1,12 +1,116 @@
 import { expectTypeOf, test } from 'vitest'
+import { readdirSync, readFileSync } from 'node:fs'
+import { join, relative } from 'node:path'
+import { expect } from 'vitest'
 import type { Effect } from 'effect'
 import type { PgClient } from '@effect/sql-pg/PgClient'
 
 type Requirements<Module> = {
-  [Key in keyof Module]: Module[Key] extends (...args: never[]) => infer Program
-    ? Effect.Services<Program>
-    : never
+  [
+    Key in keyof Module as Module[Key] extends (...args: never[]) => unknown ? Key : never
+  ]: Module[Key] extends (...args: never[]) => infer Program ? Effect.Services<Program> : never
 }
+
+type DatabaseRequirements<Module> = { [Key in keyof Requirements<Module>]: PgClient }
+
+test('every production workflow binding is included in the requirement type checks', () => {
+  const root = process.cwd()
+  const source = readFileSync(
+    join(root, 'tests/contracts/workflow-layer-requirements.test.ts'),
+    'utf8'
+  )
+  const covered = new Set(
+    [...source.matchAll(/typeof import\(['"](@\/server\/[^'"]+\.workflows\.live)['"]\)/g)].map(
+      (match) => match[1].replace('@/', 'src/') + '.ts'
+    )
+  )
+  function bindings(directory: string): string[] {
+    return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
+      const path = join(directory, entry.name)
+      return entry.isDirectory()
+        ? bindings(path)
+        : path.endsWith('.workflows.live.ts')
+          ? [path]
+          : []
+    })
+  }
+  for (const file of bindings(join(root, 'src/server'))) {
+    expect(covered.has(relative(root, file)), relative(root, file)).toBe(true)
+  }
+})
+
+test('Blueprint library workflows leave only PgClient unresolved', () => {
+  type Workflows = typeof import('@/server/blueprints/workflows/blueprint-library.workflows.live')
+  expectTypeOf<Requirements<Workflows>>().toEqualTypeOf<DatabaseRequirements<Workflows>>()
+})
+
+test('Blueprint personal workflows leave only PgClient unresolved', () => {
+  type Workflows = typeof import('@/server/blueprints/workflows/blueprint-personal.workflows.live')
+  expectTypeOf<Requirements<Workflows>>().toEqualTypeOf<DatabaseRequirements<Workflows>>()
+})
+
+test('Blueprint installation and catalog workflows leave only PgClient unresolved', () => {
+  type Workflows = typeof import('@/server/blueprints/workflows/blueprint.workflows.live')
+  expectTypeOf<Requirements<Workflows>>().toEqualTypeOf<DatabaseRequirements<Workflows>>()
+})
+
+test('Blueprint sharing workflows leave only PgClient unresolved', () => {
+  type Workflows = typeof import('@/server/blueprints/workflows/blueprint-sharing.workflows.live')
+  expectTypeOf<Requirements<Workflows>>().toEqualTypeOf<DatabaseRequirements<Workflows>>()
+})
+
+test('Blueprint authoring workflows leave only PgClient unresolved', () => {
+  type Workflows = typeof import('@/server/blueprints/workflows/blueprint-authoring.workflows.live')
+  expectTypeOf<Requirements<Workflows>>().toEqualTypeOf<DatabaseRequirements<Workflows>>()
+})
+
+test('Blueprint link management workflows leave only PgClient unresolved', () => {
+  type Workflows =
+    typeof import('@/server/blueprints/workflows/blueprint-link-management.workflows.live')
+  expectTypeOf<Requirements<Workflows>>().toEqualTypeOf<DatabaseRequirements<Workflows>>()
+})
+
+test('Blueprint capture workflows leave only PgClient unresolved', () => {
+  type Workflows = typeof import('@/server/blueprints/workflows/blueprint-capture.workflows.live')
+  expectTypeOf<Requirements<Workflows>>().toEqualTypeOf<DatabaseRequirements<Workflows>>()
+})
+
+test('Blueprint native creation workflows leave only PgClient unresolved', () => {
+  type Workflows =
+    typeof import('@/server/blueprints/workflows/blueprint-native-creation.workflows.live')
+  expectTypeOf<Requirements<Workflows>>().toEqualTypeOf<DatabaseRequirements<Workflows>>()
+})
+
+test('Blueprint copy workflows leave only PgClient unresolved', () => {
+  type Workflows = typeof import('@/server/blueprints/workflows/blueprint-copy.workflows.live')
+  expectTypeOf<Requirements<Workflows>>().toEqualTypeOf<DatabaseRequirements<Workflows>>()
+})
+
+test('Blueprint discovery workflows leave only PgClient unresolved', () => {
+  type Workflows =
+    typeof import('@/server/blueprints/workflows/blueprint-discovery-actions.workflows.live')
+  expectTypeOf<Requirements<Workflows>>().toEqualTypeOf<DatabaseRequirements<Workflows>>()
+})
+
+test('waitlist workflows leave only PgClient unresolved', () => {
+  type Workflows = typeof import('@/server/waitlist/workflows/waitlist.workflows.live')
+  expectTypeOf<Requirements<Workflows>>().toEqualTypeOf<DatabaseRequirements<Workflows>>()
+})
+
+test('MCP connection workflows leave only PgClient unresolved', () => {
+  type Workflows = typeof import('@/server/mcp/connection.workflows.live')
+  expectTypeOf<Requirements<Workflows>>().toEqualTypeOf<DatabaseRequirements<Workflows>>()
+})
+
+test('MCP authorization workflows leave only PgClient unresolved', () => {
+  type Workflows = typeof import('@/server/mcp/authorization.workflows.live')
+  expectTypeOf<Requirements<Workflows>>().toEqualTypeOf<DatabaseRequirements<Workflows>>()
+})
+
+test('Blueprint media workflows leave only PgClient unresolved', () => {
+  type Workflows = typeof import('@/server/blueprint-media/blueprint-media.workflows.live')
+  expectTypeOf<Requirements<Workflows>>().toEqualTypeOf<DatabaseRequirements<Workflows>>()
+})
 
 test('announcement workflows leave only PgClient unresolved', () => {
   type Workflows = typeof import('@/server/announcements/workflows/announcement.workflows.live')

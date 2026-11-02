@@ -1,6 +1,7 @@
 import { Context, type Effect } from 'effect'
 import type { z } from 'zod'
 import type { DomainError } from '@/lib/domain-errors'
+import type { BlueprintCoverCallbacks } from './blueprint-cover-callbacks'
 import type {
   BlueprintAuthoringContext,
   BlueprintAuthoringRow,
@@ -21,21 +22,20 @@ export class BlueprintAuthoringRepo extends Context.Service<
       input: z.infer<typeof BlueprintAuthoringPageInputSchema>
     ) => Effect.Effect<{ data: BlueprintAuthoringRow[]; hasNextPage: boolean }, DomainError>
     get: (actorId: string, id: string) => Effect.Effect<BlueprintDraft, DomainError>
-    validateCoverReferences?: (
-      actorId: string,
-      assetIds: string[]
-    ) => Effect.Effect<void, DomainError>
     create: (
       actorId: string,
-      input: z.infer<typeof BlueprintCreateDraftSchema>
+      input: z.infer<typeof BlueprintCreateDraftSchema>,
+      coverCallbacks?: BlueprintCoverCallbacks
     ) => Effect.Effect<BlueprintDraft, DomainError>
     save: (
       actorId: string,
-      input: z.infer<typeof BlueprintSaveDraftSchema>
+      input: z.infer<typeof BlueprintSaveDraftSchema>,
+      coverCallbacks?: BlueprintCoverCallbacks
     ) => Effect.Effect<BlueprintDraft, DomainError>
     publish: (
       actorId: string,
-      input: z.infer<typeof BlueprintPublishDraftSchema>
+      input: z.infer<typeof BlueprintPublishDraftSchema>,
+      coverCallbacks?: BlueprintCoverCallbacks
     ) => Effect.Effect<BlueprintPublishResult, DomainError>
     retire: (actorId: string, id: string) => Effect.Effect<BlueprintDraft, DomainError>
     delete: (actorId: string, id: string) => Effect.Effect<{ deleted: true }, DomainError>

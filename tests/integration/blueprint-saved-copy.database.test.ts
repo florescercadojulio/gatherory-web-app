@@ -1,5 +1,9 @@
 import { Cause, Effect, Exit, Layer } from 'effect'
 import { expect, test } from 'vitest'
+import {
+  BlueprintCoverUnavailableCallbacks,
+  BlueprintCoverUnavailableTestLive,
+} from '../fixtures/blueprint-cover-unavailable.live'
 
 const enabled = process.env.RUN_BLUEPRINT_DB_TESTS === '1'
 
@@ -70,15 +74,17 @@ test.skipIf(!enabled)(
     const content = contentContracts.BlueprintDraftContentSchema.parse(
       structuredClone(seed.cottageDraftContent)
     )
-    const copyLayer = authoringRepoLive.BlueprintAuthoringRepoLive.pipe(Layer.provide(PgClientLive))
+    const copyLayer = authoringRepoLive.BlueprintAuthoringRepoLive.pipe(
+      Layer.provide(Layer.mergeAll(PgClientLive, BlueprintCoverUnavailableTestLive))
+    )
     const personalLayer = personalRepoLive.BlueprintPersonalRepoLive.pipe(
-      Layer.provide(PgClientLive)
+      Layer.provide(Layer.mergeAll(PgClientLive, BlueprintCoverUnavailableTestLive))
     )
     const checkpoint = Layer.succeed(runtimeContracts.BlueprintInstallCheckpoint, {
       afterProjection: () => Effect.void,
     })
     const runtimeLayer = blueprintRepoLive.BlueprintRepoLive.pipe(
-      Layer.provide(Layer.mergeAll(PgClientLive, checkpoint))
+      Layer.provide(Layer.mergeAll(PgClientLive, checkpoint, BlueprintCoverUnavailableTestLive))
     )
     const fakeAuth = Layer.succeed(BetterAuthWorkspaceCon, {
       listOrganizations: () => Effect.succeed([]),
@@ -89,7 +95,12 @@ test.skipIf(!enabled)(
       addTeamMember: () => Effect.die('copy workflow must not change team membership'),
       setActiveTeam: () => Effect.die('copy workflow must not switch teams'),
     })
-    const copyDependencies = Layer.mergeAll(copyLayer, personalLayer, fakeAuth)
+    const copyDependencies = Layer.mergeAll(
+      copyLayer,
+      personalLayer,
+      fakeAuth,
+      BlueprintCoverUnavailableTestLive
+    )
     const run = <A, E, R, LE>(program: Effect.Effect<A, E, R>, layer: Layer.Layer<R, LE, never>) =>
       Effect.runPromise(program.pipe(Effect.provide(layer)))
 
@@ -235,7 +246,11 @@ test.skipIf(!enabled)(
       const published = await run(
         Effect.gen(function* () {
           const repo = yield* BlueprintPersonalRepo
-          return yield* repo.publish(recipientId, { id: copied.id, expectedVersion: 1 })
+          return yield* repo.publish(
+            recipientId,
+            { id: copied.id, expectedVersion: 1 },
+            BlueprintCoverUnavailableCallbacks
+          )
         }),
         personalLayer
       )

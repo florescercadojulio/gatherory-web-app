@@ -11,7 +11,7 @@ it.live(
       const { PgClientLive } = yield* Effect.promise(() => import('@/db'))
       const { PgClient } = yield* Effect.promise(() => import('@effect/sql-pg/PgClient'))
       const { requireJoinableEvent } = yield* Effect.promise(
-        () => import('@/server/events/repos/event-lifecycle.repo')
+        () => import('@/server/events/repos/event-lifecycle.persistence')
       )
       class Rollback extends Data.TaggedError('LifecycleVerificationRollback')<{}> {}
       const program = Effect.gen(function* () {

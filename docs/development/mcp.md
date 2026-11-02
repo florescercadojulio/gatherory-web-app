@@ -9,6 +9,14 @@ implementation uses Better Auth's MCP and CIMD plugins; it does not use the olde
 
 ## Enablement and rollout
 
+New main events created through MCP, ordinary workspace creation, or the root
+event repository default to `ongoing` as of the October 30 source update.
+MCP's native archive and canonical event row use the same value. Child planning
+statuses remain a separate domain; existing lifecycle states are not migrated.
+This matches the iOS status-free creation/editing experience. The MCP service
+unit test and local database integration test cover the new archive/canonical
+default. This source change does not deploy or enable production features.
+
 `MCP_ENABLED` defaults to `false`. Keep it off until the additive Drizzle
 migration [`20261025150000_mcp_oauth_provider`](../../drizzle/20261025150000_mcp_oauth_provider/migration.sql)
 has been applied to the target database. Apply the migration and deploy with

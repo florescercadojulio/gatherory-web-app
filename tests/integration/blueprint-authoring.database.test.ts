@@ -1,5 +1,6 @@
 import { expect, test } from 'vitest'
 import { Effect, Exit, Layer } from 'effect'
+import { BlueprintCoverUnavailableTestLive } from '../fixtures/blueprint-cover-unavailable.live'
 
 const enabled = process.env.RUN_BLUEPRINT_DB_TESTS === '1'
 
@@ -102,9 +103,9 @@ test.skipIf(!enabled)('private blueprint authoring and independent durable insta
         )
       }),
   })
-  const base = Layer.mergeAll(PgClientLive, checkpoint)
+  const base = Layer.mergeAll(PgClientLive, checkpoint, BlueprintCoverUnavailableTestLive)
   const authoringRepo = authoringRepoModule.BlueprintAuthoringRepoLive.pipe(
-    Layer.provide(PgClientLive)
+    Layer.provide(Layer.mergeAll(PgClientLive, BlueprintCoverUnavailableTestLive))
   )
   const blueprintRepo = blueprintRepoModule.BlueprintRepoLive.pipe(Layer.provide(base))
   const providerCalls = new Map<string, number>()
@@ -150,7 +151,12 @@ test.skipIf(!enabled)('private blueprint authoring and independent durable insta
     addTeamMember: () => Effect.die('unexpected team membership'),
     setActiveTeam: () => Effect.die('unexpected active team'),
   })
-  const layer = Layer.mergeAll(authoringRepo, blueprintRepo, fakeAuth)
+  const layer = Layer.mergeAll(
+    authoringRepo,
+    blueprintRepo,
+    fakeAuth,
+    BlueprintCoverUnavailableTestLive
+  )
   type Dependencies = Layer.Success<typeof layer>
   const withAuthoring = <A, E>(program: Effect.Effect<A, E, Dependencies>) =>
     program.pipe(Effect.provide(layer))

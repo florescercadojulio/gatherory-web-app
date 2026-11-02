@@ -25,8 +25,7 @@ test(
     const { db } = await import('@/db')
     const { user, organization } = await import('@/db/schema/auth.schema')
     const { event, eventParticipant, workspacePerson } = await import('@/db/schema/event.schema')
-    const { nativeSyncMutationReceipt, nativeSyncEntity } =
-      await import('@/db/schema/sync.schema')
+    const { nativeSyncMutationReceipt, nativeSyncEntity } = await import('@/db/schema/sync.schema')
     const { and, eq, inArray } = await import('drizzle-orm')
     const { applyNativeMutations, listNativeWorkspaceSnapshots } =
       await import('@/server/sync/repos/native-sync-legacy.persistence')
@@ -79,11 +78,7 @@ test(
           if (!result) throw new Error('Native mutation returned no result.')
           return result
         },
-        authorize: async (
-          userId: string,
-          targetEventId: string,
-          permissions: EventPermissions
-        ) => {
+        authorize: async (userId: string, targetEventId: string, permissions: EventPermissions) => {
           await liveMcpContentPort.authorize(userId, targetEventId, permissions)
           if (downgradeManagerBeforePush && userId === managerId && managerPersonId) {
             downgradeManagerBeforePush = false
@@ -133,6 +128,12 @@ test(
       organizationId = created.id
       expect(created.version).toBe(1)
 
+      const [createdRootEvent] = await db
+        .select({ status: event.status })
+        .from(event)
+        .where(eq(event.id, created.id))
+      expect(createdRootEvent?.status).toBe('ongoing')
+
       const { snapshots, entities } = await listNativeWorkspaceSnapshots({
         userId: rootHostId,
         supportsBlueprintGuides: true,
@@ -141,6 +142,7 @@ test(
       const snapshot = snapshots.find((item) => item.scopeID === created.id)
       expect(snapshot).toBeDefined()
       const archive = JSON.parse(Buffer.from(snapshot!.payload, 'base64').toString('utf8'))
+      expect(archive.mainEventStatus).toBe('ongoing')
       for (const requiredArchiveKey of [
         'mainEventID',
         'title',
@@ -337,22 +339,18 @@ test(
       for (const [index, person] of personRows.entries()) {
         const personId = crypto.randomUUID()
         if (person.userId === managerId) managerPersonId = personId
-        await db
-          .insert(workspacePerson)
-          .values({
-            id: personId,
-            organizationId: created.id,
-            userId: person.userId,
-            displayName: person.userId,
-          })
-        await db
-          .insert(eventParticipant)
-          .values({
-            eventId: created.id,
-            personId,
-            role: 'collaborator',
-            planningPermission: person.permission,
-          })
+        await db.insert(workspacePerson).values({
+          id: personId,
+          organizationId: created.id,
+          userId: person.userId,
+          displayName: person.userId,
+        })
+        await db.insert(eventParticipant).values({
+          eventId: created.id,
+          personId,
+          role: 'collaborator',
+          planningPermission: person.permission,
+        })
         expect(index).toBeLessThan(3)
       }
       expect(rootPerson).toHaveLength(1)
@@ -401,14 +399,15 @@ test(
         { userId: scopedOnlyId }
       )) as { items: Array<Record<string, unknown>> }
       const scopedEvent = contributorEvents.items.find((item) => item.id === scopedEventId)
-      expect(scopedEvent).toMatchObject({ isScopedEvent: true, title: 'Contributor planning scope' })
+      expect(scopedEvent).toMatchObject({
+        isScopedEvent: true,
+        title: 'Contributor planning scope',
+      })
       expect(scopedEvent).not.toHaveProperty('parentEventID')
       expect(scopedEvent).not.toHaveProperty('parentEventId')
-      const outsiderEvents = (await service.call(
-        'list_events',
-        {},
-        { userId: outsiderId }
-      )) as { items: unknown[] }
+      const outsiderEvents = (await service.call('list_events', {}, { userId: outsiderId })) as {
+        items: unknown[]
+      }
       expect(outsiderEvents.items).toHaveLength(0)
       await expect(
         service.call(
@@ -458,7 +457,10 @@ test(
           { userId: managerId }
         )
       ).rejects.toMatchObject({ code: 'WRITE_REJECTED' })
-      const afterRace = await db.select({ title: event.title }).from(event).where(eq(event.id, created.id))
+      const afterRace = await db
+        .select({ title: event.title })
+        .from(event)
+        .where(eq(event.id, created.id))
       expect(afterRace[0]?.title).toBe('Updated MCP event')
       await expect(
         service.call('get_event', { eventId: created.id }, { userId: outsiderId })

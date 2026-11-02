@@ -5,6 +5,7 @@ import { ParticipantAvatars } from '@/components/participant-avatars'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { Frame, FramePanel } from '@/components/reui/frame'
+import { MoneyDecimal } from '@/lib/money'
 import type { NativeWorkspaceInsight } from '@/server/sync/contracts/native-insights.contract'
 import { listUpcomingWorkspaceSessions } from '@/lib/workspace-overview'
 
@@ -91,10 +92,7 @@ function WorkspaceOverviewFrame({ workspace }: { workspace: NativeWorkspaceInsig
     currency: 'USD',
     maximumFractionDigits: 0,
   })
-  const budgetUsed =
-    workspace.budgetCap != null && workspace.budgetCap > 0
-      ? Math.min((workspace.trackedCost / workspace.budgetCap) * 100, 100)
-      : null
+  const budgetUsed = calculateBudgetUsedPercentage(workspace.trackedCost, workspace.budgetCap)
 
   return (
     <Frame className="overview-event-frame" spacing="sm">
@@ -164,6 +162,14 @@ function WorkspaceOverviewFrame({ workspace }: { workspace: NativeWorkspaceInsig
       </FramePanel>
     </Frame>
   )
+}
+
+/** Returns the display percentage at the UI boundary, capped at full budget. */
+export function calculateBudgetUsedPercentage(trackedCost: number, budgetCap: number | null) {
+  if (budgetCap == null || budgetCap <= 0) return null
+
+  const percentage = new MoneyDecimal(trackedCost).dividedBy(budgetCap).times(100)
+  return (percentage.greaterThan(100) ? new MoneyDecimal(100) : percentage).toNumber()
 }
 
 function UpcomingSessionRow({

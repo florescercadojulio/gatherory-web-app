@@ -8,15 +8,20 @@ import { BlueprintNativeCreationRepo } from '@/server/blueprints/repos/blueprint
 import {
   blueprintDraftContentHash,
   blueprintHash,
+  legacyCompatibleCaptureSelection,
 } from '@/server/blueprints/planning/blueprint-hash'
 import { captureEventBlueprint } from '@/server/blueprints/planning/capture-event-blueprint.server'
 import { blueprintNativeCreationWorkflow } from '@/server/blueprints/workflows/blueprint-native-creation.workflow'
+import { BlueprintNativeCreationTransaction } from '@/server/blueprints/workflows/blueprint-native-creation-transaction'
 import { BetterAuthWorkspaceCon } from '@/server/workspaces/connectors/better-auth.con'
 import { ForbiddenError } from '@/lib/domain-errors'
+import { BlueprintCoverService } from '@/server/blueprint-media/services/blueprint-cover.service'
+import type { BlueprintCoverServiceShape } from '@/server/blueprint-media/services/blueprint-cover.service'
 
 type CaptureShape = Context.Service.Shape<typeof BlueprintCaptureRepo>
 type AuthoringShape = Context.Service.Shape<typeof BlueprintAuthoringRepo>
 type NativeShape = Context.Service.Shape<typeof BlueprintNativeCreationRepo>
+type TransactionShape = Context.Service.Shape<typeof BlueprintNativeCreationTransaction>
 const eventId = '10000000-0000-4000-8000-000000000001'
 const childId = '20000000-0000-4000-8000-000000000002'
 const ideaId = '30000000-0000-4000-8000-000000000003'
@@ -58,12 +63,37 @@ const selection = {
   includeIdeaNotes: false,
 }
 const sourceHash = blueprintHash(source)
+const testCoverServiceLayer = Layer.succeed(BlueprintCoverService, {
+  validateReferences: () => Effect.void,
+  cloneAssets: () => Effect.succeed([]),
+  materializeCuratedExploreCover: () => Effect.succeed(undefined),
+  materializeCuratedSeedImages: () => Effect.succeed({}),
+} as unknown as BlueprintCoverServiceShape)
 
 function fixture() {
   const capture: CaptureShape = {
     listEvents: () => Effect.succeed({ events: [] }),
     source: vi.fn(() => Effect.succeed({ source, sourceHash })),
-    save: vi.fn(() => Effect.die('source and review must not save')),
+    save: vi.fn((_actorId, input) => {
+      const content = captureEventBlueprint(source, input.selection, input.name)
+      return Effect.succeed({
+        id: '60000000-0000-4000-8000-000000000006',
+        organizationId: input.organizationId,
+        catalogKey: 'private_native_capture',
+        draftVersion: 1,
+        content,
+        publishedRevision: null,
+        publishedDraftVersion: null,
+        retired: false,
+        source: {
+          kind: 'event' as const,
+          eventId: input.eventId,
+          selection: input.selection,
+          capturedContent: content,
+          requestId: input.requestId,
+        },
+      })
+    }),
   }
   const workspaces = [{ id: 'workspace-1', name: 'Owner workspace', personal: false }]
   const authoring: AuthoringShape = {
@@ -72,19 +102,36 @@ function fixture() {
     get: () => Effect.die('unexpected get'),
     create: () => Effect.die('unexpected create'),
     save: () => Effect.die('unexpected save'),
-    publish: () => Effect.die('unexpected publish'),
+    publish: vi.fn((_actorId, input) =>
+      Effect.succeed({
+        id: input.id,
+        organizationId: 'workspace-1',
+        catalogKey: 'private_native_capture',
+        draftVersion: 1,
+        content: captureEventBlueprint(source, selection, 'Initial template'),
+        publishedRevision: 1,
+        publishedDraftVersion: 1,
+        retired: false,
+        source: null,
+        publication: { revision: 1, draftVersion: 1, contentHash: 'a'.repeat(64) },
+      })
+    ),
     retire: () => Effect.die('unexpected retire'),
     delete: () => Effect.die('unexpected delete'),
   }
   const native: NativeShape = {
-    create: vi.fn((_actorId, _input) =>
-      Effect.succeed({ templateId: '60000000-0000-4000-8000-000000000006', revision: 1 })
-    ),
+    recordRequestFingerprint: vi.fn(() => Effect.void),
+    listInitialRevision: vi.fn(() => Effect.void),
+  }
+  const transaction: TransactionShape = {
+    withTransaction: vi.fn((program) => program),
   }
   const layer = Layer.mergeAll(
     Layer.succeed(BlueprintCaptureRepo, capture),
     Layer.succeed(BlueprintAuthoringRepo, authoring),
     Layer.succeed(BlueprintNativeCreationRepo, native),
+    Layer.succeed(BlueprintNativeCreationTransaction, transaction),
+    testCoverServiceLayer,
     Layer.succeed(BetterAuthWorkspaceCon, {
       listOrganizations: () => Effect.succeed([]),
       createOrganization: () => Effect.die('unexpected organization create'),
@@ -95,7 +142,7 @@ function fixture() {
       setActiveTeam: () => Effect.void,
     })
   )
-  return { capture, authoring, native, workspaces, layer }
+  return { capture, authoring, native, transaction, workspaces, layer }
 }
 
 it.effect('source reads return the authorized event snapshot and current owned workspaces', () => {
@@ -143,12 +190,12 @@ it.effect(
       expect(expectedReviewHash).toBe(blueprintHash(legacyContent))
       expect(fake.capture.source).toHaveBeenCalledWith('actor', eventId)
       expect(fake.capture.save).not.toHaveBeenCalled()
-      expect(fake.native.create).not.toHaveBeenCalled()
+      expect(fake.transaction.withTransaction).not.toHaveBeenCalled()
     }).pipe(Effect.provide(fake.layer))
   }
 )
 
-it.effect('create dispatches the reviewed payload to the atomic native creation port', () => {
+it.effect('create captures, fingerprints, publishes, and lists in one transaction', () => {
   const fake = fixture()
   const name = 'Initial template'
   const content = captureEventBlueprint(source, selection, name)
@@ -169,7 +216,135 @@ it.effect('create dispatches the reviewed payload to the atomic native creation 
       templateId: '60000000-0000-4000-8000-000000000006',
       revision: 1,
     })
-    expect(fake.native.create).toHaveBeenCalledWith('actor', request)
+    expect(fake.transaction.withTransaction).toHaveBeenCalledOnce()
+    expect(fake.capture.source).toHaveBeenCalledTimes(2)
+    expect(fake.capture.save).toHaveBeenCalledWith('actor', {
+      eventId,
+      selection,
+      expectedSourceHash: sourceHash,
+      name,
+      organizationId: 'workspace-1',
+      requestId: request.requestId,
+    })
+    expect(fake.native.recordRequestFingerprint).toHaveBeenCalledWith(
+      '60000000-0000-4000-8000-000000000006',
+      blueprintHash({
+        ...request,
+        selection: legacyCompatibleCaptureSelection(selection),
+      })
+    )
+    expect(fake.authoring.publish).toHaveBeenCalledWith(
+      'actor',
+      {
+        id: '60000000-0000-4000-8000-000000000006',
+        expectedVersion: 1,
+      },
+      expect.objectContaining({
+        validateReferences: expect.any(Function),
+        cloneAssets: expect.any(Function),
+        materializeCuratedExploreCover: expect.any(Function),
+        materializeCuratedSeedImages: expect.any(Function),
+      })
+    )
+    expect(fake.native.listInitialRevision).not.toHaveBeenCalled()
+  }).pipe(Effect.provide(fake.layer))
+})
+
+it.effect('keeps fingerprint and publication writes behind the reviewed content check', () => {
+  const fake = fixture()
+  return Effect.gen(function* () {
+    const failure = yield* Effect.flip(
+      blueprintNativeCreationWorkflow(
+        { id: 'actor', name: 'A Host' },
+        {
+          action: 'create',
+          eventId,
+          selection,
+          expectedSourceHash: sourceHash,
+          name: 'Changed after review',
+          organizationId: 'workspace-1',
+          requestId: crypto.randomUUID(),
+          expectedReviewHash: 'f'.repeat(64),
+          discoverable: true,
+        }
+      )
+    )
+    expect(failure).toMatchObject({ code: 'BLUEPRINT_NATIVE_REVIEW_CHANGED' })
+    expect(fake.transaction.withTransaction).toHaveBeenCalledOnce()
+    expect(fake.capture.source).toHaveBeenCalledTimes(2)
+    expect(fake.native.recordRequestFingerprint).not.toHaveBeenCalled()
+    expect(fake.authoring.publish).not.toHaveBeenCalled()
+    expect(fake.native.listInitialRevision).not.toHaveBeenCalled()
+  }).pipe(Effect.provide(fake.layer))
+})
+
+it.effect('exact retries return the original publication without re-listing', () => {
+  const fake = fixture()
+  const name = 'Published wedding'
+  const content = captureEventBlueprint(source, selection, name)
+  const request = {
+    action: 'create' as const,
+    eventId,
+    selection,
+    expectedSourceHash: sourceHash,
+    name,
+    organizationId: 'workspace-1',
+    requestId: crypto.randomUUID(),
+    expectedReviewHash: blueprintDraftContentHash(content),
+    discoverable: true,
+  }
+  const requestHash = blueprintHash({
+    ...request,
+    selection: legacyCompatibleCaptureSelection(selection),
+  })
+  const draft = {
+    id: '60000000-0000-4000-8000-000000000006',
+    organizationId: 'workspace-1',
+    catalogKey: 'private_native_capture',
+    draftVersion: 1,
+    content,
+    publishedRevision: 1,
+    publishedDraftVersion: 1,
+    retired: false,
+    source: {
+      kind: 'event' as const,
+      eventId,
+      selection,
+      capturedContent: content,
+      requestId: request.requestId,
+      nativeCreationRequestHash: requestHash,
+    },
+  }
+  fake.capture.save = vi.fn(() => Effect.succeed(draft))
+  fake.authoring.publish = vi.fn(() =>
+    Effect.succeed({
+      ...draft,
+      publication: { revision: 1, draftVersion: 1, contentHash: 'a'.repeat(64) },
+    })
+  )
+
+  return Effect.gen(function* () {
+    const result = yield* blueprintNativeCreationWorkflow({ id: 'actor', name: 'A Host' }, request)
+    expect(result).toEqual({
+      templateId: '60000000-0000-4000-8000-000000000006',
+      revision: 1,
+    })
+    expect(fake.capture.save).toHaveBeenCalledOnce()
+    expect(fake.authoring.publish).toHaveBeenCalledWith(
+      'actor',
+      {
+        id: draft.id,
+        expectedVersion: 1,
+      },
+      expect.objectContaining({
+        validateReferences: expect.any(Function),
+        cloneAssets: expect.any(Function),
+        materializeCuratedExploreCover: expect.any(Function),
+        materializeCuratedSeedImages: expect.any(Function),
+      })
+    )
+    expect(fake.native.recordRequestFingerprint).not.toHaveBeenCalled()
+    expect(fake.native.listInitialRevision).not.toHaveBeenCalled()
   }).pipe(Effect.provide(fake.layer))
 })
 
@@ -200,10 +375,18 @@ it.effect(
           context: () => Effect.succeed({ workspaces }),
         })
       )
-      expect(fake.native.create).toHaveBeenCalledWith('actor', {
-        ...request,
+      expect(fake.capture.save).toHaveBeenCalledWith('actor', {
+        eventId,
+        selection,
+        expectedSourceHash: sourceHash,
+        name: 'Searchable wedding',
         organizationId: 'personal-owner',
+        requestId: request.requestId,
       })
+      expect(fake.native.listInitialRevision).toHaveBeenCalledWith(
+        '60000000-0000-4000-8000-000000000006',
+        1
+      )
       expect(fake.capture.source).toHaveBeenCalledWith('actor', eventId)
     }).pipe(Effect.provide(fake.layer))
   }
@@ -236,7 +419,9 @@ it.effect(
           expectedSourceHash: sourceHash,
           name: 'Wedding',
           requestId: crypto.randomUUID(),
-          expectedReviewHash: blueprintHash(captureEventBlueprint(source, selection, 'Wedding')),
+          expectedReviewHash: blueprintDraftContentHash(
+            captureEventBlueprint(source, selection, 'Wedding')
+          ),
           discoverable: true,
         }
       ).pipe(
@@ -254,12 +439,9 @@ it.effect(
         name: "A Host's Templates",
         slug: 'personal-actor',
       })
-      expect(fake.native.create).toHaveBeenCalledWith(
+      expect(fake.capture.save).toHaveBeenCalledWith(
         'actor',
-        expect.objectContaining({
-          organizationId: personal.id,
-          discoverable: true,
-        })
+        expect.objectContaining({ organizationId: personal.id })
       )
     }).pipe(Effect.provide(fake.layer))
   }
@@ -281,7 +463,7 @@ it.effect('public review returns its visibility without provisioning or publishi
     )
     expect(result).toMatchObject({ discoverable: true })
     expect(fake.authoring.context).not.toHaveBeenCalled()
-    expect(fake.native.create).not.toHaveBeenCalled()
+    expect(fake.transaction.withTransaction).not.toHaveBeenCalled()
   }).pipe(Effect.provide(fake.layer))
 })
 
@@ -314,7 +496,9 @@ it.effect('explicit workspace creation checks source access before provisioning'
     Layer.succeed(BlueprintCaptureRepo, fake.capture),
     Layer.succeed(BlueprintAuthoringRepo, authoring),
     Layer.succeed(BlueprintNativeCreationRepo, fake.native),
-    Layer.succeed(BetterAuthWorkspaceCon, auth)
+    Layer.succeed(BlueprintNativeCreationTransaction, fake.transaction),
+    Layer.succeed(BetterAuthWorkspaceCon, auth),
+    testCoverServiceLayer
   )
   return Effect.gen(function* () {
     const result = yield* blueprintNativeCreationWorkflow(
@@ -356,7 +540,9 @@ it.effect('denied source reads do not load authoring context or provision a work
     Layer.succeed(BlueprintCaptureRepo, capture),
     Layer.succeed(BlueprintAuthoringRepo, fake.authoring),
     Layer.succeed(BlueprintNativeCreationRepo, fake.native),
-    Layer.succeed(BetterAuthWorkspaceCon, auth)
+    Layer.succeed(BlueprintNativeCreationTransaction, fake.transaction),
+    Layer.succeed(BetterAuthWorkspaceCon, auth),
+    testCoverServiceLayer
   )
   return Effect.gen(function* () {
     const sourceFailure = yield* Effect.flip(
@@ -393,7 +579,7 @@ it.effect('denied source reads do not load authoring context or provision a work
     expect(createFailure).toBe(forbidden)
     expect(createOrganization).not.toHaveBeenCalled()
     expect(fake.authoring.context).not.toHaveBeenCalled()
-    expect(fake.native.create).not.toHaveBeenCalled()
+    expect(fake.transaction.withTransaction).not.toHaveBeenCalled()
     expect(capture.source).toHaveBeenCalledTimes(3)
   }).pipe(Effect.provide(layer))
 })

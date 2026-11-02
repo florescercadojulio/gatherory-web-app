@@ -16,6 +16,7 @@ import {
   BetterAuthWorkspaceCon,
   type BetterAuthWorkspaceConShape,
 } from '@/server/workspaces/connectors/better-auth.con'
+import { BlueprintCoverUnavailableTestLive } from '../fixtures/blueprint-cover-unavailable.live'
 
 type RepoShape = Context.Service.Shape<typeof BlueprintRepo>
 
@@ -169,7 +170,8 @@ function fixture() {
     acquisitionHashes,
     layer: Layer.mergeAll(
       Layer.succeed(BlueprintRepo, repo),
-      Layer.succeed(BetterAuthWorkspaceCon, auth)
+      Layer.succeed(BetterAuthWorkspaceCon, auth),
+      BlueprintCoverUnavailableTestLive
     ),
   }
 }

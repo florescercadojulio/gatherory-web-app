@@ -31,7 +31,11 @@ import {
 } from '../contracts/native-sync.contracts'
 import { compareNativeMutationOrder } from '../workflows/native-sync-ordering'
 import { deletedAccountTombstone } from '../contracts/native-tombstones'
-import { blueprintUpgradeRequired, todoUpgradeRequired } from '../native-sync-compatibility'
+import {
+  blueprintUpgradeRequired,
+  budgetUpgradeRequired,
+  todoUpgradeRequired,
+} from '../native-sync-compatibility'
 import {
   assertTodoCapabilityForScopes,
   canonicalTodoForSync,
@@ -42,7 +46,27 @@ import {
   todoEventID,
 } from './native-todo-projection.persistence'
 import { nativeIdentityWriteAllowed } from '../services/native-identity-access'
+import { decimalMoneyWireNumber } from '../services/native-money'
 import { canDeleteNativeMoment } from './native-moment-authorization.persistence'
+import {
+  applyNativeBudgetReplacement,
+  isNativeBudgetManager,
+  isNativeEventBudgetManager,
+  readNativeWorkspaceBudgetValues,
+} from './native-budget.persistence'
+import {
+  hasPaidExpensesForEvent,
+  isPaidExpense,
+  preservePaidExpenseMutation,
+  preservePaidExpensesInArchive,
+} from './native-paid-expense.persistence'
+import {
+  decodeBudgetArchive,
+  mergeNativeWorkspaceBudgetFields,
+  nativeInitialWorkspaceBudgetIsValid,
+  nativeEventBudgetChanged,
+  nativeWorkspaceBudgetChanges,
+} from '../contracts/native-budget-mutation.contract'
 import {
   applyScopedEventMutation,
   pullScopedEventChanges,
@@ -346,12 +370,31 @@ async function assertBlueprintCapabilityForScopes(input: {
   if (incompatible.length) throw blueprintUpgradeRequired(incompatible)
 }
 
+async function assertBudgetCapabilityForScopes(input: {
+  scopeIds: string[]
+  supportsBudgetAtomic: boolean
+}) {
+  if (input.supportsBudgetAtomic || !input.scopeIds.length) return
+  const rows = await db
+    .select({ scopeId: nativeSyncEntity.scopeId })
+    .from(nativeSyncEntity)
+    .where(
+      and(
+        inArray(nativeSyncEntity.scopeId, [...new Set(input.scopeIds)]),
+        eq(nativeSyncEntity.entityType, 'budget_transfer'),
+        eq(nativeSyncEntity.isDeleted, false)
+      )
+    )
+  if (rows.length) throw budgetUpgradeRequired(rows.map(({ scopeId }) => scopeId))
+}
+
 export async function applyNativeMutations(input: {
   userId: string
   mutations: NativeMutation[]
   requestFingerprints?: Record<string, string>
   supportsBlueprintGuides?: boolean
   supportsTodos?: boolean
+  supportsBudgetAtomic?: boolean
 }) {
   if (!input.userId.trim()) {
     return {
@@ -377,6 +420,16 @@ export async function applyNativeMutations(input: {
         .filter((mutation) => mutation.entityType === 'todo')
         .map((mutation) => mutation.scopeID)
     )
+  if (
+    !input.supportsBudgetAtomic &&
+    input.mutations.some((mutation) => mutation.entityType === 'budget_transfer')
+  ) {
+    throw budgetUpgradeRequired(
+      input.mutations
+        .filter((mutation) => mutation.entityType === 'budget_transfer')
+        .map((mutation) => mutation.scopeID)
+    )
+  }
   await assertTodoCapabilityForScopes({
     ...input,
     scopeIds: input.mutations.map((mutation) => mutation.scopeID),
@@ -412,7 +465,7 @@ export async function applyNativeMutations(input: {
       // Match canonical RSVP/lifecycle lock order: event before snapshot.
       await locked.select({ id: event.id }).from(event).where(eq(event.id, rootId)).for('update')
       await assertTodoCapabilityForScopes({ ...input, scopeIds: [mutation.scopeID] }, locked)
-      if (targetEvent?.parentId) {
+      if (targetEvent?.parentId && mutation.entityType !== 'budget_transfer') {
         await locked
           .select({ id: event.id })
           .from(event)
@@ -558,7 +611,54 @@ export async function applyNativeMutations(input: {
           let payload = isDeleted ? '' : mutation.payload
           let serverVersion: number
 
-          if (mutation.entityType === 'workspace') {
+          if (mutation.entityType === 'budget_transfer') {
+            if (!snapshot || snapshot.isDeleted) {
+              return recordRejectedMutation(transaction, {
+                userId: input.userId,
+                mutation,
+                failureCode: 'SYNC_SCOPE_NOT_FOUND',
+              })
+            }
+            return applyNativeBudgetReplacement(transaction, {
+              userId: input.userId,
+              mutation,
+              snapshot,
+            })
+          } else if (mutation.entityType === 'workspace') {
+            if (!snapshot && !isDeleted && !nativeInitialWorkspaceBudgetIsValid(mutation.payload)) {
+              return recordRejectedMutation(transaction, {
+                userId: input.userId,
+                mutation,
+                failureCode: 'BUDGET_CONSERVATION_INVALID',
+              })
+            }
+            const currentBudgetValues = snapshot
+              ? await readNativeWorkspaceBudgetValues(transaction, mutation.scopeID)
+              : null
+            if (
+              snapshot &&
+              !isDeleted &&
+              currentBudgetValues &&
+              nativeWorkspaceBudgetChanges(mutation.payload, currentBudgetValues)
+            ) {
+              if (
+                !(await isNativeBudgetManager(transaction, {
+                  rootEventId: mutation.scopeID,
+                  userId: input.userId,
+                }))
+              ) {
+                return recordRejectedMutation(transaction, {
+                  userId: input.userId,
+                  mutation,
+                  failureCode: 'BUDGET_MANAGER_REQUIRED',
+                })
+              }
+              return recordRejectedMutation(transaction, {
+                userId: input.userId,
+                mutation,
+                failureCode: 'BUDGET_COMMAND_REQUIRED',
+              })
+            }
             if (
               snapshot &&
               mutation.baseVersion != null &&
@@ -577,15 +677,37 @@ export async function applyNativeMutations(input: {
               : mutation
             // Full archives cannot manufacture tasks or overwrite canonical
             // task state. Dedicated versioned entity mutations own task writes.
-            const canonicalMutation = isDeleted
-              ? blueprintMutation
-              : {
-                  ...blueprintMutation,
-                  payload: projectTodos(
-                    blueprintMutation.payload,
-                    await canonicalTodos(transaction, input.userId, [mutation.scopeID])
+            let canonicalMutation = blueprintMutation
+            if (!isDeleted) {
+              const budgetValues = currentBudgetValues ?? {
+                workspaceCap: null,
+                mainAllocation: null,
+                childAllocations: new Map<string, string | null>(),
+              }
+              canonicalMutation = {
+                ...blueprintMutation,
+                payload:
+                  mergeNativeWorkspaceBudgetFields(blueprintMutation.payload, budgetValues) ??
+                  blueprintMutation.payload,
+              }
+              canonicalMutation = {
+                ...canonicalMutation,
+                payload: projectTodos(
+                  canonicalMutation.payload,
+                  await canonicalTodos(transaction, input.userId, [mutation.scopeID])
+                ),
+              }
+              if (snapshot?.organizationId) {
+                canonicalMutation = {
+                  ...canonicalMutation,
+                  payload: await preservePaidExpensesInArchive(
+                    transaction,
+                    snapshot.organizationId,
+                    canonicalMutation.payload
                   ),
                 }
+              }
+            }
             payload = canonicalMutation.payload
             const previousNotificationEvents =
               snapshot && !snapshot.isDeleted && mutation.operation === 'update'
@@ -734,6 +856,63 @@ export async function applyNativeMutations(input: {
               })
             }
 
+            if (mutation.entityType === 'event' && !isDeleted) {
+              const [canonicalEvent] = await transaction
+                .select({ budgetCap: event.budgetCap })
+                .from(event)
+                .where(
+                  and(
+                    eq(event.id, mutation.entityID),
+                    eq(event.organizationId, snapshot.organizationId)
+                  )
+                )
+                .limit(1)
+              const incomingEvent = decodeBudgetArchive(mutation.payload)
+              if (
+                incomingEvent &&
+                Object.hasOwn(incomingEvent, 'budgetCap') &&
+                nativeEventBudgetChanged(canonicalEvent?.budgetCap ?? null, incomingEvent.budgetCap)
+              ) {
+                if (
+                  !(await isNativeBudgetManager(transaction, {
+                    rootEventId: mutation.scopeID,
+                    userId: input.userId,
+                  }))
+                ) {
+                  return recordRejectedMutation(transaction, {
+                    userId: input.userId,
+                    mutation,
+                    failureCode: 'BUDGET_MANAGER_REQUIRED',
+                  })
+                }
+                if (
+                  mutation.entityID !== mutation.scopeID &&
+                  !(await isNativeEventBudgetManager(transaction, {
+                    eventId: mutation.entityID,
+                    userId: input.userId,
+                  }))
+                ) {
+                  return recordRejectedMutation(transaction, {
+                    userId: input.userId,
+                    mutation,
+                    failureCode: 'BUDGET_TARGET_MANAGER_REQUIRED',
+                  })
+                }
+                return recordRejectedMutation(transaction, {
+                  userId: input.userId,
+                  mutation,
+                  failureCode: 'BUDGET_COMMAND_REQUIRED',
+                })
+              }
+              if (incomingEvent) {
+                incomingEvent.budgetCap =
+                  canonicalEvent?.budgetCap == null
+                    ? null
+                    : decimalMoneyWireNumber(canonicalEvent.budgetCap)
+                payload = Buffer.from(JSON.stringify(incomingEvent), 'utf8').toString('base64')
+              }
+            }
+
             if (mutation.entityType === 'moment' && mutation.operation === 'delete') {
               const authorized = await canDeleteNativeMoment(transaction, {
                 rootEventId: mutation.scopeID,
@@ -750,6 +929,43 @@ export async function applyNativeMutations(input: {
                   failureCode: 'EVENT_PERMISSION_REQUIRED',
                 })
               }
+            }
+
+            if (mutation.entityType === 'expense') {
+              if (
+                isDeleted &&
+                (await isPaidExpense(transaction, snapshot.organizationId, mutation.entityID))
+              ) {
+                return recordRejectedMutation(transaction, {
+                  userId: input.userId,
+                  mutation,
+                  failureCode: 'PAID_EXPENSE_PROTECTED',
+                })
+              }
+              if (!isDeleted) {
+                payload = await preservePaidExpenseMutation(
+                  transaction,
+                  snapshot.organizationId,
+                  mutation.entityID,
+                  payload
+                )
+              }
+            }
+            if (
+              mutation.entityType === 'event' &&
+              isDeleted &&
+              mutation.entityID !== rootId &&
+              (await hasPaidExpensesForEvent(
+                transaction,
+                snapshot.organizationId,
+                mutation.entityID
+              ))
+            ) {
+              return recordRejectedMutation(transaction, {
+                userId: input.userId,
+                mutation,
+                failureCode: 'PAID_EXPENSE_REHOME_REQUIRED',
+              })
             }
 
             serverVersion = (entity?.serverVersion ?? 0) + 1
@@ -769,7 +985,7 @@ export async function applyNativeMutations(input: {
                 : []
             await materializeNativeMutation(transaction, {
               userId: input.userId,
-              mutation,
+              mutation: { ...mutation, payload },
               organizationId: snapshot.organizationId,
             })
             if (
@@ -967,6 +1183,7 @@ export async function pullNativeChanges(input: {
   after: number
   supportsBlueprintGuides?: boolean
   supportsTodos?: boolean
+  supportsBudgetAtomic?: boolean
   limit?: number
 }) {
   const [targetEvent] = await db
@@ -982,6 +1199,12 @@ export async function pullNativeChanges(input: {
     })
     await assertTodoCapabilityForScopes({ ...input, scopeIds: [input.scopeId] })
     const page = await pullScopedEventChanges({ ...input, rootId: targetEvent.parentId })
+    if (page) {
+      await assertBudgetCapabilityForScopes({
+        scopeIds: [targetEvent.parentId],
+        supportsBudgetAtomic: input.supportsBudgetAtomic === true,
+      })
+    }
     // Recheck after reading, so a concurrent first task cannot cross an old
     // client's enum decoder or advance its cursor past an unsupported record.
     await assertTodoCapabilityForScopes({ ...input, scopeIds: [input.scopeId] })
@@ -1008,6 +1231,10 @@ export async function pullNativeChanges(input: {
     )
     .limit(1)
   if (!scopeSnapshot || !readAccess.length || readAccess[0]?.role === 'guest') return null
+  await assertBudgetCapabilityForScopes({
+    scopeIds: [input.scopeId],
+    supportsBudgetAtomic: input.supportsBudgetAtomic === true,
+  })
   await assertBlueprintCapabilityForScopes({
     userId: input.userId,
     scopeIds: [input.scopeId],
@@ -1096,12 +1323,14 @@ export async function listNativeWorkspaceSnapshots(
         userId: string
         supportsBlueprintGuides?: boolean
         supportsTodos?: boolean
+        supportsBudgetAtomic?: boolean
       }
 ) {
   const userId = typeof input === 'string' ? input : input.userId
   const supportsBlueprintGuides =
     typeof input !== 'string' && input.supportsBlueprintGuides === true
   const supportsTodos = typeof input !== 'string' && input.supportsTodos === true
+  const supportsBudgetAtomic = typeof input !== 'string' && input.supportsBudgetAtomic === true
   const [memberships, [account]] = await Promise.all([
     db
       .select({ scopeId: nativeSyncScopeMember.scopeId })
@@ -1144,6 +1373,7 @@ export async function listNativeWorkspaceSnapshots(
     : []
 
   const scopeIds = rows.map((snapshot) => snapshot.scopeId)
+  await assertBudgetCapabilityForScopes({ scopeIds, supportsBudgetAtomic })
   const entities = scopeIds.length
     ? await db
         .select()
@@ -1237,9 +1467,19 @@ export async function listNativeWorkspaceSnapshots(
   const allTodos = [...todosByScope.values()].flat()
   const canonicalTodoByID = new Map(allTodos.map((todo) => [todo.id, todo]))
   if (!supportsTodos && allTodos.length) throw todoUpgradeRequired(bootstrapScopeIds)
-  const projectCanonicalContent = <T extends { scopeID: string; payload: string }>(
+  const organizationByScope = new Map(
+    (bootstrapScopeIds.length
+      ? await db
+          .select({ id: event.id, organizationId: event.organizationId })
+          .from(event)
+          .where(inArray(event.id, bootstrapScopeIds))
+      : []
+    ).map((row) => [row.id, row.organizationId])
+  )
+  const childScopeIDs = new Set(childSnapshots.map((snapshot) => snapshot.scopeID))
+  const projectCanonicalContent = async <T extends { scopeID: string; payload: string }>(
     snapshot: T
-  ): T => {
+  ): Promise<T> => {
     const canonical = canonicalByEvent.get(snapshot.scopeID)
     const projected = canonical
       ? {
@@ -1251,10 +1491,19 @@ export async function listNativeWorkspaceSnapshots(
           ),
         }
       : snapshot
-    return {
+    const withTodos = {
       ...projected,
       payload: projectTodos(projected.payload, todosByScope.get(snapshot.scopeID) ?? []),
     }
+    const organizationId = organizationByScope.get(snapshot.scopeID)
+    return organizationId && !childScopeIDs.has(snapshot.scopeID)
+      ? {
+          ...withTodos,
+          payload: await db.transaction((transaction) =>
+            preservePaidExpensesInArchive(transaction, organizationId, withTodos.payload)
+          ),
+        }
+      : withTodos
   }
 
   // Both a root workspace and an admitted child planning scope are usable
@@ -1268,17 +1517,22 @@ export async function listNativeWorkspaceSnapshots(
   return {
     account: { hasCompletedOnboarding },
     snapshots: [
-      ...rows.map((snapshot) => ({
-        scopeID: snapshot.scopeId,
-        payloadSchemaVersion: 1 as const,
-        payload: projectCanonicalContent({ scopeID: snapshot.scopeId, payload: snapshot.payload })
-          .payload,
-        serverVersion: snapshot.serverVersion,
-        updatedAt: nativeISODate(snapshot.updatedAt),
-      })),
-      ...childSnapshots.map(({ cursor: _cursor, ...snapshot }) =>
-        projectCanonicalContent(snapshot)
-      ),
+      ...(await Promise.all(
+        rows.map(async (snapshot) => ({
+          scopeID: snapshot.scopeId,
+          payloadSchemaVersion: 1 as const,
+          payload: (
+            await projectCanonicalContent({ scopeID: snapshot.scopeId, payload: snapshot.payload })
+          ).payload,
+          serverVersion: snapshot.serverVersion,
+          updatedAt: nativeISODate(snapshot.updatedAt),
+        }))
+      )),
+      ...(await Promise.all(
+        childSnapshots.map(async ({ cursor: _cursor, ...snapshot }) =>
+          projectCanonicalContent(snapshot)
+        )
+      )),
     ],
     entities: [
       ...entities

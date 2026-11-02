@@ -23,7 +23,7 @@ test(
     const { user, session, organization, event, eventParticipant, workspacePerson, mediaAsset } =
       await import('@/db/schema')
     const { inspectMediaObject, deleteMediaObject } =
-      await import('@/server/media/connectors/media-storage.con')
+      await import('@/server/media/connectors/media-storage.provider')
     const suffix = crypto.randomUUID()
     const owner = `media-r2-owner-${suffix}`
     const stranger = `media-r2-stranger-${suffix}`

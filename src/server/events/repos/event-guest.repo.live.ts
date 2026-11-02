@@ -1,6 +1,6 @@
 import { PgClient } from '@effect/sql-pg/PgClient'
 import { Effect, Layer } from 'effect'
-import { leaveGuestEvent } from './event-departure.repo'
+import { leaveGuestEvent } from './event-departure.persistence'
 import {
   getInvitationCoverAsset,
   listDeviceGuestEventInvitationProjections,

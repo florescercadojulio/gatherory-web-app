@@ -42,7 +42,7 @@ test(
       nativeSyncChange,
     } = await import('@/db/schema')
     const { inspectMediaObject, deleteMediaObject } =
-      await import('@/server/media/connectors/media-storage.con')
+      await import('@/server/media/connectors/media-storage.provider')
     const suffix = crypto.randomUUID()
     const ids = ['private-owner', 'shared-owner', 'successor', 'writer', 'guest'].map(
       (role) => `deletion-http-${role}-${suffix}`

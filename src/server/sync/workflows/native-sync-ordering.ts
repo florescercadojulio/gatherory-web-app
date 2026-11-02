@@ -11,6 +11,7 @@ export type NativeSyncEntityType =
   | 'note'
   | 'todo'
   | 'moment'
+  | 'budget_transfer'
 
 type OrderedNativeMutation = {
   entityType: NativeSyncEntityType
@@ -30,18 +31,28 @@ const mutationDependencyOrder: Record<NativeSyncEntityType, number> = {
   note: 8,
   todo: 8,
   moment: 9,
+  budget_transfer: 10,
 }
 
-/// Establish the workspace before records which need its scope. Deletions
-/// reverse that relationship so the workspace is removed last.
+/** Establish the workspace before records which need its scope. */
 export function compareNativeMutationOrder(
   left: OrderedNativeMutation,
   right: OrderedNativeMutation
 ) {
+  const leftPhase = mutationPhase(left)
+  const rightPhase = mutationPhase(right)
+  if (leftPhase !== rightPhase) return leftPhase - rightPhase
+
   const leftOrder = mutationDependencyOrder[left.entityType]
   const rightOrder = mutationDependencyOrder[right.entityType]
-  if (left.operation === 'delete' && right.operation !== 'delete') return 1
-  if (left.operation !== 'delete' && right.operation === 'delete') return -1
-  if (left.operation === 'delete') return rightOrder - leftOrder
+  if (leftPhase === 1) return rightOrder - leftOrder
   return leftOrder - rightOrder
+}
+
+/** Content writes precede record deletes, then atomic budget replacement. */
+function mutationPhase(mutation: OrderedNativeMutation) {
+  if (mutation.entityType === 'workspace' && mutation.operation === 'delete') return 3
+  if (mutation.entityType === 'budget_transfer') return 2
+  if (mutation.operation === 'delete') return 1
+  return 0
 }

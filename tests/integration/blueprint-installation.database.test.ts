@@ -25,6 +25,7 @@ async function verifyBlueprintInstallationDatabase() {
     catalog,
     hashing,
     sync,
+    coverFixtures,
   ] = await Promise.all([
     import('@/db'),
     import('@/server/workspaces/connectors/better-auth.con'),
@@ -35,6 +36,7 @@ async function verifyBlueprintInstallationDatabase() {
     import('@/server/blueprints/catalog/wedding.v1'),
     import('@/server/blueprints/planning/blueprint-hash'),
     import('@/server/sync/native-sync'),
+    import('../fixtures/blueprint-cover-layers'),
   ])
   const { db, PgClientLive } = database
   const { user, organization, member, event, eventParticipant, workspacePerson, idea, eventTodo } =
@@ -97,7 +99,30 @@ async function verifyBlueprintInstallationDatabase() {
         return Effect.void
       }),
   })
-  const baseDependencies = Layer.mergeAll(PgClientLive, checkpoint)
+  const coverObjects = new Map<string, Uint8Array>()
+  const coverStorage = {
+    bucket: 'blueprint-test-bucket',
+    createUploadUrl: () => Effect.die('unexpected test upload URL'),
+    inspect: () => Effect.die('unexpected test upload inspection'),
+    readBytes: ({ key }: { key: string }) => {
+      const bytes = coverObjects.get(key)
+      return bytes ? Effect.succeed(bytes) : Effect.die(`missing test cover object ${key}`)
+    },
+    putBytes: ({ key, bytes }: { key: string; bytes: Uint8Array }) => {
+      coverObjects.set(key, new Uint8Array(bytes))
+      return Effect.void
+    },
+    createReadUrl: () => Effect.die('unexpected test cover URL'),
+    delete: ({ key }: { key: string }) => {
+      coverObjects.delete(key)
+      return Effect.void
+    },
+  }
+  const coverLayer = coverFixtures.blueprintCoverTestLive(
+    coverStorage,
+    coverFixtures.blueprintSeedImageTestSource
+  )
+  const baseDependencies = Layer.mergeAll(PgClientLive, checkpoint, coverLayer)
   const repo = blueprintRepoModule.BlueprintRepoLive.pipe(Layer.provide(baseDependencies))
   const providerCalls = new Map<string, number>()
   const fakeAuth = Layer.succeed(authContracts.BetterAuthWorkspaceCon, {
@@ -150,7 +175,7 @@ async function verifyBlueprintInstallationDatabase() {
     addTeamMember: () => Effect.void,
     setActiveTeam: () => Effect.void,
   })
-  const workflowLayer = Layer.mergeAll(repo, fakeAuth)
+  const workflowLayer = Layer.mergeAll(repo, fakeAuth, coverLayer).pipe(Layer.provide(PgClientLive))
   const install = (forActor: typeof actor, input: unknown) =>
     installWorkflow.installBlueprintWorkflow(forActor, input).pipe(Effect.provide(workflowLayer))
   const seedLayer = PgClientLive
@@ -914,7 +939,7 @@ async function verifyBlueprintInstallationDatabase() {
       Effect.exit(
         installWorkflow
           .blueprintStatusWorkflow(otherActor.id, retryRequestId)
-          .pipe(Effect.provide(repo))
+          .pipe(Effect.provide(repo), Effect.provide(PgClientLive))
       )
     )
     expect(Exit.isFailure(otherStatus)).toBe(true)

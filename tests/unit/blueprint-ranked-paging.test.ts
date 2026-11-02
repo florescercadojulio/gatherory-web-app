@@ -304,12 +304,15 @@ test('unseen ranked browse entries precede fixed editorial priorities, then seen
   const session = discoverySession([
     { catalogKey: 'wedding', lastSeenAt: new Date(startedAt - 25 * 60 * 60 * 1000).toISOString() },
     { catalogKey: 'birthday', lastSeenAt: new Date(startedAt - 60 * 60 * 1000).toISOString() },
-    { catalogKey: 'thanksgiving', lastSeenAt: new Date(startedAt - 2 * 60 * 60 * 1000).toISOString() },
+    {
+      catalogKey: 'thanksgiving',
+      lastSeenAt: new Date(startedAt - 2 * 60 * 60 * 1000).toISOString(),
+    },
     { catalogKey: 'b', lastSeenAt: new Date(startedAt - 28 * 60 * 60 * 1000).toISOString() },
   ])
-  expect(keys(pageBlueprintCatalog(catalog(), { ...request, limit: 40 }, 'actor', { now }))).toEqual([
-    'wedding', 'birthday', 'thanksgiving', 'a', 'b',
-  ])
+  expect(
+    keys(pageBlueprintCatalog(catalog(), { ...request, limit: 40 }, 'actor', { now }))
+  ).toEqual(['wedding', 'birthday', 'thanksgiving', 'a', 'b'])
   const unseen = pageBlueprintCatalog(
     catalog(),
     { ...request, limit: 40, discoverySession: session },
@@ -368,12 +371,9 @@ test('freshness tiers preserve creator diversity where another creator is availa
     { catalogKey: 'y1', lastSeenAt: new Date(startedAt - 24 * 60 * 60 * 1000).toISOString() },
   ])
   const ordered = keys(
-    pageBlueprintCatalog(
-      source,
-      { ...request, limit: 40, discoverySession: session },
-      'actor',
-      { now }
-    )
+    pageBlueprintCatalog(source, { ...request, limit: 40, discoverySession: session }, 'actor', {
+      now,
+    })
   )
   expect(ordered.slice(0, 3)).toEqual(['x1', 'x2', 'y1'])
 })
@@ -385,14 +385,15 @@ test('a frozen session also freezes baseline new-item age on repeated first-page
     entry('middle', 'Middle', 'creator-middle'),
     entry('new', 'New', 'creator-new'),
   ])
-  const metadataByKey = new Map(source.entries.map((item) => [item.catalogKey, item.rankingMetadata]))
+  const metadataByKey = new Map(
+    source.entries.map((item) => [item.catalogKey, item.rankingMetadata])
+  )
   const entries = source.entries.map((item) => ({
     ...item,
     rankingMetadata: {
       ...metadataByKey.get(item.catalogKey)!,
-      firstPublishedAt: item.catalogKey === 'new'
-        ? new Date(now.getTime() + 30_000).toISOString()
-        : null,
+      firstPublishedAt:
+        item.catalogKey === 'new' ? new Date(now.getTime() + 30_000).toISOString() : null,
     },
   }))
   const frozenSource = { entries }
@@ -438,7 +439,9 @@ test('typed search ignores discovery context and preserves its existing relevanc
     { now }
   )
   expect(keys(withContext)).toEqual(keys(baseline))
-  expect(withContext.ok && baseline.ok && withContext.snapshotId).toBe(baseline.ok && baseline.snapshotId)
+  expect(withContext.ok && baseline.ok && withContext.snapshotId).toBe(
+    baseline.ok && baseline.snapshotId
+  )
 })
 
 test('discovery context is frozen into ranked pagination and account-scoped cursors', () => {
@@ -488,8 +491,10 @@ test('discovery context is frozen into ranked pagination and account-scoped curs
 })
 
 test('discovery context parser rejects future, duplicate, and over-retention history', () => {
-  const valid = (seen: Array<{ catalogKey: string; lastSeenAt: string }>, startedAt = now.toISOString()) =>
-    JSON.stringify(discoverySession(seen, startedAt))
+  const valid = (
+    seen: Array<{ catalogKey: string; lastSeenAt: string }>,
+    startedAt = now.toISOString()
+  ) => JSON.stringify(discoverySession(seen, startedAt))
   const future = new Date(now.getTime() + 61_000).toISOString()
   expect(parseBlueprintDiscoverySessionContext(valid([], future), now)).toBeUndefined()
   expect(
@@ -515,7 +520,9 @@ test('discovery context parser rejects future, duplicate, and over-retention his
       valid([
         {
           catalogKey: 'a',
-          lastSeenAt: new Date(now.getTime() - BLUEPRINT_DISCOVERY_SEEN_MAX_AGE_MS - 1).toISOString(),
+          lastSeenAt: new Date(
+            now.getTime() - BLUEPRINT_DISCOVERY_SEEN_MAX_AGE_MS - 1
+          ).toISOString(),
         },
       ]),
       now

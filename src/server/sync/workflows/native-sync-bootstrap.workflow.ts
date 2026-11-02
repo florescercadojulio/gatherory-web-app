@@ -5,6 +5,7 @@ import { NativeSyncRepo } from '../repos/native-sync.repo'
 export function bootstrapNativeSync(input: {
   userId: string
   supportsTodos?: boolean
+  supportsBudgetAtomic?: boolean
   supportsBlueprintGuides: boolean
 }) {
   return Effect.gen(function* () {

@@ -28,7 +28,10 @@ export interface McpGrantLookup {
  * MCP JWT. This is separate from token verification and event ACL checks.
  */
 export function createMcpClaimsAuthorizer(lookup: McpGrantLookup, expectedResource: string) {
-  return async (claims: McpAccessTokenClaims, now = new Date()): Promise<{ userId: string } | null> => {
+  return async (
+    claims: McpAccessTokenClaims,
+    now = new Date()
+  ): Promise<{ userId: string } | null> => {
     const userId = typeof claims.sub === 'string' ? claims.sub : null
     const sessionId = typeof claims.sid === 'string' ? claims.sid : null
     const authorizedParty = typeof claims.azp === 'string' ? claims.azp : null
@@ -38,7 +41,8 @@ export function createMcpClaimsAuthorizer(lookup: McpGrantLookup, expectedResour
       return null
     }
 
-    const tokenScopes = typeof claims.scope === 'string' ? claims.scope.split(/\s+/).filter(Boolean) : []
+    const tokenScopes =
+      typeof claims.scope === 'string' ? claims.scope.split(/\s+/).filter(Boolean) : []
     if (tokenScopes.length === 0 || new Set(tokenScopes).size !== tokenScopes.length) return null
     const audiences = Array.isArray(claims.aud) ? claims.aud : [claims.aud]
     if (!audiences.includes(expectedResource)) return null

@@ -1,5 +1,6 @@
 import { expect, test } from 'vitest'
 import { Effect, Exit, Layer } from 'effect'
+import { BlueprintCoverUnavailableTestLive } from '../fixtures/blueprint-cover-unavailable.live'
 
 const enabled = process.env.RUN_BLUEPRINT_DB_TESTS === '1'
 
@@ -107,7 +108,9 @@ test.skipIf(!enabled)('unlisted blueprint links stay scoped, pinned, and revocab
     },
   })
   const blueprintRepo = blueprintRepoModule.BlueprintRepoLive.pipe(
-    Layer.provide(Layer.mergeAll(PgClientLive, installCheckpoint))
+    Layer.provide(
+      Layer.mergeAll(PgClientLive, installCheckpoint, BlueprintCoverUnavailableTestLive)
+    )
   )
 
   let pauseProvisioning = false
@@ -165,7 +168,12 @@ test.skipIf(!enabled)('unlisted blueprint links stay scoped, pinned, and revocab
     addTeamMember: () => Effect.die('unexpected team membership'),
     setActiveTeam: () => Effect.die('unexpected active team'),
   })
-  const layer = Layer.mergeAll(shareRepo, blueprintRepo, fakeAuth)
+  const layer = Layer.mergeAll(
+    shareRepo,
+    blueprintRepo,
+    fakeAuth,
+    BlueprintCoverUnavailableTestLive
+  )
   type Dependencies = Layer.Success<typeof layer>
   const run = <A, E>(program: Effect.Effect<A, E, Dependencies>) =>
     Effect.runPromise(program.pipe(Effect.provide(layer)))

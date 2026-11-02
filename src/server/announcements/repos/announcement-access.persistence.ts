@@ -7,7 +7,7 @@ import {
   eventParticipant,
   workspacePerson,
 } from '@/db/schema/event.schema'
-import { retainedEventAccess } from '@/server/events/repos/event-departure.repo'
+import { retainedEventAccess } from '@/server/events/repos/event-departure.persistence'
 import type { AnnouncementIdentity } from '../contracts/announcement.contracts'
 import { announcementPolicy } from '../services/announcement-policy'
 

@@ -1,5 +1,6 @@
 import { Context, Effect } from 'effect'
 import type { DomainError } from '@/lib/domain-errors'
+import type { BlueprintCoverCallbacks } from '../repos/blueprint-cover-callbacks'
 import type {
   BlueprintCatalogDefinition,
   BlueprintExpandedPlan,
@@ -56,14 +57,17 @@ export class BlueprintRepo extends Context.Service<
       actorId: string,
       requestId: string
     ) => Effect.Effect<InstallationRecord | null, DomainError>
-    claim: (input: {
-      actor: BlueprintActor
-      request: BlueprintInstallInput
-      hash: string
-      plan: BlueprintExpandedPlan
-      revision: CatalogRevision
-      token: string
-    }) => Effect.Effect<InstallationRecord, DomainError>
+    claim: (
+      input: {
+        actor: BlueprintActor
+        request: BlueprintInstallInput
+        hash: string
+        plan: BlueprintExpandedPlan
+        revision: CatalogRevision
+        token: string
+      },
+      coverCallbacks?: BlueprintCoverCallbacks
+    ) => Effect.Effect<InstallationRecord, DomainError>
     acquire: (
       actorId: string,
       requestId: string,
@@ -83,7 +87,8 @@ export class BlueprintRepo extends Context.Service<
     complete: (
       actor: BlueprintActor,
       installationId: string,
-      token: string
+      token: string,
+      coverCallbacks?: BlueprintCoverCallbacks
     ) => Effect.Effect<BlueprintInstallResult, DomainError>
     release: (
       actorId: string,

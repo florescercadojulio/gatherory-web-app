@@ -148,6 +148,20 @@ entire mutation rolls back and receives a rejected result rather than an
 `applied` receipt. Existing snapshots can be replayed idempotently with
 `pnpm db:materialize-native` after the relevant migration is installed.
 
+Budget allocation is a root-scoped exception to ordinary archive/event field
+writes. Clients replace the complete cap and root/child allocation vector in a
+single `budget_transfer` mutation using integer cents and its independently
+versioned `native_sync_entity` row. The server locks the root and its event rows,
+checks the expected budget version, exact root-plus-child event set, manager
+access on the root and every changed child, and allocation conservation before
+updating planning settings, events, the compatibility archive, change log, and
+receipt in one transaction. A missing overall cap requires every allocation to
+be null. Legacy workspace/event mutations may keep unchanged budget values;
+explicit budget changes are rejected and omitted fields preserve canonical
+values. Once a budget revision exists, bootstrap and root pulls require the
+`budget-atomic-v1` capability so older clients cannot skip authoritative
+vectors.
+
 Main-event hosts and collaborators may receive organization and root sync-scope
 membership. A child-event collaborator does not need either membership. Their
 event UUID identifies a virtual planning scope over the existing root archive

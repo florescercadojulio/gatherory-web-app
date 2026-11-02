@@ -19,6 +19,7 @@ export const nativeEntityTypeSchema = z.enum([
   'note',
   'todo',
   'moment',
+  'budget_transfer',
 ])
 
 // Normalize only the known bad development value; unknown operations must fail
@@ -50,6 +51,7 @@ export type NativePushResult = {
   mutationID: string
   disposition: 'applied' | 'duplicate' | 'conflict' | 'rejected'
   serverVersion: number | null
+  workspaceServerVersion?: number
   failureCode: string | null
 }
 

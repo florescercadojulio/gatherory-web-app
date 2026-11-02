@@ -6,6 +6,7 @@ import { requestJson, requestUser } from '@/server/http-errors'
 import { pushRequestSchema } from '@/server/sync/contracts/native-sync.contracts'
 import { pushNativeSync } from '@/server/sync/workflows/native-sync.workflows.live'
 import {
+  hasBudgetAtomicCapability,
   hasBlueprintGuidesCapability,
   hasTodosCapability,
 } from '@/server/sync/native-sync-compatibility'
@@ -39,6 +40,7 @@ export const Route = createFileRoute('/api/sync/push')({
               mutations: parsed.data.mutations,
               supportsBlueprintGuides: hasBlueprintGuidesCapability(request.headers),
               supportsTodos: hasTodosCapability(request.headers),
+              supportsBudgetAtomic: hasBudgetAtomicCapability(request.headers),
             })
           }).pipe(Effect.provide(PgClientLive)),
           {

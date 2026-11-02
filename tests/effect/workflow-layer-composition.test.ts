@@ -30,7 +30,7 @@ vi.mock('@/server/events/repos/event-share-link.repo.persistence', () => ({
   acceptEventShareLink: persistence.acceptShare,
 }))
 vi.mock('@/server/events/repos/guest-invitation.repo.persistence', () => ({}))
-vi.mock('@/server/events/repos/event-departure.repo', () => ({}))
+vi.mock('@/server/events/repos/event-departure.persistence', () => ({}))
 vi.mock('@/server/events/connectors/event-invitation-artwork.con.live', async () => {
   const { Layer } = await import('effect')
   const { EventInvitationArtwork } =

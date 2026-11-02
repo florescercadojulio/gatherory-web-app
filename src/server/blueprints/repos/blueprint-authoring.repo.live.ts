@@ -4,7 +4,10 @@ import { PgClient } from '@effect/sql-pg/PgClient'
 import { Effect, Layer } from 'effect'
 import { DB } from '@/db'
 import { member, organization } from '@/db/schema/auth.schema'
-import { hasOrganizationOwnerRole, ORGANIZATION_OWNER_ROLE } from '../../auth/organization-role-membership'
+import {
+  hasOrganizationOwnerRole,
+  ORGANIZATION_OWNER_ROLE,
+} from '../../auth/organization-role-membership'
 import { blueprintRevision, blueprintTemplate } from '@/db/schema/blueprint.schema'
 import {
   BlueprintDraftContentSchema,
@@ -22,13 +25,9 @@ import {
 import { blueprintDraftContentForHash, blueprintHash } from '../planning/blueprint-hash'
 import { BlueprintAuthoringRepo } from './blueprint-authoring.repo'
 import {
-  cloneBlueprintCoverAssets,
-  validateBlueprintCoverReferences,
-} from '@/server/blueprint-media/blueprint-cover.service'
-import {
-  BlueprintCoverStorage,
-  BlueprintCoverStorageLive,
-} from '@/server/blueprint-media/blueprint-cover.storage.live'
+  blueprintCoverCallbacksRequired,
+  type BlueprintCoverCallbacks,
+} from './blueprint-cover-callbacks'
 
 const conflict = (code: string) =>
   new ConflictError({ category: 'conflict', code, userMessageKey: 'serverErrors.CONFLICT' })
@@ -50,7 +49,6 @@ export const BlueprintAuthoringRepoLive = Layer.effect(
   Effect.gen(function* () {
     const pg = yield* PgClient
     const db = yield* DB
-    const coverStorage = yield* BlueprintCoverStorage
     const bind = <A, E>(effect: Effect.Effect<A, E, PgClient>) =>
       effect.pipe(
         Effect.provideService(PgClient, pg),
@@ -84,10 +82,27 @@ export const BlueprintAuthoringRepoLive = Layer.effect(
           .map((id) => id.toLowerCase())
       ),
     ]
-    const validateCovers = (actorUserId: string, assetIds: string[]) =>
-      validateBlueprintCoverReferences({ actorUserId, assetIds }).pipe(
-        Effect.provideService(PgClient, pg)
-      )
+    const validateCovers = (
+      coverCallbacks: BlueprintCoverCallbacks | undefined,
+      actorUserId: string,
+      assetIds: string[],
+      database: unknown = db,
+      source?: {
+        sourceRevisionId?: string
+        sourceCatalogKey?: string
+        sourceRevision?: number
+        shareToken?: string
+      }
+    ) => {
+      if (!assetIds.length) return Effect.void
+      if (!coverCallbacks) return Effect.fail(blueprintCoverCallbacksRequired())
+      return coverCallbacks.validateReferences({
+        database,
+        actorUserId,
+        assetIds,
+        ...source,
+      })
+    }
     const stableCoverId = (requestId: string, sourceAssetId: string) => {
       const hex = createHash('sha256')
         .update(
@@ -189,8 +204,7 @@ export const BlueprintAuthoringRepoLive = Layer.effect(
           })
         ),
       get: (actorId, id) => bind(pg.withTransaction(read(actorId, id).pipe(Effect.map(dto)))),
-      validateCoverReferences: (actorId, assetIds) => bind(validateCovers(actorId, assetIds)),
-      create: (actorId, input) =>
+      create: (actorId, input, coverCallbacks) =>
         bind(
           Effect.gen(function* () {
             const sourceAssetIds = coverIds(input.content)
@@ -202,13 +216,13 @@ export const BlueprintAuthoringRepoLive = Layer.effect(
             }> = []
             if (sourceAssetIds.length) {
               if (input.source) {
-                yield* validateBlueprintCoverReferences({
-                  actorUserId: actorId,
-                  assetIds: sourceAssetIds,
+                yield* validateCovers(coverCallbacks, actorId, sourceAssetIds, db, {
                   sourceCatalogKey: input.source.catalogKey,
                   sourceRevision: input.source.revision,
                 }).pipe(Effect.provideService(PgClient, pg))
-                cloned = yield* cloneBlueprintCoverAssets({
+                if (!coverCallbacks) return yield* Effect.fail(blueprintCoverCallbacksRequired())
+                cloned = yield* coverCallbacks.cloneAssets({
+                  database: db,
                   actorUserId: actorId,
                   sourceCatalogKey: input.source.catalogKey,
                   sourceRevision: input.source.revision,
@@ -216,10 +230,7 @@ export const BlueprintAuthoringRepoLive = Layer.effect(
                     sourceAssetId,
                     destinationAssetId: stableCoverId(input.requestId, sourceAssetId),
                   })),
-                }).pipe(
-                  Effect.provideService(PgClient, pg),
-                  Effect.provideService(BlueprintCoverStorage, coverStorage)
-                )
+                })
                 content = remapCovers(
                   content,
                   Object.fromEntries(
@@ -230,7 +241,7 @@ export const BlueprintAuthoringRepoLive = Layer.effect(
                   )
                 )
               } else {
-                yield* validateCovers(actorId, sourceAssetIds)
+                yield* validateCovers(coverCallbacks, actorId, sourceAssetIds)
               }
             }
             const result = yield* pg.withTransaction(
@@ -280,7 +291,7 @@ export const BlueprintAuthoringRepoLive = Layer.effect(
             return result
           })
         ),
-      save: (actorId, input) =>
+      save: (actorId, input, coverCallbacks) =>
         bind(
           pg.withTransaction(
             Effect.gen(function* () {
@@ -288,7 +299,7 @@ export const BlueprintAuthoringRepoLive = Layer.effect(
               if (current.retiredAt) return yield* Effect.fail(conflict('BLUEPRINT_RETIRED'))
               if (current.draftVersion !== input.expectedVersion)
                 return yield* Effect.fail(conflict('BLUEPRINT_DRAFT_VERSION_CONFLICT'))
-              yield* validateCovers(actorId, coverIds(input.content))
+              yield* validateCovers(coverCallbacks, actorId, coverIds(input.content), db)
               const [row] = yield* db
                 .update(blueprintTemplate)
                 .set({
@@ -302,7 +313,7 @@ export const BlueprintAuthoringRepoLive = Layer.effect(
             })
           )
         ),
-      publish: (actorId, input) =>
+      publish: (actorId, input, coverCallbacks) =>
         bind(
           pg.withTransaction(
             Effect.gen(function* () {
@@ -330,7 +341,7 @@ export const BlueprintAuthoringRepoLive = Layer.effect(
               if (current.draftVersion !== input.expectedVersion)
                 return yield* Effect.fail(conflict('BLUEPRINT_DRAFT_VERSION_CONFLICT'))
               const content = BlueprintDraftContentSchema.parse(current.content)
-              yield* validateCovers(actorId, coverIds(content))
+              yield* validateCovers(coverCallbacks, actorId, coverIds(content), db)
               const revision = (current.publishedRevision ?? 0) + 1
               const definition = BlueprintCatalogDefinitionSchema.parse(
                 draftDefinition(content, current.catalogKey, revision)
@@ -390,4 +401,4 @@ export const BlueprintAuthoringRepoLive = Layer.effect(
         ),
     }
   })
-).pipe(Layer.provide(BlueprintCoverStorageLive))
+)

@@ -14,6 +14,7 @@ export type NativeSyncRepoShape = {
     mutations: NativeMutation[]
     requestFingerprints?: Record<string, string>
     supportsTodos?: boolean
+    supportsBudgetAtomic?: boolean
     supportsBlueprintGuides: boolean
   }) => Effect.Effect<{ results: NativePushResult[] }, DomainError>
   readonly pullChanges: (input: {
@@ -21,12 +22,14 @@ export type NativeSyncRepoShape = {
     scopeId: string
     after: number
     supportsTodos?: boolean
+    supportsBudgetAtomic?: boolean
     supportsBlueprintGuides: boolean
     limit?: number
   }) => Effect.Effect<NativePullPage | null, DomainError>
   readonly listWorkspaceSnapshots: (input: {
     userId: string
     supportsTodos?: boolean
+    supportsBudgetAtomic?: boolean
     supportsBlueprintGuides: boolean
   }) => Effect.Effect<NativeWorkspaceSnapshots, DomainError>
 }

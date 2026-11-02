@@ -30,6 +30,16 @@ function mutation(entityType: NativeSyncEntityType): NativeMutation {
   }
 }
 
+function permutations<T>(values: T[]): T[][] {
+  if (values.length < 2) return [values]
+  return values.flatMap((value, index) =>
+    permutations(values.filter((_, candidateIndex) => candidateIndex !== index)).map((rest) => [
+      value,
+      ...rest,
+    ])
+  )
+}
+
 test('native sync establishes a workspace before dependent batch records', () => {
   const ordered = [
     mutation('idea'),
@@ -64,4 +74,28 @@ test('native sync reverses dependency order when deleting a workspace', () => {
     'participant',
     'workspace',
   ])
+})
+
+test('content writes precede nonworkspace deletes, budget replacement, and root deletion', () => {
+  const mutations = [
+    { ...mutation('workspace'), operation: 'update' as const },
+    { ...mutation('expense'), operation: 'update' as const },
+    { ...mutation('event'), operation: 'delete' as const, payload: '' },
+    { ...mutation('budget_transfer'), operation: 'update' as const },
+    { ...mutation('workspace'), operation: 'delete' as const, payload: '' },
+  ]
+
+  for (const permutation of permutations(mutations)) {
+    expect(
+      permutation
+        .sort(compareNativeMutationOrder)
+        .map(({ entityType, operation }) => [entityType, operation])
+    ).toEqual([
+      ['workspace', 'update'],
+      ['expense', 'update'],
+      ['event', 'delete'],
+      ['budget_transfer', 'update'],
+      ['workspace', 'delete'],
+    ])
+  }
 })

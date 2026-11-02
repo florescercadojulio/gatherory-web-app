@@ -6,16 +6,22 @@ Started: October 14, 2026
 
 ## Current stopping point
 
-As of October 14, 2026, the structural cleanup and Effect v4 layer composition
-are implemented. The subsequent request to migrate Promise-based sync and
-account-deletion persistence was redirected to documentation before code edits
-or agent work began. That migration is **deferred, not implemented or active**.
-Do not resume it without a fresh request.
+As of November 2, 2026, the architecture alignment follow-up is implemented for
+the newer MCP and Blueprint domains, with expanded regression guards. See the
+[alignment and acceptance record](../../development/server-architecture-alignment-2026-11-02.md).
+Three Luna agents handled MCP, Blueprint media, and workflow orchestration;
+integration review covered dependency direction, existing atomic callback
+boundaries, source imports, requirement types, and database behavior.
+
+The original October 14 cleanup remains the foundation. Its proposed rewrite of
+Promise-based native sync/materialization and account-deletion persistence is
+still **deferred, not implemented or active**. This follow-up preserves those
+algorithms; do not resume their rewrite without a specific request.
 
 The [server implementation guide](../../development/server-implementation-guide.md)
-captures the patterns for future contributors and chats. This documentation
-follow-up changes no runtime code, schema, or transaction behavior. Historical
-test results below belong to the implementation run, not a new release audit.
+captures the patterns for future contributors and chats. Historical October 14
+results below belong to that implementation run. Current verification belongs
+to the November 2 alignment record; neither record is a production rollout.
 
 ## Purpose
 

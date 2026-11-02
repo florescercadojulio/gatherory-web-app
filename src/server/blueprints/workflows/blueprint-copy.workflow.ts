@@ -4,6 +4,7 @@ import { BlueprintCopyRequestSchema } from '@/contracts/blueprint-copy.contracts
 import { validateInput } from '@/server/validation'
 import { BlueprintPersonalRepo } from '../repos/blueprint-personal.repo'
 import { personalTemplateOwner } from './blueprint-native-creation.workflow'
+import { blueprintCoverCallbacksWorkflow } from './blueprint-cover-callbacks.workflow'
 
 export const createBlueprintCopyWorkflow = (actor: { id: string; name: string }, input: unknown) =>
   Effect.gen(function* () {
@@ -13,9 +14,14 @@ export const createBlueprintCopyWorkflow = (actor: { id: string; name: string },
     )
     const request = yield* validateInput(BlueprintCopyRequestSchema, input)
     yield* personalTemplateOwner(validatedActor)
-    return yield* (yield* BlueprintPersonalRepo).copy(validatedActor.id, {
-      requestId: request.requestId,
-      content: request.content,
-      ...(request.source ? { source: request.source } : {}),
-    })
+    const coverCallbacks = yield* blueprintCoverCallbacksWorkflow()
+    return yield* (yield* BlueprintPersonalRepo).copy(
+      validatedActor.id,
+      {
+        requestId: request.requestId,
+        content: request.content,
+        ...(request.source ? { source: request.source } : {}),
+      },
+      coverCallbacks
+    )
   })

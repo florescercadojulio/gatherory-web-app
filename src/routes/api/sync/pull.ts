@@ -5,6 +5,7 @@ import { EntityNotFoundError, runServerResponse } from '@/server/effect-utils'
 import { requestUser, validateInput } from '@/server/http-errors'
 import { pullNativeSync } from '@/server/sync/workflows/native-sync.workflows.live'
 import {
+  hasBudgetAtomicCapability,
   hasBlueprintGuidesCapability,
   hasTodosCapability,
 } from '@/server/sync/native-sync-compatibility'
@@ -32,6 +33,7 @@ export const Route = createFileRoute('/api/sync/pull')({
               after: input.after,
               supportsBlueprintGuides: hasBlueprintGuidesCapability(request.headers),
               supportsTodos: hasTodosCapability(request.headers),
+              supportsBudgetAtomic: hasBudgetAtomicCapability(request.headers),
             })
             if (!page)
               return yield* Effect.fail(

@@ -387,8 +387,7 @@ export const registryCommitment = pgTable(
     registryItemId: uuid('registry_item_id')
       .notNull()
       .references(() => registryItem.id, { onDelete: 'cascade' }),
-    userId: text('user_id')
-      .references(() => user.id, { onDelete: 'cascade' }),
+    userId: text('user_id').references(() => user.id, { onDelete: 'cascade' }),
     guestProfileId: uuid('guest_profile_id').references(() => eventGuestProfile.id, {
       onDelete: 'cascade',
     }),
@@ -441,7 +440,10 @@ export const registryReservationRequest = pgTable(
     uniqueIndex('registry_reservation_request_guest_request_uidx')
       .on(table.guestProfileId, table.requestId)
       .where(sql`${table.guestProfileId} is not null`),
-    index('registry_reservation_request_item_created_idx').on(table.registryItemId, table.createdAt),
+    index('registry_reservation_request_item_created_idx').on(
+      table.registryItemId,
+      table.createdAt
+    ),
     check(
       'registry_reservation_request_exact_actor_check',
       sql`(${table.userId} is not null and ${table.guestProfileId} is null) or (${table.userId} is null and ${table.guestProfileId} is not null)`

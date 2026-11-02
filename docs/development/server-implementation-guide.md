@@ -25,6 +25,13 @@ replacement. Check installed Effect APIs before copying examples: at this
 review, `effect`, `@effect/sql-pg`, and `@effect/vitest` are pinned to
 `4.0.0-beta.102`. The project uses v4 conventions, not v3 service APIs.
 
+The [November 2 alignment record](server-architecture-alignment-2026-11-02.md)
+maps the newer MCP, Blueprint media, and creation/copy/catalog boundaries. Use
+its canonical modules and the automatically discovered guard coverage when
+adding API or webhook transports. Existing atomic cover callbacks are trusted,
+lazy workflow arguments; repositories must not import a domain service to obtain
+them.
+
 ## Choose the right entry point
 
 | Caller or responsibility           | Use                                                                          | Do not use                                             |

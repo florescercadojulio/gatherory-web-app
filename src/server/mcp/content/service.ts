@@ -391,7 +391,7 @@ export function createMcpContentService(port: McpContentPort) {
               longitude: null,
               mapItemIdentifier: null,
             },
-            mainEventStatus: 'draft',
+            mainEventStatus: 'ongoing',
             mainEventResponse: 'going',
             venueName: '',
             location: '',

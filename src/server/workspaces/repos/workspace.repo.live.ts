@@ -172,7 +172,7 @@ export const WorkspaceRepoLive = Layer.effect(
                     organizationId: input.organizationId,
                     parentEventId: null,
                     title: input.data.eventName,
-                    status: 'draft',
+                    status: 'ongoing',
                     purpose: null,
                     planningStatus: null,
                     category: null,

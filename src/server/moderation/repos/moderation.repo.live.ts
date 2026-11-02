@@ -19,7 +19,7 @@ import {
 import { ConflictError, EntityNotFoundError, ForbiddenError } from '@/server/effect'
 import { MediaRepo } from '@/server/media/repos/media.repo.contract'
 import { nextReportStatus } from '../contracts/moderation.contracts'
-import { retainedEventAccess } from '@/server/events/repos/event-departure.repo'
+import { retainedEventAccess } from '@/server/events/repos/event-departure.persistence'
 import type {
   ReportImageInput,
   ReviewReportInput,

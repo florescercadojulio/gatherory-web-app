@@ -1,6 +1,7 @@
 import { Context, type Effect } from 'effect'
 import type { DomainError } from '@/lib/domain-errors'
 import type { BlueprintDraftContent } from '@/contracts/blueprint-authoring.contracts'
+import type { BlueprintCoverCallbacks } from './blueprint-cover-callbacks'
 
 export type PersonalBlueprint = {
   id: string
@@ -27,17 +28,25 @@ export class BlueprintPersonalRepo extends Context.Service<
       input: {
         requestId: string
         content: BlueprintDraftContent
-        source?: { catalogKey: string; revision: number; shareToken?: string; discoveryExposureId?: string }
-      }
+        source?: {
+          catalogKey: string
+          revision: number
+          shareToken?: string
+          discoveryExposureId?: string
+        }
+      },
+      coverCallbacks?: BlueprintCoverCallbacks
     ) => Effect.Effect<PersonalBlueprint, DomainError>
     list: (actorId: string) => Effect.Effect<{ templates: PersonalBlueprint[] }, DomainError>
     save: (
       actorId: string,
-      input: { id: string; expectedVersion: number; content: BlueprintDraftContent }
+      input: { id: string; expectedVersion: number; content: BlueprintDraftContent },
+      coverCallbacks?: BlueprintCoverCallbacks
     ) => Effect.Effect<PersonalBlueprint, DomainError>
     publish: (
       actorId: string,
-      input: { id: string; expectedVersion: number; creatorName?: string }
+      input: { id: string; expectedVersion: number; creatorName?: string },
+      coverCallbacks?: BlueprintCoverCallbacks
     ) => Effect.Effect<PersonalBlueprint, DomainError>
     unlist: (
       actorId: string,

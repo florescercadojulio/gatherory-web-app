@@ -10,7 +10,7 @@ import { idea, registryItem } from '@/db/schema/planning.schema'
 import type { PrepareEventMediaUploadInput } from '../contracts/media.contracts'
 import type { PrepareNativeMediaUploadInput } from '../contracts/media.contracts'
 import { visibleMediaPredicate } from '@/server/moderation/repos/media-visibility'
-import { retainedEventAccess } from '@/server/events/repos/event-departure.repo'
+import { retainedEventAccess } from '@/server/events/repos/event-departure.persistence'
 
 /** Native scope IDs identify events, never Better Auth organizations.
  * Resolve storage ownership from the event after checking its participant. */

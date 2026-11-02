@@ -1,18 +1,10 @@
 import { readdirSync, readFileSync } from 'node:fs'
 import { join, relative } from 'node:path'
 import { expect, test } from 'vitest'
+import { legacyServerPortFacades } from '../helpers/server-architecture'
 
 const root = process.cwd()
-const domains = [
-  'events',
-  'media',
-  'moderation',
-  'workspaces',
-  'sync',
-  'auth',
-  'email',
-  'blueprints',
-]
+const serverRoot = join(root, 'src/server')
 
 function sourceFiles(directory: string): string[] {
   return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
@@ -21,7 +13,9 @@ function sourceFiles(directory: string): string[] {
   })
 }
 
-const files = domains.flatMap((domain) => sourceFiles(join(root, 'src/server', domain)))
+// Discover domains rather than maintaining a list that silently misses new ones.
+const files = sourceFiles(serverRoot)
+const handlers = files.filter((file) => /(?:\.handlers?|\.functions|[.-]api)\.tsx?$/.test(file))
 
 // Match import declarations, including multiline imports, without following
 // type-only dependencies into server implementations.
@@ -32,7 +26,6 @@ function runtimeImports(source: string) {
 }
 
 test('use-case handlers keep SQL and provider implementations behind injected services', () => {
-  const handlers = files.filter((file) => /(?:\.handlers?|[.-]api)\.ts$/.test(file))
   expect(handlers.length).toBeGreaterThan(0)
   for (const file of handlers) {
     const name = relative(root, file)
@@ -52,7 +45,7 @@ test('use-case handlers keep SQL and provider implementations behind injected se
 })
 
 test('use-case workflows stay Effect programs with substitutable dependencies', () => {
-  const workflows = files.filter((file) => /\.workflow\.tsx?$/.test(file))
+  const workflows = files.filter((file) => /\.workflows?\.tsx?$/.test(file))
   expect(workflows.length).toBeGreaterThan(0)
   for (const file of workflows) {
     const name = relative(root, file)
@@ -76,6 +69,7 @@ test('repository implementations do not sign media or import external provider c
     const source = readFileSync(file, 'utf8')
     for (const dependency of runtimeImports(source)) {
       expect(dependency.path, name).not.toMatch(/@aws-sdk|\/connectors\/|\/lib\/auth$/)
+      expect(dependency.path, name).not.toMatch(/\.service(?:\.live)?(?:\.ts)?$/)
     }
     expect(source, name).not.toMatch(/import\(['"][^'"]*\/connectors\//)
     expect(source, name).not.toMatch(/\b(?:createMediaReadUrl|createMediaUploadUrl)\s*\(/)
@@ -84,6 +78,7 @@ test('repository implementations do not sign media or import external provider c
 
 test('retained legacy entry points are thin compatibility exports', () => {
   const facades = [
+    ...legacyServerPortFacades,
     'auth/account-deletion.ts',
     'auth/account-deletion-payload.ts',
     'auth/apple-profile.ts',
@@ -112,7 +107,9 @@ test('retained legacy entry points are thin compatibility exports', () => {
 })
 
 test('domain service implementations depend on ports rather than infrastructure', () => {
-  const services = files.filter((file) => file.endsWith('.service.live.ts'))
+  const services = files.filter(
+    (file) => file.includes('/services/') || file.endsWith('.service.live.ts')
+  )
   expect(services.length).toBeGreaterThan(0)
   for (const file of services) {
     const name = relative(root, file)
@@ -134,6 +131,7 @@ test('production workflow bindings compose layers without creating a database ru
     const source = readFileSync(file, 'utf8')
     expect(source, name).toMatch(/Effect\.provide\(/)
     expect(source, name).not.toMatch(/PgClientLive|Effect\.(?:run\w+|tryPromise|promise)\s*\(/)
+    expect(source, name).not.toMatch(/Effect\.gen\s*\(|\.safeParse\(|\.parse\(/)
     for (const dependency of runtimeImports(source)) {
       expect(dependency.path, name).not.toMatch(/^@\/db$|\.persistence$|drizzle-orm|@aws-sdk/)
     }
@@ -141,7 +139,6 @@ test('production workflow bindings compose layers without creating a database ru
 })
 
 test('use-case handlers consume composed workflows instead of wiring domain implementations', () => {
-  const handlers = files.filter((file) => /(?:\.handlers?|[.-]api)\.ts$/.test(file))
   for (const file of handlers) {
     const name = relative(root, file)
     const source = readFileSync(file, 'utf8')
@@ -152,6 +149,43 @@ test('use-case handlers consume composed workflows instead of wiring domain impl
       expect(dependency.path, name).not.toMatch(
         /\/(?:repos|services|connectors)\/.*\.live$|\.layers(?:\.live)?$|\.workflow$/
       )
+    }
+  }
+})
+
+test('UI imports server handlers and contracts without reaching into server implementations', () => {
+  const uiFiles = [
+    ...sourceFiles(join(root, 'src/components')),
+    ...sourceFiles(join(root, 'src/routes')).filter((file) => file.endsWith('.tsx')),
+  ]
+  for (const file of uiFiles) {
+    const name = relative(root, file)
+    for (const dependency of runtimeImports(readFileSync(file, 'utf8'))) {
+      expect(dependency.path, name).not.toMatch(
+        /drizzle-orm|@aws-sdk|^pg$|^@\/db(?:\/|$)|^@\/lib\/auth$/
+      )
+      if (dependency.path.startsWith('@/server/')) {
+        expect(dependency.path, name).toMatch(/\/(?:handlers|contracts)\//)
+      }
+    }
+  }
+})
+
+test('API routes delegate domain work instead of importing persistence or wiring services', () => {
+  for (const file of sourceFiles(join(root, 'src/routes/api'))) {
+    const name = relative(root, file)
+    const source = readFileSync(file, 'utf8')
+    expect(source, name).not.toMatch(
+      /\b(?:db|transaction|tx)\.(?:select|insert|update|delete|transaction)\(/
+    )
+    expect(source, name).not.toMatch(/Layer\.(?:provide|merge)/)
+    for (const dependency of runtimeImports(source)) {
+      expect(dependency.path, name).not.toMatch(/drizzle-orm|@aws-sdk|^pg$|\/db\/schema/)
+      if (dependency.path === '@/db') {
+        expect(dependency.bindings, name).not.toMatch(/\b(?:db|DB|pool)\b/)
+      }
+      expect(dependency.path, name).not.toMatch(/\/(?:repos|services|connectors)\//)
+      expect(dependency.path, name).not.toMatch(/\.con\.live$|\.layers\.live$|\.workflow$/)
     }
   }
 })
