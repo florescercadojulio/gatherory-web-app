@@ -7,7 +7,7 @@ export const BlueprintNativeCreationRepoLive = Layer.effect(
   BlueprintNativeCreationRepo,
   Effect.gen(function* () {
     const pg = yield* PgClient
-    const bind = <A>(effect: Effect.Effect<A, import('effect/unstable/sql/SqlError').SqlError>) =>
+    const bind = <A>(effect: Effect.Effect<A, import('effect/sql/SqlError').SqlError>) =>
       effect.pipe(
         Effect.provideService(PgClient, pg),
         Effect.mapError((cause) =>

@@ -1,7 +1,7 @@
 import { and, asc, eq, inArray, isNull, sql } from 'drizzle-orm'
 import type { EffectDrizzleQueryError } from 'drizzle-orm/effect-core'
 import { Effect } from 'effect'
-import type { SqlError } from 'effect/unstable/sql/SqlError'
+import type { SqlError } from 'effect/sql/SqlError'
 
 import { DB } from '@/db'
 import { member, organization, user } from '@/db/schema/auth.schema'

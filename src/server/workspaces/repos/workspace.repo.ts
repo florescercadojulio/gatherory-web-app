@@ -1,6 +1,6 @@
 import { Context, type Effect } from 'effect'
 import type { EffectDrizzleQueryError } from 'drizzle-orm/effect-core'
-import type { SqlError } from 'effect/unstable/sql/SqlError'
+import type { SqlError } from 'effect/sql/SqlError'
 import type { PersistenceError } from '@/server/effect'
 import type {
   CreateWorkspaceInput,
