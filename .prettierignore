@@ -1,0 +1,4 @@
+# Generated report: freshness checks require the generator's exact serialization.
+/tests/fixtures/blueprint-search-evaluation-report.json
+# Frozen comparator: regression tests lock the original source bytes by SHA-256.
+/tests/fixtures/blueprint-like-affinity-v2-initial.ts

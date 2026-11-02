@@ -230,11 +230,7 @@ type RoleToken = { weight: number; identity: boolean }
 function roleTokensFor(source: BlueprintLikeAffinitySource): Map<string, RoleToken> {
   const tokens = new Map<string, RoleToken>()
   const roles: { values: readonly string[]; weight: number; identity: boolean }[] = [
-    {
-      values: [source.name],
-      weight: BLUEPRINT_PERSONAL_LIKE_POLICY.roleWeights.name,
-      identity: true,
-    },
+    { values: [source.name], weight: BLUEPRINT_PERSONAL_LIKE_POLICY.roleWeights.name, identity: true },
     {
       values: source.eventTitles,
       weight: BLUEPRINT_PERSONAL_LIKE_POLICY.roleWeights.eventTitle,
@@ -493,7 +489,9 @@ export function buildBlueprintLikeAffinity(
       let numerator = 0
       let denominator = 0
       for (const token of new Set([...tokens.keys(), ...seed.tokens.keys()])) {
-        const idf = Math.log(1 + sourceCount / (1 + (documentFrequency.get(token) ?? 0)))
+        const idf = Math.log(
+          1 + sourceCount / (1 + (documentFrequency.get(token) ?? 0))
+        )
         const candidateWeight = (tokens.get(token)?.weight ?? 0) * idf
         const seedWeight = (seed.tokens.get(token)?.weight ?? 0) * idf
         numerator += Math.min(candidateWeight, seedWeight)
