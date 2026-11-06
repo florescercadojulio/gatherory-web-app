@@ -30,7 +30,8 @@ transactional creation/import behavior.
 Content and discovery metadata live in `catalog/explore-collections.ts`;
 `catalog/explore.v1.ts` validates portable drafts and creates immutable install
 documents. `blueprintStarters` is the complete production deployment registry;
-`coreBlueprintStarters` retains the original three cross-client proof fixtures.
+`coreBlueprintStarters` contains the original three starters plus the Movie Night
+onboarding starter. Historical three-starter proof snapshots remain frozen.
 Changing installed v1 content requires a new explicit revision, never replacing
 an existing hash. Discovery labels/tags remain independent of installation data.
 
@@ -43,8 +44,8 @@ an existing hash. Discovery labels/tags remain independent of installation data.
 3. Ship the iOS build; refresh Explore against that server to see all categories.
 
 These code changes do not themselves deploy or seed a live database, upload a
-build, or submit it for review. Development resets include these seventeen
-production templates plus eight development-only examples (twenty-five total).
+build, or submit it for review. Development resets include eighteen production templates, including Movie Night,
+plus eight development-only examples (twenty-six total).
 
 The preview Ideas toolbar now contains Add only on the trailing side; Install
 remains available from the Home actions menu. Installation, offline archives,
@@ -80,3 +81,18 @@ accessible response actions, Undo and saved/offline decision semantics remain
 unchanged. The build and 578 non-UI tests passed (688 executions), with localization
 checks unchanged. An isolated preview capture checked the header and toolbar;
 no UI automation target or live account mutation was used.
+
+## Movie Night onboarding — November 2, 2026
+
+`catalog/movie-night.v1.ts` adds the immutable `movie_night` revision 1. Use
+creates a private main event, one selected Snacks & catch-up activity, and four
+pending ideas. Watch the movie is an event proposal attached to the main event;
+scheduling it adds the second activity. Popcorn bar provides the real Love It
+and approval actions taught by the native guide. No collaborator identity or
+team response is fabricated. The shared JSON is checked against the definition,
+and native copy assertions cover independent IDs and pending status.
+
+This is source registration only. The intended environment still requires an
+explicit additive seed before its authenticated catalog can return Movie Night.
+The new native flow retains classic onboarding as its blank-plan fallback. See
+[the native flow and acceptance record](../../../../ios-apps/gatherory/docs/movie-night-onboarding.md).

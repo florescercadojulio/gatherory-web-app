@@ -16,7 +16,7 @@ import type { OrganizationOptions } from 'better-auth/plugins/organization'
 import { tanstackStartCookies } from 'better-auth/tanstack-start'
 
 import { db } from '@/db'
-import * as authSchema from '@/db/schema/auth.schema'
+import { authSchema } from '@/db/auth-schema'
 import { env } from '@/env'
 import {
   defaultOrganizationType,

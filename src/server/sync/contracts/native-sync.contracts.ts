@@ -41,9 +41,11 @@ const mutationSchema = z.object({
   attemptCount: z.number().int().nonnegative(),
 })
 
-export const pushRequestSchema = z.object({
-  mutations: z.array(mutationSchema).min(1).max(50),
-})
+export const pushRequestSchema = z
+  .object({
+    mutations: z.array(mutationSchema).min(1).max(50),
+  })
+  .strict()
 
 export type NativeMutation = z.infer<typeof mutationSchema>
 

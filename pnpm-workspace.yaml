@@ -30,3 +30,5 @@ minimumReleaseAgeExclude:
   - better-auth@1.7.13
   - "@better-auth/api-key@1.7.13"
   - "@better-auth/passkey@1.7.13"
+patchedDependencies:
+  drizzle-orm@1.0.0-rc.4: patches/drizzle-orm@1.0.0-rc.4.patch

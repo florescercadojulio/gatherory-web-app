@@ -18,8 +18,8 @@ export function formatInvitationDate({
   if (!Number.isFinite(date.getTime())) return null
 
   const options: Intl.DateTimeFormatOptions = isAllDay
-    ? { year: 'numeric', month: 'numeric', day: 'numeric' }
-    : {}
+    ? { dateStyle: 'full' }
+    : { dateStyle: 'full', timeStyle: 'short' }
   const requestedTimeZone = timeZone?.trim()
 
   if (requestedTimeZone) {

@@ -100,6 +100,14 @@ function listGuestEventInvitationProjectionsFor(input: {
         status: sql<
           string | null
         >`case when ${event.planningStatus}::text = 'cancelled' then 'cancelled' else coalesce(${event.status}::text, (select parent.status::text from event parent where parent.id = ${event.parentEventId})) end`,
+        attendanceOpen: sql<boolean>`
+          coalesce(${event.status}::text, (select parent.status::text from event parent where parent.id = ${event.parentEventId}), '') not in ('finished', 'cancelled')
+          and coalesce((select parent.status::text from event parent where parent.id = ${event.parentEventId}), '') not in ('finished', 'cancelled')
+          and coalesce(${event.planningStatus}::text, '') not in ('cancelled', 'archived')
+          and coalesce(${event.completionStatus}::text, '') <> 'complete'
+          and coalesce((select parent.planning_status::text from event parent where parent.id = ${event.parentEventId}), '') not in ('cancelled', 'archived')
+          and coalesce((select parent.completion_status::text from event parent where parent.id = ${event.parentEventId}), '') <> 'complete'
+        `,
         complete: event.completionStatus,
         viewerPersonId: workspacePerson.id,
         role: eventParticipant.role,
@@ -294,7 +302,11 @@ export function respondToEvent(
         // Parent lifecycle is locked before a child. Cancellation cannot commit
         // between checking the parent status and accepting this RSVP.
         const [parent] = yield* db
-          .select({ status: event.status })
+          .select({
+            status: event.status,
+            planningStatus: event.planningStatus,
+            complete: event.completionStatus,
+          })
           .from(event)
           .where(eq(event.id, scope.parentId ?? eventId))
           .limit(1)
@@ -340,7 +352,8 @@ export function respondToEvent(
         if (
           target.status === 'cancelled' ||
           target.planningStatus === 'cancelled' ||
-          parent?.status === 'cancelled'
+          parent?.status === 'cancelled' ||
+          parent?.planningStatus === 'cancelled'
         )
           return yield* Effect.fail(
             new ConflictError({
@@ -349,10 +362,19 @@ export function respondToEvent(
               userMessageKey: 'serverErrors.EVENT_CANCELLED',
             })
           )
+        if (target.planningStatus === 'archived' || parent?.planningStatus === 'archived')
+          return yield* Effect.fail(
+            new ConflictError({
+              category: 'conflict',
+              code: 'EVENT_CLOSED',
+              userMessageKey: 'serverErrors.EVENT_CLOSED',
+            })
+          )
         if (
           target.status === 'finished' ||
           target.complete === 'complete' ||
-          parent?.status === 'finished'
+          parent?.status === 'finished' ||
+          parent?.complete === 'complete'
         )
           return yield* Effect.fail(
             new ConflictError({

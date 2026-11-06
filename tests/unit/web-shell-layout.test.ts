@@ -19,11 +19,9 @@ vi.mock('react-i18next', () => ({
         'overview.events': 'Events',
         'overview.yourEvents': 'Your events',
         'overview.allTogether': 'Everything important, gathered in one place.',
-        'overview.useIPhoneToChange': 'Use the iPhone app to make changes.',
+        'overview.readOnlyDescription':
+          'This is a read-only snapshot of your saved events. Use Gatherory on iPhone to make changes.',
         'overview.comingUp': 'Coming up',
-        'overview.planned': 'planned',
-        'overview.forGuests': 'For guests',
-        'overview.planning': 'Planning',
         'event.schedule': 'Schedule',
         'common.people': 'People',
         'event.approved': 'Approved',
@@ -91,7 +89,7 @@ test('workspace shell keeps the sidebar width in the flex row and content shrink
   expect(markup.match(/<main\b/g)).toHaveLength(1)
 })
 
-test('conference overview retains long schedule titles inside one shrinkable main landmark', () => {
+test('conference overview retains long titles and read-only messaging inside one shrinkable main landmark', () => {
   const longScheduleTitle =
     'TechXchange 2026: International Community Leadership, Research, and Innovation Conference Welcome Reception and Collaborative Planning Session'
   const conference = {
@@ -108,6 +106,7 @@ test('conference overview retains long schedule titles inside one shrinkable mai
     scheduledEventCount: 1,
     openIdeaCount: 3,
     approvedIdeaCount: 1,
+    currencyCode: 'USD',
     budgetCap: 5000,
     trackedCost: 1250,
     updatedAt: '2026-10-25T12:00:00.000Z',
@@ -116,7 +115,7 @@ test('conference overview retains long schedule titles inside one shrinkable mai
         id: 'conference-reception',
         title: longScheduleTitle,
         startsAt: '2026-11-12T17:00:00.000Z',
-        purpose: 'planning',
+        purpose: 'planning_scouting',
         participantCount: 2,
         participants: [],
       },
@@ -136,12 +135,16 @@ test('conference overview retains long schedule titles inside one shrinkable mai
   const markup = renderToStaticMarkup(createElement(component))
 
   expect(markup.match(/<main\b/g)).toHaveLength(1)
-  expect(markup).toContain('class="app-page-shell overview-layout"')
-  expect(markup).toContain('overview-events')
-  expect(markup).toContain('overview-upcoming')
-  expect(markup.indexOf('overview-events')).toBeLessThan(markup.indexOf('overview-upcoming'))
+  expect(markup).toContain('data-slot="sidebar-inset"')
+  expect(markup).toContain('relative flex min-w-0 flex-1 flex-col')
+  const eventsRegionIndex = markup.indexOf('aria-labelledby="your-events-heading"')
+  const upcomingRegionIndex = markup.indexOf('aria-labelledby="coming-up-heading"')
+  expect(eventsRegionIndex).toBeGreaterThanOrEqual(0)
+  expect(upcomingRegionIndex).toBeGreaterThan(eventsRegionIndex)
   expect(markup).toContain('TechXchange 2026 Conference')
-  expect(markup).toContain(longScheduleTitle)
+  expect(markup).toContain(`>${longScheduleTitle}</h3>`)
+  const overviewMarkup = markup.slice(markup.indexOf('class="app-page-shell'))
+  expect(overviewMarkup).not.toMatch(/<(?:a|button|form)\b/)
   expect(markup).toContain('Coming up')
-  expect(markup).toContain('Use the iPhone app to make changes.')
+  expect(markup).toContain('This is a read-only snapshot of your saved events.')
 })

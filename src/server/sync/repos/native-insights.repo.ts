@@ -27,6 +27,7 @@ export function queryNativeWorkspaceInsights(db: Effect.Success<typeof DB>, user
         status: event.status,
         updatedAt: event.updatedAt,
         budgetCap: workspacePlanningSettings.budgetCap,
+        currencyCode: workspacePlanningSettings.currencyCode,
       })
       .from(event)
       .innerJoin(organization, eq(organization.id, event.organizationId))
@@ -157,6 +158,7 @@ export function queryNativeWorkspaceInsights(db: Effect.Success<typeof DB>, user
         openIdeaCount: workspaceIdeas.filter((item) => item.status === 'new').length,
         approvedIdeaCount: workspaceIdeas.filter((item) => item.status === 'approved').length,
         budgetCap: optionalNumber(mainEvent.budgetCap),
+        currencyCode: optionalCurrencyCode(mainEvent.currencyCode),
         trackedCost: workspaceExpenses
           .reduce(
             (total, expense) => total.plus(optionalMoneyDecimal(expense.amount) ?? 0),
@@ -189,4 +191,10 @@ function optionalNumber(value: unknown) {
   const parsed = optionalMoneyDecimal(value)
   if (parsed) return parsed.toNumber()
   return null
+}
+
+function optionalCurrencyCode(value: unknown): string | null {
+  if (typeof value !== 'string') return null
+  const normalized = value.trim().toUpperCase()
+  return /^[A-Z]{3}$/.test(normalized) ? normalized : null
 }

@@ -27,6 +27,7 @@ const emptyProjection = {
   description: null,
   dressCode: null,
   status: 'planned',
+  attendanceOpen: true,
   complete: 'upcoming',
   viewerPersonId: 'person-1',
   role: 'guest',

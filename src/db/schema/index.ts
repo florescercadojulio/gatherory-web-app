@@ -1,4 +1,5 @@
 export * from './auth.schema'
+export * from './mcp-oauth.schema'
 export * from './event.schema'
 export * from './media.schema'
 export * from './moderation.schema'

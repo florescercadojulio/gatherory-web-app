@@ -32,6 +32,12 @@ mutation receipt gains nullable `mcp_fingerprint` for binding write retries to
 their arguments. Account deletion cascades through user-owned clients, grants,
 and tokens; tokens detach from deleted sessions with `ON DELETE SET NULL`.
 
+`auth.schema.ts` contains core auth definitions and imports no MCP table exports.
+`src/db/auth-schema.ts` composes core and MCP tables for the Better Auth adapter,
+runtime relations, and development reset. Keep this composition outside
+Drizzle's `*.schema.ts` discovery glob so the generator reads each table once.
+See the [November 6 wiring regression record](schema-export-wiring-2026-11-06.md).
+
 ## OAuth and client setup
 
 The OAuth resource identifier is the canonical app origin plus `/mcp`. Better
@@ -235,6 +241,7 @@ pnpm exec vitest run \
   tests/unit/mcp-auth-config.test.ts \
   tests/unit/mcp-authorization.test.ts \
   tests/unit/mcp-oauth-schema.test.ts \
+  tests/tooling/drizzle-schema-generation.test.ts \
   tests/contracts/mcp-http.test.ts \
   tests/contracts/mcp-token-verification.test.ts \
   tests/integration/mcp-oauth.test.ts

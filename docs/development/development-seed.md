@@ -299,3 +299,19 @@ object store and exercises the real materializer/SQL updater: existing covers,
 inline images, tombstones, mismatched records, other organizations, sync versions,
 repeat runs, and rollback after a storage-success/database-failure boundary.
 It refuses the normal `gatherory` database as its test target.
+
+## Movie Night onboarding catalog repair — November 2, 2026
+
+The native unavailable message was reproduced by checking the dev catalog:
+`movie_night` had no revision and the connected dev MCP returned no results.
+The existing dev server uses the local `gatherory` database. With that exact
+local URL supplied explicitly as `DATABASE_URL`, `pnpm blueprints:seed` inserted
+**one** missing revision without resetting existing data. The catalog changed
+from 25 to 26 revisions, including the eight development fixtures.
+
+A read-only check confirmed active `movie_night` revision 1, and the authenticated
+dev MCP `search_blueprints` call returned Movie Night afterward. Native Debug
+points to `dev.gatherory.com`; use **Try again** on the unavailable screen to
+reload the catalog. No app rebuild or database restart is needed for this data
+repair. TestFlight/Release uses `app.gatherory.com`; its production catalog was
+not seeded or deployed by this repair.

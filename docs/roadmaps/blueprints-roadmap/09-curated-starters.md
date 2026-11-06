@@ -1,9 +1,26 @@
-# Birthday Party and Thanksgiving starters
+# Curated starter catalog
 
 Implemented October 15, 2026. The curated catalog now contains Wedding,
 Birthday Party, and Thanksgiving. This adds content to the existing engine;
 private authoring, guide editing, durable pre-install drafts, and billing remain
 separate work.
+
+## Movie Night (November 2, 2026)
+
+The curated catalog also contains Movie Night (`movie_night`, revision 1),
+registered in `catalog/starters.ts` for the same catalog listing, preview, and
+installation APIs. Its host copy proposes one direct child, “Snacks & catch-up,”
+and four undecided ideas: the event-category “Watch the movie” idea targeted at
+that child, plus Popcorn bar, Pizza, and Blanket corner. The movie remains an
+idea until the host explicitly schedules it; no movie activity is approved,
+dated, or inferred by installation. No collaborators, votes, or account IDs are
+part of the portable definition.
+
+Movie Night reuses the licensed `gathering` and `food` media registry assets;
+its source-bound assignments are keyed to the immutable definition hash. The
+focused regression test validates the source schema and discovery registration,
+then checks that expansion retains the pending idea state and the host-selected
+child boundary.
 
 ## Content and discovery
 

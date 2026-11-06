@@ -30,6 +30,47 @@ production rollout request from the product owner. See the [MCP development
 rollout record](mcp-dev-rollout.md#browser-connection-settings-acceptance--october-25-2026)
 for the verified browser flow and its limits.
 
+**Latest November 3 scope:** the broader planner UI is shelved. Keep the
+read-only main-event overview at `/workspaces`; planner event/detail and legacy
+workspace URLs return there. Guest invitation and own-RSVP flows stay active,
+including signed-in guests. Existing Blueprint tools and server/native/MCP
+capabilities are unaffected. See the
+[overview-only follow-up](overview-only-2026-11-03.md). The implementation and
+acceptance history below predates this narrowing and is not the active UI scope.
+The overview now carries each event's canonical budget currency through the
+existing projection; amounts use that currency's display digits, with an
+explicit unavailable notice when metadata is missing. Decimal.js owns monetary
+arithmetic and display rounding; existing numeric wire amounts remain unchanged.
+
+The November 3 [web experience roadmap](../roadmaps/web-experience-roadmap/README.md)
+records the next accepted direction: use REUI heavily for user-facing layouts
+and blocks, prioritize Android/browser invitation entry and accountless guest
+RSVP, then improve event reading with selected authorized updates. Developer
+consoles, API-key management and webhook UI come last; existing MCP access is
+sufficient for current integration needs. The first browser guest session and
+RSVP journey are now implemented locally, with a REUI form, own-response updates
+and a narrow invited-event summary. Collaborators still sign in and follow
+configured approval; public Guest links do not grant planning access. See the
+[browser RSVP acceptance record](browser-invitation-rsvp-2026-11-03.md) for test
+evidence and remaining device/deployment limits. The next selected planner slice is also implemented locally at
+`/events/$eventId`: exact-event details, people, authorized child schedule,
+tasks/notes, own RSVP, task completion/undo, own notes and manager-only basic
+details. Guest planning isolation and native write consistency remain enforced.
+See the [event-reading acceptance record](event-reading-selected-updates-2026-11-03.md).
+The [event experience redesign record](event-experience-redesign-2026-11-03.md)
+documents the responsive overview and planner event visual refresh, ReUI
+registry provenance, browser evidence, preserved permission behavior, and
+remaining acceptance limits. Its final full web suite passed 1,091 tests.
+Broader authoring and deployment remain outside these slices.
+
+The [November 3 mobile browser acceptance record](mobile-browser-acceptance-2026-11-03.md)
+adds verified in-app browser viewport checks and an Android API 37 Chrome guest
+RSVP, keyboard, editor-layout, task, note and Back pass. The full web suite
+passed: 185 files, 1,088 tests passed, and 48 files / 76 opt-in tests skipped.
+Two disposable event-reading and browser-guest database tests passed. Physical
+QR scanning, Dark mode, live Spanish UI, broader authorization/accessibility
+checks, and saved Android editor text remain open.
+
 The current development overview puts event summaries first, with upcoming
 sessions labeled by their parent event. Account uses one settings column and
 the existing global sidebar; it has no second section-navigation sidebar.
@@ -171,6 +212,29 @@ Paths in inline code are relative to their owning repository.
   Check [mobile session lifecycle](../architecture/mobile-session-lifecycle.md)
   before changing sign-in, guest retention, or entry ordering. Do not put
   network, deletion, or permission changes in routing handlers.
+  First-run presentation is selected separately: the Movie Night primer offers
+  Start tour or Skip; Start records an account-scoped discovery phase and prompts
+  the real Explore tab with a measured native-tab pointer and outline. Guided
+  Explore reuses the regular native screen, chrome and feed; cached/online cards
+  remain visible but disabled. The shipped Movie Night blueprint is pinned,
+  deduplicated, outlined and the only selectable card. Search, profile, filter,
+  other actions, ads and measurements are inactive during this entry. Selecting
+  Movie Night creates the owned local lesson and sync outbox. No catalog response
+  or internet is required for these tour steps after account preparation. Skipping before selection creates no event and restores normal
+  Explore. Text Previous / Skip tour / Next (Finish tour at completion) controls revisit instructions
+  without undoing actions or advancing past real voting/approval/scheduling gates.
+  The original onboarding remains intact under `-ClassicOnboarding`.
+  Account → Redo tour repeats the Explore entry, then resumes an unfinished lesson
+  or creates a fresh copy after completion/deletion, preserving earlier content.
+  Finish or Skip after creating the lesson asks Keep event or Remove event.
+  Removal rechecks the account/receipt/host authority and uses the normal durable
+  local/outbox delete; failures preserve the plan for retry. Preselection Skip has
+  no cleanup prompt. The practice event can also be deleted from Events.
+  No synthetic collaborator votes
+  are written. Per-account Decide and Search primers follow completion/skip on
+  the relevant active tab, and wait during both discovery and the workspace guide.
+  Do not replace authentication routing to change the presentation. See
+  [Movie Night onboarding](../../../ios-apps/gatherory/docs/movie-night-onboarding.md).
   Confirmed account deletion now keeps an atomic account-ID cleanup journal
   until exact-account device removal succeeds. Cleanup retries before session
   restoration, never repeats remote deletion, and never uploads pending edits.
@@ -232,8 +296,33 @@ Paths in inline code are relative to their owning repository.
   Query relevance and cursor digests remain server-owned; the native feed keeps
   server matches/order without its legacy local metadata filter. The response
   contract and clean cards are unchanged, with source details in the preview.
-  Web typecheck, contract/full tests and 37 focused native tests passed; see the
-  slice for exact test stages and limits. No deployment/phone release occurred.
+  V1 adds an authenticated public idea feed for the native All/Blueprints/Ideas
+  filter. It extracts individual ideas from currently listed Blueprint
+  publications, applies the same phrase/alias/related-term/typo rules to idea
+  title and notes, and binds cursors to query and result snapshot. **Add
+  suggestion** copies into the selected event; scheduling remains separate, and
+  there is no standalone public/private idea publishing. A validated published
+  idea cover ID is a source-scoped reference for native media copying; storage
+  locations, signed URLs, and arbitrary configuration are omitted. See the
+  [public idea discovery implementation and acceptance limits](../architecture/public-blueprint-idea-discovery.md).
+  The backend passed `pnpm contracts:check`, `pnpm typecheck`, and the full
+  `pnpm vitest run` after a reproducible pnpm patch corrected Drizzle's
+  `effect/Schema.TaggedErrorClass` rename mismatch with Effect 4.1.1. The full
+  run passed 169 files / 1,012 tests and skipped 46 files / 74 tests. The
+  historical isolated PostgreSQL 18 attempt predates that patch; import failed
+  before assertions and it has not been rerun. The patch and verification
+  commands are recorded in the [V1 implementation record](../architecture/public-blueprint-idea-discovery.md).
+  No shared database writes or deployment were performed. Native Light/Dark Add suggestion UI
+  journey passed; native unit tests report 1,182 registered and 1,181 executed
+  (one opt-in live test skipped). See the
+  [native acceptance record](../../../ios-apps/gatherory/docs/explore-idea-discovery.md).
+  Curated Movie Night (`movie_night`, revision 1) is now registered in the web
+  source catalog. On November 2, the additive `pnpm blueprints:seed` command
+  inserted its missing revision into the existing local development database
+  behind `dev.gatherory.com`. The connected dev MCP then returned Movie Night.
+  The catalog has 26 revisions including the eight development fixtures; no reset
+  or production seed/deployment was performed. The bundled native tour no longer
+  depends on that catalog seed; general Explore remains server-backed.
   [Blueprint actions and measurement](../roadmaps/blueprint-ranking-roadmap/03-actions-and-measurement.md)
   are now implemented locally: private likes/bookmarks/hiding in the native card
   and preview menus, saved/hidden management, exact-source validation and an

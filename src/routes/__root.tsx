@@ -36,7 +36,8 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
       },
       {
         name: 'viewport',
-        content: 'width=device-width, initial-scale=1, viewport-fit=cover',
+        content:
+          'width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content',
       },
       {
         name: 'theme-color',
@@ -56,7 +57,7 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
       {
         rel: 'stylesheet',
         // The tunnel may cache unversioned development CSS; release assets are hashed by Vite.
-        href: import.meta.env.DEV ? `${appCss}?v=20261025-event-overview-final` : appCss,
+        href: import.meta.env.DEV ? `${appCss}?v=20261103-overview-only` : appCss,
       },
       {
         rel: 'icon',

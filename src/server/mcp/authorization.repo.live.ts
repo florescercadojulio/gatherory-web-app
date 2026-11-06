@@ -2,7 +2,8 @@ import { PgClient } from '@effect/sql-pg/PgClient'
 import { and, desc, eq, gt, isNull } from 'drizzle-orm'
 import { Effect, Layer } from 'effect'
 import { DB } from '@/db'
-import { oauthClient, oauthConsent, session, user } from '@/db/schema/auth.schema'
+import { session, user } from '@/db/schema/auth.schema'
+import { oauthClient, oauthConsent } from '@/db/schema/mcp-oauth.schema'
 import {
   McpAuthorizationRepository,
   type McpAuthorizationRepositoryShape,

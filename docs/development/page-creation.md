@@ -4,11 +4,41 @@ This document defines the default UX and implementation conventions for pages
 under `src/routes/`. A page should be chosen by the job it performs, not forced
 into a generic dashboard or card layout.
 
+## REUI and the web experience direction
+
+For new web screens, start with REUI blocks and component compositions, using
+the current Base Nova style, owned Base UI/shadcn primitives and Gatherory's
+existing tokens. Prefer adapting a suitable block over inventing new page
+chrome. Reuse the existing local Frame, buttons, fields, dialogs and sidebar;
+block examples do not introduce a parallel form or data-access architecture.
+
+The [web experience roadmap](../roadmaps/web-experience-roadmap/README.md) owns
+the user-facing scope and its [visual specification](../roadmaps/web-experience-roadmap/00a-ui-feel-and-reui-composition.md)
+maps verified REUI candidates to invitations, RSVP, agenda and selected updates.
+Free examples and Pro blocks have different availability; record the selected
+source and adapt only supported behavior. A REUI demo with a roster, editor or
+local success state does not establish permission or implemented persistence.
+
+Invitation/event reading surfaces use a readable hierarchy and ordered rows,
+not a default admin table. `EntityTablePage` remains appropriate for genuinely
+tabular collections such as authoring records. Keep event reading first, guest
+RSVP accountless in the invitation flow, and developer navigation last.
+This guidance is web-only and does not apply REUI to native interfaces.
+
 ## Route ownership and layout
 
-The authenticated Gatherory product owns one protected route namespace. Its
-shell owns product navigation, event-context switching, and the route header.
-Child routes own their page content.
+Authenticated pages reuse one product navigation shell. Workspace pages use
+`_protected`. The active event-planning browser UI is now the read-only main-event
+overview; `/events/$eventId` and legacy workspace planning URLs redirect to
+`/workspaces`. The broader planner UI is shelved, with its source retained.
+Guest invitation and own-RSVP screens remain active outside that planner shell.
+This UI scope does not change server event authorization or native/MCP APIs.
+The shell owns the single main landmark; child routes own page content.
+
+Public invitation previews and the scoped browser guest event surface
+have dedicated layouts outside the protected account/workspace shell. Preserve
+the distributed `/join/$token` entry URL. Guest session and exact-event grants,
+not an account route guard or a URL UUID, authorize guest reads and own RSVP.
 
 ```text
 src/routes/
@@ -39,10 +69,7 @@ button beside the label, with a shadcn tooltip on hover, focus, or click:
 
 ```ts
 beforeLoad: () =>
-  withBreadcrumb(
-    "Training library",
-    "Approved training and helpful reference documents.",
-  );
+  withBreadcrumb('Training library', 'Approved training and helpful reference documents.')
 ```
 
 When breadcrumbs already name a collection, omit a duplicate title/description
@@ -63,8 +90,8 @@ search, pagination, loading, retry, and empty states.
 Provide a typed server function using the standard page shape:
 
 ```ts
-type PageInput = { limit: number; offset: number; query: string };
-type Page<T> = { data: T[]; hasNextPage: boolean };
+type PageInput = { limit: number; offset: number; query: string }
+type Page<T> = { data: T[]; hasNextPage: boolean }
 ```
 
 Keep columns focused on scanable information. A row click should navigate to a
@@ -124,11 +151,11 @@ sections.
 Handle the shared server result explicitly:
 
 ```ts
-const result = await serverFn({ data });
+const result = await serverFn({ data })
 
 if (!result.ok) {
   // Show result.error.userMessage and, where helpful, its errorId.
-  return;
+  return
 }
 
 // Use result.data.
@@ -177,8 +204,8 @@ main event.
 Use BlockNote's shadcn adapter for a rich document editor:
 
 ```ts
-import { useCreateBlockNote } from "@blocknote/react";
-import { BlockNoteView } from "@blocknote/shadcn";
+import { useCreateBlockNote } from '@blocknote/react'
+import { BlockNoteView } from '@blocknote/shadcn'
 ```
 
 BlockNote is browser-only in a TanStack Start route. Mount the editor inside

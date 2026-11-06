@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "q": {
+      "type": "string",
+      "minLength": 0,
+      "maxLength": 128,
+      "description": "0–128 Unicode code points; surrounding whitespace is trimmed before validation."
+    },
+    "cursor": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 512,
+      "pattern": "^[A-Za-z0-9_-]+$"
+    },
+    "limit": {
+      "default": 30,
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 60
+    }
+  },
+  "additionalProperties": false,
+  "$id": "https://schemas.gatherory.com/blueprint-idea-discovery-input/v1.json",
+  "title": "Gatherory Public Blueprint Idea Search Request v1"
+}

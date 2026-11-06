@@ -53,3 +53,33 @@ test('native sync rejects unsupported payload schema versions', () => {
 
   expect(result.success).toBe(false)
 })
+
+test('public native sync input rejects trusted server-only mutation options', () => {
+  const workspaceID = '5CF54762-4A9A-49C3-B1E8-DF26D184AFBA'
+  const mutation = {
+    id: 'B2A7345B-C4D4-42B6-BA01-913C31597E35',
+    scopeID: workspaceID,
+    entityType: 'workspace',
+    entityID: workspaceID,
+    operation: 'update',
+    payload: 'e30=',
+    createdAt: '2026-10-12T12:00:00Z',
+    attemptCount: 0,
+  }
+  expect(
+    pushRequestSchema.safeParse({
+      mutations: [mutation],
+      requestFingerprints: { [mutation.id]: 'fingerprint' },
+    }).success
+  ).toBe(false)
+  expect(
+    pushRequestSchema.safeParse({
+      mutations: [mutation],
+      trustedWorkspaceDetailsPatch: {
+        mutationId: mutation.id,
+        eventId: workspaceID,
+        changes: { title: 'Forged' },
+      },
+    }).success
+  ).toBe(false)
+})

@@ -52,6 +52,7 @@ test.skipIf(!enabled)(
       authContracts,
       nativeContracts,
       discovery,
+      ideaDiscovery,
     ] = await Promise.all([
       import('@/db'),
       import('@/db/schema'),
@@ -74,6 +75,7 @@ test.skipIf(!enabled)(
       import('@/server/workspaces/connectors/better-auth.con'),
       import('@/contracts/blueprint-native-creation.contracts'),
       import('@/server/blueprints/services/blueprint-discovery'),
+      import('@/server/blueprints/services/blueprint-idea-discovery'),
     ])
     const { db, PgClientLive } = database
     const { user, organization, member, event, workspacePerson, eventParticipant } = schema
@@ -432,6 +434,19 @@ test.skipIf(!enabled)(
       )
       expect(firstCreatorListing).toEqual({ listedRevision: 1, creatorName: 'Garden Hosts' })
       const attributedCatalog = await catalogFor(ids.installer)
+      const publicIdeas = ideaDiscovery.discoverBlueprintIdeas(attributedCatalog, {
+        q: '',
+        limit: 60,
+      })
+      expect(publicIdeas.ideas.map(({ sourceBlueprintId }) => sourceBlueprintId)).toContain(
+        template!.catalogKey
+      )
+      expect(publicIdeas.ideas.map(({ sourceBlueprintId }) => sourceBlueprintId)).not.toContain(
+        privateDraft.catalogKey
+      )
+      expect(publicIdeas.ideas.map(({ sourceBlueprintId }) => sourceBlueprintId)).not.toContain(
+        unpublishedDraft.catalogKey
+      )
       const attributedEntry = attributedCatalog.entries.find(
         ({ catalogKey }) => catalogKey === template!.catalogKey
       )!

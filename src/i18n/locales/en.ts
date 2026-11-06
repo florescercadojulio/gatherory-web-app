@@ -1,7 +1,10 @@
 import serverErrors from './en.server-errors'
+import browserInvitation from './en.browser-invitation'
+import eventReading from './en.event-reading'
 
 const en = {
   serverErrors,
+  ...eventReading,
   moderation: {
     title: 'Abuse reports',
     description: 'Review reported images. Normal uploads do not need host approval.',
@@ -85,20 +88,29 @@ const en = {
     ideasToDecide: 'Ideas to decide',
     acrossEvents: 'Across all your events',
     plannedSpending: 'Planned spending',
+    currencyUnavailable: 'Currency unavailable',
     spendingSoFar: 'What you expect to spend so far',
     hostsHelpersGuests: 'Hosts, helpers, and guests',
     yourEvents: 'Your events',
     allTogether: 'Everything important, gathered in one place.',
-    useIPhoneToChange: 'Use the iPhone app to make changes.',
+    readOnlyDescription:
+      'This is a read-only snapshot of your saved events. Use Gatherory on iPhone to make changes.',
+    people: 'People',
+    scheduledActivities: 'Scheduled activities',
+    peopleCount_one: '{{count}} person',
+    peopleCount_other: '{{count}} people',
+    dateUnavailable: 'Date unavailable',
     updatedAt: 'Updated {{date}}',
     budget: 'Budget overview',
     planned: 'planned',
     ofBudget: 'of {{amount}}',
     comingUp: 'Coming up',
-    nextCount: 'Next {{count}}',
+    viewerLocalTime: 'Activity times are shown in your local time zone.',
     noUpcoming: 'No upcoming activities are planned.',
-    planning: 'Planning',
-    forGuests: 'For guests',
+    planningPurpose: 'Planning & scouting',
+    experiencePurpose: 'Part of the experience',
+    budgetCap: 'Budget: {{amount}}',
+    budgetUsed: '{{percent}}% used',
     firstEvent: 'Start on your iPhone',
     firstEventDescription:
       'Create an event in Gatherory on your iPhone. Its schedule, people, ideas, and budget will appear here.',
@@ -442,6 +454,7 @@ const en = {
     legal: "By continuing, you agree to Gatherory's Terms and acknowledge the Privacy Policy.",
   },
   invitation: {
+    ...browserInvitation.invitation,
     title: 'Gatherory invitation',
     invalid: 'This invitation link is invalid. Ask the host for a new one.',
     sharedJoin:
@@ -452,10 +465,9 @@ const en = {
     sharedCollaboratorViewOnlyJoin: 'Sign in to view this event and its plans as a collaborator.',
     sharedCollaboratorViewOnlyApprovalJoin:
       'Sign in to request view-only collaborator access. The host must approve your request before you can view the event and its plans.',
-    sharedGuestJoin:
-      'Guest attendance is available in the Gatherory iPhone app. To continue with this public invitation in the browser, sign in or create an account.',
+    sharedGuestJoin: 'You can respond as a guest in this browser without creating an account.',
     privateJoin:
-      'This private invitation requires you to sign in or create an account in the browser. Email-specific invitations must be accepted by an account using the invited email.',
+      'This invitation is unavailable as a public guest link. If it was sent to your email, sign in with that address. Otherwise, ask the host to share a current invitation.',
     signIn: 'Sign in',
     signInToPlan: 'Sign in to help plan',
     signInToViewPlans: 'Sign in to view plans',
@@ -466,9 +478,6 @@ const en = {
       'This invitation could not be loaded. Make sure you are using the invited email address.',
     switchAccount: 'Switch account',
     joinedAs: 'You joined as a {{role}}. Your host can now include you in the event.',
-    refreshOnIPhone:
-      'Open Gatherory on your iPhone and refresh to see this event. Guest access is for attending; collaborator access follows the event’s sharing permissions.',
-    continue: 'Continue to Gatherory',
     invitedAs: 'You are invited as a {{role}}. This invitation expires {{date}}.',
     invitedAsNoExpiry: 'You are invited as a {{role}}.',
     collaboratorViewOnly: 'This collaborator link grants view-only access to the event.',
@@ -479,6 +488,8 @@ const en = {
       'This collaborator link grants planning access after the host approves your request.',
     awaitingApproval: 'Your request to join as a collaborator is waiting for host approval.',
     accepting: 'Accepting…',
+    requestAccess: 'Request to join',
+    requestingAccess: 'Requesting access…',
     accept: 'Accept invitation',
     expired: 'This invitation has expired. Ask the host for a new link.',
     verifyEmail: 'Verify your email address, then return to this invitation.',

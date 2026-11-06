@@ -12,6 +12,17 @@ type Requirements<Module> = {
 }
 
 type DatabaseRequirements<Module> = { [Key in keyof Requirements<Module>]: PgClient }
+type NoRequirements<Module> = { [Key in keyof Requirements<Module>]: never }
+
+test('event reading leaves only PgClient unresolved', () => {
+  type Workflows = typeof import('@/server/events/workflows/event-reading.workflows.live')
+  expectTypeOf<Requirements<Workflows>>().toEqualTypeOf<DatabaseRequirements<Workflows>>()
+})
+
+test('selected event updates retain the native transaction engine without a fictitious PgClient requirement', () => {
+  type Workflows = typeof import('@/server/events/workflows/event-updates.workflows.live')
+  expectTypeOf<Requirements<Workflows>>().toEqualTypeOf<NoRequirements<Workflows>>()
+})
 
 test('every production workflow binding is included in the requirement type checks', () => {
   const root = process.cwd()
@@ -94,6 +105,17 @@ test('Blueprint discovery workflows leave only PgClient unresolved', () => {
 
 test('waitlist workflows leave only PgClient unresolved', () => {
   type Workflows = typeof import('@/server/waitlist/workflows/waitlist.workflows.live')
+  expectTypeOf<Requirements<Workflows>>().toEqualTypeOf<DatabaseRequirements<Workflows>>()
+})
+
+test('browser guest invitation workflows leave only PgClient unresolved', () => {
+  type Workflows =
+    typeof import('@/server/events/workflows/browser-guest-invitation.workflows.live')
+  expectTypeOf<Requirements<Workflows>>().toEqualTypeOf<DatabaseRequirements<Workflows>>()
+})
+
+test('signed-in invitation event workflow leaves only PgClient unresolved', () => {
+  type Workflows = typeof import('@/server/events/workflows/account-invited-event.workflows.live')
   expectTypeOf<Requirements<Workflows>>().toEqualTypeOf<DatabaseRequirements<Workflows>>()
 })
 

@@ -14,7 +14,7 @@ import { buildBlueprintNativeProjection } from '@/server/blueprints/services/blu
 export function buildCuratedStarterFixtures() {
   const actor = { id: 'curated-starter-host', name: 'Riley Example', email: 'riley@example.test' }
   const samples = blueprintStarters
-    .filter((entry) => entry.catalogKey !== 'wedding')
+    .filter((entry) => entry.catalogKey !== 'wedding' && entry.catalogKey !== 'movie_night')
     .map((entry, index) => {
       const mainEvent = {
         name: entry.definition.blueprint.name,
@@ -86,5 +86,10 @@ export function buildCuratedStarterFixtures() {
         archive,
       }
     })
-  return { catalog: buildBlueprintCatalog([...blueprintStarters]), samples }
+  return {
+    catalog: buildBlueprintCatalog(
+      blueprintStarters.filter((entry) => entry.catalogKey !== 'movie_night')
+    ),
+    samples,
+  }
 }

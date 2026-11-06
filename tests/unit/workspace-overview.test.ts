@@ -22,6 +22,7 @@ function workspace(
     scheduledEventCount: upcomingEvents.length,
     openIdeaCount: 0,
     approvedIdeaCount: 0,
+    currencyCode: 'USD',
     budgetCap: null,
     trackedCost: 0,
     updatedAt: '2026-10-25T09:00:00.000Z',

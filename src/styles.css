@@ -658,6 +658,56 @@
 }
 
 @layer components {
+  .event-colorway {
+    --event-accent: #a7402d;
+    --event-soft: #fff0e8;
+    --event-outline: #ebc0af;
+    --event-on-accent: #ffffff;
+  }
+
+  .event-colorway[data-colorway='violet'] {
+    --event-accent: #7048b5;
+    --event-soft: #f2edff;
+    --event-outline: #d2c1ef;
+  }
+
+  .event-colorway[data-colorway='mint'] {
+    --event-accent: #246f5a;
+    --event-soft: #e8f6ee;
+    --event-outline: #acd7c0;
+  }
+
+  .event-colorway[data-colorway='sky'] {
+    --event-accent: #276a95;
+    --event-soft: #e9f4fc;
+    --event-outline: #b8d8ed;
+  }
+
+  .dark .event-colorway {
+    --event-accent: #ffb39a;
+    --event-soft: #30211e;
+    --event-outline: #634037;
+    --event-on-accent: #27130d;
+  }
+
+  .dark .event-colorway[data-colorway='violet'] {
+    --event-accent: #d0b5ff;
+    --event-soft: #262035;
+    --event-outline: #51406e;
+  }
+
+  .dark .event-colorway[data-colorway='mint'] {
+    --event-accent: #9adcb8;
+    --event-soft: #1c2c25;
+    --event-outline: #355b48;
+  }
+
+  .dark .event-colorway[data-colorway='sky'] {
+    --event-accent: #9bd7ff;
+    --event-soft: #1b2934;
+    --event-outline: #36556d;
+  }
+
   .app-toolbar {
     @apply sticky top-0 z-30 flex h-14 shrink-0 items-center gap-2 border-b bg-background/92 px-4 backdrop-blur-xl;
   }

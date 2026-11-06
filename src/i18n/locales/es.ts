@@ -1,4 +1,34 @@
+import browserInvitation from './es.browser-invitation'
+import eventReading from './es.event-reading'
+
 const es = {
+  ...eventReading,
+  overview: {
+    yourEvents: 'Tus eventos',
+    readOnlyDescription:
+      'Esta es una copia de solo lectura de tus eventos guardados. Usa Gatherory en iPhone para hacer cambios.',
+    people: 'Personas',
+    scheduledActivities: 'Actividades programadas',
+    ideasToDecide: 'Ideas por decidir',
+    plannedSpending: 'Gastos previstos',
+    currencyUnavailable: 'Moneda no disponible',
+    peopleCount_one: '{{count}} persona',
+    peopleCount_other: '{{count}} personas',
+    dateUnavailable: 'Fecha no disponible',
+    comingUp: 'Próximamente',
+    viewerLocalTime: 'Las horas se muestran en tu zona horaria local.',
+    noUpcoming: 'No hay actividades próximas planificadas.',
+    planningPurpose: 'Planificación y búsqueda',
+    experiencePurpose: 'Parte de la experiencia',
+    budgetCap: 'Presupuesto: {{amount}}',
+    budgetUsed: '{{percent}} % usado',
+    firstEvent: 'Empieza en tu iPhone',
+    firstEventDescription:
+      'Crea un evento en Gatherory en tu iPhone. Su agenda, personas, ideas y presupuesto aparecerán aquí.',
+    olderEvents_one: '{{count}} evento anterior aparecerá cuando lo abras y guardes en tu iPhone.',
+    olderEvents_other:
+      '{{count}} eventos anteriores aparecerán cuando los abras y guardes en tu iPhone.',
+  },
   account: {
     description: 'Tu perfil, preferencias y aplicaciones conectadas.',
     sections: 'Secciones de la cuenta',
@@ -52,6 +82,7 @@ const es = {
     guest: 'invitado',
   },
   invitation: {
+    ...browserInvitation.invitation,
     title: 'Invitación de Gatherory',
     invalid: 'Este enlace de invitación no es válido. Pide otro al anfitrión.',
     sharedJoin:
@@ -63,10 +94,9 @@ const es = {
       'Inicia sesión para ver este evento y sus planes como colaborador.',
     sharedCollaboratorViewOnlyApprovalJoin:
       'Inicia sesión para solicitar acceso de solo lectura como colaborador. El anfitrión debe aprobar tu solicitud antes de que puedas ver el evento y sus planes.',
-    sharedGuestJoin:
-      'Puedes asistir como invitado desde la app de Gatherory para iPhone. Para continuar con esta invitación pública en el navegador, inicia sesión o crea una cuenta.',
+    sharedGuestJoin: 'Puedes responder como invitado en este navegador sin crear una cuenta.',
     privateJoin:
-      'Esta invitación privada requiere que inicies sesión o crees una cuenta en el navegador. Las invitaciones dirigidas a un correo deben aceptarse con una cuenta que use ese correo.',
+      'Esta invitación no está disponible como enlace público para invitados. Si te la enviaron por correo, inicia sesión con esa dirección. Si no, pide al anfitrión una invitación vigente.',
     signIn: 'Iniciar sesión',
     signInToPlan: 'Inicia sesión para ayudar a planificar',
     signInToViewPlans: 'Inicia sesión para ver los planes',
@@ -76,9 +106,6 @@ const es = {
     notLoaded: 'No se pudo cargar esta invitación. Comprueba que estés usando el correo invitado.',
     switchAccount: 'Cambiar de cuenta',
     joinedAs: 'Te uniste como {{role}}. El anfitrión ya puede incluirte en el evento.',
-    refreshOnIPhone:
-      'Abre Gatherory en tu iPhone y actualiza para ver este evento. El acceso de invitado es para asistir; el acceso de colaborador depende de los permisos para compartir del evento.',
-    continue: 'Continuar a Gatherory',
     invitedAs: 'Te invitaron como {{role}}. Esta invitación vence el {{date}}.',
     invitedAsNoExpiry: 'Te invitaron como {{role}}.',
     collaboratorViewOnly: 'Este enlace de colaborador permite ver el evento.',
@@ -90,6 +117,8 @@ const es = {
     awaitingApproval:
       'Tu solicitud para unirte como colaborador espera la aprobación del anfitrión.',
     accepting: 'Aceptando…',
+    requestAccess: 'Solicitar unirse',
+    requestingAccess: 'Solicitando acceso…',
     accept: 'Aceptar invitación',
     expired: 'Esta invitación venció. Pide un enlace nuevo al anfitrión.',
     verifyEmail: 'Verifica tu correo y vuelve a esta invitación.',

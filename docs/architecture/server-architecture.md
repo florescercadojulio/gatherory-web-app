@@ -542,13 +542,26 @@ src/db/schema/
   waitlist.schema.ts
   mcp-oauth.schema.ts
   index.ts
+src/db/auth-schema.ts
 src/db/relations.ts
 src/db/index.ts
 ```
 
 Better Auth owns its core auth tables. Gatherory owns product tables. Drizzle
 Kit reads only `*.schema.ts`, preventing the schema barrel from being discovered
-as a duplicate table source. Export all runtime relations through one relation
+as a duplicate table source. Each discovered module exports only the tables it
+defines; do not re-export another discovered module's tables from a `*.schema.ts`
+file. `auth.schema.ts` owns core auth tables and `mcp-oauth.schema.ts` owns the
+JWT/OAuth tables. The complete runtime auth object is composed in
+`src/db/auth-schema.ts`, outside the migration glob, for Better Auth, the runtime
+relation graph, and development reset tooling. The ordinary schema barrel
+explicitly exports both domains for runtime consumers.
+
+The generation regression runs the installed Drizzle CLI in an isolated
+temporary output directory and verifies each JWT/OAuth table appears once.
+Runtime tests also verify the adapter schema and relational query graph retain
+the complete auth table set. These checks require no database connection.
+Export all runtime relations through one relation
 composition file, but do not turn it into a catch-all schema file. Migration
 and seed utilities may use the ordinary Drizzle client. Application persistence
 is exposed through injected Effect repository services. A repository may lift

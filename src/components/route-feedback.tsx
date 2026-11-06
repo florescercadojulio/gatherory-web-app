@@ -18,7 +18,15 @@ export function ServerErrorToast({ error }: { error: ClientError | null | undefi
   return null
 }
 
-export function PageUnavailable({ title, description }: { title?: string; description?: string }) {
+export function PageUnavailable({
+  title,
+  description,
+  onRetry,
+}: {
+  title?: string
+  description?: string
+  onRetry?: () => void | Promise<void>
+}) {
   const { t } = useTranslation()
   return (
     <main className="mx-auto flex min-h-[70svh] w-full max-w-3xl items-center p-4 md:p-8">
@@ -28,7 +36,9 @@ export function PageUnavailable({ title, description }: { title?: string; descri
           <CardDescription>{description ?? t('feedback.restAvailable')}</CardDescription>
         </CardHeader>
         <CardContent>
-          <Button onClick={() => window.location.reload()}>{t('feedback.tryAgain')}</Button>
+          <Button onClick={() => (onRetry ? void onRetry() : window.location.reload())}>
+            {t('feedback.tryAgain')}
+          </Button>
         </CardContent>
       </Card>
     </main>

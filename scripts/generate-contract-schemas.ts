@@ -54,6 +54,10 @@ import {
   BlueprintExpandedPlanSchema,
 } from '../src/contracts/blueprint-install.contracts'
 import { BlueprintLibraryResponseSchema } from '../src/contracts/blueprint-library.contracts'
+import {
+  BlueprintIdeaDiscoveryRequestSchema,
+  BlueprintIdeaDiscoveryResponseSchema,
+} from '../src/contracts/blueprint-idea-discovery.contracts'
 
 import {
   ContributionVisibilitySchema,
@@ -180,6 +184,19 @@ const contracts = [
     title: 'Gatherory Blueprint Catalog Page Request v1',
     schema: BlueprintCatalogPageRequestSchema,
     io: 'input' as const,
+  },
+  {
+    file: 'blueprint-idea-discovery-input.v1.schema.json',
+    id: 'https://schemas.gatherory.com/blueprint-idea-discovery-input/v1.json',
+    title: 'Gatherory Public Blueprint Idea Search Request v1',
+    schema: BlueprintIdeaDiscoveryRequestSchema,
+    io: 'input' as const,
+  },
+  {
+    file: 'blueprint-idea-discovery.v1.schema.json',
+    id: 'https://schemas.gatherory.com/blueprint-idea-discovery/v1.json',
+    title: 'Gatherory Public Blueprint Idea Search Response v1',
+    schema: BlueprintIdeaDiscoveryResponseSchema,
   },
   {
     file: 'blueprint-preference-mutation.v1.schema.json',

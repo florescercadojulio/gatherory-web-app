@@ -51,6 +51,20 @@
       "table_and_space": "decor"
     }
   },
+  "movie_night": {
+    "revision": 1,
+    "contentHash": "7f3d481e32a8e1b5ad035969f389bc82ba9555df0a617027a845b32e4ec69acd",
+    "root": "gathering",
+    "children": {
+      "snacks_catch_up": "gathering"
+    },
+    "ideas": {
+      "watch_movie": "gathering",
+      "popcorn_bar": "food",
+      "pizza": "food",
+      "blanket_corner": "gathering"
+    }
+  },
   "engagement_gathering": {
     "revision": 1,
     "contentHash": "562df918cc8faae7a01e8075d05a201f000267dbd45df95e2d5c7337b97f2e0d",

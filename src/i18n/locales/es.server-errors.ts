@@ -11,6 +11,8 @@ const serverErrors = {
   INVITATION_UNAVAILABLE:
     'Esta invitación no está disponible. Comprueba el correo invitado o pide un nuevo enlace al anfitrión.',
   INVITATION_SESSION_REQUIRED: 'Inicia sesión con una cuenta verificada para continuar.',
+  BROWSER_GUEST_SESSION_REQUIRED:
+    'No se pudo recuperar tu sesión de invitado. Permite las cookies de este sitio, vuelve a cargar la invitación e inténtalo de nuevo.',
   INVALID_INVITATION: 'Este enlace de invitación no es válido. Pide uno nuevo al anfitrión.',
   UNTRUSTED_INVITATION_REQUEST: 'Abre Gatherory e inténtalo de nuevo.',
   INVALID_RESPONSE: 'Elige una respuesta de asistencia e inténtalo de nuevo.',

@@ -20,12 +20,21 @@ team input informs planning without automatically approving an idea. Guests
 see the invitation and event details and respond with their RSVP. A main event
 can include related sub-events, such as a welcome dinner and reception.
 
-The first release is iPhone-first and offline-first, with changes synchronized
-when connected. Browser login and planning pages are gated to the iPhone
-TestFlight beta; native APIs, public invitation/shared previews and password
-recovery remain available. This repository's server supports the shared event
-data. See the [beta feedback handoff](release/beta-feedback-2026-10-23.md) for
-implementation and verification details.
+The native experience is offline-first, with changes synchronized when
+connected. Browser login and planning were reopened by the October 25
+[web-access release](release/web-access-2026-10-25.md); the browser currently
+provides a primarily read-only event companion. The November 3
+[web experience roadmap](roadmaps/web-experience-roadmap/README.md) prioritizes
+REUI-based user journeys, Android invitation entry, accountless guest RSVP and
+selected event updates. The subsequent product decision shelves the planner
+detail/update UI and keeps the main-event overview read-only; guest invitations
+and own RSVP stay active. See the
+[overview-only follow-up](development/overview-only-2026-11-03.md).
+The broader event-reading/update implementation is retained locally;
+production rollout remains pending. See the
+[invitation record](development/browser-invitation-rsvp-2026-11-03.md) and
+[event-reading record](development/event-reading-selected-updates-2026-11-03.md).
+This repository's server supports the shared event data.
 Reusable templates, business planning packages, and private recurring experiences
 are future directions—not features promised in the current release.
 
@@ -90,6 +99,11 @@ Read the product and data models first, then the relevant implementation guide.
   for multi-step work.
 
 ## Release and future work
+
+- [Web experience roadmap](roadmaps/web-experience-roadmap/README.md): REUI-led
+  visual and navigation direction, Android/browser invitation entry, guest RSVP
+  without signup, event reading and selected updates. User journeys come first;
+  developer tooling remains last, with existing MCP access retained separately.
 
 - [Pinterest inspiration for event ideas](roadmaps/pinterest-event-ideas-roadmap/README.md):
   proposed board picker and selected references in event Ideas, existing manual

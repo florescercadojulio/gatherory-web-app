@@ -13,6 +13,7 @@ export type NativeWorkspaceInsight = {
   openIdeaCount: number
   approvedIdeaCount: number
   budgetCap: number | null
+  currencyCode: string | null
   trackedCost: number
   updatedAt: string
   upcomingEvents: Array<{

@@ -1,6 +1,6 @@
 import { defineRelationsPart } from 'drizzle-orm'
 
-import * as authSchema from '@/db/schema/auth.schema'
+import { authSchema } from '@/db/auth-schema'
 import * as eventSchema from '@/db/schema/event.schema'
 import * as mediaSchema from '@/db/schema/media.schema'
 import * as moderationSchema from '@/db/schema/moderation.schema'
@@ -17,6 +17,16 @@ export const databaseRelations = defineRelationsPart(
     ...syncSchema,
   },
   (r) => ({
+    // MCP tables have no Drizzle relations, but they remain in the query graph
+    // for Better Auth's relations-v2 adapter and direct repository queries.
+    jwks: {},
+    oauthAccessToken: {},
+    oauthClient: {},
+    oauthClientAssertion: {},
+    oauthClientResource: {},
+    oauthConsent: {},
+    oauthRefreshToken: {},
+    oauthResource: {},
     user: {
       sessions: r.many.session({
         from: r.user.id,

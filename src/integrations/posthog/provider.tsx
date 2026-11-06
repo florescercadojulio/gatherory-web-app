@@ -4,12 +4,14 @@ import type { ReactNode } from 'react'
 import { redactTemplateLinkCredentials } from '@/lib/template-link-privacy'
 import { isWaitlistTrackerPath } from '@/lib/waitlist-privacy'
 import { isMcpConnectionPath } from '@/lib/mcp-connection'
+import { isPrivateInvitationPath, redactInvitationCredentials } from '@/lib/invitation-privacy'
 
 if (
   typeof window !== 'undefined' &&
   import.meta.env.VITE_POSTHOG_KEY &&
   !isWaitlistTrackerPath(window.location.pathname) &&
   !isMcpConnectionPath(window.location.pathname) &&
+  !isPrivateInvitationPath(window.location.pathname) &&
   !window.location.pathname.startsWith('/templates/shared/')
 ) {
   posthog.init(import.meta.env.VITE_POSTHOG_KEY, {
@@ -19,9 +21,10 @@ if (
     before_send: (event) =>
       window.location.pathname.startsWith('/templates/shared/') ||
       isWaitlistTrackerPath(window.location.pathname) ||
-      isMcpConnectionPath(window.location.pathname)
+      isMcpConnectionPath(window.location.pathname) ||
+      isPrivateInvitationPath(window.location.pathname)
         ? null
-        : redactTemplateLinkCredentials(event),
+        : redactInvitationCredentials(redactTemplateLinkCredentials(event)),
     session_recording: { blockClass: 'ph-no-record' },
     defaults: '2025-11-30',
   })

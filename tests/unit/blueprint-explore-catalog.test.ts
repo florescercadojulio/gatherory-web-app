@@ -19,12 +19,12 @@ import { suggestBlueprintSchedule } from '@/server/blueprints/planning/suggest-b
 test('all 18 browse categories have real content in the deployable catalog and match the shared native fixture', () => {
   const catalog = buildBlueprintCatalog(blueprintStarters)
   expect(BlueprintCatalogResponseSchema.parse(catalog)).toEqual(catalog)
-  expect(catalog.entries).toHaveLength(17)
+  expect(catalog.entries).toHaveLength(18)
   expect(BLUEPRINT_BROWSE_CATEGORIES).toHaveLength(18)
   expect(new Set(catalog.entries.flatMap((entry) => entry.discovery.categories))).toEqual(
     new Set(BLUEPRINT_BROWSE_CATEGORIES)
   )
-  expect(new Set(catalog.entries.map((entry) => entry.catalogKey)).size).toBe(17)
+  expect(new Set(catalog.entries.map((entry) => entry.catalogKey)).size).toBe(18)
   expect(catalog).toEqual(
     JSON.parse(readFileSync('contracts/examples/explore-catalog.v1.json', 'utf8'))
   )

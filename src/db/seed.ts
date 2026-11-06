@@ -3,7 +3,7 @@ import { and, eq } from 'drizzle-orm'
 import { reset } from 'drizzle-seed'
 
 import { db, pool } from '@/db'
-import * as authSchema from '@/db/schema/auth.schema'
+import { authSchema } from '@/db/auth-schema'
 import * as blueprintSchema from '@/db/schema/blueprint.schema'
 import { member, organization, team, teamMember, user } from '@/db/schema/auth.schema'
 import * as eventSchema from '@/db/schema/event.schema'

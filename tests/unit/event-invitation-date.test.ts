@@ -11,14 +11,14 @@ describe('formatInvitationDate', () => {
         timeZone: 'America/Detroit',
         locale: 'en-GB',
       })
-    ).toBe('23/10/2026, 00:00:00')
+    ).toBe('Friday, 23 October 2026 at 00:00')
     expect(
       formatInvitationDate({
         startsAt,
         timeZone: 'America/Los_Angeles',
         locale: 'en-GB',
       })
-    ).toBe('22/10/2026, 21:00:00')
+    ).toBe('Thursday, 22 October 2026 at 21:00')
   })
 
   test('formats all-day events as a date without a time', () => {
@@ -29,7 +29,7 @@ describe('formatInvitationDate', () => {
         isAllDay: true,
         locale: 'en-US',
       })
-    ).toBe('10/23/2026')
+    ).toBe('Friday, October 23, 2026')
     expect(
       formatInvitationDate({
         startsAt,
@@ -37,7 +37,7 @@ describe('formatInvitationDate', () => {
         isAllDay: true,
         locale: 'en-US',
       })
-    ).toBe('10/22/2026')
+    ).toBe('Thursday, October 22, 2026')
   })
 
   test('falls back to the viewer timezone when timezone metadata is missing or invalid', () => {

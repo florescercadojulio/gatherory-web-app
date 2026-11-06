@@ -1,0 +1,184 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "ideas": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512
+          },
+          "sourceBlueprintId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "pattern": "^[a-z][a-z0-9_]*$"
+          },
+          "sourceVersion": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991
+          },
+          "sourceTitle": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120,
+            "description": "1–120 Unicode code points; surrounding whitespace is trimmed before validation."
+          },
+          "creator": {
+            "type": "object",
+            "properties": {
+              "displayName": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 80,
+                "description": "1–80 Unicode code points; surrounding whitespace is trimmed before validation."
+              }
+            },
+            "required": [
+              "displayName"
+            ],
+            "additionalProperties": false
+          },
+          "idea": {
+            "type": "object",
+            "properties": {
+              "key": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 100,
+                "pattern": "^[a-z][a-z0-9_]*$"
+              },
+              "title": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 120,
+                "description": "1–120 Unicode code points; surrounding whitespace is trimmed before validation."
+              },
+              "category": {
+                "type": "string",
+                "enum": [
+                  "event",
+                  "registry",
+                  "link",
+                  "venue",
+                  "attire",
+                  "flowers",
+                  "food",
+                  "photography",
+                  "decor",
+                  "invitations",
+                  "honeymoon",
+                  "other"
+                ]
+              },
+              "notes": {
+                "type": "string",
+                "minLength": 0,
+                "maxLength": 2000,
+                "description": "0–2000 Unicode code points; surrounding whitespace is trimmed before validation."
+              },
+              "target": {
+                "oneOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "kind": {
+                        "type": "string",
+                        "const": "main"
+                      }
+                    },
+                    "required": [
+                      "kind"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "kind": {
+                        "type": "string",
+                        "const": "child"
+                      },
+                      "key": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 100,
+                        "pattern": "^[a-z][a-z0-9_]*$"
+                      }
+                    },
+                    "required": [
+                      "kind",
+                      "key"
+                    ],
+                    "additionalProperties": false
+                  }
+                ]
+              },
+              "configuration": {
+                "default": {
+                  "version": 1
+                },
+                "type": "object",
+                "properties": {
+                  "version": {
+                    "type": "number",
+                    "const": 1
+                  }
+                },
+                "required": [
+                  "version"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "key",
+              "title",
+              "category",
+              "target",
+              "configuration"
+            ],
+            "additionalProperties": false
+          },
+          "coverAssetId": {
+            "type": "string",
+            "minLength": 36,
+            "maxLength": 36,
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "coverImageURL": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2048,
+            "pattern": "^https:\\/\\/cdn\\.gatherory\\.com\\/explore\\/covers\\/[a-z0-9]+(?:-[a-z0-9]+)*\\/[a-f0-9]{64}\\/card\\.jpg$"
+          }
+        },
+        "required": [
+          "id",
+          "sourceBlueprintId",
+          "sourceVersion",
+          "sourceTitle",
+          "idea"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "nextCursor": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 512
+    }
+  },
+  "required": [
+    "ideas"
+  ],
+  "additionalProperties": false,
+  "$id": "https://schemas.gatherory.com/blueprint-idea-discovery/v1.json",
+  "title": "Gatherory Public Blueprint Idea Search Response v1"
+}

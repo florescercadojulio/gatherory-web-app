@@ -318,14 +318,3 @@ export const authRelations = defineRelationsPart(
     },
   })
 )
-
-export {
-  jwks,
-  oauthAccessToken,
-  oauthClient,
-  oauthClientAssertion,
-  oauthClientResource,
-  oauthConsent,
-  oauthRefreshToken,
-  oauthResource,
-} from '@/db/schema/mcp-oauth.schema'

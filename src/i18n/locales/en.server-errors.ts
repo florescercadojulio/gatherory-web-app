@@ -9,6 +9,8 @@ const serverErrors = {
   INVITATION_UNAVAILABLE:
     'This invitation is unavailable. Check the invited email address or ask the host for a new link.',
   INVITATION_SESSION_REQUIRED: 'Sign in with a verified account to continue.',
+  BROWSER_GUEST_SESSION_REQUIRED:
+    'Your guest session could not be restored. Allow cookies for this site, reload the invitation, and try again.',
   INVALID_INVITATION: 'This invitation link is invalid. Ask the host for a new one.',
   UNTRUSTED_INVITATION_REQUEST: 'Open Gatherory and try again.',
   INVALID_RESPONSE: 'Choose an attendance response and try again.',

@@ -1,6 +1,9 @@
 import { getTableConfig } from 'drizzle-orm/pg-core'
+import { drizzle } from 'drizzle-orm/node-postgres'
 import { expect, test } from 'vitest'
-import * as authSchema from '@/db/schema/auth.schema'
+import { databaseRelations } from '@/db/relations'
+import * as databaseSchema from '@/db/schema'
+import { authSchema } from '@/db/auth-schema'
 import { createMcpAuthPlugins } from '@/server/mcp/auth-config'
 
 import {
@@ -94,6 +97,35 @@ test('auth exports provide every table and field required by the installed JWT a
   )
 
   expect(actualTables).toEqual(expectedTables)
+})
+
+test('runtime, Drizzle barrel, and relation query graph share the MCP table objects', () => {
+  const queryGraph = drizzle.mock({ relations: databaseRelations }).query
+  const tableNames = [
+    'jwks',
+    'oauthAccessToken',
+    'oauthClient',
+    'oauthClientAssertion',
+    'oauthClientResource',
+    'oauthConsent',
+    'oauthRefreshToken',
+    'oauthResource',
+  ] as const
+  const querySql = [
+    queryGraph.jwks.findMany().toSQL().sql,
+    queryGraph.oauthAccessToken.findMany().toSQL().sql,
+    queryGraph.oauthClient.findMany().toSQL().sql,
+    queryGraph.oauthClientAssertion.findMany().toSQL().sql,
+    queryGraph.oauthClientResource.findMany().toSQL().sql,
+    queryGraph.oauthConsent.findMany().toSQL().sql,
+    queryGraph.oauthRefreshToken.findMany().toSQL().sql,
+    queryGraph.oauthResource.findMany().toSQL().sql,
+  ]
+  for (const [index, name] of tableNames.entries()) {
+    expect(databaseSchema[name]).toBe(authSchema[name])
+    expect(queryGraph[name]).toBeDefined()
+    expect(querySql[index]).toContain(getTableConfig(authSchema[name]).name)
+  }
 })
 
 test('MCP-owned rows cascade on account removal while nullable sessions keep set-null semantics', () => {

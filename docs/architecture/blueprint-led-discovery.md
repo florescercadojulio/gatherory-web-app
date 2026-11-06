@@ -72,6 +72,27 @@ notes, guests, saved-copy edits, drafts, and bearer-link-only content are not
 index inputs. The [content search slice](../roadmaps/blueprint-ranking-roadmap/02-content-search-and-related-terms.md)
 owns matching, explanations, bilingual behavior, and cursor compatibility.
 
+### Individual public Blueprint ideas
+
+V1 adds an Ideas filter beside All and Blueprints in native Explore. It extracts
+individual ideas from the same currently listed public Blueprint publications;
+there is no standalone idea publishing or private idea catalog. The authenticated
+`GET /api/blueprints/ideas` contract returns stable source Blueprint/revision
+references and a strict safe idea projection. Idea title and notes drive
+independent phrase, alias, related-term, and typo matching; a parent Blueprint
+title cannot produce broad matches for every contained idea. Query and result
+snapshot are bound into opaque continuation cursors.
+
+Native **Add to Event** copies an idea into the selected event through local
+planning persistence. Scheduling a related event remains a separate explicit
+action. A published idea's `coverAssetId` may be returned as a source-scoped
+reference for native media copying; it is not a credential and native must
+request it against the exact Blueprint revision. Storage locations, signed
+URLs, and arbitrary configuration are omitted; a curated public cover URL is
+optional. Publication visibility remains owned by the source Blueprint. See
+the [public idea discovery implementation and V1
+acceptance record](public-blueprint-idea-discovery.md).
+
 ## Private Blueprint actions and measurement
 
 The [unseen-first discovery slice](../roadmaps/blueprint-ranking-roadmap/16-unseen-first-discovery.md)

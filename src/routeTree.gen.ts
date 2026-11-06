@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as EventRouteRouteImport } from './routes/_event/route'
 import { Route as ProtectedRouteRouteImport } from './routes/_protected/route'
 import { Route as McpRouteImport } from './routes/mcp'
 import { Route as DotwellKnownSplatRouteImport } from './routes/[.]well-known/$'
@@ -34,6 +35,7 @@ import { Route as ApiAuthAppleTokenRouteImport } from './routes/api/auth/apple-t
 import { Route as ApiBlueprintsCatalogRouteImport } from './routes/api/blueprints/catalog'
 import { Route as ApiBlueprintsCopiesRouteImport } from './routes/api/blueprints/copies'
 import { Route as ApiBlueprintsCreateTemplateRouteImport } from './routes/api/blueprints/create-template'
+import { Route as ApiBlueprintsIdeasRouteImport } from './routes/api/blueprints/ideas'
 import { Route as ApiBlueprintsInstallRouteImport } from './routes/api/blueprints/install'
 import { Route as ApiBlueprintsLibraryRouteImport } from './routes/api/blueprints/library'
 import { Route as ApiBlueprintsMeasurementRouteImport } from './routes/api/blueprints/measurement'
@@ -57,6 +59,7 @@ import { Route as ApiSyncBootstrapRouteImport } from './routes/api/sync/bootstra
 import { Route as ApiSyncPullRouteImport } from './routes/api/sync/pull'
 import { Route as ApiSyncPushRouteImport } from './routes/api/sync/push'
 import { Route as AuthPathIndexRouteImport } from './routes/auth/$path/index'
+import { Route as EventEventsEventIdIndexRouteImport } from './routes/_event/events/$eventId/index'
 import { Route as ProtectedBlueprintsBlueprintIdIndexRouteImport } from './routes/_protected/blueprints/$blueprintId/index'
 import { Route as ProtectedBlueprintsCaptureIndexRouteImport } from './routes/_protected/blueprints/capture/index'
 import { Route as ProtectedBlueprintsNewIndexRouteImport } from './routes/_protected/blueprints/new/index'
@@ -71,6 +74,7 @@ import { Route as ApiInternalNotificationsDispatchRouteImport } from './routes/a
 import { Route as ApiMediaNativeFinalizeRouteImport } from './routes/api/media/native/finalize'
 import { Route as ApiMediaNativePrepareRouteImport } from './routes/api/media/native/prepare'
 import { Route as ApiMediaNativeUrlRouteImport } from './routes/api/media/native/url'
+import { Route as InvitedEventsEventIdIndexRouteImport } from './routes/invited/events/$eventId/index'
 import { Route as TemplatesSharedTokenIndexRouteImport } from './routes/templates/shared/$token/index'
 import { Route as ApiAuthAndroidAppleCompleteRouteImport } from './routes/api/auth/android/apple/complete'
 import { Route as ApiAuthAndroidAppleExchangeRouteImport } from './routes/api/auth/android/apple/exchange'
@@ -81,6 +85,10 @@ import { Route as ApiGuestEventsEventIdRegistryRouteImport } from './routes/api/
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EventRouteRoute = EventRouteRouteImport.update({
+  id: '/_event',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProtectedRouteRoute = ProtectedRouteRouteImport.update({
@@ -148,18 +156,16 @@ const ProtectedAccountIndexRoute = ProtectedAccountIndexRouteImport.update({
   path: '/account/',
   getParentRoute: () => ProtectedRouteRoute,
 } as any)
-const ProtectedBlueprintsIndexRoute =
-  ProtectedBlueprintsIndexRouteImport.update({
-    id: '/blueprints/',
-    path: '/blueprints/',
-    getParentRoute: () => ProtectedRouteRoute,
-  } as any)
-const ProtectedWorkspacesIndexRoute =
-  ProtectedWorkspacesIndexRouteImport.update({
-    id: '/workspaces/',
-    path: '/workspaces/',
-    getParentRoute: () => ProtectedRouteRoute,
-  } as any)
+const ProtectedBlueprintsIndexRoute = ProtectedBlueprintsIndexRouteImport.update({
+  id: '/blueprints/',
+  path: '/blueprints/',
+  getParentRoute: () => ProtectedRouteRoute,
+} as any)
+const ProtectedWorkspacesIndexRoute = ProtectedWorkspacesIndexRouteImport.update({
+  id: '/workspaces/',
+  path: '/workspaces/',
+  getParentRoute: () => ProtectedRouteRoute,
+} as any)
 const ProtectedWorkspacesWorkspaceSlugRouteRoute =
   ProtectedWorkspacesWorkspaceSlugRouteRouteImport.update({
     id: '/workspaces/$workspaceSlug',
@@ -201,12 +207,16 @@ const ApiBlueprintsCopiesRoute = ApiBlueprintsCopiesRouteImport.update({
   path: '/api/blueprints/copies',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiBlueprintsCreateTemplateRoute =
-  ApiBlueprintsCreateTemplateRouteImport.update({
-    id: '/api/blueprints/create-template',
-    path: '/api/blueprints/create-template',
-    getParentRoute: () => rootRouteImport,
-  } as any)
+const ApiBlueprintsCreateTemplateRoute = ApiBlueprintsCreateTemplateRouteImport.update({
+  id: '/api/blueprints/create-template',
+  path: '/api/blueprints/create-template',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiBlueprintsIdeasRoute = ApiBlueprintsIdeasRouteImport.update({
+  id: '/api/blueprints/ideas',
+  path: '/api/blueprints/ideas',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiBlueprintsInstallRoute = ApiBlueprintsInstallRouteImport.update({
   id: '/api/blueprints/install',
   path: '/api/blueprints/install',
@@ -217,23 +227,21 @@ const ApiBlueprintsLibraryRoute = ApiBlueprintsLibraryRouteImport.update({
   path: '/api/blueprints/library',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiBlueprintsMeasurementRoute =
-  ApiBlueprintsMeasurementRouteImport.update({
-    id: '/api/blueprints/measurement',
-    path: '/api/blueprints/measurement',
-    getParentRoute: () => rootRouteImport,
-  } as any)
+const ApiBlueprintsMeasurementRoute = ApiBlueprintsMeasurementRouteImport.update({
+  id: '/api/blueprints/measurement',
+  path: '/api/blueprints/measurement',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiBlueprintsPersonalRoute = ApiBlueprintsPersonalRouteImport.update({
   id: '/api/blueprints/personal',
   path: '/api/blueprints/personal',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiBlueprintsPreferencesRoute =
-  ApiBlueprintsPreferencesRouteImport.update({
-    id: '/api/blueprints/preferences',
-    path: '/api/blueprints/preferences',
-    getParentRoute: () => rootRouteImport,
-  } as any)
+const ApiBlueprintsPreferencesRoute = ApiBlueprintsPreferencesRouteImport.update({
+  id: '/api/blueprints/preferences',
+  path: '/api/blueprints/preferences',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiBlueprintsPreviewRoute = ApiBlueprintsPreviewRouteImport.update({
   id: '/api/blueprints/preview',
   path: '/api/blueprints/preview',
@@ -299,12 +307,11 @@ const ApiModerationReportsRoute = ApiModerationReportsRouteImport.update({
   path: '/api/moderation/reports',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiNotificationsInstallationsRoute =
-  ApiNotificationsInstallationsRouteImport.update({
-    id: '/api/notifications/installations',
-    path: '/api/notifications/installations',
-    getParentRoute: () => rootRouteImport,
-  } as any)
+const ApiNotificationsInstallationsRoute = ApiNotificationsInstallationsRouteImport.update({
+  id: '/api/notifications/installations',
+  path: '/api/notifications/installations',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiSyncBootstrapRoute = ApiSyncBootstrapRouteImport.update({
   id: '/api/sync/bootstrap',
   path: '/api/sync/bootstrap',
@@ -325,24 +332,27 @@ const AuthPathIndexRoute = AuthPathIndexRouteImport.update({
   path: '/auth/$path/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const EventEventsEventIdIndexRoute = EventEventsEventIdIndexRouteImport.update({
+  id: '/events/$eventId/',
+  path: '/events/$eventId/',
+  getParentRoute: () => EventRouteRoute,
+} as any)
 const ProtectedBlueprintsBlueprintIdIndexRoute =
   ProtectedBlueprintsBlueprintIdIndexRouteImport.update({
     id: '/blueprints/$blueprintId/',
     path: '/blueprints/$blueprintId/',
     getParentRoute: () => ProtectedRouteRoute,
   } as any)
-const ProtectedBlueprintsCaptureIndexRoute =
-  ProtectedBlueprintsCaptureIndexRouteImport.update({
-    id: '/blueprints/capture/',
-    path: '/blueprints/capture/',
-    getParentRoute: () => ProtectedRouteRoute,
-  } as any)
-const ProtectedBlueprintsNewIndexRoute =
-  ProtectedBlueprintsNewIndexRouteImport.update({
-    id: '/blueprints/new/',
-    path: '/blueprints/new/',
-    getParentRoute: () => ProtectedRouteRoute,
-  } as any)
+const ProtectedBlueprintsCaptureIndexRoute = ProtectedBlueprintsCaptureIndexRouteImport.update({
+  id: '/blueprints/capture/',
+  path: '/blueprints/capture/',
+  getParentRoute: () => ProtectedRouteRoute,
+} as any)
+const ProtectedBlueprintsNewIndexRoute = ProtectedBlueprintsNewIndexRouteImport.update({
+  id: '/blueprints/new/',
+  path: '/blueprints/new/',
+  getParentRoute: () => ProtectedRouteRoute,
+} as any)
 const ProtectedWorkspacesWorkspaceSlugIndexRoute =
   ProtectedWorkspacesWorkspaceSlugIndexRouteImport.update({
     id: '/',
@@ -355,42 +365,36 @@ const ApiBlueprintsInstallationsRequestIdRoute =
     path: '/api/blueprints/installations/$requestId',
     getParentRoute: () => rootRouteImport,
   } as any)
-const ApiBlueprintsMeasurementSignalsRoute =
-  ApiBlueprintsMeasurementSignalsRouteImport.update({
-    id: '/signals',
-    path: '/signals',
-    getParentRoute: () => ApiBlueprintsMeasurementRoute,
-  } as any)
-const ApiBlueprintsMediaActionRoute =
-  ApiBlueprintsMediaActionRouteImport.update({
-    id: '/api/blueprints/media/$action',
-    path: '/api/blueprints/media/$action',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const ApiBlueprintsSharedTokenRoute =
-  ApiBlueprintsSharedTokenRouteImport.update({
-    id: '/api/blueprints/shared/$token',
-    path: '/api/blueprints/shared/$token',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const ApiEventsEventIdAnnouncementsRoute =
-  ApiEventsEventIdAnnouncementsRouteImport.update({
-    id: '/api/events/$eventId/announcements',
-    path: '/api/events/$eventId/announcements',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const ApiEventsEventIdRegistryRoute =
-  ApiEventsEventIdRegistryRouteImport.update({
-    id: '/api/events/$eventId/registry',
-    path: '/api/events/$eventId/registry',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const ApiInternalNotificationsDispatchRoute =
-  ApiInternalNotificationsDispatchRouteImport.update({
-    id: '/api/internal/notifications/dispatch',
-    path: '/api/internal/notifications/dispatch',
-    getParentRoute: () => rootRouteImport,
-  } as any)
+const ApiBlueprintsMeasurementSignalsRoute = ApiBlueprintsMeasurementSignalsRouteImport.update({
+  id: '/signals',
+  path: '/signals',
+  getParentRoute: () => ApiBlueprintsMeasurementRoute,
+} as any)
+const ApiBlueprintsMediaActionRoute = ApiBlueprintsMediaActionRouteImport.update({
+  id: '/api/blueprints/media/$action',
+  path: '/api/blueprints/media/$action',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiBlueprintsSharedTokenRoute = ApiBlueprintsSharedTokenRouteImport.update({
+  id: '/api/blueprints/shared/$token',
+  path: '/api/blueprints/shared/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiEventsEventIdAnnouncementsRoute = ApiEventsEventIdAnnouncementsRouteImport.update({
+  id: '/api/events/$eventId/announcements',
+  path: '/api/events/$eventId/announcements',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiEventsEventIdRegistryRoute = ApiEventsEventIdRegistryRouteImport.update({
+  id: '/api/events/$eventId/registry',
+  path: '/api/events/$eventId/registry',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiInternalNotificationsDispatchRoute = ApiInternalNotificationsDispatchRouteImport.update({
+  id: '/api/internal/notifications/dispatch',
+  path: '/api/internal/notifications/dispatch',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiMediaNativeFinalizeRoute = ApiMediaNativeFinalizeRouteImport.update({
   id: '/api/media/native/finalize',
   path: '/api/media/native/finalize',
@@ -406,42 +410,42 @@ const ApiMediaNativeUrlRoute = ApiMediaNativeUrlRouteImport.update({
   path: '/api/media/native/url',
   getParentRoute: () => rootRouteImport,
 } as any)
-const TemplatesSharedTokenIndexRoute =
-  TemplatesSharedTokenIndexRouteImport.update({
-    id: '/templates/shared/$token/',
-    path: '/templates/shared/$token/',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const ApiAuthAndroidAppleCompleteRoute =
-  ApiAuthAndroidAppleCompleteRouteImport.update({
-    id: '/api/auth/android/apple/complete',
-    path: '/api/auth/android/apple/complete',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const ApiAuthAndroidAppleExchangeRoute =
-  ApiAuthAndroidAppleExchangeRouteImport.update({
-    id: '/api/auth/android/apple/exchange',
-    path: '/api/auth/android/apple/exchange',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const ApiAuthAndroidAppleStartRoute =
-  ApiAuthAndroidAppleStartRouteImport.update({
-    id: '/api/auth/android/apple/start',
-    path: '/api/auth/android/apple/start',
-    getParentRoute: () => rootRouteImport,
-  } as any)
+const InvitedEventsEventIdIndexRoute = InvitedEventsEventIdIndexRouteImport.update({
+  id: '/invited/events/$eventId/',
+  path: '/invited/events/$eventId/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TemplatesSharedTokenIndexRoute = TemplatesSharedTokenIndexRouteImport.update({
+  id: '/templates/shared/$token/',
+  path: '/templates/shared/$token/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAuthAndroidAppleCompleteRoute = ApiAuthAndroidAppleCompleteRouteImport.update({
+  id: '/api/auth/android/apple/complete',
+  path: '/api/auth/android/apple/complete',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAuthAndroidAppleExchangeRoute = ApiAuthAndroidAppleExchangeRouteImport.update({
+  id: '/api/auth/android/apple/exchange',
+  path: '/api/auth/android/apple/exchange',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAuthAndroidAppleStartRoute = ApiAuthAndroidAppleStartRouteImport.update({
+  id: '/api/auth/android/apple/start',
+  path: '/api/auth/android/apple/start',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiGuestEventsEventIdAnnouncementsRoute =
   ApiGuestEventsEventIdAnnouncementsRouteImport.update({
     id: '/$eventId/announcements',
     path: '/$eventId/announcements',
     getParentRoute: () => ApiGuestEventsRoute,
   } as any)
-const ApiGuestEventsEventIdRegistryRoute =
-  ApiGuestEventsEventIdRegistryRouteImport.update({
-    id: '/$eventId/registry',
-    path: '/$eventId/registry',
-    getParentRoute: () => ApiGuestEventsRoute,
-  } as any)
+const ApiGuestEventsEventIdRegistryRoute = ApiGuestEventsEventIdRegistryRouteImport.update({
+  id: '/$eventId/registry',
+  path: '/$eventId/registry',
+  getParentRoute: () => ApiGuestEventsRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -465,6 +469,7 @@ export interface FileRoutesByFullPath {
   '/api/blueprints/catalog': typeof ApiBlueprintsCatalogRoute
   '/api/blueprints/copies': typeof ApiBlueprintsCopiesRoute
   '/api/blueprints/create-template': typeof ApiBlueprintsCreateTemplateRoute
+  '/api/blueprints/ideas': typeof ApiBlueprintsIdeasRoute
   '/api/blueprints/install': typeof ApiBlueprintsInstallRoute
   '/api/blueprints/library': typeof ApiBlueprintsLibraryRoute
   '/api/blueprints/measurement': typeof ApiBlueprintsMeasurementRouteWithChildren
@@ -501,10 +506,12 @@ export interface FileRoutesByFullPath {
   '/api/media/native/finalize': typeof ApiMediaNativeFinalizeRoute
   '/api/media/native/prepare': typeof ApiMediaNativePrepareRoute
   '/api/media/native/url': typeof ApiMediaNativeUrlRoute
+  '/events/$eventId/': typeof EventEventsEventIdIndexRoute
   '/blueprints/$blueprintId/': typeof ProtectedBlueprintsBlueprintIdIndexRoute
   '/blueprints/capture/': typeof ProtectedBlueprintsCaptureIndexRoute
   '/blueprints/new/': typeof ProtectedBlueprintsNewIndexRoute
   '/workspaces/$workspaceSlug/': typeof ProtectedWorkspacesWorkspaceSlugIndexRoute
+  '/invited/events/$eventId/': typeof InvitedEventsEventIdIndexRoute
   '/templates/shared/$token/': typeof TemplatesSharedTokenIndexRoute
   '/api/auth/android/apple/complete': typeof ApiAuthAndroidAppleCompleteRoute
   '/api/auth/android/apple/exchange': typeof ApiAuthAndroidAppleExchangeRoute
@@ -533,6 +540,7 @@ export interface FileRoutesByTo {
   '/api/blueprints/catalog': typeof ApiBlueprintsCatalogRoute
   '/api/blueprints/copies': typeof ApiBlueprintsCopiesRoute
   '/api/blueprints/create-template': typeof ApiBlueprintsCreateTemplateRoute
+  '/api/blueprints/ideas': typeof ApiBlueprintsIdeasRoute
   '/api/blueprints/install': typeof ApiBlueprintsInstallRoute
   '/api/blueprints/library': typeof ApiBlueprintsLibraryRoute
   '/api/blueprints/measurement': typeof ApiBlueprintsMeasurementRouteWithChildren
@@ -569,10 +577,12 @@ export interface FileRoutesByTo {
   '/api/media/native/finalize': typeof ApiMediaNativeFinalizeRoute
   '/api/media/native/prepare': typeof ApiMediaNativePrepareRoute
   '/api/media/native/url': typeof ApiMediaNativeUrlRoute
+  '/events/$eventId': typeof EventEventsEventIdIndexRoute
   '/blueprints/$blueprintId': typeof ProtectedBlueprintsBlueprintIdIndexRoute
   '/blueprints/capture': typeof ProtectedBlueprintsCaptureIndexRoute
   '/blueprints/new': typeof ProtectedBlueprintsNewIndexRoute
   '/workspaces/$workspaceSlug': typeof ProtectedWorkspacesWorkspaceSlugIndexRoute
+  '/invited/events/$eventId': typeof InvitedEventsEventIdIndexRoute
   '/templates/shared/$token': typeof TemplatesSharedTokenIndexRoute
   '/api/auth/android/apple/complete': typeof ApiAuthAndroidAppleCompleteRoute
   '/api/auth/android/apple/exchange': typeof ApiAuthAndroidAppleExchangeRoute
@@ -583,6 +593,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_event': typeof EventRouteRouteWithChildren
   '/_protected': typeof ProtectedRouteRouteWithChildren
   '/mcp': typeof McpRouteWithChildren
   '/.well-known/$': typeof DotwellKnownSplatRoute
@@ -604,6 +615,7 @@ export interface FileRoutesById {
   '/api/blueprints/catalog': typeof ApiBlueprintsCatalogRoute
   '/api/blueprints/copies': typeof ApiBlueprintsCopiesRoute
   '/api/blueprints/create-template': typeof ApiBlueprintsCreateTemplateRoute
+  '/api/blueprints/ideas': typeof ApiBlueprintsIdeasRoute
   '/api/blueprints/install': typeof ApiBlueprintsInstallRoute
   '/api/blueprints/library': typeof ApiBlueprintsLibraryRoute
   '/api/blueprints/measurement': typeof ApiBlueprintsMeasurementRouteWithChildren
@@ -640,10 +652,12 @@ export interface FileRoutesById {
   '/api/media/native/finalize': typeof ApiMediaNativeFinalizeRoute
   '/api/media/native/prepare': typeof ApiMediaNativePrepareRoute
   '/api/media/native/url': typeof ApiMediaNativeUrlRoute
+  '/_event/events/$eventId/': typeof EventEventsEventIdIndexRoute
   '/_protected/blueprints/$blueprintId/': typeof ProtectedBlueprintsBlueprintIdIndexRoute
   '/_protected/blueprints/capture/': typeof ProtectedBlueprintsCaptureIndexRoute
   '/_protected/blueprints/new/': typeof ProtectedBlueprintsNewIndexRoute
   '/_protected/workspaces/$workspaceSlug/': typeof ProtectedWorkspacesWorkspaceSlugIndexRoute
+  '/invited/events/$eventId/': typeof InvitedEventsEventIdIndexRoute
   '/templates/shared/$token/': typeof TemplatesSharedTokenIndexRoute
   '/api/auth/android/apple/complete': typeof ApiAuthAndroidAppleCompleteRoute
   '/api/auth/android/apple/exchange': typeof ApiAuthAndroidAppleExchangeRoute
@@ -675,6 +689,7 @@ export interface FileRouteTypes {
     | '/api/blueprints/catalog'
     | '/api/blueprints/copies'
     | '/api/blueprints/create-template'
+    | '/api/blueprints/ideas'
     | '/api/blueprints/install'
     | '/api/blueprints/library'
     | '/api/blueprints/measurement'
@@ -711,10 +726,12 @@ export interface FileRouteTypes {
     | '/api/media/native/finalize'
     | '/api/media/native/prepare'
     | '/api/media/native/url'
+    | '/events/$eventId/'
     | '/blueprints/$blueprintId/'
     | '/blueprints/capture/'
     | '/blueprints/new/'
     | '/workspaces/$workspaceSlug/'
+    | '/invited/events/$eventId/'
     | '/templates/shared/$token/'
     | '/api/auth/android/apple/complete'
     | '/api/auth/android/apple/exchange'
@@ -743,6 +760,7 @@ export interface FileRouteTypes {
     | '/api/blueprints/catalog'
     | '/api/blueprints/copies'
     | '/api/blueprints/create-template'
+    | '/api/blueprints/ideas'
     | '/api/blueprints/install'
     | '/api/blueprints/library'
     | '/api/blueprints/measurement'
@@ -779,10 +797,12 @@ export interface FileRouteTypes {
     | '/api/media/native/finalize'
     | '/api/media/native/prepare'
     | '/api/media/native/url'
+    | '/events/$eventId'
     | '/blueprints/$blueprintId'
     | '/blueprints/capture'
     | '/blueprints/new'
     | '/workspaces/$workspaceSlug'
+    | '/invited/events/$eventId'
     | '/templates/shared/$token'
     | '/api/auth/android/apple/complete'
     | '/api/auth/android/apple/exchange'
@@ -792,6 +812,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/_event'
     | '/_protected'
     | '/mcp'
     | '/.well-known/$'
@@ -813,6 +834,7 @@ export interface FileRouteTypes {
     | '/api/blueprints/catalog'
     | '/api/blueprints/copies'
     | '/api/blueprints/create-template'
+    | '/api/blueprints/ideas'
     | '/api/blueprints/install'
     | '/api/blueprints/library'
     | '/api/blueprints/measurement'
@@ -849,10 +871,12 @@ export interface FileRouteTypes {
     | '/api/media/native/finalize'
     | '/api/media/native/prepare'
     | '/api/media/native/url'
+    | '/_event/events/$eventId/'
     | '/_protected/blueprints/$blueprintId/'
     | '/_protected/blueprints/capture/'
     | '/_protected/blueprints/new/'
     | '/_protected/workspaces/$workspaceSlug/'
+    | '/invited/events/$eventId/'
     | '/templates/shared/$token/'
     | '/api/auth/android/apple/complete'
     | '/api/auth/android/apple/exchange'
@@ -863,6 +887,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  EventRouteRoute: typeof EventRouteRouteWithChildren
   ProtectedRouteRoute: typeof ProtectedRouteRouteWithChildren
   McpRoute: typeof McpRouteWithChildren
   DotwellKnownSplatRoute: typeof DotwellKnownSplatRoute
@@ -880,6 +905,7 @@ export interface RootRouteChildren {
   ApiBlueprintsCatalogRoute: typeof ApiBlueprintsCatalogRoute
   ApiBlueprintsCopiesRoute: typeof ApiBlueprintsCopiesRoute
   ApiBlueprintsCreateTemplateRoute: typeof ApiBlueprintsCreateTemplateRoute
+  ApiBlueprintsIdeasRoute: typeof ApiBlueprintsIdeasRoute
   ApiBlueprintsInstallRoute: typeof ApiBlueprintsInstallRoute
   ApiBlueprintsLibraryRoute: typeof ApiBlueprintsLibraryRoute
   ApiBlueprintsMeasurementRoute: typeof ApiBlueprintsMeasurementRouteWithChildren
@@ -910,6 +936,7 @@ export interface RootRouteChildren {
   ApiMediaNativeFinalizeRoute: typeof ApiMediaNativeFinalizeRoute
   ApiMediaNativePrepareRoute: typeof ApiMediaNativePrepareRoute
   ApiMediaNativeUrlRoute: typeof ApiMediaNativeUrlRoute
+  InvitedEventsEventIdIndexRoute: typeof InvitedEventsEventIdIndexRoute
   TemplatesSharedTokenIndexRoute: typeof TemplatesSharedTokenIndexRoute
   ApiAuthAndroidAppleCompleteRoute: typeof ApiAuthAndroidAppleCompleteRoute
   ApiAuthAndroidAppleExchangeRoute: typeof ApiAuthAndroidAppleExchangeRoute
@@ -923,6 +950,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_event': {
+      id: '/_event'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof EventRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_protected': {
@@ -1093,6 +1127,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiBlueprintsCreateTemplateRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/blueprints/ideas': {
+      id: '/api/blueprints/ideas'
+      path: '/api/blueprints/ideas'
+      fullPath: '/api/blueprints/ideas'
+      preLoaderRoute: typeof ApiBlueprintsIdeasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/blueprints/install': {
       id: '/api/blueprints/install'
       path: '/api/blueprints/install'
@@ -1254,6 +1295,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthPathIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_event/events/$eventId/': {
+      id: '/_event/events/$eventId/'
+      path: '/events/$eventId'
+      fullPath: '/events/$eventId/'
+      preLoaderRoute: typeof EventEventsEventIdIndexRouteImport
+      parentRoute: typeof EventRouteRoute
+    }
     '/_protected/blueprints/$blueprintId/': {
       id: '/_protected/blueprints/$blueprintId/'
       path: '/blueprints/$blueprintId'
@@ -1352,6 +1400,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiMediaNativeUrlRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/invited/events/$eventId/': {
+      id: '/invited/events/$eventId/'
+      path: '/invited/events/$eventId'
+      fullPath: '/invited/events/$eventId/'
+      preLoaderRoute: typeof InvitedEventsEventIdIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/templates/shared/$token/': {
       id: '/templates/shared/$token/'
       path: '/templates/shared/$token'
@@ -1397,19 +1452,28 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface EventRouteRouteChildren {
+  EventEventsEventIdIndexRoute: typeof EventEventsEventIdIndexRoute
+}
+
+const EventRouteRouteChildren: EventRouteRouteChildren = {
+  EventEventsEventIdIndexRoute: EventEventsEventIdIndexRoute,
+}
+
+const EventRouteRouteWithChildren = EventRouteRoute._addFileChildren(EventRouteRouteChildren)
+
 interface ProtectedWorkspacesWorkspaceSlugRouteRouteChildren {
   ProtectedWorkspacesWorkspaceSlugIndexRoute: typeof ProtectedWorkspacesWorkspaceSlugIndexRoute
 }
 
 const ProtectedWorkspacesWorkspaceSlugRouteRouteChildren: ProtectedWorkspacesWorkspaceSlugRouteRouteChildren =
   {
-    ProtectedWorkspacesWorkspaceSlugIndexRoute:
-      ProtectedWorkspacesWorkspaceSlugIndexRoute,
+    ProtectedWorkspacesWorkspaceSlugIndexRoute: ProtectedWorkspacesWorkspaceSlugIndexRoute,
   }
 
 const ProtectedWorkspacesWorkspaceSlugRouteRouteWithChildren =
   ProtectedWorkspacesWorkspaceSlugRouteRoute._addFileChildren(
-    ProtectedWorkspacesWorkspaceSlugRouteRouteChildren,
+    ProtectedWorkspacesWorkspaceSlugRouteRouteChildren
   )
 
 interface ProtectedRouteRouteChildren {
@@ -1428,14 +1492,13 @@ const ProtectedRouteRouteChildren: ProtectedRouteRouteChildren = {
   ProtectedAccountIndexRoute: ProtectedAccountIndexRoute,
   ProtectedBlueprintsIndexRoute: ProtectedBlueprintsIndexRoute,
   ProtectedWorkspacesIndexRoute: ProtectedWorkspacesIndexRoute,
-  ProtectedBlueprintsBlueprintIdIndexRoute:
-    ProtectedBlueprintsBlueprintIdIndexRoute,
+  ProtectedBlueprintsBlueprintIdIndexRoute: ProtectedBlueprintsBlueprintIdIndexRoute,
   ProtectedBlueprintsCaptureIndexRoute: ProtectedBlueprintsCaptureIndexRoute,
   ProtectedBlueprintsNewIndexRoute: ProtectedBlueprintsNewIndexRoute,
 }
 
 const ProtectedRouteRouteWithChildren = ProtectedRouteRoute._addFileChildren(
-  ProtectedRouteRouteChildren,
+  ProtectedRouteRouteChildren
 )
 
 interface McpRouteChildren {
@@ -1463,22 +1526,20 @@ const ApiInvitationsRouteChildren: ApiInvitationsRouteChildren = {
 }
 
 const ApiInvitationsRouteWithChildren = ApiInvitationsRoute._addFileChildren(
-  ApiInvitationsRouteChildren,
+  ApiInvitationsRouteChildren
 )
 
 interface ApiBlueprintsMeasurementRouteChildren {
   ApiBlueprintsMeasurementSignalsRoute: typeof ApiBlueprintsMeasurementSignalsRoute
 }
 
-const ApiBlueprintsMeasurementRouteChildren: ApiBlueprintsMeasurementRouteChildren =
-  {
-    ApiBlueprintsMeasurementSignalsRoute: ApiBlueprintsMeasurementSignalsRoute,
-  }
+const ApiBlueprintsMeasurementRouteChildren: ApiBlueprintsMeasurementRouteChildren = {
+  ApiBlueprintsMeasurementSignalsRoute: ApiBlueprintsMeasurementSignalsRoute,
+}
 
-const ApiBlueprintsMeasurementRouteWithChildren =
-  ApiBlueprintsMeasurementRoute._addFileChildren(
-    ApiBlueprintsMeasurementRouteChildren,
-  )
+const ApiBlueprintsMeasurementRouteWithChildren = ApiBlueprintsMeasurementRoute._addFileChildren(
+  ApiBlueprintsMeasurementRouteChildren
+)
 
 interface ApiGuestEventsRouteChildren {
   ApiGuestEventsEventIdAnnouncementsRoute: typeof ApiGuestEventsEventIdAnnouncementsRoute
@@ -1486,22 +1547,21 @@ interface ApiGuestEventsRouteChildren {
 }
 
 const ApiGuestEventsRouteChildren: ApiGuestEventsRouteChildren = {
-  ApiGuestEventsEventIdAnnouncementsRoute:
-    ApiGuestEventsEventIdAnnouncementsRoute,
+  ApiGuestEventsEventIdAnnouncementsRoute: ApiGuestEventsEventIdAnnouncementsRoute,
   ApiGuestEventsEventIdRegistryRoute: ApiGuestEventsEventIdRegistryRoute,
 }
 
 const ApiGuestEventsRouteWithChildren = ApiGuestEventsRoute._addFileChildren(
-  ApiGuestEventsRouteChildren,
+  ApiGuestEventsRouteChildren
 )
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  EventRouteRoute: EventRouteRouteWithChildren,
   ProtectedRouteRoute: ProtectedRouteRouteWithChildren,
   McpRoute: McpRouteWithChildren,
   DotwellKnownSplatRoute: DotwellKnownSplatRoute,
-  DotwellKnownAppleAppSiteAssociationRoute:
-    DotwellKnownAppleAppSiteAssociationRoute,
+  DotwellKnownAppleAppSiteAssociationRoute: DotwellKnownAppleAppSiteAssociationRoute,
   AdminReportsRoute: AdminReportsRoute,
   AdminWaitlistRoute: AdminWaitlistRoute,
   ApiInvitationsRoute: ApiInvitationsRouteWithChildren,
@@ -1515,6 +1575,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiBlueprintsCatalogRoute: ApiBlueprintsCatalogRoute,
   ApiBlueprintsCopiesRoute: ApiBlueprintsCopiesRoute,
   ApiBlueprintsCreateTemplateRoute: ApiBlueprintsCreateTemplateRoute,
+  ApiBlueprintsIdeasRoute: ApiBlueprintsIdeasRoute,
   ApiBlueprintsInstallRoute: ApiBlueprintsInstallRoute,
   ApiBlueprintsLibraryRoute: ApiBlueprintsLibraryRoute,
   ApiBlueprintsMeasurementRoute: ApiBlueprintsMeasurementRouteWithChildren,
@@ -1536,8 +1597,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiSyncPullRoute: ApiSyncPullRoute,
   ApiSyncPushRoute: ApiSyncPushRoute,
   AuthPathIndexRoute: AuthPathIndexRoute,
-  ApiBlueprintsInstallationsRequestIdRoute:
-    ApiBlueprintsInstallationsRequestIdRoute,
+  ApiBlueprintsInstallationsRequestIdRoute: ApiBlueprintsInstallationsRequestIdRoute,
   ApiBlueprintsMediaActionRoute: ApiBlueprintsMediaActionRoute,
   ApiBlueprintsSharedTokenRoute: ApiBlueprintsSharedTokenRoute,
   ApiEventsEventIdAnnouncementsRoute: ApiEventsEventIdAnnouncementsRoute,
@@ -1546,6 +1606,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiMediaNativeFinalizeRoute: ApiMediaNativeFinalizeRoute,
   ApiMediaNativePrepareRoute: ApiMediaNativePrepareRoute,
   ApiMediaNativeUrlRoute: ApiMediaNativeUrlRoute,
+  InvitedEventsEventIdIndexRoute: InvitedEventsEventIdIndexRoute,
   TemplatesSharedTokenIndexRoute: TemplatesSharedTokenIndexRoute,
   ApiAuthAndroidAppleCompleteRoute: ApiAuthAndroidAppleCompleteRoute,
   ApiAuthAndroidAppleExchangeRoute: ApiAuthAndroidAppleExchangeRoute,

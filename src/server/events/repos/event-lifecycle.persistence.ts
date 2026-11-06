@@ -24,7 +24,7 @@ export function requireJoinableEvent(eventId: string) {
     // Root first, then child: match the native mutation lock order. Re-read
     // lifecycle after locking so cancellation cannot race a new admission.
     const [parent] = yield* db
-      .select({ status: event.status })
+      .select({ status: event.status, planningStatus: event.planningStatus })
       .from(event)
       .where(and(eq(event.id, scope.parent ?? eventId), isNull(event.parentEventId)))
       .limit(1)
@@ -51,6 +51,9 @@ export function requireJoinableEvent(eventId: string) {
       target.status === 'cancelled' ||
       target.planningStatus === 'cancelled' ||
       parent?.status === 'cancelled' ||
+      target.planningStatus === 'archived' ||
+      parent?.planningStatus === 'archived' ||
+      parent?.planningStatus === 'cancelled' ||
       target.status === 'finished' ||
       parent?.status === 'finished' ||
       target.completion === 'complete'

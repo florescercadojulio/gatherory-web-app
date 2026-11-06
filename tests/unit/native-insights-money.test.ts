@@ -2,11 +2,13 @@ import { describe, expect, test } from 'vitest'
 import { Effect } from 'effect'
 
 import { queryNativeWorkspaceInsights } from '@/server/sync/repos/native-insights.repo'
+import { workspacePlanningSettings } from '@/db/schema/planning.schema'
 
-function fakeDatabase(queryResults: unknown[][]) {
+function fakeDatabase(queryResults: unknown[][], selections: Array<Record<string, unknown>> = []) {
   let queryIndex = 0
   return {
-    select: () => {
+    select: (selection: Record<string, unknown>) => {
+      selections.push(selection)
       const rows = queryResults[queryIndex++] ?? []
       const queryEffect = Effect.succeed(rows)
       const executable = {
@@ -24,7 +26,7 @@ function fakeDatabase(queryResults: unknown[][]) {
   }
 }
 
-function mainEvent(budgetCap: unknown = '300') {
+function mainEvent(budgetCap: unknown = '300', overrides: Record<string, unknown> = {}) {
   const now = new Date('2026-11-01T12:00:00Z')
   return {
     id: 'root-event',
@@ -40,6 +42,8 @@ function mainEvent(budgetCap: unknown = '300') {
     status: 'ongoing',
     updatedAt: now,
     budgetCap,
+    currencyCode: null,
+    ...overrides,
   }
 }
 
@@ -85,5 +89,62 @@ describe('native workspace insight money', () => {
 
     expect(workspace.trackedCost).toBe(0.3)
     expect(workspace.budgetCap).toBe(1)
+  })
+
+  test('selects the workspace currency and preserves each root currency and exact independent totals', async () => {
+    const selections: Array<Record<string, unknown>> = []
+    const rootA = mainEvent('300', {
+      id: 'root-a',
+      organizationId: 'workspace-a',
+      currencyCode: 'USD',
+    })
+    const rootB = mainEvent('500', {
+      id: 'root-b',
+      organizationId: 'workspace-b',
+      currencyCode: 'EUR',
+    })
+    const db = fakeDatabase(
+      [
+        [rootA, rootB],
+        [
+          { id: 'child-a', parentEventId: 'root-a' },
+          { id: 'child-b', parentEventId: 'root-b' },
+        ],
+        [],
+        [],
+        [
+          { eventId: 'root-a', amount: '0.10' },
+          { eventId: 'child-a', amount: '0.20' },
+          { eventId: 'root-b', amount: '1.01' },
+          { eventId: 'child-b', amount: '2.02' },
+        ],
+      ],
+      selections
+    )
+
+    const result = await Effect.runPromise(queryNativeWorkspaceInsights(db as never, 'planner'))
+
+    expect(selections[0]?.currencyCode).toBe(workspacePlanningSettings.currencyCode)
+    expect(
+      result.workspaces.map(({ id, currencyCode, trackedCost }) => ({
+        id,
+        currencyCode,
+        trackedCost,
+      }))
+    ).toEqual([
+      { id: 'root-a', currencyCode: 'USD', trackedCost: 0.3 },
+      { id: 'root-b', currencyCode: 'EUR', trackedCost: 3.03 },
+    ])
+  })
+
+  test('returns null when planning settings have no valid currency', async () => {
+    const missing = await insightForExpenses([], undefined)
+    const invalidDb = fakeDatabase([[mainEvent('300', { currencyCode: 'US' })], [], [], [], []])
+    const invalid = (
+      await Effect.runPromise(queryNativeWorkspaceInsights(invalidDb as never, 'planner'))
+    ).workspaces[0]!
+
+    expect(missing.currencyCode).toBeNull()
+    expect(invalid.currencyCode).toBeNull()
   })
 })

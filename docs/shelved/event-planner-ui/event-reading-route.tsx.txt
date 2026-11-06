@@ -1,0 +1,88 @@
+import { createFileRoute, useRouter } from '@tanstack/react-router'
+import { CalendarDays } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
+
+import { EventReadingView, eventReadingActionError } from '@/components/events/event-reading-view'
+import { PageUnavailable, ServerErrorToast } from '@/components/route-feedback'
+import { Separator } from '@/components/ui/separator'
+import { SidebarTrigger } from '@/components/ui/sidebar'
+import { respondAsInvitedAccount } from '@/server/events/handlers/account-invited-event.handler'
+import { getEventReading } from '@/server/events/handlers/event-reading.handler'
+import {
+  completeEventTodo,
+  createEventNote,
+  updateEventDetails,
+} from '@/server/events/handlers/event-updates.handler'
+
+export const Route = createFileRoute('/_event/events/$eventId/')({
+  loader: ({ params }) => getEventReading({ data: { eventId: params.eventId } }),
+  component: EventReadingPage,
+})
+
+function EventReadingPage() {
+  const { t, i18n } = useTranslation()
+  const router = useRouter()
+  const result = Route.useLoaderData()
+
+  if (!result.ok) {
+    return (
+      <>
+        <ServerErrorToast error={result.error} />
+        <PageUnavailable
+          title={t('eventReading.eyebrow')}
+          description={result.error.userMessage}
+          onRetry={() => router.invalidate({ sync: true })}
+        />
+      </>
+    )
+  }
+
+  const event = result.data.event
+
+  return (
+    <>
+      <header className="app-toolbar">
+        <SidebarTrigger className="-ml-1 size-11 shrink-0" />
+        <Separator orientation="vertical" className="mr-2 h-4" />
+        <div className="flex min-w-0 items-center gap-2">
+          <CalendarDays className="size-4 shrink-0 text-brand-ink" />
+          <span className="truncate text-sm font-medium">{event.title}</span>
+        </div>
+      </header>
+      <EventReadingView
+        key={result.data.event.id}
+        data={result.data}
+        locale={i18n.resolvedLanguage ?? i18n.language}
+        actions={{
+          respond: async (attendance) => {
+            const response = await respondAsInvitedAccount({
+              data: { eventId: event.id, attendance },
+            })
+            if (!response.ok) throw eventReadingActionError(response.error)
+          },
+          completeTask: async ({ todoId, isCompleted, expectedVersion }) => {
+            const response = await completeEventTodo({
+              data: { eventId: event.id, todoId, isCompleted, expectedVersion },
+            })
+            if (!response.ok) throw eventReadingActionError(response.error)
+          },
+          createNote: async ({ idempotencyKey, body }) => {
+            const response = await createEventNote({
+              data: { eventId: event.id, idempotencyKey, body },
+            })
+            if (!response.ok) throw eventReadingActionError(response.error)
+          },
+          updateDetails: async ({ expectedVersion, changes }) => {
+            const response = await updateEventDetails({
+              data: { eventId: event.id, expectedVersion, changes },
+            })
+            if (!response.ok) throw eventReadingActionError(response.error)
+          },
+          reload: async () => {
+            await router.invalidate({ sync: true })
+          },
+        }}
+      />
+    </>
+  )
+}

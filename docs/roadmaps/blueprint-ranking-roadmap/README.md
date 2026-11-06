@@ -1,6 +1,6 @@
 # Blueprint discovery and community ranking
 
-**Status:** Cards, content search, actions, opt-in measurement and recommendation baseline implemented locally; offline evaluation and signal-readiness audit complete. Measurement cleanup, report v2, promotion-only baseline v2 and the personal Like candidate are implemented locally; role-aware Like tuning and broader fixture evaluation are complete. Slice 13's context-specific preview actions are implemented locally; focused native and simulator visual checks passed. The known shared-copy diagnostic improves; the fresh challenge shows no overall precision/recall gain over v1. Production usefulness remains unverified.  
+**Status:** Cards, content search, actions, opt-in measurement, recommendation baseline, and V1 public Blueprint idea discovery are implemented locally. Native All/Blueprints/Ideas browsing and Add to Event are implemented locally; the Light/Dark add-and-find UI journey and 1,181 executed native unit tests passed (1,182 registered, one opt-in live test skipped). Offline evaluation and signal-readiness audit complete. Measurement cleanup, report v2, promotion-only baseline v2 and the personal Like candidate are implemented locally; role-aware Like tuning and broader fixture evaluation are complete. Slice 13's context-specific preview actions are implemented locally; focused native and simulator visual checks passed. The known shared-copy diagnostic improves; the fresh challenge shows no overall precision/recall gain over v1. Production usefulness remains unverified; no deployment occurred.
 **Priority:** Blueprint-led discovery first; no delivery date committed.  
 **Requested:** October 22, 2026: investigate Twitter Community Notes code for
 Blueprint ranking and document suggestions using smaller Luna agents. The user
@@ -128,6 +128,31 @@ The product hierarchy and initial query relevance are implemented; initial edito
 features and later model choices remain proposals. None is an upstream default.
 
 ## Current state
+
+- The V1 individual idea API is documented in the [public Blueprint idea
+  discovery record](../../architecture/public-blueprint-idea-discovery.md).
+  `GET /api/blueprints/ideas` extracts ideas only from the authenticated
+  currently listed public catalog, ranks each idea's title/notes with the
+  existing phrase/alias/related-term/typo matcher, and binds cursors to query
+  and result snapshot. Its strict payload returns a source-scoped published
+  cover UUID only at item level, and omits storage locations, signed URLs, and
+  arbitrary configuration. The native surface is All/Blueprints/Ideas;
+  Add suggestion creates a local event idea, while scheduling remains a
+  separate explicit action. There is no standalone private/public idea
+  publishing. Native unit and Light/Dark UI verification passed. The local
+  Drizzle/Effect 4.1.1 import mismatch is fixed by the narrow reproducible pnpm
+  patch documented in the [implementation record](../../architecture/public-blueprint-idea-discovery.md).
+  After the patch, `pnpm contracts:check`, `pnpm typecheck`, and `pnpm vitest run`
+  passed (169 files; 1,012 tests passed, 46 files / 74 tests skipped). The
+  historical isolated PostgreSQL 18 attempt predates the patch and failed at
+  import before assertions; it has not been rerun. Physical-device acceptance,
+  deployed endpoint, actual CDN/R2 copy, destination media upload, and a second
+  collaborator remain outstanding; no deployment occurred.
+
+- Curated Movie Night (`movie_night`, revision 1) is registered in the web
+  source catalog and shared JSON fixture. Making it visible in a dev database
+  requires the explicit `pnpm blueprints:seed` command; no seed or deployment
+  was performed.
 
 - The accepted card direction is scan-first and title-led. The earlier local
   event/idea-highlight prototype, its projection/tests, and preview localization

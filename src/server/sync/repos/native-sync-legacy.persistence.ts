@@ -3,6 +3,7 @@ import { and, asc, eq, gt, inArray, isNull, isNotNull, sql } from 'drizzle-orm'
 import { db } from '@/db'
 import { user } from '@/db/schema/auth.schema'
 import { event, eventParticipant, workspacePerson } from '@/db/schema/event.schema'
+import { workspacePlanningSettings } from '@/db/schema/planning.schema'
 import {
   assertMcpRootMutationAccess,
   completeMcpChildCreation,
@@ -76,6 +77,113 @@ import {
 } from './scoped-event-sync.persistence'
 
 type NativeSyncTransaction = Parameters<Parameters<typeof db.transaction>[0]>[0]
+
+type NativeWorkspaceDetailChanges = {
+  title?: string
+  description?: string | null
+  locationName?: string | null
+}
+
+type TrustedWorkspaceDetailsPatch = {
+  mutationId: string
+  eventId: string
+  changes: NativeWorkspaceDetailChanges
+}
+
+function applyWorkspaceDetailFields(
+  archive: Record<string, unknown>,
+  changes: NativeWorkspaceDetailChanges
+) {
+  if (changes.title !== undefined) archive.title = changes.title
+  if (changes.description !== undefined) archive.eventMessage = changes.description ?? ''
+  if (changes.locationName !== undefined) {
+    const location =
+      archive.mainEventLocation && typeof archive.mainEventLocation === 'object'
+        ? (archive.mainEventLocation as Record<string, unknown>)
+        : {}
+    archive.mainEventLocation = {
+      ...location,
+      locationName: changes.locationName ?? '',
+      placeName: changes.locationName ?? '',
+      shortAddress: changes.locationName ?? '',
+    }
+  }
+}
+
+function requiredNativeLocationStrings(location: Record<string, unknown>) {
+  const asString = (value: unknown) => (typeof value === 'string' ? value : '')
+  return {
+    ...location,
+    address: asString(location.address),
+    shortAddress: asString(location.shortAddress),
+    placeName: asString(location.placeName),
+    locationName: asString(location.locationName),
+    addressLine2: asString(location.addressLine2),
+  }
+}
+
+function decodeWorkspacePayload(payload: string): Record<string, unknown> {
+  const value: unknown = JSON.parse(Buffer.from(payload, 'base64').toString('utf8'))
+  if (!value || typeof value !== 'object' || Array.isArray(value))
+    throw new Error('Invalid native workspace snapshot')
+  return value as Record<string, unknown>
+}
+
+async function currentWorkspaceArchiveWithDetails(
+  transaction: NativeSyncTransaction,
+  input: { eventId: string; snapshotPayload: string; changes: NativeWorkspaceDetailChanges }
+) {
+  const archive = decodeWorkspacePayload(input.snapshotPayload)
+  const [rootEvent] = await transaction
+    .select({
+      organizationId: event.organizationId,
+      locationName: event.locationName,
+      locationAddress: event.locationAddress,
+      locationAddressLine2: event.locationAddressLine2,
+      locationLatitude: event.locationLatitude,
+      locationLongitude: event.locationLongitude,
+      mapItemIdentifier: event.mapItemIdentifier,
+    })
+    .from(event)
+    .where(eq(event.id, input.eventId))
+    .limit(1)
+  if (!rootEvent) throw new Error('Root event disappeared during locked update')
+  const storedLocation =
+    archive.mainEventLocation && typeof archive.mainEventLocation === 'object'
+      ? (archive.mainEventLocation as Record<string, unknown>)
+      : {
+          locationName: rootEvent.locationName,
+          address: rootEvent.locationAddress,
+          addressLine2: rootEvent.locationAddressLine2,
+          latitude: rootEvent.locationLatitude,
+          longitude: rootEvent.locationLongitude,
+          mapItemIdentifier: rootEvent.mapItemIdentifier,
+        }
+  archive.mainEventLocation = requiredNativeLocationStrings(storedLocation)
+  applyWorkspaceDetailFields(archive, input.changes)
+  const [settings] = await transaction
+    .select({
+      currencyCode: workspacePlanningSettings.currencyCode,
+      registryShared: workspacePlanningSettings.registryShared,
+      collaboratorLinkEnabled: workspacePlanningSettings.collaboratorLinkEnabled,
+      requiresCollaboratorApproval: workspacePlanningSettings.requiresCollaboratorApproval,
+      defaultCollaboratorPermission: workspacePlanningSettings.defaultCollaboratorPermission,
+    })
+    .from(workspacePlanningSettings)
+    .where(eq(workspacePlanningSettings.organizationId, rootEvent.organizationId))
+    .limit(1)
+  if (settings) {
+    archive.currencyCode = settings.currencyCode
+    archive.isRegistryShared = settings.registryShared
+    archive.isCollaboratorLinkEnabled = settings.collaboratorLinkEnabled
+    archive.requiresCollaboratorApproval = settings.requiresCollaboratorApproval
+    archive.defaultCollaboratorPermission =
+      settings.defaultCollaboratorPermission === 'view_only'
+        ? 'viewOnly'
+        : settings.defaultCollaboratorPermission
+  }
+  return Buffer.from(JSON.stringify(archive), 'utf8').toString('base64')
+}
 
 export { pushRequestSchema } from '../contracts/native-sync.contracts'
 
@@ -392,10 +500,24 @@ export async function applyNativeMutations(input: {
   userId: string
   mutations: NativeMutation[]
   requestFingerprints?: Record<string, string>
+  /** Private server command; this narrow patch is never accepted by the native sync HTTP body. */
+  trustedWorkspaceDetailsPatch?: TrustedWorkspaceDetailsPatch
   supportsBlueprintGuides?: boolean
   supportsTodos?: boolean
   supportsBudgetAtomic?: boolean
 }) {
+  if (input.trustedWorkspaceDetailsPatch) {
+    const [onlyMutation] = input.mutations
+    if (
+      input.mutations.length !== 1 ||
+      onlyMutation?.id !== input.trustedWorkspaceDetailsPatch.mutationId ||
+      input.requestFingerprints?.[onlyMutation.id] == null
+    ) {
+      throw new Error(
+        'Trusted workspace details patches require one internally fingerprinted command'
+      )
+    }
+  }
   if (!input.userId.trim()) {
     return {
       results: input.mutations.map(
@@ -625,7 +747,49 @@ export async function applyNativeMutations(input: {
               snapshot,
             })
           } else if (mutation.entityType === 'workspace') {
-            if (!snapshot && !isDeleted && !nativeInitialWorkspaceBudgetIsValid(mutation.payload)) {
+            let workspaceMutation = mutation
+            const detailsPatch = input.trustedWorkspaceDetailsPatch
+            if (detailsPatch?.mutationId === mutation.id) {
+              if (
+                mutation.operation !== 'update' ||
+                mutation.entityID !== mutation.scopeID ||
+                detailsPatch.eventId !== mutation.scopeID ||
+                detailsPatch.eventId !== mutation.entityID ||
+                mcpFingerprint == null ||
+                Object.keys(detailsPatch.changes).length === 0 ||
+                Object.keys(detailsPatch.changes).some(
+                  (field) => !['title', 'description', 'locationName'].includes(field)
+                ) ||
+                !snapshot ||
+                snapshot.isDeleted
+              ) {
+                return reject(transaction, {
+                  userId: input.userId,
+                  mutation,
+                  failureCode: 'EVENT_SCOPE_FORBIDDEN',
+                })
+              }
+              if (mutation.baseVersion != null && mutation.baseVersion !== snapshot.serverVersion) {
+                return conflict(transaction, {
+                  userId: input.userId,
+                  mutation,
+                  serverVersion: snapshot.serverVersion,
+                })
+              }
+              workspaceMutation = {
+                ...mutation,
+                payload: await currentWorkspaceArchiveWithDetails(transaction, {
+                  eventId: detailsPatch.eventId,
+                  snapshotPayload: snapshot.payload,
+                  changes: detailsPatch.changes,
+                }),
+              }
+            }
+            if (
+              !snapshot &&
+              !isDeleted &&
+              !nativeInitialWorkspaceBudgetIsValid(workspaceMutation.payload)
+            ) {
               return recordRejectedMutation(transaction, {
                 userId: input.userId,
                 mutation,
@@ -639,7 +803,7 @@ export async function applyNativeMutations(input: {
               snapshot &&
               !isDeleted &&
               currentBudgetValues &&
-              nativeWorkspaceBudgetChanges(mutation.payload, currentBudgetValues)
+              nativeWorkspaceBudgetChanges(workspaceMutation.payload, currentBudgetValues)
             ) {
               if (
                 !(await isNativeBudgetManager(transaction, {
@@ -673,8 +837,8 @@ export async function applyNativeMutations(input: {
 
             serverVersion = (snapshot?.serverVersion ?? 0) + 1
             const blueprintMutation = snapshot
-              ? await canonicalizeBlueprintWorkspaceMutation(transaction, mutation)
-              : mutation
+              ? await canonicalizeBlueprintWorkspaceMutation(transaction, workspaceMutation)
+              : workspaceMutation
             // Full archives cannot manufacture tasks or overwrite canonical
             // task state. Dedicated versioned entity mutations own task writes.
             let canonicalMutation = blueprintMutation
@@ -1123,6 +1287,50 @@ export async function applyNativeMutations(input: {
   return {
     results: input.mutations.map((mutation) => resultsByMutationId.get(mutation.id)!),
   }
+}
+
+/**
+ * Narrow server-only event-details command. The locked transaction rebases the
+ * three allowed fields onto its current snapshot before native workspace
+ * materialization, so an unrelated entity update cannot be overwritten by a
+ * stale archive read from the caller.
+ */
+export async function applyNativeWorkspaceDetailsCommand(input: {
+  userId: string
+  eventId: string
+  mutationId: string
+  expectedVersion: number
+  changes: NativeWorkspaceDetailChanges
+  requestFingerprint: string
+}) {
+  const command: NativeMutation = {
+    id: input.mutationId,
+    scopeID: input.eventId,
+    payloadSchemaVersion: 1,
+    entityType: 'workspace',
+    entityID: input.eventId,
+    operation: 'update',
+    // This placeholder is authorization metadata only; the transaction replaces
+    // it with a patch over the currently locked native archive.
+    payload: Buffer.from(JSON.stringify({ mainEventID: input.eventId }), 'utf8').toString('base64'),
+    baseVersion: input.expectedVersion,
+    createdAt: new Date().toISOString(),
+    attemptCount: 0,
+  }
+  const { results } = await applyNativeMutations({
+    userId: input.userId,
+    mutations: [command],
+    requestFingerprints: { [command.id]: input.requestFingerprint },
+    trustedWorkspaceDetailsPatch: {
+      mutationId: command.id,
+      eventId: input.eventId,
+      changes: input.changes,
+    },
+    supportsTodos: true,
+    supportsBudgetAtomic: true,
+    supportsBlueprintGuides: true,
+  })
+  return results[0]!
 }
 
 async function recordConflictingMutation(

@@ -127,6 +127,13 @@ export function blueprintDiscovery(entry: BlueprintCatalogRevision): BlueprintDi
       summary: 'Plan your wedding, from the first venue visit to the celebration.',
     })
   }
+  if (entry.catalogKey === 'movie_night') {
+    return attachCuratedCover(entry, {
+      categories: ['events'],
+      tags: ['movie night', 'film', 'cinema', 'snacks', 'friends'],
+      summary: 'Plan a relaxed movie night with snacks, a movie pick, and a cozy place to watch.',
+    })
+  }
   // Every published starter has a browse destination, including future types.
   const categories: Record<string, BlueprintDiscovery['categories'][number]> = {
     wedding: 'weddings',
@@ -809,12 +816,45 @@ function searchRank(
   ]
 }
 
-function compareSearchRank(left: number[], right: number[]): number {
+export function compareSearchRank(left: number[], right: number[]): number {
   for (let index = 0; index < Math.max(left.length, right.length); index++) {
     const difference = (left[index] ?? 0) - (right[index] ?? 0)
     if (difference !== 0) return difference
   }
   return 0
+}
+
+/** Rank isolated authored idea content with the same aliases, related terms and
+ * single typo inference used by Blueprint discovery. The containing Blueprint
+ * title is never an independent match, avoiding parent-keyword false positives. */
+export function rankBlueprintIdeaSearch(
+  query: string,
+  items: Array<{ title: string; notes?: string }>
+): Array<number[] | undefined> {
+  const authoredWords = new Set(
+    items.flatMap(({ title, notes }) => [...searchWords(title), ...searchWords(notes ?? '')])
+  )
+  const concepts = queryConcepts(query)
+  const matchers = buildSearchTermMatchers(concepts, authoredWords)
+  return items.map(({ title, notes }) => {
+    const projection: PreparedSearchSource[] = [
+      {
+        source: { kind: 'idea-title', text: title },
+        words: searchWords(title),
+        concepts: queryConcepts(title),
+      },
+      ...(notes
+        ? [
+            {
+              source: { kind: 'idea-notes' as const, text: notes },
+              words: searchWords(notes),
+              concepts: queryConcepts(notes),
+            },
+          ]
+        : []),
+    ]
+    return searchRank(projection, concepts, query, matchers)
+  })
 }
 
 function catalogDigest(catalog: BuiltBlueprintCatalog): string {

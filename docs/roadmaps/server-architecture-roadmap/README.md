@@ -6,6 +6,13 @@ Started: October 14, 2026
 
 ## Current stopping point
 
+The November 6 schema-export follow-up separates runtime auth composition from
+Drizzle's migration inputs. Core and MCP/OAuth tables retain their own schema
+definitions; Better Auth, relational queries, and development reset use the
+complete runtime table set. The CLI-level generation regression guards duplicate
+exports. See the [wiring and verification record](../../development/schema-export-wiring-2026-11-06.md).
+This changes schema discovery and runtime imports, with no database DDL change.
+
 As of November 2, 2026, the architecture alignment follow-up is implemented for
 the newer MCP and Blueprint domains, with expanded regression guards. See the
 [alignment and acceptance record](../../development/server-architecture-alignment-2026-11-02.md).

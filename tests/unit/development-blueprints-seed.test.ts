@@ -23,6 +23,7 @@ describe('development blueprint catalog', () => {
       'wedding',
       'birthday',
       'thanksgiving',
+      'movie_night',
     ])
     expect(developmentBlueprints).toHaveLength(8)
     expect(new Set(developmentBlueprints.map((entry) => entry.catalogKey)).size).toBe(8)
