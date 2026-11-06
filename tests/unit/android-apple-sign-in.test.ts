@@ -1,5 +1,27 @@
 import { expect, test } from 'vitest'
-import { env } from '@/env'
+import { vi } from 'vitest'
+
+const persistence = vi.hoisted(() => ({
+  create: vi.fn(),
+  consume: vi.fn(),
+  remove: vi.fn(),
+  find: vi.fn(),
+}))
+
+vi.mock('@/server/auth/repos/android-apple-sign-in.repo.persistence', () => ({
+  consumeAndroidAppleVerification: persistence.consume,
+  createAndroidAppleVerification: persistence.create,
+  deleteAndroidAppleVerification: persistence.remove,
+  findActiveAndroidAppleSession: persistence.find,
+}))
+
+vi.mock('@/server/auth/handlers/android-apple-sign-in.adapter', () => ({
+  androidAppleBetterAuthUrl: () => 'https://auth.example.test',
+  androidAppleSignInEnabled: () => false,
+  getAndroidAppleSession: vi.fn(),
+  runAndroidAppleBetterAuth: vi.fn(),
+}))
+
 import {
   androidAppleSignInContract,
   handleAndroidAppleStart,
@@ -20,7 +42,6 @@ test('Android Apple bridge is fixed-origin, short-lived, and accepts only SHA-25
 })
 
 test('disabled Android Apple sign-in does not start an OAuth redirect or set browser cookies', async () => {
-  if (env.ANDROID_APPLE_SIGN_IN_ENABLED) return
   const response = await handleAndroidAppleStart(
     new Request(
       'https://app.gatherory.com/api/auth/android/apple/start?challenge=' +
@@ -28,10 +49,14 @@ test('disabled Android Apple sign-in does not start an OAuth redirect or set bro
         '&state=' +
         'b'.repeat(43) +
         '&requestSignUp=true'
-    )
+    ),
+    { enabled: false }
   )
   expect(response.status).toBe(404)
   expect(response.headers.get('location')).toBeNull()
   expect(response.headers.get('set-cookie')).toBeNull()
   expect(response.headers.get('cache-control')).toBe('no-store')
+  expect(persistence.create).not.toHaveBeenCalled()
+  expect(persistence.consume).not.toHaveBeenCalled()
+  expect(persistence.remove).not.toHaveBeenCalled()
 })

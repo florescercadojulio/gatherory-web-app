@@ -1,12 +1,20 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const sessionMocks = vi.hoisted(() => ({
+  testPassword: 'browser-guest-unit-test-password-0123456789abcdef',
   cookieHeader: '',
   request: new Request('https://app.gatherory.test/rpc'),
   stored: {} as Record<string, unknown>,
   sessionConfigs: [] as Array<Record<string, unknown>>,
   cookieWrites: [] as string[],
   throwOnUse: false,
+}))
+
+vi.mock('@/env', () => ({
+  env: {
+    BETTER_AUTH_SECRET: sessionMocks.testPassword,
+    BETTER_AUTH_URL: 'https://app.gatherory.test',
+  },
 }))
 
 vi.mock('@tanstack/react-start/server', () => ({
@@ -75,6 +83,7 @@ describe('browser guest session adapter', () => {
     expect(sessionMocks.cookieWrites).toHaveLength(1)
     expect(sessionMocks.sessionConfigs[0]).toMatchObject({
       name: '__Host-browser-guest',
+      password: sessionMocks.testPassword,
       sessionHeader: false,
       maxAge: 2_592_000,
       cookie: {
